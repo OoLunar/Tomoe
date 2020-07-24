@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config>
+    <DiscordAPIToken>NDgxMzE0MDk1NzIzODM5NTA4.XxiRkg.K1h4ZJbDnr_Rr_YpZ_QIioiUwuI</DiscordAPIToken>
+    <Postgres host="mc.forsaken-borders.net" database="tomoe" username="tomoe_discord_bot" password="MXjepXlMvhiMOtlbVkh-5LK82IbtIDp1nmSR_dnYRXr9zTfJ"></Postgres>
+</config>

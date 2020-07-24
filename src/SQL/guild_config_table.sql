@@ -1,0 +1,20 @@
+CREATE TABLE guild_configs(
+    guild_id text,
+    anti_invite boolean DEFAULT FALSE,
+    anti_everyone boolean DEFAULT FALSE,
+    anti_duplicate boolean DEFAULT FALSE,
+    allowed_invites text[],
+    max_lines int DEFAULT 0,
+    max_mentions int DEFAULT 0,
+    auto_dehoist boolean DEFAULT false,
+    auto_raidmode boolean DEFAULT true,
+    timezone text,
+    no_meme_role text,
+    mute_role text,
+    message_log text,
+    server_log text,
+    voice_log text,
+    avatar_log text,
+    ignored_channels text[],
+    administraitive_roles text[]
+);
