@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config>
+  <DiscordAPIToken>replace_with_token</DiscordAPIToken>
+  <Postgres host="replace_with_subdomain_or_ip" port="replace_with_port_number" username="replace_with_username" password="replace_with_password" database="replace_with_database_name"></Postgres>
+</config>
