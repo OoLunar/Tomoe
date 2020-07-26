@@ -3,7 +3,7 @@ using Npgsql;
 
 namespace Tomoe.Utils.Cache {
     public class SetupGuildCache {
-        private static XmlNode PostgresSettings = Program.Tokens.DocumentElement.SelectSingleNode("Postgres");
+        private static XmlNode PostgresSettings = Program.Tokens.DocumentElement.SelectSingleNode("postgres");
         //Convert to SSL mode.
         private static NpgsqlConnection Connection = new NpgsqlConnection($"Host={PostgresSettings.Attributes["host"].Value};Port={PostgresSettings.Attributes["port"].Value};Username={PostgresSettings.Attributes["username"].Value};Password={PostgresSettings.Attributes["password"].Value};Database={PostgresSettings.Attributes["database"].Value}");
         public ulong GuildID;

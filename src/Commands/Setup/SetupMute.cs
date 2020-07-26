@@ -5,7 +5,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Tomoe.Utils.Cache;
 
-namespace Tomoe.Commands.Moderation {
+namespace Tomoe.Commands.Setup {
     public class SetupMute : InteractiveBase {
         [Command("setup_mute", RunMode = RunMode.Async)]
         [RequireUserPermission(GuildPermission.Administrator)]

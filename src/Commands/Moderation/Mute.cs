@@ -62,8 +62,8 @@ namespace Tomoe.Commands.Moderation {
             string nickname = Tomoe.Utils.DiscordFunctions.GetCommonName(muteMember);
 
             //Talk proudly.
-            if (!Context.Guild.GetUser(Program.Client.CurrentUser.Id).GuildPermissions.ManageRoles) await ReplyAsync($"I'm lacking permissions to mute `{nickname}`. Specifically the `ManageRoles` permission.");
-            else if (!Context.Guild.GetUser(Context.User.Id).GuildPermissions.ManageMessages) await ReplyAsync($"You wish to mute `{nickname}`? Ha! In your dreams. You still have roles and permissions to achieve before you can start doing big actions like that. Get on my level first, then we'll see.");
+            if (!Context.Guild.GetUser(Program.Client.CurrentUser.Id).GuildPermissions.ManageRoles) await ReplyAsync(muteDialogs.GetRandomValue("lack_of_bot_perms").DialogSetParams(Context.Guild.GetUser(Context.User.Id), muteMember, null));
+            else if (!Context.Guild.GetUser(Context.User.Id).GuildPermissions.ManageMessages) await ReplyAsync(muteDialogs.GetRandomValue("lack_of_user_perms").DialogSetParams(Context.Guild.GetUser(Context.User.Id), muteMember, null));
         }
 
         [Command("mute")]

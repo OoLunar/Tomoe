@@ -25,7 +25,7 @@ namespace Tomoe {
         }
 
         public async Task MainAsync() {
-            await Client.LoginAsync(TokenType.Bot, Tokens.DocumentElement.SelectSingleNode("DiscordAPIToken").InnerText, true);
+            await Client.LoginAsync(TokenType.Bot, Tokens.DocumentElement.SelectSingleNode("discord_api_token").InnerText, true);
             await Client.SetStatusAsync(UserStatus.Idle);
             await Client.SetGameAsync("for enemies to moderate.", null, ActivityType.Watching);
             Client.Log += LoggingFunction;

@@ -36,5 +36,10 @@
         <no_mute_reason>
             <first>$issuer did not provide a reason.</first>
         </no_mute_reason>
+        <lack_of_user_perms>
+            <first>You wish to mute $victim_nick? Ha! In your dreams. You still have roles and permissions to achieve before you can start doing big actions like that. Get on my level first, then we'll see.</first>
+        </lack_of_user_perms>
+            <first>I'm lacking permissions to mute $victim_nick. Specifically the `ManageRoles` permission. All I ask is you give me the perms.</first>
+        </lack_of_bot_perms>
     </mute>
 </dialog>
