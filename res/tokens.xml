@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<config>
-  <discord_api_token>Replace with Discord token</discord_api_token>
-  <postgres host="replace with host or ip" port="replace with port" username="replace with username" password="replace with Postgres compliant password" database="replace with database name" ssl_mode="Required"></postgres>
-  <log_to_file>true</log_to_file>
-</config>
