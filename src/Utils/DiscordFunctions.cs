@@ -27,10 +27,18 @@ namespace Tomoe.Utils {
             return dict[key][randNum.Next(0, dict[key].Length)];
         }
 
-        public static string DialogSetParams(this string modifyString, IGuildUser issuer, IGuildUser victim, string reason) {
+        public static string DialogSetParams(this string modifyString, Discord.Commands.SocketCommandContext context, IGuildUser victim, string reason) {
+            IGuildUser guildIssuer = context.Guild.GetUser(context.User.Id);
             return modifyString
                 .Replace("$victim_id", victim.Id.ToString()).Replace("$victim_nick", DiscordFunctions.GetCommonName(victim)).Replace("$victim", victim.Mention)
-                .Replace("$issuer_id", issuer.Id.ToString()).Replace("$issuer_nick", DiscordFunctions.GetCommonName(issuer)).Replace("$issuer", issuer.Mention)
+                .Replace("$issuer_id", guildIssuer.Id.ToString()).Replace("$issuer_nick", DiscordFunctions.GetCommonName(guildIssuer)).Replace("$issuer", guildIssuer.Mention)
+                .Replace("$reason", string.IsNullOrEmpty(reason) ? reason : "No reason provided.").Replace("\\n", "\n").Replace("$guild_name", context.Guild.Name).Replace("$guild_id", context.Guild.Id.ToString());
+        }
+
+        public static string DialogSetParams(this string modifyString, IUser issuer, IUser victim, string reason) {
+            return modifyString
+                .Replace("$victim_id", victim.Id.ToString()).Replace("$victim", victim.Mention)
+                .Replace("$issuer_id", issuer.Id.ToString()).Replace("$issuer", issuer.Mention)
                 .Replace("$reason", string.IsNullOrEmpty(reason) ? reason : "No reason provided.").Replace("\\n", "\n");
         }
     }

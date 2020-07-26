@@ -16,6 +16,7 @@ namespace Tomoe {
             SetupTokens();
             SetupLogging();
             SetupDialog();
+            System.GC.Collect();
         }
 
         public static void SetupTokens() {
@@ -28,7 +29,7 @@ namespace Tomoe {
                 try {
                     Program.Tokens.Load(TokenFile);
                 } catch (XmlException xmlError) {
-                    Console.WriteLine($"[Init] Invalid XML. {xmlError.Message} Exiting.");
+                    Console.WriteLine($"[Init] Invalid XML on '{TokenFile}'. {xmlError.Message} Exiting.");
                     Environment.Exit(1);
                 }
             }
@@ -37,7 +38,7 @@ namespace Tomoe {
         public static void SetupLogging() {
             NpgsqlLogManager.Provider = new ConsoleLoggingProvider(NpgsqlLogLevel.Debug, true, false);
             if (!FileSystem.CreateFile(LogFile)) Console.WriteLine("[Logging] Unable to create the logging file. Everything will be logged to Console.");
-            else if (bool.Parse(Program.Tokens.DocumentElement.SelectSingleNode("log_to_file").Value) == true) {
+            else if (bool.Parse(Program.Tokens.DocumentElement.SelectSingleNode("log_to_file").InnerText) == true) {
                 StreamWriter sw = new StreamWriter(LogFile, true);
                 Console.SetError(sw);
                 Console.SetOut(sw);
@@ -53,7 +54,12 @@ namespace Tomoe {
                 Environment.Exit(1);
             }
             XmlDocument dialogs_available = new XmlDocument();
-            dialogs_available.Load(DialogFile);
+            try {
+                dialogs_available.Load(DialogFile);
+            } catch (XmlException xmlError) {
+                Console.WriteLine($"[Init] Invalid XML on '{DialogFile}'. {xmlError.Message} Exiting.");
+                Environment.Exit(1);
+            }
 
             foreach (XmlNode node in dialogs_available.DocumentElement) {
                 switch (node.Name) {
@@ -62,6 +68,13 @@ namespace Tomoe {
                             List<string> phrases = new List<string>();
                             foreach (XmlNode phrase in section.ChildNodes) phrases.Add(phrase.InnerText);
                             Program.Dialogs.Mute.Add(section.Name, phrases.ToArray());
+                        }
+                        break;
+                    case "guild_setup":
+                        foreach (XmlNode section in node) {
+                            List<string> phrases = new List<string>();
+                            foreach (XmlNode phrase in section.ChildNodes) phrases.Add(phrase.InnerText);
+                            Program.Dialogs.GuildSetup.Add(section.Name, phrases.ToArray());
                         }
                         break;
                     default:
@@ -74,5 +87,6 @@ namespace Tomoe {
 
     public class Dialog {
         public Dictionary<string, string[]> Mute = new Dictionary<string, string[]>();
+        public Dictionary<string, string[]> GuildSetup = new Dictionary<string, string[]>();
     }
 }

@@ -1,1 +1,5 @@
 res/tokens.xml
+.vscode/
+bin/
+obj/
+log/
