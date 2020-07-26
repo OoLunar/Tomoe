@@ -3,33 +3,32 @@ using Npgsql;
 
 namespace Tomoe.Utils.Cache {
     public class SetupGuildCache {
-        private static XmlNode PostgresSettings = Program.Tokens.DocumentElement.SelectSingleNode("postgres");
-        //Convert to SSL mode.
-        private static NpgsqlConnection Connection = new NpgsqlConnection($"Host={PostgresSettings.Attributes["host"].Value};Port={PostgresSettings.Attributes["port"].Value};Username={PostgresSettings.Attributes["username"].Value};Password={PostgresSettings.Attributes["password"].Value};Database={PostgresSettings.Attributes["database"].Value}");
         public ulong GuildID;
         public ulong RoleID;
         public ulong SetByUserID;
 
+        private static XmlNode postgresSettings = Program.Tokens.DocumentElement.SelectSingleNode("postgres");
+        private static NpgsqlConnection connection = new NpgsqlConnection($"Host={postgresSettings.Attributes["host"].Value};Port={postgresSettings.Attributes["port"].Value};Username={postgresSettings.Attributes["username"].Value};Password={postgresSettings.Attributes["password"].Value};Database={postgresSettings.Attributes["database"].Value};SSL Mode={postgresSettings.Attributes["ssl_mode"].Value}");
+
         public static void Store(ulong guildID) {
-            Connection.Open();
-            //TODO: Make single INSERT or UPDATE query. This is inefficient.
-            //TODO: Learn if this is really the correct way to use prepared statements.
-            NpgsqlCommand updateQuery = new NpgsqlCommand($"INSERT INTO guild_configs(guild_id) VALUES('{guildID}');", Connection);
+            //TODO: Prepared statements. Learn them. Even if it kills you.
+            connection.Open();
+            NpgsqlCommand updateQuery = new NpgsqlCommand($"INSERT INTO guild_configs(guild_id) VALUES('{guildID}');", connection);
             updateQuery.ExecuteNonQuery();
             updateQuery.Dispose();
-            Connection.Close();
+            connection.Close();
         }
 
         public static ulong? Get(ulong guildID) {
-            Connection.Open();
-            NpgsqlDataReader isMutedRolePresent = new NpgsqlCommand($"SELECT guild_id FROM guild_configs WHERE guild_id='{guildID}';", Connection).ExecuteReader();
+            connection.Open();
+            NpgsqlDataReader isMutedRolePresent = new NpgsqlCommand($"SELECT guild_id FROM guild_configs WHERE guild_id='{guildID}';", connection).ExecuteReader();
             isMutedRolePresent.Read();
             System.Console.WriteLine("Here 1");
             string queryResult = " ";
             if (isMutedRolePresent.HasRows) queryResult = isMutedRolePresent[0].ToString().Trim();
             System.Console.WriteLine("Here 2");
             isMutedRolePresent.Close();
-            Connection.Close();
+            connection.Close();
             if (!string.IsNullOrWhiteSpace(queryResult)) {
                 return ulong.Parse(queryResult);
             } else return null;
