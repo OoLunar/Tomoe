@@ -1,19 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    Format is so:
+        Command
+            Section
+                Responses
+    I.E
+        mute
+            hierarchy_error
+                "I lack the required power to mute $victim."
+
+    You can add however many responses as you like. Tomoe loops through all the section's children, and adds them to an array.
+    A random element will be picked from the array, and sent as the response.
+    All elements must start with a letter, not any numbers or symbols.
+    All previously defined elements are snake_case.
+-->
 <dialog>
     <mute>
         <hierarchy_error>
-            <1>I lack the required power to mute $victim.</1>
-            <2>I wouldn't dare mute one of my masters.</2>
-            <3>I refuse. It's taboo is mute someone more important than myself.</3>
+            <first>I lack the required power to mute $victim.</first>
+            <second>I wouldn't dare mute one of my masters.</second>
+            <third>I refuse. It's taboo is mute someone more important than myself.</third>
         </hierarchy_error>
         <failed_self_mute>
-            <1>I lack the required power to mute you. My deepest apologies.</1>
-            <2>Your role is much too important to abondon. I'm regret to inform that I cannot mute you.</2>
+            <first>I lack the required power to mute you. My deepest apologies.</first>
+            <second>Your role is much too important to abondon. I'm regret to inform that I cannot mute you.</second>
         </failed_self_mute>
-        <success>
-            <1>$victim ($victim_id) has been muted as requested. Reason: ```$reason```</1>
-            <2>I promise that $victim ($victim_id) will speak in here no more. They've been muted for: ```$reason```</2>
-            <3>Be silent $victim ($victim_id)! You're bothering $author_nick with all of your tomfoolery! ```$reason```</3>
-        </success>
+        <success_victim>
+            <first>$victim ($victim_id) has been muted as requested. Reason:\n> $reason</first>
+            <second>I promise that $victim ($victim_id) will speak in here no more. They've been muted for:\n> $reason</second>
+            <third>Be silent $victim ($victim_id)! You're bothering $issuer_nick with all of your tomfoolery!\n> $reason</third>
+        </success_victim>
+        <success_issuer>
+            <first>I have self muted you like you asked. Reason:\n> $reason</first>
+        </success_issuer>
+        <no_mute_reason>
+            <first>$issuer did not provide a reason.</first>
+        </no_mute_reason>
     </mute>
 </dialog>

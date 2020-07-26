@@ -1,12 +1,10 @@
-using System.Text.RegularExpressions;
 using System.Xml;
 using Npgsql;
 
 namespace Tomoe.Utils.Cache {
     public class MutedRole {
-        private static XmlNode PostgresSettings = Program.tokens.DocumentElement.SelectSingleNode("Postgres");
-        //Convert to SSL mode.
-        private static NpgsqlConnection Connection = new NpgsqlConnection($"Host={PostgresSettings.Attributes["host"].Value};Username={PostgresSettings.Attributes["username"].Value};Password={PostgresSettings.Attributes["password"].Value};Database={PostgresSettings.Attributes["database"].Value}");
+        private static XmlNode PostgresSettings = Program.Tokens.DocumentElement.SelectSingleNode("Postgres");
+        private static NpgsqlConnection Connection = new NpgsqlConnection($"Host={PostgresSettings.Attributes["host"].Value};Port={PostgresSettings.Attributes["port"].Value};Username={PostgresSettings.Attributes["username"].Value};Password={PostgresSettings.Attributes["password"].Value};Database={PostgresSettings.Attributes["database"].Value};SSL Mode={PostgresSettings.Attributes["ssl_mode"].Value}");
         public ulong GuildID;
         public ulong RoleID;
         public ulong SetByUserID;
@@ -31,7 +29,10 @@ namespace Tomoe.Utils.Cache {
             Connection.Open();
             NpgsqlDataReader isMutedRolePresent = new NpgsqlCommand($"SELECT mute_role FROM guild_configs WHERE guild_id='{guildID}';", Connection).ExecuteReader();
             isMutedRolePresent.Read();
-            string queryResult = isMutedRolePresent[0].ToString().Trim();
+            System.Console.WriteLine("Here 1");
+            string queryResult = " ";
+            if (isMutedRolePresent.HasRows) queryResult = isMutedRolePresent[0].ToString().Trim();
+            System.Console.WriteLine("Here 2");
             isMutedRolePresent.Close();
             Connection.Close();
             if (!string.IsNullOrWhiteSpace(queryResult)) {
