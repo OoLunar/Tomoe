@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -8,6 +8,7 @@ using Discord.Addons.Interactive;
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
+using Tomoe.Utils.Cache;
 
 namespace Tomoe {
     class Program {
@@ -15,6 +16,7 @@ namespace Tomoe {
         public static DiscordSocketClient Client = new DiscordSocketClient();
         public static string ProjectRoot = Path.GetFullPath("../../../../", System.AppDomain.CurrentDomain.BaseDirectory).Replace('\\', '/');
         public static Dialog Dialogs = new Dialog();
+        public static PreparedStatements PreparedStatements;
 
         private CommandService commands;
         private IServiceProvider services;

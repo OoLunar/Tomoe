@@ -15,6 +15,7 @@ namespace Tomoe {
         public Init() {
             SetupTokens();
             SetupLogging();
+            SetupDatabase();
             SetupDialog();
             System.GC.Collect();
         }
@@ -36,13 +37,15 @@ namespace Tomoe {
         }
 
         public static void SetupLogging() {
-            NpgsqlLogManager.Provider = new ConsoleLoggingProvider(NpgsqlLogLevel.Debug, true, false);
+            NpgsqlLogManager.Provider = new ConsoleLoggingProvider(NpgsqlLogLevel.Trace, true, false);
             if (!FileSystem.CreateFile(logFile)) Console.WriteLine("[Logging] Unable to create the logging file. Everything will be logged to Console.");
             else if (bool.Parse(Program.Tokens.DocumentElement.SelectSingleNode("log_to_file").InnerText) == true) {
+                /*
                 StreamWriter sw = new StreamWriter(logFile, true);
                 Console.SetError(sw);
                 Console.SetOut(sw);
                 sw.AutoFlush = true;
+                */
             } else {
                 Console.WriteLine($"[Logging] 'log_to_file' option in '{tokenFile}' is set to false. Everything will be logged to Console.");
             }
@@ -62,31 +65,33 @@ namespace Tomoe {
             }
 
             foreach (XmlNode node in dialogs_available.DocumentElement) {
-                switch (node.Name) {
-                    case "mute":
-                        foreach (XmlNode section in node) {
-                            List<string> phrases = new List<string>();
-                            foreach (XmlNode phrase in section.ChildNodes) phrases.Add(phrase.InnerText);
-                            Program.Dialogs.Mute.Add(section.Name, phrases.ToArray());
-                        }
-                        break;
-                    case "guild_setup":
-                        foreach (XmlNode section in node) {
-                            List<string> phrases = new List<string>();
-                            foreach (XmlNode phrase in section.ChildNodes) phrases.Add(phrase.InnerText);
-                            Program.Dialogs.GuildSetup.Add(section.Name, phrases.ToArray());
-                        }
-                        break;
-                    default:
-                        Console.WriteLine($"[Dialog] Unknown Section '{node.Name}' in '{dialogFile}'... Skipping.");
-                        break;
+                if (Array.IndexOf(Dialog.loadCategories, node.Name) >= 0) {
+                    foreach (XmlNode section in node) {
+                        List<string> phrases = new List<string>();
+                        foreach (XmlNode phrase in section.ChildNodes) phrases.Add(phrase.InnerText);
+                        Program.Dialogs.Add(node.Name, section.Name, phrases.ToArray());
+                    }
+                } else {
+                    Console.WriteLine($"[Dialog] Unknown Section '{node.Name}' in '{dialogFile}'... Skipping.");
                 }
             }
         }
-    }
 
-    public class Dialog {
-        public Dictionary<string, string[]> Mute = new Dictionary<string, string[]>();
-        public Dictionary<string, string[]> GuildSetup = new Dictionary<string, string[]>();
+        public static void SetupDatabase() {
+            Tomoe.Utils.Cache.PreparedStatements.TestConnection();
+            Program.PreparedStatements = new Utils.Cache.PreparedStatements();
+        }
+    }
+}
+
+public class Dialog {
+    public static string[] loadCategories = { "mute", "guild_setup" };
+    public Dictionary<string, string[]> Mute = new Dictionary<string, string[]>();
+    public Dictionary<string, string[]> GuildSetup = new Dictionary<string, string[]>();
+
+    public void Add(string categoryName, string sectionName, string[] phrases) {
+        if (categoryName == "mute") Mute.Add(sectionName, phrases);
+        else if (categoryName == "guild_setup") GuildSetup.Add(sectionName, phrases);
+        else Console.WriteLine("[Dialog] Attempted to add category that doesn't exist. Ignoring.");
     }
 }

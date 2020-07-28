@@ -1,4 +1,3 @@
-using System.Xml;
 using Npgsql;
 
 namespace Tomoe.Utils.Cache {
@@ -7,9 +6,6 @@ namespace Tomoe.Utils.Cache {
         public ulong RoleID;
         public ulong SetByUserID;
 
-        private static XmlNode postgresSettings = Program.Tokens.DocumentElement.SelectSingleNode("postgres");
-        private static NpgsqlConnection connection = new NpgsqlConnection($"Host={postgresSettings.Attributes["host"].Value};Port={postgresSettings.Attributes["port"].Value};Username={postgresSettings.Attributes["username"].Value};Password={postgresSettings.Attributes["password"].Value};Database={postgresSettings.Attributes["database"].Value};SSL Mode={postgresSettings.Attributes["ssl_mode"].Value}");
-
         public MutedRole(ulong roleID, ulong guildID, ulong setByUserID) {
             RoleID = roleID;
             GuildID = guildID;
@@ -17,24 +13,21 @@ namespace Tomoe.Utils.Cache {
         }
 
         public static void Store(ulong guildID, ulong roleID, ulong userID) {
-            //TODO: Prepared statements. Learn them. Even if it kills you.
-            connection.Open();
-            NpgsqlCommand updateQuery = new NpgsqlCommand($"UPDATE guild_configs SET mute_role='{roleID},{userID}' WHERE guild_id='{guildID}';", connection);
-            updateQuery.ExecuteNonQuery();
-            updateQuery.Dispose();
-            connection.Close();
+            PreparedStatements.Query muteRole = Program.PreparedStatements.Statements[PreparedStatements.IndexedCommands.SetupMuteRole];
+            muteRole.Parameters["guildID"].Value = guildID.ToString();
+            muteRole.Parameters["roleID"].Value = roleID.ToString();
+            muteRole.Parameters["userID"].Value = userID.ToString();
+            muteRole.Command.ExecuteNonQuery();
         }
 
         public static MutedRole Get(ulong guildID) {
-            connection.Open();
-            NpgsqlDataReader isMutedRolePresent = new NpgsqlCommand($"SELECT mute_role FROM guild_configs WHERE guild_id='{guildID}';", connection).ExecuteReader();
+            PreparedStatements.Query muteRole = Program.PreparedStatements.Statements[PreparedStatements.IndexedCommands.GetMuteRole];
+            muteRole.Parameters["guildID"].Value = guildID;
+            foreach (NpgsqlStatement stmt in muteRole.Command.Statements) System.Console.WriteLine(stmt.InputParameters[0].Value);
+            NpgsqlDataReader isMutedRolePresent = muteRole.Command.ExecuteReader();
             isMutedRolePresent.Read();
-            System.Console.WriteLine("Here 1");
-            string queryResult = " ";
+            string queryResult = null;
             if (isMutedRolePresent.HasRows) queryResult = isMutedRolePresent[0].ToString().Trim();
-            System.Console.WriteLine("Here 2");
-            isMutedRolePresent.Close();
-            connection.Close();
             if (!string.IsNullOrWhiteSpace(queryResult)) {
                 string[] mutedRoleInfo = queryResult.ToString().Split(',');
                 ulong roleID = ulong.Parse(mutedRoleInfo[0]);
