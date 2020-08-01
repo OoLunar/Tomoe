@@ -13,6 +13,7 @@ namespace Tomoe {
         private static string dialogFile = Path.Combine(Program.ProjectRoot, "res/dialog.xml");
 
         public Init() {
+            System.Console.WriteLine("[Program] Starting...");
             SetupTokens();
             SetupLogging();
             SetupDatabase();
