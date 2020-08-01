@@ -19,14 +19,14 @@ namespace Tomoe.Commands.Setup {
         /// </code>
         /// </para>
         /// </summary>
-        [Command("setup guild", RunMode = RunMode.Async)]
+        [Command("setup_guild", RunMode = RunMode.Async)]
         [RequireUserPermission(GuildPermission.Administrator)]
         public async Task Admin() {
             if (SetupGuild.Get(Context.Guild.Id) != null) {
-                await ReplyAsync(setupGuildDialog.GetRandomValue("already_setup"));
+                await ReplyAsync(setupGuildDialog.GetRandomValue("already_setup").DialogSetParams(Context));
             } else {
                 SetupGuild.Store(Context.Guild.Id);
-                await ReplyAsync(setupGuildDialog.GetRandomValue("setup_complete"));
+                await ReplyAsync(setupGuildDialog.GetRandomValue("setup_complete").DialogSetParams(Context));
             }
         }
 

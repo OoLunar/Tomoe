@@ -13,7 +13,7 @@ using Tomoe.Utils.Cache;
 namespace Tomoe {
     class Program {
         public static XmlDocument Tokens = new XmlDocument();
-        public static DiscordSocketClient Client = new DiscordSocketClient();
+        public static DiscordSocketClient Client = new DiscordSocketClient(new DiscordSocketConfig { LogLevel = LogSeverity.Info });
         public static string ProjectRoot = Path.GetFullPath("../../../../", System.AppDomain.CurrentDomain.BaseDirectory).Replace('\\', '/');
         public static Dialog Dialogs = new Dialog();
         public static PreparedStatements PreparedStatements;

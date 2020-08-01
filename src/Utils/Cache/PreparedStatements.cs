@@ -48,10 +48,9 @@ namespace Tomoe.Utils.Cache {
             Statements.Add(IndexedCommands.GetMuteRole, getMuteRole);
 
             Query setupMuteRole = new Query();
-            setupMuteRole.Command = new NpgsqlCommand("UPDATE guild_configs SET mute_role='@roleID,@userID' WHERE guild_id=@guildID;", connection);
+            setupMuteRole.Command = new NpgsqlCommand("UPDATE guild_configs SET mute_role=@muteInfo WHERE guild_id=@guildID;", connection);
             setupMuteRole.Parameters = new Dictionary<string, NpgsqlParameter>();
-            setupMuteRole.Parameters.Add("roleID", setupMuteRole.Command.Parameters.Add("roleID", NpgsqlTypes.NpgsqlDbType.Text));
-            setupMuteRole.Parameters.Add("userID", setupMuteRole.Command.Parameters.Add("userID", NpgsqlTypes.NpgsqlDbType.Text));
+            setupMuteRole.Parameters.Add("muteInfo", setupMuteRole.Command.Parameters.Add("muteInfo", NpgsqlTypes.NpgsqlDbType.Text));
             setupMuteRole.Parameters.Add("guildID", setupMuteRole.Command.Parameters.Add("guildID", NpgsqlTypes.NpgsqlDbType.Text));
             setupMuteRole.Command.Prepare();
             Statements.Add(IndexedCommands.SetupMuteRole, setupMuteRole);

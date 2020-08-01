@@ -24,6 +24,15 @@
             <first>$guild_name has been successfully setup.</first>
         </setup_complete>
     </guild_setup>
+
+    <mute_setup>
+        <is_setup>
+            <first>> Mute role ($role) was already setup by $administrator</first>
+        </is_setup>
+        <not_setup>
+            <first>Mute role is not setup.</first>
+        </not_setup>
+    </mute_setup>
     
     <mute>
         <hierarchy_error>

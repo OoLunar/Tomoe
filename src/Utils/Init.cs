@@ -37,15 +37,13 @@ namespace Tomoe {
         }
 
         public static void SetupLogging() {
-            NpgsqlLogManager.Provider = new ConsoleLoggingProvider(NpgsqlLogLevel.Trace, true, false);
+            NpgsqlLogManager.Provider = new ConsoleLoggingProvider(NpgsqlLogLevel.Warn, true, false);
             if (!FileSystem.CreateFile(logFile)) Console.WriteLine("[Logging] Unable to create the logging file. Everything will be logged to Console.");
             else if (bool.Parse(Program.Tokens.DocumentElement.SelectSingleNode("log_to_file").InnerText) == true) {
-                /*
                 StreamWriter sw = new StreamWriter(logFile, true);
                 Console.SetError(sw);
                 Console.SetOut(sw);
                 sw.AutoFlush = true;
-                */
             } else {
                 Console.WriteLine($"[Logging] 'log_to_file' option in '{tokenFile}' is set to false. Everything will be logged to Console.");
             }
@@ -85,13 +83,15 @@ namespace Tomoe {
 }
 
 public class Dialog {
-    public static string[] loadCategories = { "mute", "guild_setup" };
+    public static string[] loadCategories = { "mute", "guild_setup", "mute_setup" };
     public Dictionary<string, string[]> Mute = new Dictionary<string, string[]>();
+    public Dictionary<string, string[]> MuteSetup = new Dictionary<string, string[]>();
     public Dictionary<string, string[]> GuildSetup = new Dictionary<string, string[]>();
 
     public void Add(string categoryName, string sectionName, string[] phrases) {
         if (categoryName == "mute") Mute.Add(sectionName, phrases);
         else if (categoryName == "guild_setup") GuildSetup.Add(sectionName, phrases);
+        else if (categoryName == "mute_setup") MuteSetup.Add(sectionName, phrases);
         else Console.WriteLine("[Dialog] Attempted to add category that doesn't exist. Ignoring.");
     }
 }
