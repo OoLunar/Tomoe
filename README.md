@@ -30,8 +30,8 @@ As of this minute, Tomoe can do the following commands:
 | Command | Syntax | Params | Definition |
 |:-:|:-:|:-:|:-:|
 | setup_guild | >>setup_guild | N/A | Registers the guild into the database. |
-| setup_mute | >>setup_mute [Role] | [Role] = Mentioned Role \| Role ID | Sets up the mute role for HardMute and SoftMute |
-| hard_mute | >>hard_mute [User] | [User] = Mentioned User\| User ID | Mutes the user permanently until staff unmute them. |
+| setup_mute | >>setup_mute [Role] | [Role] = Mentioned Role / Role ID | Sets up the mute role for HardMute and SoftMute |
+| hard_mute | >>hard_mute [User] | [User] = Mentioned User / User ID | Mutes the user permanently until staff unmute them. |
 
 Some might have noticed that all commands are snake case. This is best for simplicity and consistancy.
 
