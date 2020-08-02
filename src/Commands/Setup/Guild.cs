@@ -23,16 +23,16 @@ namespace Tomoe.Commands.Setup {
         [RequireUserPermission(GuildPermission.Administrator)]
         public async Task Admin() {
             if (SetupGuild.Get(Context.Guild.Id) != null) {
-                await ReplyAsync(setupGuildDialog.GetRandomValue("already_setup").DialogSetParams(Context));
+                await ReplyAsync(setupGuildDialog.GetRandomValue("is_setup").DialogSetParams(Context));
             } else {
                 SetupGuild.Store(Context.Guild.Id);
-                await ReplyAsync(setupGuildDialog.GetRandomValue("setup_complete").DialogSetParams(Context));
+                await ReplyAsync(setupGuildDialog.GetRandomValue("success_setup").DialogSetParams(Context));
             }
         }
 
         [Command("setup guild", RunMode = RunMode.Async)]
         public async Task NoPerms() {
-            await ReplyAsync(setupGuildDialog.GetRandomValue("lack_of_perms"));
+            await ReplyAsync(setupGuildDialog.GetRandomValue("failed_perms"));
         }
     }
 }

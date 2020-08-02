@@ -84,13 +84,15 @@ namespace Tomoe {
 }
 
 public class Dialog {
-    public static string[] loadCategories = { "mute", "guild_setup", "mute_setup" };
+    public static string[] loadCategories = { "mute", "kick", "guild_setup", "mute_setup" };
     public Dictionary<string, string[]> Mute = new Dictionary<string, string[]>();
+    public Dictionary<string, string[]> Kick = new Dictionary<string, string[]>();
     public Dictionary<string, string[]> MuteSetup = new Dictionary<string, string[]>();
     public Dictionary<string, string[]> GuildSetup = new Dictionary<string, string[]>();
 
     public void Add(string categoryName, string sectionName, string[] phrases) {
         if (categoryName == "mute") Mute.Add(sectionName, phrases);
+        else if (categoryName == "kick") Kick.Add(sectionName, phrases);
         else if (categoryName == "guild_setup") GuildSetup.Add(sectionName, phrases);
         else if (categoryName == "mute_setup") MuteSetup.Add(sectionName, phrases);
         else Console.WriteLine("[Dialog] Attempted to add category that doesn't exist. Ignoring.");
