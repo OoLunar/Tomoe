@@ -1,0 +1,224 @@
+{
+    "embed": {
+        "dm": {
+            "ban": {
+                "author": "$issuer",
+                "color": "#bb0000",
+                "description": "You were banned by $issuer (`$issuer_id`).\n**Reason:** $reason",
+                "footer": "$null",
+                "set_time": true,
+                "thumbnail_url": "https://files.forsaken-borders.net/tomoe/icons/moderation/Ban.png",
+                "title": "**Banned** From **$guild_name** (`$guild_id`)"
+            },
+            "default": {
+                "author": "$issuer",
+                "color": "#bb0000",
+                "description": "You were $past_action by $issuer (`$issuer_id`).\n**Reason:** $reason",
+                "footer": "$null",
+                "set_time": true,
+                "thumbnail_url": "https://files.forsaken-borders.net/tomoe/icons/moderation/$action.png",
+                "title": "**$past_action** From **$guild_name** (`$guild_id`)"
+            },
+            "kick": {
+                "author": "$issuer",
+                "color": "#bb0000",
+                "description": "You were kicked by $issuer (`$issuer_id`).\n**Reason:** $reason",
+                "footer": "$null",
+                "set_time": true,
+                "thumbnail_url": "https://files.forsaken-borders.net/tomoe/icons/moderation/Kick.png",
+                "title": "**Kicked** From **$guild_name** (`$guild_id`)"
+            },
+            "mute": {
+                "author": "$issuer",
+                "color": "#bb0000",
+                "description": "You were muted by $issuer (`$issuer_id`).\n**Reason:** $reason",
+                "footer": "$null",
+                "set_time": true,
+                "thumbnail_url": "https://files.forsaken-borders.net/tomoe/icons/moderation/Mute.png",
+                "title": "**Muted** From **$guild_name** (`$guild_id`)"
+            },
+            "no_meme": {
+                "author": "$issuer",
+                "color": "#bb0000",
+                "description": "You were no memed by $issuer (`$issuer_id`).\n**Reason:** $reason",
+                "footer": "A no meme means you can only send and recieve messages. You can't add reactions, send embeds, upload files",
+                "set_time": true,
+                "thumbnail_url": "https://files.forsaken-borders.net/tomoe/icons/moderation/NoMeme.png",
+                "title": "**No Memed** From **$guild_name** (`$guild_id`)"
+            },
+            "strike": {
+                "author": "$issuer",
+                "color": "#bb0000",
+                "description": "You were given a strike by $issuer (`$issuer_id`).\n**Reason:** $reason",
+                "footer": "$null",
+                "set_time": true,
+                "thumbnail_url": "https://files.forsaken-borders.net/tomoe/icons/moderation/Strike.png",
+                "title": "**Striked** From **$guild_name** (`$guild_id`)"
+            },
+            "temp_ban": {
+                "author": "$issuer",
+                "color": "#bb0000",
+                "description": "You are temporarily banned from $guild_name (`$guild_id`) by $issuer (`$issuer_id`).\n**Reason:** $reason",
+                "footer": "The ban will be removed in: $time",
+                "set_time": true,
+                "thumbnail_url": "https://files.forsaken-borders.net/tomoe/icons/moderation/TempBan.png",
+                "title": "**Temporarily Banned** From **$guild_name** (`$guild_id`)"
+            },
+            "temp_mute": {
+                "author": "$issuer",
+                "color": "#bb0000",
+                "description": "You are temporarily banned from $guild_name (`$guild_id`) by $issuer (`$issuer_id`).\n**Reason:** $reason",
+                "footer": "The mute will be removed in: $time",
+                "set_time": true,
+                "thumbnail_url": "https://files.forsaken-borders.net/tomoe/icons/moderation/TempMute.png",
+                "title": "**Temporarily Muted** In **$guild_name** (`$guild_id`)"
+            },
+            "temp_no_meme": {
+                "author": "$issuer",
+                "color": "#bb0000",
+                "description": "You have been temporarily no memed from $guild_name (`$guild_id`) by $issuer (`$issuer_id`).\n**Reason:** $reason",
+                "footer": "The no meme will be removed in: $time\nA no meme means you can only send and recieve messages. You can't add reactions, send embeds, upload files",
+                "set_time": true,
+                "thumbnail_url": "https://files.forsaken-borders.net/tomoe/icons/moderation/TempMute.png",
+                "title": "**Temporarily No Memed** In **$guild_name** (`$guild_id`)"
+            },
+            "un_ban": {
+                "author": "$issuer",
+                "color": "#bb0000",
+                "description": "Your ban from **guild_name** has been removed. Feel free to rejoin if you have an invite.",
+                "footer": "$null",
+                "set_time": true,
+                "thumbnail_url": "https://files.forsaken-borders.net/tomoe/icons/moderation/TempMute.png",
+                "title": "**Unbanned** From **$guild_name** (`$guild_id`)"
+            },
+            "un_mute": {
+                "author": "$issuer",
+                "color": "#bb0000",
+                "description": "Your mute from **guild_name** has been removed. You may now talk again.",
+                "footer": "$null",
+                "set_time": true,
+                "thumbnail_url": "https://files.forsaken-borders.net/tomoe/icons/moderation/TempMute.png",
+                "title": "**Unmuted** From **$guild_name** (`$guild_id`)"
+            },
+            "un_no_meme": {
+                "author": "$issuer",
+                "color": "#bb0000",
+                "description": "Your no meme from **guild_name** has been removed.",
+                "footer": "$null",
+                "set_time": true,
+                "thumbnail_url": "https://files.forsaken-borders.net/tomoe/icons/moderation/TempMute.png",
+                "title": "Your **No Meme** Has Been Removed From **$guild_name** (`$guild_id`)"
+            }
+        }
+    },
+    "format": {
+        "action": {
+            "ban": false,
+            "default": false,
+            "kick": false,
+            "mute": false,
+            "no_meme": false,
+            "strike": false,
+            "temp_ban": false,
+            "temp_mute": false,
+            "temp_no_meme": false,
+            "un_ban": false,
+            "un_mute": false,
+            "un_no_meme": false
+        },
+        "dm": {
+            "ban": true,
+            "default": true,
+            "kick": true,
+            "mute": true,
+            "no_meme": true,
+            "strike": true,
+            "temp_ban": true,
+            "temp_mute": true,
+            "temp_no_meme": true,
+            "un_ban": false,
+            "un_mute": false,
+            "un_no_meme": false
+        }
+    },
+    "message": {
+        "action": {
+            "ban": "$issuer_nick: $victim (`$victim_id`) has successfully been banned.\nReason: $reason",
+            "default": "$issuer_nick: $victim (`$victim_id`) has successfully been $action.\nReason: $reason",
+            "kick": "$issuer_nick: $victim (`$victim_id`) has successfully been kicked.\nReason: $reason",
+            "mute": "$issuer_nick: $victim (`$victim_id`) has successfully been muted.\nReason: $reason",
+            "no_meme": "$issuer_nick: $victim (`$victim_id`) has successfully been no memed.\nReason: $reason",
+            "strike": "$issuer_nick: $victim (`$victim_id`) has been given a strike. This is strike #$strike_count.\nReason: $reason",
+            "temp_ban": "$issuer_nick: $victim (`$victim_id`) has been temporarily banned for $time.\nReason: $reason",
+            "temp_mute": "$issuer_nick: $victim (`$victim_id`) has been temporarily muted for $time.\nReason: $reason",
+            "temp_no_meme": "$issuer_nick: $victim (`$victim_id`) has been temporarily no memed for $time.\nReason: $reason",
+            "un_ban": "$issuer_nick: $victim (`$victim_id`) has been unbanned.\nReason: $reason",
+            "un_mute": "$issuer_nick: $victim (`$victim_id`) has been unmuted.\nReason: $reason",
+            "un_no_meme": "$issuer_nick: $victim (`$victim_id`) no meme has been removed.\nReason: $reason"
+        },
+        "dm": {
+            "ban": "You've been banned from $guild_name (`$guild_id`) permanently. Staff Member: $issuer (`$issuer_id`).\nReason: $reason",
+            "default": "You've been $action from $guild_name (`$guild_id`). Staff Member: $issuer (`$issuer_id`).\nReason: $reason",
+            "kick": "You've been kicked from $guild_name (`$guild_id`). Staff Member: $issuer (`$issuer_id`).\nReason: $reason",
+            "mute": "You've been muted from $guild_name (`$guild_id`). Staff Member: $issuer (`$issuer_id`).\nReason: $reason",
+            "no_meme": "You've been no memed from $guild_name (`$guild_id`). Staff Member: $issuer (`$issuer_id`).\nReason: $reason\nWhat's a no meme? A no meme doesn't allow you to add reactions, send files or allow embeds.",
+            "strike": "You've been striked in $guild_name (`$guild_id`). Staff Member: $issuer (`$issuer_id`).\nReason: $reason",
+            "temp_ban": "You've been temporarily banned from $guild_name (`$guild_id`). Staff Member: $issuer (`$issuer_id`).\nReason: $reason\nTime until unban: $time",
+            "temp_mute": "You've been temporarily muted from $guild_name (`$guild_id`). Staff Member: $issuer (`$issuer_id`).\nReason: $reason\nTime until unmute: $time",
+            "temp_no_meme": "You've been temporarily no memed from $guild_name (`$guild_id`). Staff Member: $issuer (`$issuer_id`).\nReason: $reason\nTime until unban: $time\nWhat's a no meme? A no meme doesn't allow you to add reactions, send files or allow embeds.",
+            "un_ban": "You've been unbanned from $guild_name (`$guild_id`). Unbanned by Staff Member: $issuer (`$issuer_id`).\nReason: $reason",
+            "un_mute": "You've been unmuted from $guild_name (`$guild_id`). Unmuted by Staff Member: $issuer (`$issuer_id`).\nReason: $reason",
+            "un_no_meme": "Your no meme has been removed from $guild_name (`$guild_id`). Staff Member: $issuer (`$issuer_id`).\nReason: $reason"
+        },
+        "errors": {
+            "exit": "$issuer_nick: Exiting.",
+            "failed_hierarchy_error": "$issuer: I cannot `$action` $victim due to hierarchy.",
+            "failed_in_dm": "$issuer: You cannot use `$action` in DM's.",
+            "failed_self_bot": "$issuer: I refuse to `$action` myself.",
+            "failed_to_dm": "$issuer: I couldn't send them a DM, however they were $past_action.\nReason: $reason",
+            "no_bot_perms": "$issuer: I'm missing the `$required_guild_permission` to `$action`.",
+            "no_everyone_role": "$issuer: $old_role_id cannot be used as that's the `@everyone` role.",
+            "no_reason": "No reason was provided for the `$action`.",
+            "no_user_perms": "$issuer: You're missing the `$required_guild_permission` guild permission to `$action`.",
+            "non_existing_role": "$issuer: You cannot create use $user_arg[0] as the role because it does not exist.",
+            "not_in_guild": "$issuer: I cannot $action $victim ($victim_id) as they are no longer in the guild.",
+            "user_not_banned": "$issuer: $victim isn't banned on $guild_name.",
+            "user_already_banned": "$issuer_nick: $victim is already banned."
+        },
+        "events": {
+            "message_updated": "$timestamp UTC **$issuer_username#$issuer_discriminator** (`$issuer_id`) edited their message (`$message_id`) in $channel: ```diff\n- $old_message\n+ $new_message\n```",
+            "message_deleted": "$timestamp UTC **$issuer_username#$issuer_discriminator** (`$issuer_id`) deleted their message in $channel: ```diff\n$old_message\n```"
+        },
+        "setup": {
+            "guild": {
+                "already_setup": "$issuer_nick: $guild_name is already setup.",
+                "failed_user_permissions": "$issuer: You're missing the `Manage Guild` permission.",
+                "success_setup": "$issuer_nick: $guild_name has been successfully setup."
+            },
+            "mute": {
+                "already_setup": "$issuer: $guild_name has already setup the mute role: $old_role_id",
+                "corrected_permissions": "$issuer_nick: Permissions for $old_role_id has been fixed.",
+                "exit": "$issuer_nick: Exiting.",
+                "failed_bot_permissions": "$issuer: I'm missing the `Create Roles` permission.",
+                "failed_same_role": "$issuer_nick: $old_role_id is already set as the mute role.",
+                "failed_user_permissions": "$issuer: You're missing the `Manage Guild` permission.",
+                "fix_permissions": "$issuer: $old_role_id is already set as the mute role. Would you like to fix permissions for it?",
+                "missing_role": "$issuer: The mute role can't be found. Create a new one?",
+                "not_setup": "$issuer_nick: The mute role is not setup. Create one now?",
+                "success_setup": "$issuer_nick: Successfully setup the new mute role $new_role"
+            },
+            "no_meme": {
+                "already_setup": "$issuer: $guild_name has already setup the mute role ($old_role_id). Change it?",
+                "corrected_permissions": "$issuer_nick: Permissions for $old_role_id has been fixed.",
+                "exit": "$issuer_nick: Exiting.",
+                "failed_bot_permissions": "$issuer: I'm missing the `Create Roles` permission.",
+                "failed_same_role": "$issuer_nick: $old_role_id is already set as the mute role.",
+                "failed_user_permissions": "$issuer: You're missing the `Manage Guild` permission.",
+                "fix_permissions": "$issuer: $old_role_id is already set as the mute role. Would you like to fix permissions for it?",
+                "missing_role": "$issuer: The no_meme role can't be found. Create a new one?",
+                "not_setup": "$issuer_nick: The mute role is not setup. Create one now?",
+                "success_setup": "$issuer_nick: Successfully setup the new mute role $role"
+            }
+        }
+    }
+}

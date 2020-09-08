@@ -1,4 +1,4 @@
-CREATE TABLE guild_configs(
+CREATE TABLE IF NOT EXISTS guild_config(
     guild_id text,
     anti_invite boolean DEFAULT FALSE,
     anti_everyone boolean DEFAULT FALSE,
@@ -11,10 +11,6 @@ CREATE TABLE guild_configs(
     timezone text,
     no_meme_role text,
     mute_role text,
-    message_log text,
-    server_log text,
-    voice_log text,
-    avatar_log text,
     ignored_channels text[],
     administraitive_roles text[]
 );

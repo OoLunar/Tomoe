@@ -13,7 +13,7 @@ namespace Tomoe.Utils.Cache {
         }
 
         public static void Store(ulong guildID, ulong roleID, ulong userID) {
-            PreparedStatements.Query muteRole = Program.PreparedStatements.Statements[PreparedStatements.IndexedCommands.SetupMuteRole];
+            PreparedStatements.Query muteRole = Program.PreparedStatements.Statements[PreparedStatements.IndexedCommands.SetMuteRole];
             muteRole.Parameters["muteInfo"].Value = $"{roleID.ToString()},{userID.ToString()}";
             muteRole.Parameters["guildID"].Value = guildID.ToString();
             muteRole.Command.ExecuteNonQuery();

@@ -1,7 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Xml;
+using Newtonsoft.Json;
 using Npgsql.Logging;
 using Tomoe.Utils;
 
@@ -10,7 +10,7 @@ namespace Tomoe {
         private static string logPath = Path.Combine(Program.ProjectRoot, "log/");
         private static string logFile = Path.Combine(logPath, $"{DateTime.Now.ToString("ddd, dd MMM yyyy HH.mm.ss")}.log");
         private static string tokenFile = Path.Combine(Program.ProjectRoot, "res/tokens.xml");
-        private static string dialogFile = Path.Combine(Program.ProjectRoot, "res/dialog.xml");
+        private static string dialogFile = Path.Combine(Program.ProjectRoot, "res/dialog.jsonc");
 
         public Init() {
             System.Console.WriteLine("[Program] Starting...");
@@ -18,6 +18,7 @@ namespace Tomoe {
             SetupLogging();
             SetupDatabase();
             SetupDialog();
+            Program.Client.Ready += () => { new System.Threading.Thread((System.Threading.ThreadStart) Tomoe.Commands.Reminder.StartReminders).Start(); return System.Threading.Tasks.Task.CompletedTask; };
             System.GC.Collect();
         }
 
@@ -52,49 +53,16 @@ namespace Tomoe {
 
         public static void SetupDialog() {
             if (!File.Exists(dialogFile)) {
-                Console.WriteLine($"[Dialog] '{dialogFile}' does not exist. Please download a template from https://github.com/OoLunar/Tomoe/tree/master/res.");
+                Console.WriteLine($"[Dialog] '{dialogFile}' does not exist. Please download a template from https://github.com/OoLunar/Tomoe/tree/master/res/dialog.jsonc");
                 Environment.Exit(1);
             }
-            XmlDocument dialogs_available = new XmlDocument();
-            try {
-                dialogs_available.Load(dialogFile);
-            } catch (XmlException xmlError) {
-                Console.WriteLine($"[Init] Invalid XML on '{dialogFile}'. {xmlError.Message} Exiting.");
-                Environment.Exit(1);
-            }
-
-            foreach (XmlNode node in dialogs_available.DocumentElement) {
-                if (Array.IndexOf(Dialog.loadCategories, node.Name) >= 0) {
-                    foreach (XmlNode section in node) {
-                        List<string> phrases = new List<string>();
-                        foreach (XmlNode phrase in section.ChildNodes) phrases.Add(phrase.InnerText);
-                        Program.Dialogs.Add(node.Name, section.Name, phrases.ToArray());
-                    }
-                } else {
-                    Console.WriteLine($"[Dialog] Unknown Section '{node.Name}' in '{dialogFile}'... Skipping.");
-                }
-            }
+            var jsonSerializer = new Newtonsoft.Json.JsonSerializer();
+            Program.Dialogs = new JsonSerializer().Deserialize<Dialog>(new JsonTextReader(new StreamReader(System.IO.File.OpenRead("res/dialog.jsonc"))));
         }
 
         public static void SetupDatabase() {
             Tomoe.Utils.Cache.PreparedStatements.TestConnection();
             Program.PreparedStatements = new Utils.Cache.PreparedStatements();
         }
-    }
-}
-
-public class Dialog {
-    public static string[] loadCategories = { "mute", "kick", "guild_setup", "mute_setup" };
-    public Dictionary<string, string[]> Mute = new Dictionary<string, string[]>();
-    public Dictionary<string, string[]> Kick = new Dictionary<string, string[]>();
-    public Dictionary<string, string[]> MuteSetup = new Dictionary<string, string[]>();
-    public Dictionary<string, string[]> GuildSetup = new Dictionary<string, string[]>();
-
-    public void Add(string categoryName, string sectionName, string[] phrases) {
-        if (categoryName == "mute") Mute.Add(sectionName, phrases);
-        else if (categoryName == "kick") Kick.Add(sectionName, phrases);
-        else if (categoryName == "guild_setup") GuildSetup.Add(sectionName, phrases);
-        else if (categoryName == "mute_setup") MuteSetup.Add(sectionName, phrases);
-        else Console.WriteLine("[Dialog] Attempted to add category that doesn't exist. Ignoring.");
     }
 }

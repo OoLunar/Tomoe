@@ -1,18 +1,16 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Addons.Interactive;
 using Discord.Commands;
 using Tomoe.Utils;
-using Tomoe.Utils.Cache;
 
 namespace Tomoe.Commands.Setup {
     public class Guild : InteractiveBase {
         /// <summary>All the dialogs for the <see cref="Tomoe.Commands.Setup.Guild"/> class.</summary>
-        private Dictionary<string, string[]> setupGuildDialog = Program.Dialogs.GuildSetup;
+        private Utils.Classes.Guild setupGuildDialog = Program.Dialogs.Message.Setup.Guild;
 
         /// <summary>
-        /// Sets up the Discord Guild by insert the guild id into the database through <see cref="Tomoe.Utils.Cache.SetupGuild"/>
+        /// Sets up the Discord Guild by insert the guild id into the database through <see cref="Tomoe.Utils.Cache.Guild"/>
         /// <para>
         /// <code>
         /// >>setup_guild
@@ -22,17 +20,28 @@ namespace Tomoe.Commands.Setup {
         [Command("setup_guild", RunMode = RunMode.Async)]
         [RequireUserPermission(GuildPermission.Administrator)]
         public async Task Admin() {
-            if (SetupGuild.Get(Context.Guild.Id) != null) {
-                await ReplyAsync(setupGuildDialog.GetRandomValue("is_setup").DialogSetParams(Context));
+            DialogContext dialogContext = new DialogContext();
+            dialogContext.Guild = Context.Guild;
+            dialogContext.Channel = Context.Channel;
+            dialogContext.Issuer = Context.Guild.GetUser(Context.User.Id);
+
+            if (Utils.Cache.Guild.Get(Context.Guild.Id) != null) {
+                dialogContext.Error = setupGuildDialog.AlreadySetup;
             } else {
-                SetupGuild.Store(Context.Guild.Id);
-                await ReplyAsync(setupGuildDialog.GetRandomValue("success_setup").DialogSetParams(Context));
+                Utils.Cache.Guild.Store(Context.Guild.Id);
             }
+            dialogContext.SendChannel();
         }
 
-        [Command("setup guild", RunMode = RunMode.Async)]
+        [Command("setup_guild", RunMode = RunMode.Async)]
         public async Task NoPerms() {
-            await ReplyAsync(setupGuildDialog.GetRandomValue("failed_perms"));
+            DialogContext dialogContext = new DialogContext();
+            dialogContext.Guild = Context.Guild;
+            dialogContext.Channel = Context.Channel;
+            dialogContext.Issuer = Context.Guild.GetUser(Context.User.Id);
+            dialogContext.Error = setupGuildDialog.FailedUserPermissions;
+
+            dialogContext.SendChannel();
         }
     }
 }

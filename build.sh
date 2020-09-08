@@ -5,11 +5,11 @@ do
     case "$arg" in
     -r)
         echo "-----" "Releasing for Linux..." "-----"
-        dotnet publish -doc -c release -r linux-x64 -noLogo
+        dotnet publish -c release -r linux-x64 -noLogo
         echo "-----" "Releasing for Windows..." "-----"
-        dotnet publish -doc -c release -r win-x64 -noLogo
+        dotnet publish -c release -r win-x64 -noLogo
         echo "-----" "Releasing for Mac..." "-----"
-        dotnet publish -doc -c release -r osx-x64 -noLogo
+        dotnet publish -c release -r osx-x64 -noLogo
         echo "-----" "Done!" "-----"
         exit 0
         ;;

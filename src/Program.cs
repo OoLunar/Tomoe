@@ -13,9 +13,9 @@ using Tomoe.Utils.Cache;
 namespace Tomoe {
     class Program {
         public static XmlDocument Tokens = new XmlDocument();
-        public static DiscordSocketClient Client = new DiscordSocketClient(new DiscordSocketConfig { LogLevel = LogSeverity.Info });
+        public static DiscordSocketClient Client = new DiscordSocketClient(new DiscordSocketConfig { LogLevel = LogSeverity.Info, MessageCacheSize = 100 });
         public static string ProjectRoot = Path.GetFullPath("../../../../", System.AppDomain.CurrentDomain.BaseDirectory).Replace('\\', '/');
-        public static Dialog Dialogs = new Dialog();
+        public static Tomoe.Utils.Dialog Dialogs = new Tomoe.Utils.Dialog();
         public static PreparedStatements PreparedStatements;
 
         private CommandService commands;
@@ -23,6 +23,7 @@ namespace Tomoe {
 
         public static void Main(string[] args) {
             Init init = new Init();
+            Tomoe.Utils.DialogContext.GetActionType(Tomoe.Utils.DialogContext.Action.Ban);
             new Program().MainAsync().GetAwaiter().GetResult();
         }
 
@@ -35,6 +36,8 @@ namespace Tomoe {
             commands = new CommandService();
             await commands.AddModulesAsync(Assembly.GetEntryAssembly(), services);
             Client.MessageReceived += HandleCommandAsync;
+            Client.MessageUpdated += Listeners.MessageUpdate;
+            Client.MessageDeleted += Listeners.MessageDelete;
             await Client.StartAsync();
             Console.WriteLine("[Program] Tomoe has successfully started!");
             await Task.Delay(-1);

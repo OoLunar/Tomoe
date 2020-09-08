@@ -11,7 +11,7 @@ namespace Tomoe.Commands.Public {
         /// >>ping
         /// </code>
         /// </summary>
-        [Command("ping")]
+        [Command("ping", RunMode = RunMode.Async)]
         public async Task ping() {
             System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
             stopwatch.Start();
