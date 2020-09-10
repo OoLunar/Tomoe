@@ -17,6 +17,8 @@ namespace Tomoe.Commands.Public {
         /// </code>
         /// </summary>
         [Command("remind", RunMode = RunMode.Async)]
+        [Summary("[Sets a reminder.](https://github.com/OoLunar/Tomoe/blob/master/docs/public/remind.md)")]
+        [Remarks("Public")]
         public async Task remindWithContext(TimeSpan when, [Remainder] string message) {
             Tomoe.Utils.Cache.Tasks.AddTask(Reminder.Action.Reminder, Context.Guild.Id, Context.Channel.Id, Context.User.Id, DateTime.Now + when, DateTime.Now, $"{message.Replace("\n", "\\n")}\\nContext: <{Context.Message.GetJumpUrl()}>");
             await Context.Message.AddReactionAsync(new Discord.Emoji("👍"));

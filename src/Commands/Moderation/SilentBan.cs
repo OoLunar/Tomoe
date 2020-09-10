@@ -21,6 +21,8 @@ namespace Tomoe.Commands.Moderation {
         [RequireUserPermission(GuildPermission.BanMembers)]
         [RequireBotPermission(GuildPermission.BanMembers)]
         [RequireContext(ContextType.Guild)]
+        [Summary("[Silently bans a user by a mention or ID](https://github.com/OoLunar/Tomoe/tree/master/docs/moderation/silent_ban.md)")]
+        [Remarks("Moderation")]
         public async Task ByID(ulong userId, int pruneDays = 7, string reason = null) {
             Context.Message.AddReactionAsync(new Emoji("👍"));
             await Context.Guild.AddBanAsync(userId, pruneDays, reason);

@@ -18,7 +18,7 @@ namespace Tomoe {
         public static Tomoe.Utils.Dialog Dialogs = new Tomoe.Utils.Dialog();
         public static PreparedStatements PreparedStatements;
 
-        private CommandService commands;
+        public static CommandService commands;
         private IServiceProvider services;
 
         public static void Main(string[] args) {

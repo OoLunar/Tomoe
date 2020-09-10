@@ -77,7 +77,8 @@ namespace Tomoe.Commands.Moderation {
         [RequireUserPermission(GuildPermission.KickMembers)]
         [RequireBotPermission(GuildPermission.KickMembers)]
         [RequireContext(ContextType.Guild)]
-        [Summary("Kicks a guild member identified by an ID. Optionally with a reason.")]
+        [Summary("[Kicks a guild member identified by an ID. Optionally with a reason.](https://github.com/OoLunar/Tomoe/tree/master/docs/moderation/kick.md)")]
+        [Remarks("Moderation")]
         public async Task ByID(ulong kickMember, [Remainder] string reason = null) {
             SocketGuildUser kickGuildMember = Context.Guild.GetUser(kickMember);
             if (Context.Guild.GetUser(kickMember) != null) await ByMention(kickGuildMember, reason);

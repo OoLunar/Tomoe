@@ -14,6 +14,8 @@ namespace Tomoe.Commands.Public {
         /// </code>
         /// </summary>
         [Command("role_info", RunMode = RunMode.Async)]
+        [Summary("[Gets the permissions of a role, the role color, who has the role and a count of who has the role.](https://github.com/OoLunar/Tomoe/blob/master/docs/public/role_info.md)")]
+        [Remarks("Public")]
         public async Task ByName(string roleName) {
             IRole roleInQuestion = null;
             if (roleName == "everyone" || roleName == "here") { await ByMention(Context.Guild.GetRole(Context.Guild.Id)); return; };

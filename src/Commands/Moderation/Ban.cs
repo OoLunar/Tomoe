@@ -21,6 +21,8 @@ namespace Tomoe.Commands.Moderation {
         [RequireUserPermission(GuildPermission.BanMembers)]
         [RequireBotPermission(GuildPermission.BanMembers)]
         [RequireContext(ContextType.Guild)]
+        [Summary("[Bans a user through a mention or id.](https://github.com/OoLunar/Tomoe/tree/master/docs/moderation/ban.md)")]
+        [Remarks("Moderation")]
         public async Task ByMention(SocketGuildUser banMember, int pruneDays = 7, [Remainder] string reason = null) {
             // Add dialog context.
             DialogContext dialogContext = new DialogContext();

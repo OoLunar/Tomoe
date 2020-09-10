@@ -16,7 +16,7 @@ namespace Tomoe.Commands {
                     tasks = Tomoe.Utils.Cache.Tasks.GetTasks();
                 }
                 // Catch ongoing operations and skips the current operation.
-                catch (Npgsql.NpgsqlException) { return; }
+                catch (Npgsql.NpgsqlOperationInProgressException) { return; }
 
                 for (int i = 0; i < tasks.TaskType.Count; i++) {
                     if (tasks.SetOff[i] < DateTime.Now) {

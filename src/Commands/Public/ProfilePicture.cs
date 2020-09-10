@@ -14,6 +14,8 @@ namespace Tomoe.Commands.Public {
         /// </summary>
         [Command("pfp", RunMode = RunMode.Async)]
         [Alias("profile_picture")]
+        [Remarks("Public")]
+        [Summary("[Gets the profile picture of a user or userid.](https://github.com/OoLunar/Tomoe/blob/master/docs/public/pfp.md)")]
         public async Task ByID(ulong user) => await ReplyAsync((await Context.Client.Rest.GetUserAsync(user)).GetAvatarUrl(ImageFormat.Png, 512));
 
         /// <summary>

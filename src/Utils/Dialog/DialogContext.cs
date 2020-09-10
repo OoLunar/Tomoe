@@ -79,6 +79,13 @@ namespace Tomoe.Utils {
                     modifyString = modifyString.Replace("$timestamp", context.Timestamp.ToUniversalTime().ToString("ddd, dd MMM yyyy HH:mm:ss"));
                 else
                     modifyString = modifyString.Replace("$timestamp", new System.DateTimeOffset().ToUniversalTime().ToString("ddd, dd MMM yyyy HH:mm:ss"));
+                if (context.OldMessage != null) modifyString = modifyString.Replace("$old_message", context.OldMessage.Content).Replace("$message_id", context.OldMessage.Id.ToString());
+                if (context.NewMessage != null) modifyString = modifyString.Replace("$new_message", context.NewMessage.Content).Replace("$message_id", context.NewMessage.Id.ToString());
+                if (context.Channel != null) modifyString = modifyString
+                    .Replace("$channel", $"<#{context.Channel.Id}>")
+                    .Replace("$channel_id", context.Channel.Id.ToString())
+                    .Replace("$channel_name", context.Channel.Name);
+
                 modifyString = modifyString
                     .Replace("$past_action", context.UserAction.ToPastString())
                     .Replace("$action", context.UserAction.ToString())

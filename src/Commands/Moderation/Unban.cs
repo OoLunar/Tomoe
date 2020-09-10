@@ -19,6 +19,8 @@ namespace Tomoe.Commands.Moderation {
         [Command("unban", RunMode = RunMode.Async)]
         [RequireUserPermission(GuildPermission.BanMembers)]
         [RequireBotPermission(GuildPermission.BanMembers)]
+        [Summary("[Unbans a user by a mention or ID](https://github.com/OoLunar/Tomoe/tree/master/docs/moderation/unban.md)")]
+        [Remarks("Moderation")]
         public async Task ByID(ulong userId, [Remainder] string reason = null) {
             DialogContext dialogContext = new DialogContext();
             dialogContext.Guild = Context.Guild;

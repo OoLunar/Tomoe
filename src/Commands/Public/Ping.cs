@@ -12,6 +12,7 @@ namespace Tomoe.Commands.Public {
         /// </code>
         /// </summary>
         [Command("ping", RunMode = RunMode.Async)]
+        [Summary("[Sends a Discord message, then edits the message with how long the original message took to send in milliseconds.](https://github.com/OoLunar/Tomoe/blob/master/docs/public/ping.md)")]
         public async Task ping() {
             System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
             stopwatch.Start();

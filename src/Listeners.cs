@@ -18,13 +18,14 @@ namespace Tomoe {
             Utils.DialogContext dialogContext = new Utils.DialogContext();
             dialogContext.Guild = guild;
             dialogContext.Issuer = after.Author;
-            if (before.HasValue) dialogContext.OldMessage = before.Value;
             dialogContext.NewMessage = after;
-            if (after.EditedTimestamp.HasValue)
-                dialogContext.Timestamp = after.EditedTimestamp.Value;
-            else
-                dialogContext.Timestamp = after.Timestamp;
+            dialogContext.Channel = after.Channel;
             dialogContext.Error = Program.Dialogs.Message.Events.MessageUpdated;
+
+            if (before.HasValue) dialogContext.OldMessage = before.Value;
+
+            if (after.EditedTimestamp.HasValue) dialogContext.Timestamp = after.EditedTimestamp.Value;
+            else dialogContext.Timestamp = after.Timestamp;
 
             if (loggingChannelID.HasValue) {
                 SocketTextChannel loggingChannel = guild.GetTextChannel(loggingChannelID.Value);

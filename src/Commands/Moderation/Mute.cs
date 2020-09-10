@@ -21,6 +21,8 @@ namespace Tomoe.Commands.Moderation {
         [RequireUserPermission(GuildPermission.ManageMessages)]
         [RequireBotPermission(GuildPermission.ManageRoles)]
         [RequireContext(ContextType.Guild)]
+        [Summary("[Mutes a member by mention or ID](https://github.com/OoLunar/Tomoe/tree/master/docs/moderation/mute.md)")]
+        [Remarks("Moderation")]
         public async Task ByMention(SocketGuildUser muteMember, [Remainder] string reason = null) {
             //Get mute role
             ulong muteRole = Tomoe.Utils.Cache.MutedRole.Get(Context.Guild.Id).RoleID;

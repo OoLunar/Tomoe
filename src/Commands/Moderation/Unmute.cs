@@ -21,6 +21,8 @@ namespace Tomoe.Commands.Moderation {
         [Command("unmute")]
         [RequireUserPermission(GuildPermission.BanMembers)]
         [RequireBotPermission(GuildPermission.BanMembers)]
+        [Summary("[Unmutes a user by mention or ID. Restores their previous roles.](https://github.com/OoLunar/Tomoe/tree/master/docs/moderation/unmute.md)")]
+        [Remarks("Moderation")]
         public async Task ByID(ulong userId) {
             await Context.Guild.RemoveBanAsync(userId);
         }
