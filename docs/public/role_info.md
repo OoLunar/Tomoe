@@ -4,16 +4,16 @@ Gets the permissions of a role, the role color, who has the role and a count of 
 
 ## Description
 Role Info gets the following information about a guild role:
-  - The role id.
-  - The role name.
-  - The creation date [in header format (see `Syntax`)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Date).
-  - The role's position in hierarchy.
-  - The role's hex color code.
-  - The role's mentionability.
-  - The role being hoisted.
-  - The role being managed by an integration.
-  - The role's guild permissions.
-  - A count of who has the role.
+  - Role id.
+  - Role name.
+  - Creation date [in header format (see `Syntax`)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Date).
+  - Role's position in hierarchy.
+  - Role's hex color code.
+  - Role's mentionability.
+  - Role being hoisted.
+  - Role being managed by an integration.
+  - Role's guild permissions.
+  - Count of who has the role.
   - Who has the role.
 
 Note that if the embed is too large, the last field may get trimmed a bit so that the embed can be sent.
@@ -38,7 +38,7 @@ Through name (beta)
 >>role_info Developer
 ```
 
-Getting the role by the name is still very much being tested. It's only recommended if it's the only role with said name. Now, the question that everone has been wanting to ask.
+Getting the role by the name is still very much being tested. It's only recommended if it's the only role with said name. If multiple roles with the same name are present, the first role found with the request name will be sent. This will be fixed soon.
 
 ### Can I get the @everyone role info?
 
