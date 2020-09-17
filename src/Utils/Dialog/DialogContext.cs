@@ -60,7 +60,7 @@ namespace Tomoe.Utils {
                 if (context.Reason != null) {
                     // Filter the Reason
                     while (Regex.IsMatch(context.Reason, @"<@&(\d+)>", RegexOptions.Multiline) || Regex.IsMatch(context.Reason, @"<@!?(\d+)>", RegexOptions.Multiline) || context.Reason.Contains("@everyone") || context.Reason.Contains("@here")) {
-                        //Replaces all mentions with ID's
+                        // Replaces all mentions with ID's
                         string mentionNickID = Regex.Match(context.Reason, @"<@!?(\d+)>", RegexOptions.Multiline).Groups[1].Value;
                         mentionNickID = $"`{mentionNickID}` (User {AsyncHelpers.RunSync<IGuildUser>(() => context.Guild.GetUserAsync(ulong.Parse(mentionNickID))).GetCommonName()})";
                         context.Reason = Regex.Replace(context.Reason, @"<@!?\d+>", mentionNickID);
@@ -94,8 +94,12 @@ namespace Tomoe.Utils {
             }
         }
 
-        public static async Task<Discord.Rest.RestUserMessage> SendChannel(this DialogContext context) { return await (context.Channel as ISocketMessageChannel).SendMessageAsync(context.Filter()); }
-        public static async Task<Discord.IUserMessage> SendDM(this DialogContext context) { return await (await context.Victim.GetOrCreateDMChannelAsync()).SendMessageAsync(context.Filter()); }
+        public static async Task<Discord.Rest.RestUserMessage> SendChannel(this DialogContext context) => await (context.Channel as ISocketMessageChannel).SendMessageAsync(context.Filter());
+
+        public static async Task<Discord.IUserMessage> SendDM(this DialogContext context) {
+            context.Error = Tomoe.Utils.DialogContext.DMDialogMessage[context.UserAction];
+            return await (await context.Victim.GetOrCreateDMChannelAsync()).SendMessageAsync(context.Filter());
+        }
     }
 
     public class DialogContext {
@@ -115,10 +119,15 @@ namespace Tomoe.Utils {
 
         public DialogContext() { }
 
-        public static Dictionary<Action, bool> DialogFormat = new Dictionary<Action, bool>() { { Tomoe.Utils.DialogContext.Action.Ban, Program.Dialogs.Format.Action.Ban }, { Tomoe.Utils.DialogContext.Action.Kick, Program.Dialogs.Format.Action.Kick }, { Tomoe.Utils.DialogContext.Action.Mute, Program.Dialogs.Format.Action.Mute }, { Tomoe.Utils.DialogContext.Action.NoMeme, Program.Dialogs.Format.Action.NoMeme }, { Tomoe.Utils.DialogContext.Action.Strike, Program.Dialogs.Format.Action.Strike }, { Tomoe.Utils.DialogContext.Action.TempBan, Program.Dialogs.Format.Action.TempBan }, { Tomoe.Utils.DialogContext.Action.TempMute, Program.Dialogs.Format.Action.TempMute }, { Tomoe.Utils.DialogContext.Action.TempNoMeme, Program.Dialogs.Format.Action.TempNoMeme }, { Tomoe.Utils.DialogContext.Action.UnBan, Program.Dialogs.Format.Action.UnBan }, { Tomoe.Utils.DialogContext.Action.UnMute, Program.Dialogs.Format.Action.UnMute }, { Tomoe.Utils.DialogContext.Action.UnNoMeme, Program.Dialogs.Format.Action.UnNoMeme } };
-        public static Dictionary<Action, string> DialogMessage = new Dictionary<Action, string>() { { Tomoe.Utils.DialogContext.Action.Ban, Program.Dialogs.Message.Action.Ban }, { Tomoe.Utils.DialogContext.Action.Kick, Program.Dialogs.Message.Action.Kick }, { Tomoe.Utils.DialogContext.Action.Mute, Program.Dialogs.Message.Action.Mute }, { Tomoe.Utils.DialogContext.Action.NoMeme, Program.Dialogs.Message.Action.NoMeme }, { Tomoe.Utils.DialogContext.Action.Strike, Program.Dialogs.Message.Action.Strike }, { Tomoe.Utils.DialogContext.Action.TempBan, Program.Dialogs.Message.Action.TempBan }, { Tomoe.Utils.DialogContext.Action.TempMute, Program.Dialogs.Message.Action.TempMute }, { Tomoe.Utils.DialogContext.Action.TempNoMeme, Program.Dialogs.Message.Action.TempNoMeme }, { Tomoe.Utils.DialogContext.Action.UnBan, Program.Dialogs.Message.Action.UnBan }, { Tomoe.Utils.DialogContext.Action.UnMute, Program.Dialogs.Message.Action.UnMute }, { Tomoe.Utils.DialogContext.Action.UnNoMeme, Program.Dialogs.Message.Action.UnNoMeme } };
+        public static Dictionary<Action, bool> DialogFormat = new Dictionary<Action, bool>() { { Action.Ban, Program.Dialogs.Format.Action.Ban }, { Action.Kick, Program.Dialogs.Format.Action.Kick }, { Action.Mute, Program.Dialogs.Format.Action.Mute }, { Action.NoMeme, Program.Dialogs.Format.Action.NoMeme }, { Action.Strike, Program.Dialogs.Format.Action.Strike }, { Action.TempBan, Program.Dialogs.Format.Action.TempBan }, { Action.TempMute, Program.Dialogs.Format.Action.TempMute }, { Action.TempNoMeme, Program.Dialogs.Format.Action.TempNoMeme }, { Action.UnBan, Program.Dialogs.Format.Action.UnBan }, { Action.UnMute, Program.Dialogs.Format.Action.UnMute }, { Action.UnNoMeme, Program.Dialogs.Format.Action.UnNoMeme } };
+        public static Dictionary<Action, string> DialogMessage = new Dictionary<Action, string>() { { Action.AntiraidBan, Program.Dialogs.Message.Events.AntiraidBan }, { Action.Ban, Program.Dialogs.Message.Action.Ban }, { Action.Kick, Program.Dialogs.Message.Action.Kick }, { Action.Mute, Program.Dialogs.Message.Action.Mute }, { Action.NoMeme, Program.Dialogs.Message.Action.NoMeme }, { Action.Strike, Program.Dialogs.Message.Action.Strike }, { Action.TempBan, Program.Dialogs.Message.Action.TempBan }, { Action.TempMute, Program.Dialogs.Message.Action.TempMute }, { Action.TempNoMeme, Program.Dialogs.Message.Action.TempNoMeme }, { Action.UnBan, Program.Dialogs.Message.Action.UnBan }, { Action.UnMute, Program.Dialogs.Message.Action.UnMute }, { Action.UnNoMeme, Program.Dialogs.Message.Action.UnNoMeme }, { Action.SetupMute, Program.Dialogs.Message.Setup.Mute.AlreadySetup }, { Action.SetupNoMeme, Program.Dialogs.Message.Setup.NoMeme.AlreadySetup } };
+
+        public static Dictionary<Action, bool> DMDialogFormat = new Dictionary<Action, bool>() { { Action.Ban, Program.Dialogs.Format.Dm.Ban }, { Action.Kick, Program.Dialogs.Format.Dm.Kick }, { Action.Mute, Program.Dialogs.Format.Dm.Mute }, { Action.NoMeme, Program.Dialogs.Format.Dm.NoMeme }, { Action.Strike, Program.Dialogs.Format.Dm.Strike }, { Action.TempBan, Program.Dialogs.Format.Dm.TempBan }, { Action.TempMute, Program.Dialogs.Format.Dm.TempMute }, { Action.TempNoMeme, Program.Dialogs.Format.Dm.TempNoMeme }, { Action.UnBan, Program.Dialogs.Format.Dm.UnBan }, { Action.UnMute, Program.Dialogs.Format.Dm.UnMute }, { Action.UnNoMeme, Program.Dialogs.Format.Dm.UnNoMeme } };
+        public static Dictionary<Action, string> DMDialogMessage = new Dictionary<Action, string>() { { Action.AntiraidBan, Program.Dialogs.Message.Dm.Antiraid }, { Action.Ban, Program.Dialogs.Message.Dm.Ban }, { Action.Kick, Program.Dialogs.Message.Dm.Kick }, { Action.Mute, Program.Dialogs.Message.Dm.Mute }, { Action.NoMeme, Program.Dialogs.Message.Dm.NoMeme }, { Action.Strike, Program.Dialogs.Message.Dm.Strike }, { Action.TempBan, Program.Dialogs.Message.Dm.TempBan }, { Action.TempMute, Program.Dialogs.Message.Dm.TempMute }, { Action.TempNoMeme, Program.Dialogs.Message.Dm.TempNoMeme }, { Action.UnBan, Program.Dialogs.Message.Dm.UnBan }, { Action.UnMute, Program.Dialogs.Message.Dm.UnMute }, { Action.UnNoMeme, Program.Dialogs.Message.Dm.UnNoMeme } };
+        public static Dictionary<Action, dynamic> DMDialogEmbeds = new Dictionary<Action, dynamic>() { { Tomoe.Utils.DialogContext.Action.Ban, Program.Dialogs.Embed.Dm.Ban }, { Tomoe.Utils.DialogContext.Action.Kick, Program.Dialogs.Embed.Dm.Kick }, { Tomoe.Utils.DialogContext.Action.Mute, Program.Dialogs.Embed.Dm.Mute }, { Tomoe.Utils.DialogContext.Action.NoMeme, Program.Dialogs.Embed.Dm.NoMeme }, { Tomoe.Utils.DialogContext.Action.Strike, Program.Dialogs.Embed.Dm.Strike }, { Tomoe.Utils.DialogContext.Action.TempBan, Program.Dialogs.Embed.Dm.TempBan }, { Tomoe.Utils.DialogContext.Action.TempMute, Program.Dialogs.Embed.Dm.TempMute }, { Tomoe.Utils.DialogContext.Action.TempNoMeme, Program.Dialogs.Embed.Dm.TempNoMeme }, { Tomoe.Utils.DialogContext.Action.UnBan, Program.Dialogs.Embed.Dm.UnBan }, { Tomoe.Utils.DialogContext.Action.UnMute, Program.Dialogs.Embed.Dm.UnMute }, { Tomoe.Utils.DialogContext.Action.UnNoMeme, Program.Dialogs.Embed.Dm.UnNoMeme } };
 
         public enum Action {
+            AntiraidBan,
             Ban,
             Kick,
             Mute,

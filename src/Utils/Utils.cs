@@ -80,7 +80,7 @@ namespace Tomoe.Utils {
         public static string GetCommonName(this IUser user) => user.Username;
 
         public static Embed DialogSetParams(dynamic modifyEmbed, DialogContext context) {
-            //Replace any empty, missing or $null by removing the field.
+            // Replace any empty, missing or $null by removing the field.
             EmbedBuilder embed = new EmbedBuilder();
             if (modifyEmbed.Author != null && modifyEmbed.Author != "$null") switch (modifyEmbed.Author) {
                 case "$issuer":

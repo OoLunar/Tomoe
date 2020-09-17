@@ -23,11 +23,36 @@ namespace Tomoe.Commands.Moderation {
         [RequireContext(ContextType.Guild)]
         [Summary("[Silently bans a user by a mention or ID](https://github.com/OoLunar/Tomoe/tree/master/docs/moderation/silent_ban.md)")]
         [Remarks("Moderation")]
-        public async Task ByID(ulong userId, int pruneDays = 7, string reason = null) {
+        public async Task ByID(ulong victimId, int pruneDays = 7, string reason = null) {
+
+            DialogContext dialogContext = new DialogContext();
+            dialogContext.Guild = Context.Guild;
+            dialogContext.Channel = Context.Channel;
+            dialogContext.Issuer = Context.User;
+            dialogContext.Victim = await Program.Client.Rest.GetUserAsync(victimId);
+            dialogContext.UserAction = DialogContext.Action.Ban;
+            dialogContext.RequiredGuildPermission = GuildPermission.BanMembers;
+            dialogContext.Reason = reason;
+
+            SocketGuildUser banMember = Context.Guild.GetUser(victimId);
+
+            // User does not exist.
+            if (dialogContext.Victim == null) return;
+            // Check for bot self ban.
+            else if (dialogContext.Victim.Id == Program.Client.CurrentUser.Id) return;
+            // Check if bot can ban user.
+            else if (banMember != null && banMember.Hierarchy >= Context.Guild.GetUser(Program.Client.CurrentUser.Id).Hierarchy) return;
+
+            try {
+                // The user was already banned
+                if (Context.Guild.GetBanAsync(victimId).Result.User != null) return;
+                else await Context.Guild.AddBanAsync(victimId, pruneDays, reason);
+            } catch (Discord.Net.HttpException error) when(error.DiscordCode.HasValue && error.DiscordCode == 10026) { }
+
             Context.Message.AddReactionAsync(new Emoji("👍"));
-            await Context.Guild.AddBanAsync(userId, pruneDays, reason);
             System.Threading.Thread.Sleep(System.TimeSpan.FromSeconds(5));
             await Context.Message.DeleteAsync();
+            return;
         }
 
         /// <summary>

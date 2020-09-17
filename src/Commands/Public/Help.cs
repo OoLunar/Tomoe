@@ -11,7 +11,7 @@ namespace Tomoe.Commands.Public {
         [Summary("[Sends the help menu, and links to the GitHub documentation.](https://github.com/OoLunar/Tomoe/blob/master/docs/public/help.md)")]
         [Remarks("Public")]
         public async Task help() {
-            List<CommandInfo> commands = Program.commands.Commands.ToList();
+            List<CommandInfo> commands = Program.Commands.Commands.ToList();
             EmbedBuilder embedBuilder = new EmbedBuilder();
             string publicCommands = null;
             string moderatorCommands = "__All commands can be used through mentions or ID's.__\n\n";

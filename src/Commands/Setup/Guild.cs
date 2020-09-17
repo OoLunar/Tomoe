@@ -6,9 +6,6 @@ using Tomoe.Utils;
 
 namespace Tomoe.Commands.Setup {
     public class Guild : InteractiveBase {
-        /// <summary>All the dialogs for the <see cref="Tomoe.Commands.Setup.Guild"/> class.</summary>
-        private Utils.Classes.Guild setupGuildDialog = Program.Dialogs.Message.Setup.Guild;
-
         /// <summary>
         /// Sets up the Discord Guild by insert the guild id into the database through <see cref="Tomoe.Utils.Cache.Guild"/>
         /// <para>
@@ -24,12 +21,10 @@ namespace Tomoe.Commands.Setup {
             dialogContext.Guild = Context.Guild;
             dialogContext.Channel = Context.Channel;
             dialogContext.Issuer = Context.Guild.GetUser(Context.User.Id);
-
-            if (Utils.Cache.Guild.Get(Context.Guild.Id) != null) {
-                dialogContext.Error = setupGuildDialog.AlreadySetup;
-            } else {
-                Utils.Cache.Guild.Store(Context.Guild.Id);
-            }
+            // Test if the guild is present.
+            if (Utils.Cache.Guild.Get(Context.Guild.Id) != null) dialogContext.Error = Program.Dialogs.Message.Setup.Guild.AlreadySetup;
+            // Add the guild to the database if it isn't.
+            else Utils.Cache.Guild.Store(Context.Guild.Id);
             dialogContext.SendChannel();
         }
 
@@ -39,7 +34,7 @@ namespace Tomoe.Commands.Setup {
             dialogContext.Guild = Context.Guild;
             dialogContext.Channel = Context.Channel;
             dialogContext.Issuer = Context.Guild.GetUser(Context.User.Id);
-            dialogContext.Error = setupGuildDialog.FailedUserPermissions;
+            dialogContext.Error = Program.Dialogs.Message.Setup.Errors.FailedUserPermissions;
 
             dialogContext.SendChannel();
         }

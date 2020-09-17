@@ -17,7 +17,15 @@ namespace Tomoe.Utils.Cache {
             GetTask,
             GetAllTasks,
             RemoveTask,
-            SetTask
+            SetTask,
+            GetAntiraidActivated,
+            SetAntiraidActivated,
+            GetAntiraidInterval,
+            SetAntiraidInterval,
+            GetUserRoles,
+            SetUserRoles,
+            SetUserMute,
+            GetUserMute
         }
 
         public struct Query {
@@ -37,36 +45,36 @@ namespace Tomoe.Utils.Cache {
             Query getGuild = new Query();
             getGuild.Command = new NpgsqlCommand("SELECT guild_id FROM guild_config WHERE guild_id=@guildID;", activeConnection);
             getGuild.Parameters = new Dictionary<string, NpgsqlParameter>();
-            getGuild.Parameters.Add("guildID", getGuild.Command.Parameters.Add("guildID", NpgsqlTypes.NpgsqlDbType.Text));
+            getGuild.Parameters.Add("guildID", getGuild.Command.Parameters.Add("guildID", NpgsqlTypes.NpgsqlDbType.Bigint));
             getGuild.Command.Prepare();
             Statements.Add(IndexedCommands.GetGuild, getGuild);
 
             Query setGuild = new Query();
             setGuild.Command = new NpgsqlCommand("INSERT INTO guild_config(guild_id) VALUES(@guildID);", activeConnection);
             setGuild.Parameters = new Dictionary<string, NpgsqlParameter>();
-            setGuild.Parameters.Add("guildID", setGuild.Command.Parameters.Add("guildID", NpgsqlTypes.NpgsqlDbType.Text));
+            setGuild.Parameters.Add("guildID", setGuild.Command.Parameters.Add("guildID", NpgsqlTypes.NpgsqlDbType.Bigint));
             setGuild.Command.Prepare();
             Statements.Add(IndexedCommands.SetGuild, setGuild);
 
             Query getMuteRole = new Query();
             getMuteRole.Command = new NpgsqlCommand("SELECT mute_role FROM guild_config WHERE guild_id=@guildID;", activeConnection);
             getMuteRole.Parameters = new Dictionary<string, NpgsqlParameter>();
-            getMuteRole.Parameters.Add("guildID", getMuteRole.Command.Parameters.Add("guildID", NpgsqlTypes.NpgsqlDbType.Text));
+            getMuteRole.Parameters.Add("guildID", getMuteRole.Command.Parameters.Add("guildID", NpgsqlTypes.NpgsqlDbType.Bigint));
             getMuteRole.Command.Prepare();
             Statements.Add(IndexedCommands.GetMuteRole, getMuteRole);
 
             Query setMuteRole = new Query();
-            setMuteRole.Command = new NpgsqlCommand("UPDATE guild_config SET mute_role=@muteInfo WHERE guild_id=@guildID;", activeConnection);
+            setMuteRole.Command = new NpgsqlCommand("UPDATE guild_config SET mute_role=@muteRole WHERE guild_id=@guildID;", activeConnection);
             setMuteRole.Parameters = new Dictionary<string, NpgsqlParameter>();
-            setMuteRole.Parameters.Add("muteInfo", setMuteRole.Command.Parameters.Add("muteInfo", NpgsqlTypes.NpgsqlDbType.Text));
-            setMuteRole.Parameters.Add("guildID", setMuteRole.Command.Parameters.Add("guildID", NpgsqlTypes.NpgsqlDbType.Text));
+            setMuteRole.Parameters.Add("muteRole", setMuteRole.Command.Parameters.Add("muteRole", NpgsqlTypes.NpgsqlDbType.Hstore));
+            setMuteRole.Parameters.Add("guildID", setMuteRole.Command.Parameters.Add("guildID", NpgsqlTypes.NpgsqlDbType.Bigint));
             setMuteRole.Command.Prepare();
             Statements.Add(IndexedCommands.SetMuteRole, setMuteRole);
 
             Query getLoggingChannel = new Query();
             getLoggingChannel.Command = new NpgsqlCommand("SELECT logging_channels -> @guildEvent FROM guild_config WHERE guild_id=@guildID", activeConnection);
             getLoggingChannel.Parameters = new Dictionary<string, NpgsqlParameter>();
-            getLoggingChannel.Parameters.Add("guildID", getLoggingChannel.Command.Parameters.Add("guildID", NpgsqlTypes.NpgsqlDbType.Text));
+            getLoggingChannel.Parameters.Add("guildID", getLoggingChannel.Command.Parameters.Add("guildID", NpgsqlTypes.NpgsqlDbType.Bigint));
             getLoggingChannel.Parameters.Add("guildEvent", getLoggingChannel.Command.Parameters.Add("guildEvent", NpgsqlTypes.NpgsqlDbType.Text));
             getLoggingChannel.Command.Prepare();
             Statements.Add(IndexedCommands.GetLoggingChannel, getLoggingChannel);
@@ -74,7 +82,7 @@ namespace Tomoe.Utils.Cache {
             Query setLoggingChannel = new Query();
             setLoggingChannel.Command = new NpgsqlCommand("UPDATE guild_config SET logging_channels = @loggingChannel WHERE guild_id=@guildID", activeConnection);
             setLoggingChannel.Parameters = new Dictionary<string, NpgsqlParameter>();
-            setLoggingChannel.Parameters.Add("guildID", setLoggingChannel.Command.Parameters.Add("guildID", NpgsqlTypes.NpgsqlDbType.Text));
+            setLoggingChannel.Parameters.Add("guildID", setLoggingChannel.Command.Parameters.Add("guildID", NpgsqlTypes.NpgsqlDbType.Bigint));
             setLoggingChannel.Parameters.Add("loggingChannel", setLoggingChannel.Command.Parameters.Add("loggingChannel", NpgsqlTypes.NpgsqlDbType.Hstore));
             setLoggingChannel.Command.Prepare();
             Statements.Add(IndexedCommands.SetLoggingChannel, setLoggingChannel);
@@ -106,7 +114,7 @@ namespace Tomoe.Utils.Cache {
             Statements.Add(IndexedCommands.SetTask, setTask);
 
             Query removeTask = new Query();
-            removeTask.Command = new NpgsqlCommand("delete from tasks WHERE user_id=@userID AND set_off=@setOff AND set_at=@setAt AND type=@taskType", repeatedConnection);
+            removeTask.Command = new NpgsqlCommand("DELETE FROM tasks WHERE user_id=@userID AND set_off=@setOff AND set_at=@setAt AND type=@taskType", repeatedConnection);
             removeTask.Parameters = new Dictionary<string, NpgsqlParameter>();
             removeTask.Parameters.Add("taskType", removeTask.Command.Parameters.Add("taskType", NpgsqlTypes.NpgsqlDbType.Smallint));
             removeTask.Parameters.Add("userID", removeTask.Command.Parameters.Add("userID", NpgsqlTypes.NpgsqlDbType.Bigint));
@@ -114,6 +122,71 @@ namespace Tomoe.Utils.Cache {
             removeTask.Parameters.Add("setOff", removeTask.Command.Parameters.Add("setOff", NpgsqlTypes.NpgsqlDbType.Timestamp));
             removeTask.Command.Prepare();
             Statements.Add(IndexedCommands.RemoveTask, removeTask);
+
+            Query getAntiraidActivated = new Query();
+            getAntiraidActivated.Command = new NpgsqlCommand("SELECT antiraid FROM guild_config WHERE guild_id=@guildID", activeConnection);
+            getAntiraidActivated.Parameters = new Dictionary<string, NpgsqlParameter>();
+            getAntiraidActivated.Parameters.Add("guildID", getAntiraidActivated.Command.Parameters.Add("guildID", NpgsqlTypes.NpgsqlDbType.Bigint));
+            getAntiraidActivated.Command.Prepare();
+            Statements.Add(IndexedCommands.GetAntiraidActivated, getAntiraidActivated);
+
+            Query setAntitaidActivated = new Query();
+            setAntitaidActivated.Command = new NpgsqlCommand("UPDATE guild_config SET antiraid=@activated WHERE guild_id=@guildID", activeConnection);
+            setAntitaidActivated.Parameters = new Dictionary<string, NpgsqlParameter>();
+            setAntitaidActivated.Parameters.Add("guildID", setAntitaidActivated.Command.Parameters.Add("guildID", NpgsqlTypes.NpgsqlDbType.Bigint));
+            setAntitaidActivated.Parameters.Add("activated", setAntitaidActivated.Command.Parameters.Add("activated", NpgsqlTypes.NpgsqlDbType.Boolean));
+            setAntitaidActivated.Command.Prepare();
+            Statements.Add(IndexedCommands.SetAntiraidActivated, setAntitaidActivated);
+
+            Query getAntiraidInterval = new Query();
+            getAntiraidInterval.Command = new NpgsqlCommand("SELECT antiraid_setoff FROM guild_config WHERE guild_id=@guildID", activeConnection);
+            getAntiraidInterval.Parameters = new Dictionary<string, NpgsqlParameter>();
+            getAntiraidInterval.Parameters.Add("guildID", getAntiraidInterval.Command.Parameters.Add("guildID", NpgsqlTypes.NpgsqlDbType.Bigint));
+            getAntiraidInterval.Command.Prepare();
+            Statements.Add(IndexedCommands.GetAntiraidInterval, getAntiraidInterval);
+
+            Query setAntiraidInterval = new Query();
+            setAntiraidInterval.Command = new NpgsqlCommand("UPDATE guild_config SET antiraid_setoff=@interval WHERE guild_id=@guildID", activeConnection);
+            setAntiraidInterval.Parameters = new Dictionary<string, NpgsqlParameter>();
+            setAntiraidInterval.Parameters.Add("guildID", setAntiraidInterval.Command.Parameters.Add("guildID", NpgsqlTypes.NpgsqlDbType.Bigint));
+            setAntiraidInterval.Parameters.Add("interval", setAntiraidInterval.Command.Parameters.Add("interval", NpgsqlTypes.NpgsqlDbType.Smallint));
+            setAntiraidInterval.Command.Prepare();
+            Statements.Add(IndexedCommands.SetAntiraidInterval, setAntiraidInterval);
+
+            Query setUserRoles = new Query();
+            setUserRoles.Command = new NpgsqlCommand("UPDATE guild_cache SET role_ids=@roles WHERE user_id=@userID AND guild_id=@guildID", activeConnection);
+            setUserRoles.Parameters = new Dictionary<string, NpgsqlParameter>();
+            setUserRoles.Parameters.Add("guildID", setUserRoles.Command.Parameters.Add("guildID", NpgsqlTypes.NpgsqlDbType.Bigint));
+            setUserRoles.Parameters.Add("userID", setUserRoles.Command.Parameters.Add("userID", NpgsqlTypes.NpgsqlDbType.Bigint));
+            setUserRoles.Parameters.Add("roles", setUserRoles.Command.Parameters.Add("roles", (NpgsqlTypes.NpgsqlDbType.Array | NpgsqlTypes.NpgsqlDbType.Bigint)));
+            setUserRoles.Command.Prepare();
+            Statements.Add(IndexedCommands.SetUserRoles, setUserRoles);
+
+            Query getUserRoles = new Query();
+            getUserRoles.Command = new NpgsqlCommand("SELECT role_ids FROM guild_cache WHERE user_id=@userID AND guild_id=@guildID", activeConnection);
+            getUserRoles.Parameters = new Dictionary<string, NpgsqlParameter>();
+            getUserRoles.Parameters.Add("guildID", getUserRoles.Command.Parameters.Add("guildID", NpgsqlTypes.NpgsqlDbType.Bigint));
+            getUserRoles.Parameters.Add("userID", getUserRoles.Command.Parameters.Add("userID", NpgsqlTypes.NpgsqlDbType.Bigint));
+            getUserRoles.Command.Prepare();
+            Statements.Add(IndexedCommands.GetUserRoles, getUserRoles);
+
+            Query setUserMute = new Query();
+            setUserMute.Command = new NpgsqlCommand("UPDATE guild_cache SET muted=@isMuted WHERE user_id=@userID AND guild_id=@guildID", activeConnection);
+            setUserMute.Parameters = new Dictionary<string, NpgsqlParameter>();
+            setUserMute.Parameters.Add("guildID", setUserMute.Command.Parameters.Add("guildID", NpgsqlTypes.NpgsqlDbType.Bigint));
+            setUserMute.Parameters.Add("userID", setUserMute.Command.Parameters.Add("userID", NpgsqlTypes.NpgsqlDbType.Bigint));
+            setUserMute.Parameters.Add("isMuted", setUserMute.Command.Parameters.Add("isMuted", NpgsqlTypes.NpgsqlDbType.Boolean));
+            setUserMute.Command.Prepare();
+            Statements.Add(IndexedCommands.SetUserMute, setUserMute);
+
+            Query getUserMute = new Query();
+            getUserMute.Command = new NpgsqlCommand("SELECT muted FROM guild_cache WHERE user_id=@userID AND guild_id=@guildID", activeConnection);
+            getUserMute.Parameters = new Dictionary<string, NpgsqlParameter>();
+            getUserMute.Parameters.Add("guildID", getUserMute.Command.Parameters.Add("guildID", NpgsqlTypes.NpgsqlDbType.Bigint));
+            getUserMute.Parameters.Add("userID", getUserMute.Command.Parameters.Add("userID", NpgsqlTypes.NpgsqlDbType.Bigint));
+            getUserMute.Command.Prepare();
+            Statements.Add(IndexedCommands.GetUserMute, getUserMute);
+
         }
 
         public static void TestConnection() {

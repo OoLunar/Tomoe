@@ -1,6 +1,12 @@
+using System.Collections.Generic;
+using System.Linq;
 using Npgsql;
 
 namespace Tomoe.Utils.Cache {
+    public static class MutedRoleExtension {
+        public static bool HasValue(this MutedRole muteRole) => muteRole != null;
+    }
+
     public class MutedRole {
         public ulong GuildID;
         public ulong RoleID;
@@ -12,27 +18,45 @@ namespace Tomoe.Utils.Cache {
             UserID = setByUserID;
         }
 
-        public static void Store(ulong guildID, ulong roleID, ulong userID) {
+        public static void Set(ulong guildID, ulong roleID, ulong userID) {
             PreparedStatements.Query muteRole = Program.PreparedStatements.Statements[PreparedStatements.IndexedCommands.SetMuteRole];
-            muteRole.Parameters["muteInfo"].Value = $"{roleID.ToString()},{userID.ToString()}";
-            muteRole.Parameters["guildID"].Value = guildID.ToString();
+            muteRole.Parameters["muteRole"].Value = new System.Collections.Generic.Dictionary<string, string>() { { roleID.ToString(), userID.ToString() } };
+            muteRole.Parameters["guildID"].Value = long.Parse(guildID.ToString());
             muteRole.Command.ExecuteNonQuery();
         }
 
-        public static MutedRole Get(ulong guildID) {
+        public static MutedRole? Get(ulong guildID) {
             PreparedStatements.Query muteRole = Program.PreparedStatements.Statements[PreparedStatements.IndexedCommands.GetMuteRole];
-            muteRole.Parameters["guildID"].Value = guildID.ToString();
+            muteRole.Parameters["guildID"].Value = long.Parse(guildID.ToString());
             NpgsqlDataReader isMutedRolePresent = muteRole.Command.ExecuteReader();
             isMutedRolePresent.Read();
-            string queryResult = null;
-            if (isMutedRolePresent.HasRows) queryResult = isMutedRolePresent[0].ToString().Trim();
+            Dictionary<string, string> queryResult = null;
+            if (isMutedRolePresent.HasRows && isMutedRolePresent[0].GetType() != typeof(System.DBNull)) queryResult = (Dictionary<string, string>) isMutedRolePresent[0];
             isMutedRolePresent.Close();
-            if (!string.IsNullOrWhiteSpace(queryResult)) {
-                string[] mutedRoleInfo = queryResult.ToString().Split(',');
-                ulong roleID = ulong.Parse(mutedRoleInfo[0]);
-                ulong userID = ulong.Parse(mutedRoleInfo[1]);
+            if (queryResult != null) {
+                ulong roleID = ulong.Parse(queryResult.First().Key);
+                ulong userID = ulong.Parse(queryResult.First().Value);
                 return new MutedRole(guildID, roleID, userID);
             } else return null;
+        }
+
+        public static void SetMute(ulong userID, ulong guildID, bool isMuted) {
+            PreparedStatements.Query toggleMute = Program.PreparedStatements.Statements[PreparedStatements.IndexedCommands.SetUserMute];
+            toggleMute.Parameters["userID"].Value = (long) userID;
+            toggleMute.Parameters["guildID"].Value = (long) guildID;
+            toggleMute.Parameters["isMuted"].Value = isMuted;
+            toggleMute.Command.ExecuteNonQuery();
+        }
+
+        public static bool GetMute(ulong userID, ulong guildID) {
+            PreparedStatements.Query getMute = Program.PreparedStatements.Statements[PreparedStatements.IndexedCommands.GetMuteRole];
+            getMute.Parameters["guildID"].Value = (long) guildID;
+            getMute.Parameters["userID"].Value = (long) userID;
+            NpgsqlDataReader databaseReader = getMute.Command.ExecuteReader();
+            databaseReader.Read();
+            bool queryResult = bool.Parse(databaseReader[0].ToString());
+            databaseReader.Close();
+            return queryResult;
         }
     }
 }

@@ -43,7 +43,7 @@ namespace Tomoe.Commands.Public {
             }
             roleInQuestion.Permissions.ToList().ForEach(perm => perms += $"`{perm.ToString()}`, ");
             EmbedBuilder embed = new EmbedBuilder();
-            embed.Description = $"ID: **{roleInQuestion.Id}**\nCreation: **{roleInQuestion.CreatedAt.ToString("ddd, dd MMM yyyy HH':'mm':'ss 'GMT'")}**\nPosition: **{roleInQuestion.Position}**\nColor: **{roleInQuestion.Color}**\nMentionable: **{roleInQuestion.IsMentionable}**\nHoisted: **{roleInQuestion.IsHoisted}**\nManaged: **{roleInQuestion.IsManaged}**\nPermissions: **{(string.IsNullOrWhiteSpace(perms) ? "None" : perms)}**\nMembers: **{roleMemberCount}**";
+            embed.Description = $"ID: **{roleInQuestion.Id}**\nName: **{roleInQuestion.Name}**\nCreation: **{roleInQuestion.CreatedAt.ToString("ddd, dd MMM yyyy HH':'mm':'ss 'GMT'")}**\nPosition: **{roleInQuestion.Position}**\nColor: **{roleInQuestion.Color}**\nMentionable: **{roleInQuestion.IsMentionable}**\nHoisted: **{roleInQuestion.IsHoisted}**\nManaged: **{roleInQuestion.IsManaged}**\nPermissions: **{(string.IsNullOrWhiteSpace(perms) ? "None" : perms)}**\nMembers: **{roleMemberCount}**";
             embed.AddField("Members:", (string.IsNullOrWhiteSpace(roleUsers) ? "None" : roleUsers));
             embed.Color = roleInQuestion.Color == Color.Default ? Color.Default : roleInQuestion.Color;
             await ReplyAsync(null, false, embed.Build());

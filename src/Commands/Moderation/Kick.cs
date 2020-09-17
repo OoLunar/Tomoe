@@ -21,83 +21,63 @@ namespace Tomoe.Commands.Moderation {
         [RequireUserPermission(GuildPermission.KickMembers)]
         [RequireBotPermission(GuildPermission.KickMembers)]
         [RequireContext(ContextType.Guild)]
-        [Summary("Kicks a guild member identified by a mention. Optionally with a reason.")]
-        public async Task ByMention(SocketGuildUser kickMember, [Remainder] string reason = null) {
-            //Add dialog context.
+        [Summary("[Kicks a user through a mention or id.](https://github.com/OoLunar/Tomoe/tree/master/docs/moderation/kick.md)")]
+        [Remarks("Moderation")]
+        public async Task ByID(ulong victimId, [Remainder] string reason = null) {
             DialogContext dialogContext = new DialogContext();
             dialogContext.Guild = Context.Guild;
             dialogContext.Channel = Context.Channel;
-            dialogContext.UserAction = DialogContext.Action.Kick;
             dialogContext.Issuer = Context.User;
-            dialogContext.Victim = kickMember;
+            dialogContext.Victim = await Program.Client.Rest.GetUserAsync(victimId);
+            dialogContext.UserAction = DialogContext.Action.Kick;
+            dialogContext.RequiredGuildPermission = GuildPermission.KickMembers;
             dialogContext.Reason = reason;
 
-            //Check if user is in the guild.
-            if (kickMember == null || Context.Guild.GetUser(kickMember.Id) == null) {
+            SocketGuildUser kickMember = Context.Guild.GetUser(victimId);
+
+            // Victim does not exist.
+            if (dialogContext.Victim == null) return;
+            // Victim is not in the guild.
+            else if (kickMember == null) {
                 dialogContext.Error = Program.Dialogs.Message.Errors.NotInGuild;
-                await dialogContext.SendChannel();
+                dialogContext.SendChannel();
                 return;
             }
+
             // Check for bot self kick.
-            else if (kickMember.Id == Program.Client.CurrentUser.Id) {
+            else if (dialogContext.Victim.Id == Program.Client.CurrentUser.Id) {
                 dialogContext.Error = Program.Dialogs.Message.Errors.FailedSelfBot;
                 await dialogContext.SendChannel();
                 return;
             }
-            //Check if bot can kick user.
-            else if (kickMember.Hierarchy >= Context.Guild.GetUser(Program.Client.CurrentUser.Id).Hierarchy) {
+            // Check if bot can kick the victim.
+            else if (kickMember != null && kickMember.Hierarchy >= Context.Guild.GetUser(Program.Client.CurrentUser.Id).Hierarchy) {
                 dialogContext.Error = Program.Dialogs.Message.Errors.FailedHierarchyError;
                 await dialogContext.SendChannel();
                 return;
             }
 
-            kickMember.KickAsync(reason);
-
-            // Create the DM Channel and tell them what happened.
             try {
-                dialogContext.SendDM();
-            } catch {
+                // Let the victim know they were kickned.
+                await dialogContext.SendDM();
+                // Remove DM error. TODO: Fix this. Check SendDM method.
+                dialogContext.Error = null;
+                // Kick the user
+                await kickMember.KickAsync(reason);
+            } catch (Discord.Net.HttpException error) when(error.DiscordCode.HasValue && error.DiscordCode == 50007) {
+                // If the victim cannot be DM'd, let the issuer know.
                 dialogContext.Error = Program.Dialogs.Message.Errors.FailedToDm;
             }
 
-            await dialogContext.SendChannel();
+            dialogContext.SendChannel();
             return;
         }
 
-        /// <summary>
-        /// Kicks a guild member identified by an ID with a reason.
-        /// <para>
-        /// Prerequisites: Having the correct permissions: `<see cref="Discord.GuildPermission.KickMembers"/>` (bot) and `<see cref="Discord.GuildPermission.KickMembers"/>` (user).
-        /// <code>
-        /// >>kick 336733686529654798 shitposting
-        /// </code>
-        /// </para>
-        /// </summary>
         [Command("kick", RunMode = RunMode.Async)]
         [RequireUserPermission(GuildPermission.KickMembers)]
         [RequireBotPermission(GuildPermission.KickMembers)]
         [RequireContext(ContextType.Guild)]
-        [Summary("[Kicks a guild member identified by an ID. Optionally with a reason.](https://github.com/OoLunar/Tomoe/tree/master/docs/moderation/kick.md)")]
-        [Remarks("Moderation")]
-        public async Task ByID(ulong kickMember, [Remainder] string reason = null) {
-            SocketGuildUser kickGuildMember = Context.Guild.GetUser(kickMember);
-            if (Context.Guild.GetUser(kickMember) != null) await ByMention(kickGuildMember, reason);
-            else {
-                DialogContext dialogContext = new DialogContext();
-                dialogContext.Guild = Context.Guild;
-                dialogContext.Channel = Context.Channel;
-                dialogContext.UserAction = DialogContext.Action.Kick;
-                dialogContext.Issuer = Context.User;
-                dialogContext.Victim = kickGuildMember;
-                dialogContext.RequiredGuildPermission = GuildPermission.KickMembers;
-                dialogContext.Reason = reason;
-                dialogContext.Victim = await Program.Client.Rest.GetUserAsync(kickMember);
-                dialogContext.Error = Program.Dialogs.Message.Errors.NotInGuild;
-
-                await dialogContext.SendChannel();
-            }
-            return;
-        }
+        public async Task ByMention(Mention victim, int pruneDays = 7, [Remainder] string reason = null) => await ByID(victim.Id, reason);
 
         /// <summary>
         /// Informs the issuer that a kick could not be issued due to lack of bot/user permissions.
@@ -110,37 +90,34 @@ namespace Tomoe.Commands.Moderation {
         /// </summary>
         [Command("kick", RunMode = RunMode.Async)]
         [RequireContext(ContextType.Guild)]
-        public async Task KickNoPerms(SocketGuildUser kickMember, [Remainder] string reason = null) {
+        public async Task KickNoPerms(SocketGuildUser victim, [Remainder] string reason = null) {
             DialogContext dialogContext = new DialogContext();
             dialogContext.Guild = Context.Guild;
             dialogContext.Channel = Context.Channel;
             dialogContext.UserAction = DialogContext.Action.Kick;
             dialogContext.Issuer = Context.User;
-            dialogContext.Victim = kickMember;
+            dialogContext.Victim = victim;
             dialogContext.Reason = reason;
+            dialogContext.RequiredGuildPermission = GuildPermission.KickMembers;
 
-            if (!Context.Guild.GetUser(Program.Client.CurrentUser.Id).GuildPermissions.KickMembers) {
-                dialogContext.RequiredGuildPermission = GuildPermission.KickMembers;
+            if (!Context.Guild.GetUser(Program.Client.CurrentUser.Id).GuildPermissions.KickMembers)
                 dialogContext.Error = Program.Dialogs.Message.Errors.NoBotPerms;
-            } else if (!Context.Guild.GetUser(Context.User.Id).GuildPermissions.KickMembers) {
-                dialogContext.RequiredGuildPermission = GuildPermission.KickMembers;
+            else if (!Context.Guild.GetUser(Context.User.Id).GuildPermissions.KickMembers)
                 dialogContext.Error = Program.Dialogs.Message.Errors.NoUserPerms;
-            }
+
             await dialogContext.SendChannel();
             return;
         }
 
-        /// <summary>
-        /// Informs the user that a kick cannot be issued in DM's.
-        /// </summary>
+        /// <summary>Informs the user that a kick cannot be issued in DMs.</summary>
         [Command("kick", RunMode = RunMode.Async)]
         [RequireContext(ContextType.DM)]
-        public async Task DM(IUser kickMember, [Remainder] string reason = null) {
+        public async Task DM(IUser victim, [Remainder] string reason = null) {
             DialogContext dialogContext = new DialogContext();
             dialogContext.Channel = Context.Channel;
             dialogContext.UserAction = DialogContext.Action.Kick;
             dialogContext.Issuer = Context.User;
-            dialogContext.Victim = kickMember;
+            dialogContext.Victim = victim;
             dialogContext.Reason = reason;
             dialogContext.Error = Program.Dialogs.Message.Errors.FailedInDm;
 
@@ -148,17 +125,15 @@ namespace Tomoe.Commands.Moderation {
             return;
         }
 
-        /// <summary>
-        /// Informs the issuer that a kick cannot be issued in Group Chat's.
-        /// </summary>
+        /// <summary>Informs the issuer that a kick cannot be issued in Group Chats.</summary>
         [Command("kick", RunMode = RunMode.Async)]
         [RequireContext(ContextType.Group)]
-        public async Task Group(IUser kickMember, [Remainder] string reason = null) {
+        public async Task Group(IUser victim, [Remainder] string reason = null) {
             DialogContext dialogContext = new DialogContext();
             dialogContext.Channel = Context.Channel;
             dialogContext.UserAction = DialogContext.Action.Kick;
             dialogContext.Issuer = Context.User;
-            dialogContext.Victim = kickMember;
+            dialogContext.Victim = victim;
             dialogContext.Reason = reason;
             dialogContext.Error = Program.Dialogs.Message.Errors.FailedInDm;
 

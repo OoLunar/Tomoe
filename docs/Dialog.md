@@ -45,6 +45,7 @@ All variables are bash-like snake case. I. E `$timestamp` or `$issuer_mention` .
 | $new_message_id       | Message Recieved, Message Updated, Message Deleted, Message Bulk Deleted  | Gets the new message's id. |
 | $action               | Ban, TempBan, Kick, TempMute, Mute, Temp No Meme, No Meme, Strike         | Gets the action done. |
 | $past_action          | Ban, TempBan, Kick, TempMute, Mute, Temp No Meme, No Meme, Strike         | Gets the action done in past tense.
+| $required_guild_permission | Any Moderation Command | The required permission set for either the bot or the user to successfully use the command. |
 | $old_role             | Setup Mute, Setup No Meme, Setup No VC                                    | Gets the role name. **Does NOT mention the role.** Can only be used when a new role is assigned to said commands. |
 | $old_role_id          | Setup Mute, Setup No Meme, Setup No VC                                    | Gets the role id. Can only be used when a new role is assigned to said commands. |
 | $old_role_mention     | Setup Mute, Setup No Meme, Setup No VC                                    | Mentions the old role. Can only be used when a new role is assigned to said commands. |

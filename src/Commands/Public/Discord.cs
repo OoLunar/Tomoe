@@ -1,10 +1,9 @@
 using System.Threading.Tasks;
-using Discord;
 using Discord.Addons.Interactive;
 using Discord.Commands;
 
 namespace Tomoe.Commands.Public {
-    public class Ping : InteractiveBase {
+    public class Discord : InteractiveBase {
 
         /// <summary>
         /// Sends a Discord message, then edits the message with how long it took to send in milliseconds.
@@ -12,14 +11,10 @@ namespace Tomoe.Commands.Public {
         /// >>ping
         /// </code>
         /// </summary>
-        [Command("ping", RunMode = RunMode.Async)]
+        [Command("discord", RunMode = RunMode.Async)]
+        [Alias(new string[] { "guild", "server" })]
         [Summary("[Sends a Discord message, then edits the message with how long the original message took to send in milliseconds.](https://github.com/OoLunar/Tomoe/blob/master/docs/public/ping.md)")]
-        public async Task ping() {
-            System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
-            stopwatch.Start();
-            IUserMessage pingMessage = await ReplyAsync("Pong!");
-            stopwatch.Stop();
-            await pingMessage.ModifyAsync(m => { m.Content = $"Pong! {stopwatch.ElapsedMilliseconds}ms"; });
-        }
+        public async Task discord() => await ReplyAsync("discord.gg/hJX2Nsq");
+
     }
 }
