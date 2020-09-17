@@ -68,9 +68,8 @@ As mentioned previously, Tomoe aims to be the #1 bot choice for Discord Moderati
 | setup_guild | Halfway Done | Interactive |
 | setup_no_meme | :x: | Static or Interactive |
 | setup_mute | :heavy_check_mark: | Static or Interactive |
-| setup_logging | :x: | Static or Interactive |
+| setup_logging | Halfway Done | Static or Interactive |
 | setup_ignored_channels | :x: | Static or Interactive |
-| setup_timezone | :x: | Static or Interactive |
 | setup_admins | :x: | Static or Interactive |
 | setup_anti_invite | :x: | Static or Interactive |
 | setup_anti_everyone | :x: | Static or Interactive |
@@ -78,14 +77,14 @@ As mentioned previously, Tomoe aims to be the #1 bot choice for Discord Moderati
 | setup_max_lines | :x: | Static or Interactive |
 | setup_max_mentions | :x: | Static or Interactive |
 | setup_auto_dehoist | :x: | Static or Interactive |
-| setup_auto_raidmode | :x: | Static or Interactive |
+| setup_auto_raidmode | Halfway Done | Static or Interactive |
 | allow_invite | :x: | Static |
 | strike | :x: | Static |
 | nomeme | :x: | Static |
 | temp_mute | :x: | Static |
 | perm_mute | :heavy_check_mark: | Static |
 | kick | :heavy_check_mark: | Static |
-| temp_ban | :x: | Static |
+| temp_ban | :heavy_check_mark: | Static |
 | perm_ban | :heavy_check_mark: | Static |
 | report | :x: | Static |
 | tag | :x: | Static |
@@ -94,7 +93,7 @@ As mentioned previously, Tomoe aims to be the #1 bot choice for Discord Moderati
 | pfp | :heavy_check_mark: | Static |
 | role_info | :heavy_check_mark: | Static |
 | repo | :heavy_check_mark: | Static |
-| help | :x: | Static |
+| help | :heavy_check_mark: | Static |
 
 *Naming may change for simplicity.
 
