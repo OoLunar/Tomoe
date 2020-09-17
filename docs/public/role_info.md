@@ -6,7 +6,7 @@ Gets the permissions of a role, the role color, who has the role and a count of 
 Role Info gets the following information about a guild role:
   - Role id.
   - Role name.
-  - Creation date [in header format (see `Syntax`)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Date).
+  - Creation date [in HTTP header format (see `Syntax`)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Date).
   - Role's position in hierarchy.
   - Role's hex color code.
   - Role's mentionability.
