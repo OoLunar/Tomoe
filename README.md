@@ -11,27 +11,47 @@ Having Dotnet Core SDK installed (Version 5.0 Preview as of this moment). You ca
 ``` bash
 git clone https://github.com/OoLunar/Tomoe.git
 cd Tomoe
-printf "\n\nSTOP HERE! Editing any and all values in res/tokens.xml (https://github.com/OoLunar/Tomoe/blob/master/res/tokens.xml) so everything works correctly.\n\n\n"
+```
+Be sure to edit your res/tokens.xml, then:
+```bash
 dotnet run # First run might take a minute since it has to download dependencies and whatnot.
 ```
-
 # Tomoe, The Discord Moderation Bot
 
 Tomoe is all about moderation for big time servers and aims to be Vortex, Zeppelin and Carl all in one.
 
 ## What is Tomoe written in?
 
-C#. However once Tomoe is finished 100%, I plan on creating a seperate branch rewriting Tomoe in Rust for efficency. Please keep in mind that plans may change.
+C#. However once Tomoe is finished 100%, I plan on creating a seperate branch and rewriting Tomoe in Rust for efficency. Please keep in mind that plans may change.
 
 ## What can Tomoe do?
 
-As of this minute, Tomoe can do the following commands:
+As of this minute, Tomoe can do the following moderation commands:
 
-| Command | Syntax | Params | Definition |
-|:-:|:-:|:-:|:-:|
-| setup_guild | >>setup_guild | N/A | Registers the guild into the database. |
-| setup_mute | >>setup_mute [Role] | [Role] = Mentioned Role / Role ID | Sets up the mute role for HardMute and SoftMute |
-| hard_mute | >>hard_mute [User] | [User] = Mentioned User / User ID | Mutes the user permanently until staff unmute them. |
+| Command | Syntax | Definition |
+| :-: | :- | :- |
+| Ban | >>ban User [Reason] | Bans a guild member identified by mention or ID, optionally with a reason. |
+| Kick | >>kick User [Reason] | Kicks a guild member identified by mention or ID, optionally with a reason. |
+| Hard Mute | >>hard_mute User [Reason] | Mutes a guild member permanently, identified by mention or ID, optionally with a reason. |
+| No Meme | >>no_meme User [Reason] | Takes away all Discord functionality other than send/read message from a user identified by mention or ID, optionally with a reason. |
+| Silent Ban | >>silent_ban User [Reason] | Bans the user identified by mention or ID silently, optionally with a reason. Ban is still logged, however the ban message is deleted from chat. |
+| Setup Guild | >>setup_guild | Registers the guild into the database. |
+| Setup Mute | >>setup_mute Role | Sets up the mute role for HardMute and SoftMute. |
+
+While also being able to do the following public commands:
+
+| Command | Syntax | Definition |
+| :-: | :- | :- |
+| Ping | >>ping | Times how long to took to send a message, then edits the sent message with how long it took in milliseconds. |
+| Profile Picture | >>profile_picture User | Sends a 512x512px PNG of the user asked for, identified by mention or ID. |
+| Profile Picture | >>pfp User | Alias for `>>profile_picture`. |
+| Reminder | >>remind TimeSpan [Reason] | Reminds the user of an optionally provided reason in a C# Timespan format. |
+| Reminders | >>reminders | Shows all the listed reminders that are currently set in the form a paged embed. |
+| Repo | >>repo | Sends the repo of Tomoe. |
+| Repo | >>repository | Alias to `>>repo`. |
+| Repo | >>github | Alias to `>>repo`. |
+| Repo | >>gitlab | Alias to `>>repo`. |
+| Role Info | >>role_info Role | Sends all information about the role indentified by ping, name or ID in an embed. Also shows who has the role, along with a member count. |
 
 Some might have noticed that all commands are snake case. This is best for simplicity and consistancy.
 
@@ -42,6 +62,7 @@ Tomoe has customizable dialogs over in [res/dialogs.xml](https://github.com/OoLu
 ## What's to come?
 
 As mentioned previously, Tomoe aims to be the #1 bot choice for Discord Moderation. This means that any and all moderation commands that Vortex, Zeppelin and Carl can do, Tomoe will try to implement. Here's the current road map:
+
 | Command | Implemented | Type |
 |:-|:-:|:-|
 | setup_guild | Halfway Done | Interactive |
@@ -62,12 +83,17 @@ As mentioned previously, Tomoe aims to be the #1 bot choice for Discord Moderati
 | strike | :x: | Static |
 | nomeme | :x: | Static |
 | temp_mute | :x: | Static |
-| perm_mute | Halfway Done | Static |
-| kick | :x: | Static |
+| perm_mute | :heavy_check_mark: | Static |
+| kick | :heavy_check_mark: | Static |
 | temp_ban | :x: | Static |
-| perm_ban | :x: | Static |
+| perm_ban | :heavy_check_mark: | Static |
 | report | :x: | Static |
 | tag | :x: | Static |
+| remind | :heavy_check_mark: | Static |
+| reminders | :heavy_check_mark: | Static |
+| pfp | :heavy_check_mark: | Static |
+| role_info | :heavy_check_mark: | Static |
+| repo | :heavy_check_mark: | Static |
 | help | :x: | Static |
 
 *Naming may change for simplicity.
