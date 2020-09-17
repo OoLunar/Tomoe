@@ -12,7 +12,6 @@ Syntax:
     >>ban <user> [reason]
 
 The user is a required argument, while the reason is optional. Simple enough usage, as such:
-
     
     >>ban @Lunar#9860
 
@@ -38,3 +37,8 @@ And with a reason
     >>ban 336733686529654798 Quit causing a ruckus on the server.
 
 Done and done. Tomoe will log the ban into it's proper logging channel provided that logging is setup. Upon banning, Tomoe will send a private message, or DM, to the user that looks like such:
+![image](https://user-images.githubusercontent.com/46751150/93417282-53d7d980-f86d-11ea-8f3f-66e7b4faaaab.png)
+
+### For the visual learners
+<hr>
+TO BE WRITTEN (Commands need to function all the way before screenshots can be taken)
