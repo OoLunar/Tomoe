@@ -3,7 +3,7 @@
 Gets the profile picture of a user or userid.
 
 ## Description
-Get's the Discord profile picture that a user currently has set.
+Get's the Discord profile picture that a user currently has set. The picture is returned in png format with 512px resolution.
 ```
 >>pfp @Lunar#9860
 ```
