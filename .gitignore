@@ -2,5 +2,4 @@
 bin/
 obj/
 log/
-res/tokens.xml
-res/tasks.cf
+res/tokens.jsonc
