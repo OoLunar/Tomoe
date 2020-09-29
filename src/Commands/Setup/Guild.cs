@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Addons.Interactive;
 using Discord.Commands;
-using Tomoe.Utils;
+using Tomoe.Utils.Dialog;
 
 namespace Tomoe.Commands.Setup {
     public class Guild : InteractiveBase {
@@ -17,7 +17,7 @@ namespace Tomoe.Commands.Setup {
         [Command("setup_guild", RunMode = RunMode.Async)]
         [RequireUserPermission(GuildPermission.Administrator)]
         public async Task Admin() {
-            DialogContext dialogContext = new DialogContext();
+            Context dialogContext = new Context();
             dialogContext.Guild = Context.Guild;
             dialogContext.Channel = Context.Channel;
             dialogContext.Issuer = Context.Guild.GetUser(Context.User.Id);
@@ -30,7 +30,7 @@ namespace Tomoe.Commands.Setup {
 
         [Command("setup_guild", RunMode = RunMode.Async)]
         public async Task NoPerms() {
-            DialogContext dialogContext = new DialogContext();
+            Context dialogContext = new Context();
             dialogContext.Guild = Context.Guild;
             dialogContext.Channel = Context.Channel;
             dialogContext.Issuer = Context.Guild.GetUser(Context.User.Id);

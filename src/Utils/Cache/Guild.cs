@@ -17,27 +17,21 @@ namespace Tomoe.Utils.Cache {
             PreparedStatements.Query getGuildID = Program.PreparedStatements.Statements[PreparedStatements.IndexedCommands.GetGuild];
             getGuildID.Parameters["guildID"].Value = (long) guildID;
             NpgsqlDataReader dataReader = getGuildID.Command.ExecuteReader();
-            dataReader.Read();
-            string queryResult = null;
-            if (dataReader.HasRows) queryResult = dataReader[0].ToString().Trim();
+            if (!dataReader.Read()) return null;
+            long queryResult = dataReader.GetInt64(0);
             dataReader.Close();
-            if (!string.IsNullOrWhiteSpace(queryResult)) {
-                return ulong.Parse(queryResult);
-            } else return null;
+            return ulong.Parse(queryResult.ToString());
         }
 
         public static ulong? GetLoggingChannel(ulong guildID, Event eventUpdated) {
             PreparedStatements.Query getLoggingChannel = Program.PreparedStatements.Statements[PreparedStatements.IndexedCommands.GetLoggingChannel];
             getLoggingChannel.Parameters["guildID"].Value = (long) guildID;
             getLoggingChannel.Parameters["guildEvent"].Value = eventUpdated.ToString();
-            NpgsqlDataReader dataReader = getLoggingChannel.Command.ExecuteReader();
-            dataReader.Read();
-            string queryResult = null;
-            if (dataReader.HasRows) queryResult = dataReader[0].ToString().Trim();
+            NpgsqlDataReader dataReader = getLoggingChannel.Command.ExecuteReaderAsync().GetAwaiter().GetResult();
+            if (!dataReader.Read()) return null;
+            long queryResult = dataReader.GetInt64(0);
             dataReader.Close();
-            if (!string.IsNullOrWhiteSpace(queryResult)) {
-                return ulong.Parse(queryResult);
-            } else return null;
+            return ulong.Parse(queryResult.ToString());
         }
 
         public static void AddLoggingChannel(ulong guildID, Event eventUpdated, ulong channel) {

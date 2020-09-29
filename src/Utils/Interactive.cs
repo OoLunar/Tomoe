@@ -1,9 +1,9 @@
 using System;
 using System.Threading.Tasks;
-using Discord;
 using Discord.Addons.Interactive;
 using Discord.Commands;
 using Discord.WebSocket;
+using Tomoe.Utils.Dialog;
 
 namespace Tomoe.Utils {
     class ReactionCallBack : IReactionCallback {
@@ -13,13 +13,13 @@ namespace Tomoe.Utils {
             PagedEmbed
         }
 
-        public delegate void Reaction(object source, DialogContext context, SocketReaction reaction);
+        public delegate void Reaction(object source, Tomoe.Utils.Dialog.Context context, SocketReaction reaction);
 
         public SocketCommandContext Context { get; set; }
         public RunMode RunMode => RunMode.Async;
         public ICriterion<SocketReaction> Criterion => new EmptyCriterion<SocketReaction>();
         public TimeSpan? Timeout => System.TimeSpan.FromSeconds(10);
-        public DialogContext DialogContext;
+        public Tomoe.Utils.Dialog.Context DialogContext;
         public ActionTypes TakeAction;
         public event Reaction OnReaction;
 

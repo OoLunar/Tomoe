@@ -4,15 +4,44 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
 
-namespace Tomoe.Utils {
-    public static class DialogContextExtensions {
-        public static string Filter(this DialogContext context) {
-            if (DialogContext.GetActionType(context.UserAction)) {
+namespace Tomoe.Utils.Dialog {
+    public static class Extensions {
+        public static string ToPastString(this Context.Action action) {
+            switch (action) {
+                case Tomoe.Utils.Dialog.Context.Action.Ban:
+                    return "banned";
+                case Tomoe.Utils.Dialog.Context.Action.Kick:
+                    return "kicked";
+                case Tomoe.Utils.Dialog.Context.Action.Mute:
+                    return "muted";
+                case Tomoe.Utils.Dialog.Context.Action.NoMeme:
+                    return "no memed";
+                case Tomoe.Utils.Dialog.Context.Action.Strike:
+                    return "striken";
+                case Tomoe.Utils.Dialog.Context.Action.TempBan:
+                    return "temporarily banned";
+                case Tomoe.Utils.Dialog.Context.Action.TempMute:
+                    return "temporarily muted";
+                case Tomoe.Utils.Dialog.Context.Action.TempNoMeme:
+                    return "temporarily no memed";
+                case Tomoe.Utils.Dialog.Context.Action.UnBan:
+                    return "unbanned";
+                case Tomoe.Utils.Dialog.Context.Action.UnMute:
+                    return "unmuted";
+                case Tomoe.Utils.Dialog.Context.Action.UnNoMeme:
+                    return "no memed no longer";
+                default:
+                    return action.ToString();
+            }
+        }
+
+        public static string Filter(this Dialog.Context context) {
+            if (Dialog.Context.IsEmbed(context.UserAction))
                 // We send an embed
                 return null;
-            } else {
+            else {
                 // We send a message
-                string modifyString = DialogContext.DialogMessage[context.UserAction];
+                string modifyString = Dialog.Context.DialogMessage[context.UserAction];
                 if (context.Error != null) modifyString = context.Error;
                 IGuildUser guildIssuer;
                 IGuildUser guildVictim;
@@ -21,11 +50,11 @@ namespace Tomoe.Utils {
                     .Replace("$guild_id", context.Guild.Id.ToString());
                 if (context.Issuer != null) {
                     // Get the user in the guild
-                    guildIssuer = AsyncHelpers.RunSync<IGuildUser>(() => context.Guild.GetUserAsync(context.Issuer.Id));
+                    guildIssuer = context.Guild.GetUserAsync(context.Issuer.Id).GetAwaiter().GetResult();
                     if (guildIssuer != null) modifyString = modifyString.Replace("$issuer_nick", guildIssuer.GetCommonName());
                     // issuer isn't in the guild, replace nickname with username since GetCommonName will fail.
                     else {
-                        context.Issuer = AsyncHelpers.RunSync<Discord.Rest.RestUser>(() => Program.Client.Rest.GetUserAsync(context.Issuer.Id));
+                        context.Issuer = Program.Client.Rest.GetUserAsync(context.Issuer.Id).GetAwaiter().GetResult();
                         modifyString = modifyString.Replace("$issuer_nick", context.Issuer.Username);
                     }
                     modifyString = modifyString
@@ -36,11 +65,11 @@ namespace Tomoe.Utils {
                 }
                 if (context.Victim != null) {
                     // Get the user in the guild
-                    guildVictim = AsyncHelpers.RunSync<IGuildUser>(() => context.Guild.GetUserAsync(context.Victim.Id));
+                    guildVictim = context.Guild.GetUserAsync(context.Victim.Id).GetAwaiter().GetResult();
                     if (guildVictim != null) modifyString = modifyString.Replace("$victim_nick", guildVictim.GetCommonName());
                     // Victim isn't in the guild, replace nickname with username since GetCommonName will fail.
                     else {
-                        context.Victim = AsyncHelpers.RunSync<Discord.Rest.RestUser>(() => Program.Client.Rest.GetUserAsync(context.Victim.Id));
+                        context.Victim = Program.Client.Rest.GetUserAsync(context.Victim.Id).GetAwaiter().GetResult();
                         modifyString = modifyString.Replace("$victim_nick", context.Victim.Username);
                     }
                     modifyString = modifyString
@@ -62,7 +91,7 @@ namespace Tomoe.Utils {
                     while (Regex.IsMatch(context.Reason, @"<@&(\d+)>", RegexOptions.Multiline) || Regex.IsMatch(context.Reason, @"<@!?(\d+)>", RegexOptions.Multiline) || context.Reason.Contains("@everyone") || context.Reason.Contains("@here")) {
                         // Replaces all mentions with ID's
                         string mentionNickID = Regex.Match(context.Reason, @"<@!?(\d+)>", RegexOptions.Multiline).Groups[1].Value;
-                        mentionNickID = $"`{mentionNickID}` (User {AsyncHelpers.RunSync<IGuildUser>(() => context.Guild.GetUserAsync(ulong.Parse(mentionNickID))).GetCommonName()})";
+                        mentionNickID = $"`{mentionNickID}` (User {context.Guild.GetUserAsync(ulong.Parse(mentionNickID)).GetAwaiter().GetResult().GetCommonName()})";
                         context.Reason = Regex.Replace(context.Reason, @"<@!?\d+>", mentionNickID);
                         string roleID = Regex.Match(context.Reason, @"<@&(\d+)>", RegexOptions.Multiline).Groups[1].Value;
                         roleID = $"`{roleID}` (Role {context.Guild.GetRole(ulong.Parse(roleID)).Name})";
@@ -94,15 +123,17 @@ namespace Tomoe.Utils {
             }
         }
 
-        public static async Task<Discord.Rest.RestUserMessage> SendChannel(this DialogContext context) => await (context.Channel as ISocketMessageChannel).SendMessageAsync(context.Filter());
+        public static async Task<Discord.Rest.RestUserMessage> SendChannel(this Dialog.Context context) => await (context.Channel as ISocketMessageChannel).SendMessageAsync(context.Filter());
 
-        public static async Task<Discord.IUserMessage> SendDM(this DialogContext context) {
-            context.Error = Tomoe.Utils.DialogContext.DMDialogMessage[context.UserAction];
-            return await (await context.Victim.GetOrCreateDMChannelAsync()).SendMessageAsync(context.Filter());
+        public static async Task<Discord.IUserMessage> SendDM(this Dialog.Context context) {
+            context.Error = Tomoe.Utils.Dialog.Context.DMDialogMessage[context.UserAction];
+            Discord.IUserMessage returnMessage = await (await context.Victim.GetOrCreateDMChannelAsync()).SendMessageAsync(context.Filter());
+            context.Error = null;
+            return returnMessage;
         }
     }
 
-    public class DialogContext {
+    public class Context {
         public IUser Issuer;
         public IUser Victim;
         public IRole OldRole;
@@ -117,14 +148,14 @@ namespace Tomoe.Utils {
         public IMessage OldMessage;
         public IMessage NewMessage;
 
-        public DialogContext() { }
+        public Context() { }
 
         public static Dictionary<Action, bool> DialogFormat = new Dictionary<Action, bool>() { { Action.Ban, Program.Dialogs.Format.Action.Ban }, { Action.Kick, Program.Dialogs.Format.Action.Kick }, { Action.Mute, Program.Dialogs.Format.Action.Mute }, { Action.NoMeme, Program.Dialogs.Format.Action.NoMeme }, { Action.Strike, Program.Dialogs.Format.Action.Strike }, { Action.TempBan, Program.Dialogs.Format.Action.TempBan }, { Action.TempMute, Program.Dialogs.Format.Action.TempMute }, { Action.TempNoMeme, Program.Dialogs.Format.Action.TempNoMeme }, { Action.UnBan, Program.Dialogs.Format.Action.UnBan }, { Action.UnMute, Program.Dialogs.Format.Action.UnMute }, { Action.UnNoMeme, Program.Dialogs.Format.Action.UnNoMeme } };
         public static Dictionary<Action, string> DialogMessage = new Dictionary<Action, string>() { { Action.AntiraidBan, Program.Dialogs.Message.Events.AntiraidBan }, { Action.Ban, Program.Dialogs.Message.Action.Ban }, { Action.Kick, Program.Dialogs.Message.Action.Kick }, { Action.Mute, Program.Dialogs.Message.Action.Mute }, { Action.NoMeme, Program.Dialogs.Message.Action.NoMeme }, { Action.Strike, Program.Dialogs.Message.Action.Strike }, { Action.TempBan, Program.Dialogs.Message.Action.TempBan }, { Action.TempMute, Program.Dialogs.Message.Action.TempMute }, { Action.TempNoMeme, Program.Dialogs.Message.Action.TempNoMeme }, { Action.UnBan, Program.Dialogs.Message.Action.UnBan }, { Action.UnMute, Program.Dialogs.Message.Action.UnMute }, { Action.UnNoMeme, Program.Dialogs.Message.Action.UnNoMeme }, { Action.SetupMute, Program.Dialogs.Message.Setup.Mute.AlreadySetup }, { Action.SetupNoMeme, Program.Dialogs.Message.Setup.NoMeme.AlreadySetup } };
 
         public static Dictionary<Action, bool> DMDialogFormat = new Dictionary<Action, bool>() { { Action.Ban, Program.Dialogs.Format.Dm.Ban }, { Action.Kick, Program.Dialogs.Format.Dm.Kick }, { Action.Mute, Program.Dialogs.Format.Dm.Mute }, { Action.NoMeme, Program.Dialogs.Format.Dm.NoMeme }, { Action.Strike, Program.Dialogs.Format.Dm.Strike }, { Action.TempBan, Program.Dialogs.Format.Dm.TempBan }, { Action.TempMute, Program.Dialogs.Format.Dm.TempMute }, { Action.TempNoMeme, Program.Dialogs.Format.Dm.TempNoMeme }, { Action.UnBan, Program.Dialogs.Format.Dm.UnBan }, { Action.UnMute, Program.Dialogs.Format.Dm.UnMute }, { Action.UnNoMeme, Program.Dialogs.Format.Dm.UnNoMeme } };
         public static Dictionary<Action, string> DMDialogMessage = new Dictionary<Action, string>() { { Action.AntiraidBan, Program.Dialogs.Message.Dm.Antiraid }, { Action.Ban, Program.Dialogs.Message.Dm.Ban }, { Action.Kick, Program.Dialogs.Message.Dm.Kick }, { Action.Mute, Program.Dialogs.Message.Dm.Mute }, { Action.NoMeme, Program.Dialogs.Message.Dm.NoMeme }, { Action.Strike, Program.Dialogs.Message.Dm.Strike }, { Action.TempBan, Program.Dialogs.Message.Dm.TempBan }, { Action.TempMute, Program.Dialogs.Message.Dm.TempMute }, { Action.TempNoMeme, Program.Dialogs.Message.Dm.TempNoMeme }, { Action.UnBan, Program.Dialogs.Message.Dm.UnBan }, { Action.UnMute, Program.Dialogs.Message.Dm.UnMute }, { Action.UnNoMeme, Program.Dialogs.Message.Dm.UnNoMeme } };
-        public static Dictionary<Action, dynamic> DMDialogEmbeds = new Dictionary<Action, dynamic>() { { Tomoe.Utils.DialogContext.Action.Ban, Program.Dialogs.Embed.Dm.Ban }, { Tomoe.Utils.DialogContext.Action.Kick, Program.Dialogs.Embed.Dm.Kick }, { Tomoe.Utils.DialogContext.Action.Mute, Program.Dialogs.Embed.Dm.Mute }, { Tomoe.Utils.DialogContext.Action.NoMeme, Program.Dialogs.Embed.Dm.NoMeme }, { Tomoe.Utils.DialogContext.Action.Strike, Program.Dialogs.Embed.Dm.Strike }, { Tomoe.Utils.DialogContext.Action.TempBan, Program.Dialogs.Embed.Dm.TempBan }, { Tomoe.Utils.DialogContext.Action.TempMute, Program.Dialogs.Embed.Dm.TempMute }, { Tomoe.Utils.DialogContext.Action.TempNoMeme, Program.Dialogs.Embed.Dm.TempNoMeme }, { Tomoe.Utils.DialogContext.Action.UnBan, Program.Dialogs.Embed.Dm.UnBan }, { Tomoe.Utils.DialogContext.Action.UnMute, Program.Dialogs.Embed.Dm.UnMute }, { Tomoe.Utils.DialogContext.Action.UnNoMeme, Program.Dialogs.Embed.Dm.UnNoMeme } };
+        public static Dictionary<Action, dynamic> DMDialogEmbeds = new Dictionary<Action, dynamic>() { { Tomoe.Utils.Dialog.Context.Action.Ban, Program.Dialogs.Embed.Dm.Ban }, { Tomoe.Utils.Dialog.Context.Action.Kick, Program.Dialogs.Embed.Dm.Kick }, { Tomoe.Utils.Dialog.Context.Action.Mute, Program.Dialogs.Embed.Dm.Mute }, { Tomoe.Utils.Dialog.Context.Action.NoMeme, Program.Dialogs.Embed.Dm.NoMeme }, { Tomoe.Utils.Dialog.Context.Action.Strike, Program.Dialogs.Embed.Dm.Strike }, { Tomoe.Utils.Dialog.Context.Action.TempBan, Program.Dialogs.Embed.Dm.TempBan }, { Tomoe.Utils.Dialog.Context.Action.TempMute, Program.Dialogs.Embed.Dm.TempMute }, { Tomoe.Utils.Dialog.Context.Action.TempNoMeme, Program.Dialogs.Embed.Dm.TempNoMeme }, { Tomoe.Utils.Dialog.Context.Action.UnBan, Program.Dialogs.Embed.Dm.UnBan }, { Tomoe.Utils.Dialog.Context.Action.UnMute, Program.Dialogs.Embed.Dm.UnMute }, { Tomoe.Utils.Dialog.Context.Action.UnNoMeme, Program.Dialogs.Embed.Dm.UnNoMeme } };
 
         public enum Action {
             AntiraidBan,
@@ -132,6 +163,7 @@ namespace Tomoe.Utils {
             Kick,
             Mute,
             NoMeme,
+            Pardon,
             Strike,
             SetupMute,
             SetupNoMeme,
@@ -144,7 +176,7 @@ namespace Tomoe.Utils {
         }
 
         ///<summary>Returns true if it's an embed, returns false if it's a message.</summary>
-        public static bool GetActionType(Action action) {
+        public static bool IsEmbed(Action action) {
             bool returnValue = false;
             DialogFormat.TryGetValue(action, out returnValue);
             return returnValue;

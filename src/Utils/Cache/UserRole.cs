@@ -15,10 +15,10 @@ namespace Tomoe.Utils.Cache {
             getRoles.Parameters["guildID"].Value = (long) guildID;
             getRoles.Parameters["userID"].Value = (long) userID;
             NpgsqlDataReader dataReader = getRoles.Command.ExecuteReader();
-            dataReader.Read();
+            if (!dataReader.Read()) return null;
             foreach (ulong[] channelID in dataReader) {
                 dataReader.Close();
-                return channelID ?? null;
+                return channelID;
             }
             return null;
         }

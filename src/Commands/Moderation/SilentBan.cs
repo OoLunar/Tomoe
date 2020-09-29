@@ -3,7 +3,7 @@ using Discord;
 using Discord.Addons.Interactive;
 using Discord.Commands;
 using Discord.WebSocket;
-using Tomoe.Utils;
+using Tomoe.Utils.Dialog;
 
 namespace Tomoe.Commands.Moderation {
     public class SilentBan : InteractiveBase {
@@ -25,12 +25,12 @@ namespace Tomoe.Commands.Moderation {
         [Remarks("Moderation")]
         public async Task ByID(ulong victimId, int pruneDays = 7, string reason = null) {
 
-            DialogContext dialogContext = new DialogContext();
+            Context dialogContext = new Context();
             dialogContext.Guild = Context.Guild;
             dialogContext.Channel = Context.Channel;
             dialogContext.Issuer = Context.User;
             dialogContext.Victim = await Program.Client.Rest.GetUserAsync(victimId);
-            dialogContext.UserAction = DialogContext.Action.Ban;
+            dialogContext.UserAction = Tomoe.Utils.Dialog.Context.Action.Ban;
             dialogContext.RequiredGuildPermission = GuildPermission.BanMembers;
             dialogContext.Reason = reason;
 
@@ -81,10 +81,10 @@ namespace Tomoe.Commands.Moderation {
         /// </summary>
         [Command("silent_ban", RunMode = RunMode.Async)]
         public async Task BanNoPerms(SocketGuildUser banMember, [Remainder] string reason = null) {
-            DialogContext dialogContext = new DialogContext();
+            Context dialogContext = new Context();
             dialogContext.Guild = Context.Guild;
             dialogContext.Channel = Context.Channel;
-            dialogContext.UserAction = DialogContext.Action.Ban;
+            dialogContext.UserAction = Tomoe.Utils.Dialog.Context.Action.Ban;
             dialogContext.RequiredGuildPermission = GuildPermission.BanMembers;
             dialogContext.Issuer = Context.User;
             dialogContext.Victim = banMember;
@@ -103,9 +103,9 @@ namespace Tomoe.Commands.Moderation {
         [Command("silent_ban", RunMode = RunMode.Async)]
         [RequireContext(ContextType.DM)]
         public async Task DM(IUser banMember, [Remainder] string reason = null) {
-            DialogContext dialogContext = new DialogContext();
+            Context dialogContext = new Context();
             dialogContext.Channel = Context.Channel;
-            dialogContext.UserAction = DialogContext.Action.Ban;
+            dialogContext.UserAction = Tomoe.Utils.Dialog.Context.Action.Ban;
             dialogContext.Issuer = Context.User;
             dialogContext.Victim = banMember;
             dialogContext.Reason = reason;
@@ -119,9 +119,9 @@ namespace Tomoe.Commands.Moderation {
         [Command("silent_ban", RunMode = RunMode.Async)]
         [RequireContext(ContextType.Group)]
         public async Task Group(IUser banMember, [Remainder] string reason = null) {
-            DialogContext dialogContext = new DialogContext();
+            Context dialogContext = new Context();
             dialogContext.Channel = Context.Channel;
-            dialogContext.UserAction = DialogContext.Action.Ban;
+            dialogContext.UserAction = Tomoe.Utils.Dialog.Context.Action.Ban;
             dialogContext.Issuer = Context.User;
             dialogContext.Victim = banMember;
             dialogContext.Reason = reason;

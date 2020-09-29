@@ -13,7 +13,8 @@ namespace Tomoe.Commands.Public {
         /// </summary>
         [Command("discord", RunMode = RunMode.Async)]
         [Alias(new string[] { "guild", "server" })]
-        [Summary("[Sends a Discord message, then edits the message with how long the original message took to send in milliseconds.](https://github.com/OoLunar/Tomoe/blob/master/docs/public/ping.md)")]
+        [Summary("[Sends the Discord invite for the testing/support server.](https://github.com/OoLunar/Tomoe/blob/master/docs/public/ping.md)")]
+        [Remarks("Public")]
         public async Task discord() => await ReplyAsync("discord.gg/hJX2Nsq");
 
     }

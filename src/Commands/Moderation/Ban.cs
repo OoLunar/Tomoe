@@ -3,7 +3,7 @@ using Discord;
 using Discord.Addons.Interactive;
 using Discord.Commands;
 using Discord.WebSocket;
-using Tomoe.Utils;
+using Tomoe.Utils.Dialog;
 
 namespace Tomoe.Commands.Moderation {
     public class Ban : InteractiveBase {
@@ -24,12 +24,12 @@ namespace Tomoe.Commands.Moderation {
         [Summary("[Bans a user through a mention or id.](https://github.com/OoLunar/Tomoe/tree/master/docs/moderation/ban.md)")]
         [Remarks("Moderation")]
         public async Task ByID(ulong victimId, int pruneDays = 7, [Remainder] string reason = null) {
-            DialogContext dialogContext = new DialogContext();
+            Context dialogContext = new Context();
             dialogContext.Guild = Context.Guild;
             dialogContext.Channel = Context.Channel;
             dialogContext.Issuer = Context.User;
             dialogContext.Victim = await Program.Client.Rest.GetUserAsync(victimId);
-            dialogContext.UserAction = DialogContext.Action.Ban;
+            dialogContext.UserAction = Tomoe.Utils.Dialog.Context.Action.Ban;
             dialogContext.RequiredGuildPermission = GuildPermission.BanMembers;
             dialogContext.Reason = reason;
 
@@ -61,9 +61,8 @@ namespace Tomoe.Commands.Moderation {
                 try {
                     // Let the victim know they were banned.
                     await dialogContext.SendDM();
-                    dialogContext.Error = null;
                     // Ban the user
-                    await Context.Guild.AddBanAsync(victimId, pruneDays, reason);
+                    await Context.Guild.AddBanAsync(victimId, pruneDays, reason ?? "No reason provided.");
                 }
                 // 50007, DM channel could not be opened or failed to send a message.
                 catch (Discord.Net.HttpException error2) when(error2.DiscordCode.HasValue && error2.DiscordCode == 50007) {
@@ -80,7 +79,19 @@ namespace Tomoe.Commands.Moderation {
         [RequireUserPermission(GuildPermission.BanMembers)]
         [RequireBotPermission(GuildPermission.BanMembers)]
         [RequireContext(ContextType.Guild)]
+        public async Task ByID(ulong victimId, [Remainder] string reason = null) => await ByID(victimId, 7, reason);
+
+        [Command("ban", RunMode = RunMode.Async)]
+        [RequireUserPermission(GuildPermission.BanMembers)]
+        [RequireBotPermission(GuildPermission.BanMembers)]
+        [RequireContext(ContextType.Guild)]
         public async Task ByMention(Mention victim, int pruneDays = 7, [Remainder] string reason = null) => await ByID(victim.Id, pruneDays, reason);
+
+        [Command("ban", RunMode = RunMode.Async)]
+        [RequireUserPermission(GuildPermission.BanMembers)]
+        [RequireBotPermission(GuildPermission.BanMembers)]
+        [RequireContext(ContextType.Guild)]
+        public async Task ByMention(Mention victim, [Remainder] string reason = null) => await ByID(victim.Id, 7, reason);
 
         /// <summary>
         /// Informs the issuer that a ban could not be issued due to lack of bot/user permissions.
@@ -94,10 +105,10 @@ namespace Tomoe.Commands.Moderation {
         [Command("ban", RunMode = RunMode.Async)]
         [RequireContext(ContextType.Guild)]
         public async Task BanNoPerms(SocketGuildUser victim, [Remainder] string reason = null) {
-            DialogContext dialogContext = new DialogContext();
+            Context dialogContext = new Context();
             dialogContext.Guild = Context.Guild;
             dialogContext.Channel = Context.Channel;
-            dialogContext.UserAction = DialogContext.Action.Ban;
+            dialogContext.UserAction = Tomoe.Utils.Dialog.Context.Action.Ban;
             dialogContext.Issuer = Context.User;
             dialogContext.Victim = victim;
             dialogContext.Reason = reason;
@@ -115,12 +126,12 @@ namespace Tomoe.Commands.Moderation {
         /// <summary>Informs the user that a ban cannot be issued in DMs.</summary>
         [Command("ban", RunMode = RunMode.Async)]
         [RequireContext(ContextType.DM)]
-        public async Task DM(IUser victim, [Remainder] string reason = null) {
-            DialogContext dialogContext = new DialogContext();
+        public async Task DM(Mention victim, [Remainder] string reason = null) {
+            Context dialogContext = new Context();
             dialogContext.Channel = Context.Channel;
-            dialogContext.UserAction = DialogContext.Action.Ban;
+            dialogContext.UserAction = Tomoe.Utils.Dialog.Context.Action.Ban;
             dialogContext.Issuer = Context.User;
-            dialogContext.Victim = victim;
+            dialogContext.Victim = victim.User;
             dialogContext.Reason = reason;
             dialogContext.Error = Program.Dialogs.Message.Errors.FailedInDm;
 
@@ -131,12 +142,12 @@ namespace Tomoe.Commands.Moderation {
         /// <summary>Informs the issuer that a ban cannot be issued in Group Chats.</summary>
         [Command("ban", RunMode = RunMode.Async)]
         [RequireContext(ContextType.Group)]
-        public async Task Group(IUser victim, [Remainder] string reason = null) {
-            DialogContext dialogContext = new DialogContext();
+        public async Task Group(Mention victim, [Remainder] string reason = null) {
+            Context dialogContext = new Context();
             dialogContext.Channel = Context.Channel;
-            dialogContext.UserAction = DialogContext.Action.Ban;
+            dialogContext.UserAction = Tomoe.Utils.Dialog.Context.Action.Ban;
             dialogContext.Issuer = Context.User;
-            dialogContext.Victim = victim;
+            dialogContext.Victim = victim.User;
             dialogContext.Reason = reason;
             dialogContext.Error = Program.Dialogs.Message.Errors.FailedInDm;
 

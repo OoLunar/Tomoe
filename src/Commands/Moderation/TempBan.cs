@@ -3,7 +3,7 @@ using Discord;
 using Discord.Addons.Interactive;
 using Discord.Commands;
 using Discord.WebSocket;
-using Tomoe.Utils;
+using Tomoe.Utils.Dialog;
 
 namespace Tomoe.Commands.Moderation {
     public class TempBan : InteractiveBase {
@@ -24,16 +24,16 @@ namespace Tomoe.Commands.Moderation {
         [Summary("[TempBans a user through a mention or id.](https://github.com/OoLunar/Tomoe/tree/master/docs/moderation/temp_ban.md)")]
         [Remarks("Moderation")]
         public async Task ByID(ulong victimId, System.TimeSpan timespan, int pruneDays = 7, [Remainder] string reason = null) {
-            DialogContext dialogContext = new DialogContext();
+            Context dialogContext = new Context();
             dialogContext.Guild = Context.Guild;
             dialogContext.Channel = Context.Channel;
             dialogContext.Issuer = Context.User;
             dialogContext.Victim = await Program.Client.Rest.GetUserAsync(victimId);
-            dialogContext.UserAction = DialogContext.Action.TempBan;
+            dialogContext.UserAction = Tomoe.Utils.Dialog.Context.Action.TempBan;
             dialogContext.RequiredGuildPermission = GuildPermission.BanMembers;
             dialogContext.Reason = reason;
 
-            Tomoe.Utils.Cache.Tasks.AddTask(Reminder.Action.UnBan, Context.Guild.Id, Context.Channel.Id, Context.User.Id, System.DateTime.Now + timespan, System.DateTime.UtcNow, null);
+            Tomoe.Utils.Cache.Tasks.AddTask(Tasks.Reminder.Action.UnBan, Context.Guild.Id, Context.Channel.Id, Context.User.Id, System.DateTime.Now + timespan, System.DateTime.UtcNow, null);
 
             SocketGuildUser banMember = Context.Guild.GetUser(victimId);
 

@@ -12,7 +12,7 @@ namespace Tomoe.Commands.Public {
         /// </code>
         /// </summary>
         [Command("repo", RunMode = RunMode.Async)]
-        [Alias(new string[] { "github", "repository", "gitlab", "gh", "gl" })]
+        [Alias(new string[] { "github", "repository", "gitlab" })]
         [Summary("[Sends the repo for Tomoe.](https://github.com/OoLunar/Tomoe/)")]
         [Remarks("Public")]
         public async Task repo() => await ReplyAsync("<https://github.com/OoLunar/Tomoe>");

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
-using Tomoe.Utils;
+using Tomoe.Utils.Dialog;
 
 namespace Tomoe {
 
@@ -21,8 +21,7 @@ namespace Tomoe {
         public static async Task MessageUpdate(Cacheable<IMessage, ulong> before, SocketMessage after, ISocketMessageChannel channel) {
             SocketGuild guild = (channel as SocketGuildChannel).Guild;
             ulong? loggingChannelID = Tomoe.Utils.Cache.Guild.GetLoggingChannel(guild.Id, Event.MessageUpdated);
-
-            Utils.DialogContext dialogContext = new Utils.DialogContext();
+            Utils.Dialog.Context dialogContext = new Utils.Dialog.Context();
             dialogContext.Guild = guild;
             dialogContext.Issuer = after.Author;
             dialogContext.NewMessage = after;
@@ -57,13 +56,13 @@ namespace Tomoe {
         public static async Task AntiRaid(SocketGuildUser newUser) {
             if (joinRate.TryGetValue(newUser.Guild.Id, out _) == false) joinRate[newUser.Guild.Id] = 1;
             if (Utils.Cache.Antiraid.IsActivated(newUser.Guild.Id).Value && !newUser.IsBot) {
-                DialogContext dialogContext = new DialogContext();
+                Context dialogContext = new Context();
                 dialogContext.Guild = newUser.Guild;
                 // TODO: Set logging channel.
                 //dialogContext.Channel
                 dialogContext.Issuer = Program.Client.CurrentUser;
                 dialogContext.Victim = newUser;
-                dialogContext.UserAction = DialogContext.Action.AntiraidBan;
+                dialogContext.UserAction = Context.Action.AntiraidBan;
                 dialogContext.Reason = Program.Dialogs.Message.Events.AntiraidBan;
                 await dialogContext.SendDM();
                 //await dialogContext.SendChannel();

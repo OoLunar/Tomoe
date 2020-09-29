@@ -3,7 +3,7 @@ using Discord;
 using Discord.Addons.Interactive;
 using Discord.Commands;
 using Discord.WebSocket;
-using Tomoe.Utils;
+using Tomoe.Utils.Dialog;
 
 namespace Tomoe.Commands.Moderation {
     public class Kick : InteractiveBase {
@@ -24,12 +24,12 @@ namespace Tomoe.Commands.Moderation {
         [Summary("[Kicks a user through a mention or id.](https://github.com/OoLunar/Tomoe/tree/master/docs/moderation/kick.md)")]
         [Remarks("Moderation")]
         public async Task ByID(ulong victimId, [Remainder] string reason = null) {
-            DialogContext dialogContext = new DialogContext();
+            Context dialogContext = new Context();
             dialogContext.Guild = Context.Guild;
             dialogContext.Channel = Context.Channel;
             dialogContext.Issuer = Context.User;
             dialogContext.Victim = await Program.Client.Rest.GetUserAsync(victimId);
-            dialogContext.UserAction = DialogContext.Action.Kick;
+            dialogContext.UserAction = Tomoe.Utils.Dialog.Context.Action.Kick;
             dialogContext.RequiredGuildPermission = GuildPermission.KickMembers;
             dialogContext.Reason = reason;
 
@@ -60,8 +60,6 @@ namespace Tomoe.Commands.Moderation {
             try {
                 // Let the victim know they were kickned.
                 await dialogContext.SendDM();
-                // Remove DM error. TODO: Fix this. Check SendDM method.
-                dialogContext.Error = null;
                 // Kick the user
                 await kickMember.KickAsync(reason);
             } catch (Discord.Net.HttpException error) when(error.DiscordCode.HasValue && error.DiscordCode == 50007) {
@@ -91,10 +89,10 @@ namespace Tomoe.Commands.Moderation {
         [Command("kick", RunMode = RunMode.Async)]
         [RequireContext(ContextType.Guild)]
         public async Task KickNoPerms(SocketGuildUser victim, [Remainder] string reason = null) {
-            DialogContext dialogContext = new DialogContext();
+            Context dialogContext = new Context();
             dialogContext.Guild = Context.Guild;
             dialogContext.Channel = Context.Channel;
-            dialogContext.UserAction = DialogContext.Action.Kick;
+            dialogContext.UserAction = Tomoe.Utils.Dialog.Context.Action.Kick;
             dialogContext.Issuer = Context.User;
             dialogContext.Victim = victim;
             dialogContext.Reason = reason;
@@ -113,9 +111,9 @@ namespace Tomoe.Commands.Moderation {
         [Command("kick", RunMode = RunMode.Async)]
         [RequireContext(ContextType.DM)]
         public async Task DM(IUser victim, [Remainder] string reason = null) {
-            DialogContext dialogContext = new DialogContext();
+            Context dialogContext = new Context();
             dialogContext.Channel = Context.Channel;
-            dialogContext.UserAction = DialogContext.Action.Kick;
+            dialogContext.UserAction = Tomoe.Utils.Dialog.Context.Action.Kick;
             dialogContext.Issuer = Context.User;
             dialogContext.Victim = victim;
             dialogContext.Reason = reason;
@@ -129,9 +127,9 @@ namespace Tomoe.Commands.Moderation {
         [Command("kick", RunMode = RunMode.Async)]
         [RequireContext(ContextType.Group)]
         public async Task Group(IUser victim, [Remainder] string reason = null) {
-            DialogContext dialogContext = new DialogContext();
+            Context dialogContext = new Context();
             dialogContext.Channel = Context.Channel;
-            dialogContext.UserAction = DialogContext.Action.Kick;
+            dialogContext.UserAction = Tomoe.Utils.Dialog.Context.Action.Kick;
             dialogContext.Issuer = Context.User;
             dialogContext.Victim = victim;
             dialogContext.Reason = reason;

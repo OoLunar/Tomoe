@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Addons.Interactive;
@@ -20,19 +18,19 @@ namespace Tomoe.Commands.Public {
         [Summary("[Sets a reminder.](https://github.com/OoLunar/Tomoe/blob/master/docs/public/remind.md)")]
         [Remarks("Public")]
         public async Task remindWithContext(TimeSpan when, [Remainder] string message) {
-            Tomoe.Utils.Cache.Tasks.AddTask(Reminder.Action.Reminder, Context.Guild.Id, Context.Channel.Id, Context.User.Id, DateTime.Now + when, DateTime.Now, $"{message.Replace("\n", "\\n")}\\nContext: <{Context.Message.GetJumpUrl()}>");
+            Tomoe.Utils.Cache.Tasks.AddTask(Tasks.Reminder.Action.Reminder, Context.Guild.Id, Context.Channel.Id, Context.User.Id, DateTime.Now + when, DateTime.Now, $"{message.Replace("\n", "\\n")}\\nContext: <{Context.Message.GetJumpUrl()}>");
             await Context.Message.AddReactionAsync(new Emoji("👍"));
         }
 
         [Command("remind", RunMode = RunMode.Async)]
         public async Task remindWithoutContext(TimeSpan when) {
-            Tomoe.Utils.Cache.Tasks.AddTask(Reminder.Action.Reminder, Context.Guild.Id, Context.Channel.Id, Context.User.Id, DateTime.Now + when, DateTime.Now, $"You wanted to be reminded, but you didn't say why.\\nContext: <{Context.Message.GetJumpUrl()}>");
+            Tomoe.Utils.Cache.Tasks.AddTask(Tasks.Reminder.Action.Reminder, Context.Guild.Id, Context.Channel.Id, Context.User.Id, DateTime.Now + when, DateTime.Now, $"You wanted to be reminded, but you didn't say why.\\nContext: <{Context.Message.GetJumpUrl()}>");
             await Context.Message.AddReactionAsync(new Emoji("👍"));
         }
 
         [Command("reminders", RunMode = RunMode.Async)]
         public async Task showReminders() {
-            Tomoe.Utils.Cache.Tasks reminders = Tomoe.Utils.Cache.Tasks.GetTasks(Reminder.Action.Reminder, Context.User.Id);
+            Tomoe.Utils.Cache.Tasks reminders = Tomoe.Utils.Cache.Tasks.GetTasks(Tasks.Reminder.Action.Reminder, Context.User.Id);
             if (reminders != null) {
                 List<string> embedList = new List<string>(10);
                 string embed = ">>> ";

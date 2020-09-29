@@ -25,7 +25,10 @@ namespace Tomoe.Utils.Cache {
             GetUserRoles,
             SetUserRoles,
             SetUserMute,
-            GetUserMute
+            GetUserMute,
+            AddStrike,
+            RemoveStrike,
+            GetStrikes
         }
 
         public struct Query {
@@ -33,9 +36,8 @@ namespace Tomoe.Utils.Cache {
             public Dictionary<string, NpgsqlParameter> Parameters;
         }
 
-        private static XmlNode postgresSettings = Program.Tokens.DocumentElement.SelectSingleNode("postgres");
-        public static NpgsqlConnection activeConnection = new NpgsqlConnection($"Host={postgresSettings.Attributes["host"].Value};Port={postgresSettings.Attributes["port"].Value};Username={postgresSettings.Attributes["username"].Value};Password={postgresSettings.Attributes["password"].Value};Database={postgresSettings.Attributes["database"].Value};SSL Mode={postgresSettings.Attributes["ssl_mode"].Value}");
-        public static NpgsqlConnection repeatedConnection = new NpgsqlConnection($"Host={postgresSettings.Attributes["host"].Value};Port={postgresSettings.Attributes["port"].Value};Username={postgresSettings.Attributes["username"].Value};Password={postgresSettings.Attributes["password"].Value};Database={postgresSettings.Attributes["database"].Value};SSL Mode={postgresSettings.Attributes["ssl_mode"].Value}");
+        public static NpgsqlConnection activeConnection = new NpgsqlConnection($"Host={Program.Tokens.DatabaseDetails.Host};Port={Program.Tokens.DatabaseDetails.Port};Username={Program.Tokens.DatabaseDetails.Username};Password={Program.Tokens.DatabaseDetails.Password};Database={Program.Tokens.DatabaseDetails.Database};SSL Mode={Program.Tokens.DatabaseDetails.SslMode}");
+        public static NpgsqlConnection repeatedConnection = new NpgsqlConnection($"Host={Program.Tokens.DatabaseDetails.Host};Port={Program.Tokens.DatabaseDetails.Port};Username={Program.Tokens.DatabaseDetails.Username};Password={Program.Tokens.DatabaseDetails.Password};Database={Program.Tokens.DatabaseDetails.Database};SSL Mode={Program.Tokens.DatabaseDetails.SslMode}");
         public Dictionary<IndexedCommands, Query> Statements = new Dictionary<IndexedCommands, Query>();
 
         public PreparedStatements() {
@@ -187,10 +189,42 @@ namespace Tomoe.Utils.Cache {
             getUserMute.Command.Prepare();
             Statements.Add(IndexedCommands.GetUserMute, getUserMute);
 
+            Query addStrike = new Query();
+            addStrike.Command = new NpgsqlCommand("UPDATE guild_cache SET strikes = strikes + 1 WHERE user_id=@userID AND guild_id=@guildID", activeConnection);
+            addStrike.Parameters = new Dictionary<string, NpgsqlParameter>();
+            addStrike.Parameters.Add("guildID", addStrike.Command.Parameters.Add("guildID", NpgsqlTypes.NpgsqlDbType.Bigint));
+            addStrike.Parameters.Add("userID", addStrike.Command.Parameters.Add("userID", NpgsqlTypes.NpgsqlDbType.Bigint));
+            addStrike.Command.Prepare();
+            Statements.Add(IndexedCommands.AddStrike, addStrike);
+
+            Query removeStrike = new Query();
+            removeStrike.Command = new NpgsqlCommand("UPDATE guild_cache SET strikes = strikes - 1 WHERE user_id=@userID AND guild_id=@guildID", activeConnection);
+            removeStrike.Parameters = new Dictionary<string, NpgsqlParameter>();
+            removeStrike.Parameters.Add("guildID", removeStrike.Command.Parameters.Add("guildID", NpgsqlTypes.NpgsqlDbType.Bigint));
+            removeStrike.Parameters.Add("userID", removeStrike.Command.Parameters.Add("userID", NpgsqlTypes.NpgsqlDbType.Bigint));
+            removeStrike.Command.Prepare();
+            Statements.Add(IndexedCommands.RemoveStrike, removeStrike);
+
+            Query getStrikes = new Query();
+            getStrikes.Command = new NpgsqlCommand("SELECT strikes FROM guild_cache WHERE user_id=@userID AND guild_id=@guildID", activeConnection);
+            getStrikes.Parameters = new Dictionary<string, NpgsqlParameter>();
+            getStrikes.Parameters.Add("guildID", getStrikes.Command.Parameters.Add("guildID", NpgsqlTypes.NpgsqlDbType.Bigint));
+            getStrikes.Parameters.Add("userID", getStrikes.Command.Parameters.Add("userID", NpgsqlTypes.NpgsqlDbType.Bigint));
+            getStrikes.Command.Prepare();
+            Statements.Add(IndexedCommands.GetStrikes, getStrikes);
         }
 
-        public static void TestConnection() {
-            activeConnection.Open();
+        public static void TestConnection(bool tryAgain = true) {
+            try {
+                activeConnection.Open();
+            } catch (System.Exception error) when(error.Message == "Resource temporarily unavailable" && error.Source == "System.Net.NameResolution") {
+                if (tryAgain == true) {
+                    TestConnection(false);
+                    return;
+                }
+                Console.WriteLine("[Database] Cannot connect. \"Resource temporarily unavailable\"");
+                Environment.Exit(1);
+            }
             NpgsqlCommand create_config_table = new NpgsqlCommand(System.IO.File.ReadAllText("src/SQL/guild_config_table.sql"), activeConnection);
             var task = Task.Run(() => create_config_table.ExecuteNonQuery());
             if (task.Wait(TimeSpan.FromSeconds(10))) {

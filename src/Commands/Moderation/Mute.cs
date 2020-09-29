@@ -4,6 +4,7 @@ using Discord.Addons.Interactive;
 using Discord.Commands;
 using Discord.WebSocket;
 using Tomoe.Utils;
+using Tomoe.Utils.Dialog;
 
 namespace Tomoe.Commands.Moderation {
     public class HardMute : InteractiveBase {
@@ -24,12 +25,12 @@ namespace Tomoe.Commands.Moderation {
         [Summary("[Mutes a member by mention or ID](https://github.com/OoLunar/Tomoe/tree/master/docs/moderation/mute.md)")]
         [Remarks("Moderation")]
         public async Task ByID(ulong victimId, [Remainder] string reason = null) {
-            DialogContext dialogContext = new DialogContext();
+            Context dialogContext = new Context();
             dialogContext.Guild = Context.Guild;
             dialogContext.Channel = Context.Channel;
             dialogContext.Issuer = Context.User;
             dialogContext.Victim = await Program.Client.Rest.GetUserAsync(victimId);
-            dialogContext.UserAction = DialogContext.Action.Mute;
+            dialogContext.UserAction = Tomoe.Utils.Dialog.Context.Action.Mute;
             dialogContext.RequiredGuildPermission = GuildPermission.KickMembers;
             dialogContext.Reason = reason;
 
@@ -81,9 +82,6 @@ namespace Tomoe.Commands.Moderation {
                 muteMember.AddRoleAsync(Context.Guild.GetRole(muteRoleId));
                 // Let the victim know they were muted.
                 await dialogContext.SendDM();
-                // Remove DM error.
-                //TODO: Fix this. Check SendDM method.
-                dialogContext.Error = null;
             } catch (Discord.Net.HttpException error) when(error.DiscordCode.HasValue && error.DiscordCode == 50007) {
                 // If the victim cannot be DM'd, let the issuer know.
                 dialogContext.Error = Program.Dialogs.Message.Errors.FailedToDm;
@@ -103,10 +101,10 @@ namespace Tomoe.Commands.Moderation {
         [Command("mute", RunMode = RunMode.Async)]
         [RequireContext(ContextType.Guild)]
         public async Task MuteNoPerms(SocketGuildUser muteMember, [Remainder] string reason = null) {
-            DialogContext dialogContext = new DialogContext();
+            Context dialogContext = new Context();
             dialogContext.Guild = Context.Guild;
             dialogContext.Channel = Context.Channel;
-            dialogContext.UserAction = DialogContext.Action.Mute;
+            dialogContext.UserAction = Tomoe.Utils.Dialog.Context.Action.Mute;
             dialogContext.Issuer = Context.User;
             dialogContext.Victim = muteMember;
             dialogContext.Reason = reason;
@@ -126,9 +124,9 @@ namespace Tomoe.Commands.Moderation {
         [Command("mute", RunMode = RunMode.Async)]
         [RequireContext(ContextType.DM)]
         public async Task DM(IUser muteMember, [Remainder] string reason = null) {
-            DialogContext dialogContext = new DialogContext();
+            Context dialogContext = new Context();
             dialogContext.Channel = Context.Channel;
-            dialogContext.UserAction = DialogContext.Action.Mute;
+            dialogContext.UserAction = Tomoe.Utils.Dialog.Context.Action.Mute;
             dialogContext.Issuer = Context.User;
             dialogContext.Victim = muteMember;
             dialogContext.Reason = reason;
@@ -142,9 +140,9 @@ namespace Tomoe.Commands.Moderation {
         [Command("mute", RunMode = RunMode.Async)]
         [RequireContext(ContextType.Group)]
         public async Task Group(IUser muteMember, [Remainder] string reason = null) {
-            DialogContext dialogContext = new DialogContext();
+            Context dialogContext = new Context();
             dialogContext.Channel = Context.Channel;
-            dialogContext.UserAction = DialogContext.Action.Mute;
+            dialogContext.UserAction = Tomoe.Utils.Dialog.Context.Action.Mute;
             dialogContext.Issuer = Context.User;
             dialogContext.Victim = muteMember;
             dialogContext.Reason = reason;

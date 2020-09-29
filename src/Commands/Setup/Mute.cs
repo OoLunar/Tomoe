@@ -5,6 +5,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Tomoe.Utils;
 using Tomoe.Utils.Cache;
+using Tomoe.Utils.Dialog;
 
 namespace Tomoe.Commands.Setup {
     public class Mute : InteractiveBase {
@@ -23,7 +24,7 @@ namespace Tomoe.Commands.Setup {
         [RequireUserPermission(GuildPermission.Administrator)]
         public async Task SetupMuteByRole(IRole newRole) {
             MutedRole currentRole = MutedRole.Get(Context.Guild.Id);
-            DialogContext dialogContext = new DialogContext();
+            Context dialogContext = new Context();
             dialogContext.Guild = Context.Guild;
             dialogContext.Issuer = Context.Guild.GetUser(Context.User.Id);
             dialogContext.OldRole = Context.Guild.GetRole(currentRole.RoleID);
@@ -78,7 +79,7 @@ namespace Tomoe.Commands.Setup {
         [RequireUserPermission(GuildPermission.Administrator)]
         public async Task SetupMuteByID(ulong role) {
             MutedRole currentRole = MutedRole.Get(Context.Guild.Id);
-            DialogContext dialogContext = new DialogContext();
+            Context dialogContext = new Context();
             dialogContext.Guild = Context.Guild;
             dialogContext.Issuer = Context.Guild.GetUser(Context.User.Id);
             dialogContext.OldRole = Context.Guild.GetRole(currentRole.RoleID);
@@ -104,11 +105,11 @@ namespace Tomoe.Commands.Setup {
         public async Task CheckMuteRole() {
             MutedRole? muteRole = Tomoe.Utils.Cache.MutedRole.Get(Context.Guild.Id);
 
-            DialogContext dialogContext = new DialogContext();
+            Context dialogContext = new Context();
             dialogContext.Guild = Context.Guild;
             dialogContext.Channel = Context.Channel;
             dialogContext.Issuer = Context.Guild.GetUser(Context.User.Id);
-            dialogContext.UserAction = DialogContext.Action.SetupMute;
+            dialogContext.UserAction = Tomoe.Utils.Dialog.Context.Action.SetupMute;
             dialogContext.RequiredGuildPermission = GuildPermission.Administrator;
             if (muteRole.HasValue()) {
                 dialogContext.OldRole = Context.Guild.GetRole(muteRole.RoleID);
@@ -120,7 +121,7 @@ namespace Tomoe.Commands.Setup {
                     callbackReaction.Context = Context;
                     callbackReaction.DialogContext = dialogContext;
                     callbackReaction.TakeAction = ReactionCallBack.ActionTypes.Boolean;
-                    callbackReaction.OnReaction += async delegate(object source, DialogContext context, SocketReaction reaction) {
+                    callbackReaction.OnReaction += async delegate(object source, Context context, SocketReaction reaction) {
                         IRole muteRole = await context.Guild.CreateRoleAsync("Muted", muteRolePerms, null, false, false);
                         foreach (SocketTextChannel channel in (await context.Guild.GetTextChannelsAsync(CacheMode.AllowDownload))) channel.AddPermissionOverwriteAsync(muteRole, muteChannelPerms);
                         Tomoe.Utils.Cache.MutedRole.Set(context.Guild.Id, muteRole.Id, context.Issuer.Id);
@@ -147,7 +148,7 @@ namespace Tomoe.Commands.Setup {
                 callbackReaction.Context = Context;
                 callbackReaction.DialogContext = dialogContext;
                 callbackReaction.TakeAction = ReactionCallBack.ActionTypes.Boolean;
-                callbackReaction.OnReaction += async delegate(object source, DialogContext context, SocketReaction reaction) {
+                callbackReaction.OnReaction += async delegate(object source, Context context, SocketReaction reaction) {
                     IRole muteRole = await context.Guild.CreateRoleAsync("Muted", muteRolePerms, null, false, false);
                     foreach (SocketTextChannel channel in (await context.Guild.GetTextChannelsAsync(CacheMode.AllowDownload))) channel.AddPermissionOverwriteAsync(muteRole, muteChannelPerms);
                     Tomoe.Utils.Cache.MutedRole.Set(context.Guild.Id, muteRole.Id, context.Issuer.Id);
