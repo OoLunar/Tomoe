@@ -1,0 +1,17 @@
+{
+	"discord_api_token": "insert_discord_api_token", /*Token to have your bot login to Discord.*/
+	"log_to_file": true, /*Log to file instead of console.*/
+	"database": { /*PostgresSQL database. More support will be added in the future.*/
+		"host": "localhost", /*The IP or hostname that the database is listening on.*/
+		"port": 5432, /*The port that the database is listening on.*/
+		"username": "insert_username", /*The username used to login to the database.*/
+		"password": "insert_password", /*An alphanumerical password used to login. Must be Postgres compliant.*/
+		"database": "insert_database_name", /*Database name.*/
+		/* Choose security levels. Options are:
+		 * - Require
+		 * - Prefer
+		 * - Disable
+		 * Defaults to Require.*/
+		"ssl_mode": "Require"
+	}
+}
