@@ -29,7 +29,7 @@ C#. However once Tomoe is finished 100%, I plan on creating a seperate branch an
 As of this minute, Tomoe can do the following moderation commands:
 
 | Command | Syntax | Definition |
-| :-: | :- | :- |
+| :--: | :-- | :-- |
 | Ban | >>ban User [Reason] | Bans a guild member identified by mention or ID, optionally with a reason. |
 | Kick | >>kick User [Reason] | Kicks a guild member identified by mention or ID, optionally with a reason. |
 | Hard Mute | >>hard_mute User [Reason] | Mutes a guild member permanently, identified by mention or ID, optionally with a reason. |
@@ -41,7 +41,7 @@ As of this minute, Tomoe can do the following moderation commands:
 While also being able to do the following public commands:
 
 | Command | Syntax | Definition |
-| :-: | :- | :- |
+| :--: | :-- | :-- |
 | Ping | >>ping | Times how long to took to send a message, then edits the sent message with how long it took in milliseconds. |
 | Profile Picture | >>profile_picture User | Sends a 512x512px PNG of the user asked for, identified by mention or ID. |
 | Profile Picture | >>pfp User | Alias for `>>profile_picture`. |
@@ -64,7 +64,7 @@ Tomoe has customizable dialogs over in [res/dialogs.xml](https://github.com/OoLu
 As mentioned previously, Tomoe aims to be the #1 bot choice for Discord Moderation. This means that any and all moderation commands that Vortex, Zeppelin and Carl can do, Tomoe will try to implement. Here's the current road map:
 
 | Command | Implemented | Type |
-|:-|:-:|:-|
+|:--|:--:|:--|
 | setup_guild | Halfway Done | Interactive |
 | setup_no_meme | :x: | Static or Interactive |
 | setup_mute | :heavy_check_mark: | Static or Interactive |
