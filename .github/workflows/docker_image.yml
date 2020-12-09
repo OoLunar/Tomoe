@@ -25,9 +25,9 @@ jobs:
       - name: Login to DockerHub
         uses: docker/login-action@v1
         with:
-          registry: ghcr.io
+          registry: docker.pkg.github.com
           username: ${{ github.repository_owner  }}
-          password: ${{ secrets.CR_PAT }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and Push
         uses: docker/build-push-action@v2
@@ -36,5 +36,5 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: |
-            ghci.io/oolunar/tomoe:latest
-            ghci.io/oolunar/tomoe:${{ steps.previoustag.outputs.tag }}
+            docker.pkg.github.com/oolunar/Tomoe/tomoe:latest
+            docker.pkg.github.com/oolunar/Tomoe/tomoe:${{ steps.previoustag.outputs.tag }}
