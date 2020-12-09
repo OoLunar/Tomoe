@@ -8,6 +8,6 @@ namespace Tomoe.Commands.Public {
     public class Raw : BaseCommandModule {
         [Command("raw")]
         [Description("Gets the raw version of the message provided")]
-        public async Task Message(CommandContext context, DiscordMessage message) => Tomoe.Program.SendMessage(context, $"\n{message.Content}", (FilteringAction.CodeBlocksEscape | FilteringAction.AllMentions));
+        public async Task Message(CommandContext context, [Description("The message id or jumplink to the message.")] DiscordMessage message) => Tomoe.Program.SendMessage(context, $"\n{message.Content}", (FilteringAction.CodeBlocksEscape | FilteringAction.AllMentions));
     }
 }

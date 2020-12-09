@@ -13,7 +13,7 @@ namespace Tomoe.Commands.Public {
         [Aliases(new string[] { "roleinfo", "ri" })]
         [Description("Gets information about a server role.")]
         [Priority(0)]
-        public async Task ByName(CommandContext context, string roleName) {
+        public async Task ByName(CommandContext context, [Description("The rolename. Does **not** require a ping.")] string roleName) {
             DiscordRole roleInQuestion = null;
             // Check if it's the @everyone or @here roles.
             if (roleName.ToLower() == "everyone" || roleName.ToLower() == "here") {
@@ -35,7 +35,7 @@ namespace Tomoe.Commands.Public {
 
         [Command("role_info")]
         [Priority(1)]
-        public async Task ByPing(CommandContext context, DiscordRole role) {
+        public async Task ByPing(CommandContext context, [Description("The role. Preferred if you used the role id, however ping is grudgingly acceptable too.")] DiscordRole role) {
             DiscordEmbedBuilder embed = new DiscordEmbedBuilder();
             embed.Author = new DiscordEmbedBuilder.EmbedAuthor { Name = context.User.Username, IconUrl = context.User.AvatarUrl };
             embed.Color = role.Color;

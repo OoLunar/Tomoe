@@ -31,14 +31,22 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
         private static NpgsqlConnection _connection = new NpgsqlConnection($"Host={Program.Config.Host};Port={Program.Config.Port};Username={Program.Config.Username};Password={Program.Config.Password};Database={Program.Config.DBName};SSL Mode={Program.Config.SslMode}");
         private static Dictionary<statementType, NpgsqlCommand> _preparedStatements = new Dictionary<statementType, NpgsqlCommand>();
 
-        /// <summary>Executes an SQL query. Returns 0 on success, returns null on an empty value, returns the value when there's one value, returns a list when more than one values.</summary>
-        private List<dynamic> executeQuery(statementType command, List<NpgsqlParameter> parameters, bool needResult = false) {
+        /// <summary>
+        /// Executes an SQL query from <see cref="Tomoe.Database.Drivers.PostgresSQL.PostgresTags._preparedStatements">_preparedStatements</see>, using <seealso cref="Tomoe.Database.Drivers.PostgresSQL.PostgresTags.statementType">statementType</seealso> as a key.
+        /// 
+        /// Returns a list of results if <paramref name="needsResult">needsResult</paramref> is true, otherwise returns null.
+        /// </summary>
+        /// <param name="command">Which SQL command to execute, using <see cref="Tomoe.Database.Drivers.PostgresSQL.PostgresTags.statementType">statementType</see> as an index.</param>
+        /// <param name="parameters">A list of <see cref="Npgsql.NpgsqlParameter">NpgsqlParameter's</see>.</param>
+        /// <param name="needsResult">Returns a list of results if true, otherwise returns null.</param>
+        /// <returns><see cref="System.Collections.Generic.List{T}">List&lt;dynamic&gt;</see> if <paramref name="needsResult">needsResult</paramref> is true, otherwise returns null.</returns>
+        private List<dynamic> executeQuery(statementType command, List<NpgsqlParameter> parameters, bool needsResult = false) {
             _logger.Trace($"Executing {command.ToString()}");
             NpgsqlCommand statement = _preparedStatements[command];
             Dictionary<string, NpgsqlParameter> sortedParameters = new Dictionary<string, NpgsqlParameter>();
             foreach (NpgsqlParameter param in parameters) sortedParameters.Add(param.ParameterName, param);
             foreach (NpgsqlParameter temp in statement.Parameters) temp.Value = sortedParameters[temp.ParameterName].Value;
-            if (needResult) {
+            if (needsResult) {
                 NpgsqlDataReader reader = statement.ExecuteReader();
                 List<dynamic> values = new List<dynamic>();
                 while (reader.Read())
@@ -57,8 +65,9 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
             }
         }
 
-        /// <inheritdoc cref="Tomoe.Database.PostgresSQL.executeQuery(PreparedStatments.IndexedCommands, List{NpgsqlParameter}, bool)" />
-        private List<dynamic> executeQuery(statementType command, NpgsqlParameter parameters, bool needResult = false) => executeQuery(command, new List<NpgsqlParameter> { parameters }, needResult);
+        /// <inheritdoc cref="Tomoe.Database.Drivers.PostgresSQL.PostgresTags.executeQuery(statementType, List{NpgsqlParameter}, bool)" />
+        /// <param name="parameter">One <see cref="Npgsql.NpgsqlParameter">NpgsqlParameter</see>, which gets converted into a <see cref="System.Collections.Generic.List{T}">List&lt;NpgsqlParameter&gt;</see>.</param>
+        private List<dynamic> executeQuery(statementType command, NpgsqlParameter parameter, bool needsResult = false) => executeQuery(command, new List<NpgsqlParameter> { parameter }, needsResult);
 
         public PostgresTags() {
             _logger.Info("Opening connection to database...");
