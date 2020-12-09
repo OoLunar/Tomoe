@@ -31,7 +31,8 @@ namespace Tomoe {
                     ChecksFailedException error = e.Exception as ChecksFailedException;
                     if (error.Context.Channel.IsPrivate) Program.SendMessage(e.Context, Program.NotAGuild);
                     else if (error.FailedChecks.OfType<RequireUserPermissionsAttribute>() != null) Program.SendMessage(e.Context, Program.MissingPermissions);
-                } else _logger.Error($"'{e.Command?.QualifiedName ?? "<unknown command>"}' errored: {e.Exception.GetType()}: {e.Exception.Message ?? "<no message>"}\n{e.Exception.StackTrace}");
+                } else if (e.Exception is System.NotImplementedException) Program.SendMessage(e.Context, $"{e.Command.Name} hasn't been implemented yet!");
+                else _logger.Error($"'{e.Command?.QualifiedName ?? "<unknown command>"}' errored: {e.Exception.GetType()}: {e.Exception.Message ?? "<no message>"}\n{e.Exception.StackTrace}");
             }
         }
     }

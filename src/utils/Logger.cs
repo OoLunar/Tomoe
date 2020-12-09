@@ -1,21 +1,10 @@
 using System;
 using System.Collections.Concurrent;
-using System.IO;
-using System.Security.AccessControl;
-using System.Text;
-using System.Text.Encodings;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
 namespace Tomoe.Utils {
     public class Logger : ILogger {
-#if DEBUG
-        /// <summary>The current <see cref="Tomoe.Utils.LogLevel">LogLevel</see> the program is set to.</summary>
-        public static LogLevel CurrentLogLevel = LogLevel.Debug;
-#else
-        /// <summary>The current <see cref="Tomoe.Utils.LogLevel">LogLevel</see> the program is set to.</summary>
-        public static LogLevel CurrentLogLevel = LogLevel.Info;
-#endif
 
         /// <summary>The area of MCSharp that the logger is Logging.</summary>
         private readonly string _branchName;
@@ -47,7 +36,7 @@ namespace Tomoe.Utils {
                     if (Tomoe.Program.Config.LogLevel <= LogLevel.Error) Error(formatter(state, exception) ?? exception.Message);
                     break;
                 case LogLevel.Critical:
-                    if (Tomoe.Program.Config.LogLevel <= LogLevel.Critical) Critical(formatter(state, exception) ?? exception.Message);
+                    if (Tomoe.Program.Config.LogLevel <= LogLevel.Critical) Critical(formatter(state, exception) ?? exception.Message, false);
                     break;
                 default:
                     break;
@@ -68,7 +57,7 @@ namespace Tomoe.Utils {
         public Logger(string branchName) => _branchName = branchName;
 
         /// <summary>
-        /// Logs all values to console/file. If the <see cref="Tomoe.Utils.Logger.CurrentLogLevel"> isn't on Trace, nothing will log.
+        /// Logs all values to console/file. If the <see cref="Tomoe.Utils.Logger.Program.Config.LogLevel"> isn't on Trace, nothing will log.
         /// </summary>
         /// <example>
         /// <code>
@@ -80,12 +69,12 @@ namespace Tomoe.Utils {
         /// <remarks>[Trace] has a blue font color.</remarks>
         /// <param name="value">What to be logged.</param>
         public async Task Trace(string value) {
-            if (CurrentLogLevel > LogLevel.Trace) return;
+            if (Program.Config.LogLevel > LogLevel.Trace) return;
             string currentTime = GetTime();
             Console.ResetColor();
             Console.Write($"[{currentTime}] ");
             Console.ForegroundColor = ConsoleColor.Blue;
-            Console.Write($"[Trace] ");
+            Console.Write($"[Trace]   ");
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.Write(_branchName);
             Console.ResetColor();
@@ -93,7 +82,7 @@ namespace Tomoe.Utils {
         }
 
         /// <summary>
-        /// Logs all values to console/file. If the <see cref="Tomoe.Utils.Logger.CurrentLogLevel"> isn't on Debug or Trace, nothing will log.
+        /// Logs all values to console/file. If the <see cref="Tomoe.Utils.Logger.Program.Config.LogLevel"> isn't on Debug or Trace, nothing will log.
         /// </summary>
         /// <example>
         /// <code>
@@ -105,12 +94,12 @@ namespace Tomoe.Utils {
         /// <remarks>[Debug] has a dark grey font color.</remarks>
         /// <param name="value">What to be logged.</param>
         public async Task Debug(string value) {
-            if (CurrentLogLevel > LogLevel.Debug) return;
+            if (Program.Config.LogLevel > LogLevel.Debug) return;
             string currentTime = GetTime();
             Console.ResetColor();
             Console.Write($"[{currentTime}] ");
             Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.Write($"[Debug] ");
+            Console.Write($"[Debug]   ");
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.Write(_branchName);
             Console.ResetColor();
@@ -118,7 +107,7 @@ namespace Tomoe.Utils {
         }
 
         /// <summary>
-        /// Logs all values to console/file. If the <see cref="Tomoe.Utils.Logger.CurrentLogLevel"> isn't on Info or below, nothing will log.
+        /// Logs all values to console/file. If the <see cref="Tomoe.Utils.Logger.Program.Config.LogLevel"> isn't on Info or below, nothing will log.
         /// </summary>
         /// <example>
         /// <code>
@@ -131,12 +120,12 @@ namespace Tomoe.Utils {
         /// <param name="value">What to be logged.</param>
         /// <param name="exit">Determines if the program exits. Defaults to false.</param>
         public async Task Info(string value, bool exit = false) {
-            if (CurrentLogLevel > LogLevel.Information) return;
+            if (Program.Config.LogLevel > LogLevel.Information) return;
             string currentTime = GetTime();
             Console.ResetColor();
             Console.Write($"[{currentTime}] ");
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.Write($"[Info]  ");
+            Console.Write($"[Info]    ");
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.Write(_branchName);
             Console.ResetColor();
@@ -148,7 +137,7 @@ namespace Tomoe.Utils {
         }
 
         /// <summary>
-        /// Logs all values to console/file. If the <see cref="Tomoe.Utils.Logger.CurrentLogLevel"> isn't on Warn or below, nothing will log.
+        /// Logs all values to console/file. If the <see cref="Tomoe.Utils.Logger.Program.Config.LogLevel"> isn't on Warn or below, nothing will log.
         /// </summary>
         /// <example>
         /// <code>
@@ -161,7 +150,7 @@ namespace Tomoe.Utils {
         /// <param name="value">What to be logged.</param>
         /// <param name="exit">Determines if the program exits. Defaults to false.</param>
         public async Task Warn(string value, bool exit = false) {
-            if (CurrentLogLevel > LogLevel.Warning) return;
+            if (Program.Config.LogLevel > LogLevel.Warning) return;
             string currentTime = GetTime();
             Console.ResetColor();
             Console.Write($"[{currentTime}] ");
@@ -178,7 +167,7 @@ namespace Tomoe.Utils {
         }
 
         /// <summary>
-        /// Logs all values to console/file. If the <see cref="Tomoe.Utils.Logger.CurrentLogLevel"> isn't on Error or below, nothing will log.
+        /// Logs all values to console/file. If the <see cref="Tomoe.Utils.Logger.Program.Config.LogLevel"> isn't on Error or below, nothing will log.
         /// </summary>
         /// <example>
         /// <code>
@@ -191,12 +180,12 @@ namespace Tomoe.Utils {
         /// <param name="value">What to be logged.</param>
         /// <param name="exit">Determines if the program exits. Defaults to false.</param>
         public async Task Error(string value, bool exit = false) {
-            if (CurrentLogLevel > LogLevel.Error) return;
+            if (Program.Config.LogLevel > LogLevel.Error) return;
             string currentTime = GetTime();
             Console.ResetColor();
             Console.Write($"[{currentTime}] ");
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.Write($"[Error] ");
+            Console.Write($"[Error]   ");
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.Write(_branchName);
             Console.ResetColor();

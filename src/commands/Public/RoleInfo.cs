@@ -16,17 +16,21 @@ namespace Tomoe.Commands.Public {
         public async Task ByName(CommandContext context, string roleName) {
             DiscordRole roleInQuestion = null;
             // Check if it's the @everyone or @here roles.
-            if (roleName.ToLower() == "everyone" || roleName.ToLower() == "here") roleInQuestion = context.Guild.GetRole(context.Guild.Id);
-            // Loop through all the other roles if it isn't
-            // TODO: Let the user choose which role they want info on if there are duplciate named roles.
-            else
+            if (roleName.ToLower() == "everyone" || roleName.ToLower() == "here") {
+                roleInQuestion = context.Guild.GetRole(context.Guild.Id);
+            } else {
+                // Loop through all the other roles if it isn't
+                // TODO: Let the user choose which role they want info on if there are duplciate named roles.
                 foreach (DiscordRole role in context.Guild.Roles.Values) {
                     if (role.Name.ToLower() == roleName.ToLower()) roleInQuestion = role;
                 }
-            // No role was found. Inform the user.
-            if (roleInQuestion == null) Tomoe.Program.SendMessage(context, $"There was no role called \"{roleName}\"");
-            // Role was found, forward it to ByPing.
-            else ByPing(context, roleInQuestion);
+            }
+            if (roleInQuestion == null) { // No role was found. Inform the user.
+                Program.SendMessage(context, $"There was no role called \"{roleName}\"");
+            } else { // Role was found, forward it to ByPing.
+                ByPing(context, roleInQuestion);
+            }
+
         }
 
         [Command("role_info")]
@@ -47,7 +51,7 @@ namespace Tomoe.Commands.Public {
             }
             embed.AddField("**Members**", string.IsNullOrEmpty(roleUsers) ? "None." : roleUsers);
             embed.Description = $"ID: **{role.Id}**\nName: **{role.Name}**\nCreation: **{role.CreationTimestamp}**\nPosition: **{role.Position}**\nColor: **{role.Color}**\nMentionable: **{role.IsMentionable}**\nHoisted: **{role.IsHoisted}**\nManaged: **{role.IsManaged}**\nPermissions: **{role.Permissions.ToPermissionString()}**\nMembers: **{roleMemberCount}**";
-            Tomoe.Program.SendMessage(context, embed.Build());
+            Program.SendMessage(context, embed.Build());
         }
     }
 }

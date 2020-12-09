@@ -11,7 +11,6 @@ namespace Tomoe.Commands.Moderation {
         [RequireUserPermissions(Permissions.BanMembers)]
         [RequireBotPermissions(Permissions.BanMembers)]
         [RequireGuild]
-        [Priority(10)]
         public async Task KickUser(CommandContext context, [Description("The member in question.")] DiscordUser victim, [Description("(Optional) Why is the victim being kicked.")][RemainingText] string kickReason) {
             if (victim == context.Client.CurrentUser) {
                 Program.SendMessage(context, Program.SelfAction);
@@ -32,7 +31,6 @@ namespace Tomoe.Commands.Moderation {
         [RequireBotPermissions(Permissions.BanMembers)]
         [RequireUserPermissions(Permissions.BanMembers)]
         [RequireGuild]
-        [Priority(9)]
         public async Task KickUser(CommandContext context, [Description("The member in question.")] DiscordUser victim) => KickUser(context, victim, null);
     }
 }
