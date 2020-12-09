@@ -9,7 +9,7 @@ namespace Tomoe.Commands.Public {
         [Command("pfp")]
         [Aliases(new string[] { "profile_picture", "avatar" })]
         [Description("Gets the profile picture of the initiator or the request user.")]
-        public async Task Mention(CommandContext context, [Description("(Optional) Gets the request users profile picture. Defaults to the initiator.")] DiscordUser victim) => Tomoe.Program.SendMessage(context, victim == null ? context.User.GetAvatarUrl(DSharpPlus.ImageFormat.Png) : victim.GetAvatarUrl(DSharpPlus.ImageFormat.Png));
+        public async Task Mention(CommandContext context, [Description("(Optional) Gets the request users profile picture. Defaults to the initiator.")] DiscordUser user) => Tomoe.Program.SendMessage(context, user == null ? context.User.GetAvatarUrl(DSharpPlus.ImageFormat.Png) : user.GetAvatarUrl(DSharpPlus.ImageFormat.Png));
 
         [Command("pfp")]
         public async Task Mention(CommandContext context) => Mention(context, context.User);
