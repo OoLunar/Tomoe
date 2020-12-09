@@ -6,18 +6,30 @@ using Microsoft.Extensions.Logging;
 namespace Tomoe.Utils {
     public class Logger : ILogger {
 
-        /// <summary>The area of MCSharp that the logger is Logging.</summary>
+        /// <summary>What to prefix the log content with.</summary>
         private readonly string _branchName;
+        /// <summary>The logger's logger. Ironic.</summary>
         private static Logger _logger = new Logger("Logger");
+        /// <summary>Unknown what this does. TODO: Implement this correctly.</summary>
         public IDisposable BeginScope<TState>(TState state) { throw new NotImplementedException(); }
 
         /// <summary>
-        /// Checks if a 
+        /// Tests if a log level is enabled. Compares the <paramref name="logLevel">logLevel</paramref> with <see cref="Program.Config.LogLevel">Config.LogLevel</see>.
         /// </summary>
-        /// <param name="logLevel"></param>
-        /// <returns></returns>
+        /// <param name="logLevel">What level to test if is activated.</param>
+        /// <returns>true if <paramref name="logLevel">logLevel</paramref> is enabled, otherwise false.</returns>
         public bool IsEnabled(LogLevel logLevel) => Tomoe.Program.Config.LogLevel <= logLevel;
 
+        /// <summary>
+        /// Logs stuff to console.
+        /// </summary>
+        /// <param name="logLevel">What level you're logging the content at.</param>
+        /// <param name="eventId"></param>
+        /// <param name="state"></param>
+        /// <param name="exception"></param>
+        /// <param name="formatter"></param>
+        /// <typeparam name="TState"></typeparam>
+        /// <remarks>While this isn't depreciated, it is advised that you use <see cref="Tomoe.Utils.Logger.Log(LogLevel, string)">Log(LogLevel, string)</see> instead, as this function isn't reliably formatting the formatter correctly.</remarks>
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter) {
             switch (logLevel) {
                 case LogLevel.Trace:
@@ -43,13 +55,17 @@ namespace Tomoe.Utils {
             }
         }
 
+        public void Log(LogLevel logLevel, string content) {
+
+        }
+
         /// <summary>
         /// Creates a new logger.
         /// </summary>
         /// <example>
         /// <code>
         /// Logger logger = new Logger("Main");
-        /// logger.Info("Created Main logger!"); //Output something similar to 
+        /// logger.Info("Created Main logger!"); //Output something similar to
         ///                                      //[Fri, Oct 13 2020 17:32:54] [Info] Main: Created Main logger!
         /// </code>
         /// </example>
@@ -62,7 +78,7 @@ namespace Tomoe.Utils {
         /// <example>
         /// <code>
         /// Logger logger = new Logger("Main");
-        /// logger.Trace("Created Main logger!"); //Output something similar to 
+        /// logger.Trace("Created Main logger!"); //Output something similar to
         ///                                      //[Fri, Oct 13 2020 17:32:54] [Trace] Main: Created Main logger!
         /// </code>
         /// </example>
@@ -74,7 +90,7 @@ namespace Tomoe.Utils {
             Console.ResetColor();
             Console.Write($"[{currentTime}] ");
             Console.ForegroundColor = ConsoleColor.Blue;
-            Console.Write($"[Trace]   ");
+            Console.Write($"[Trace] ");
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.Write(_branchName);
             Console.ResetColor();
@@ -87,7 +103,7 @@ namespace Tomoe.Utils {
         /// <example>
         /// <code>
         /// Logger logger = new Logger("Main");
-        /// logger.Debug("Created Main logger!"); //Output something similar to 
+        /// logger.Debug("Created Main logger!"); //Output something similar to
         ///                                       //[Fri, Oct 13 2020 17:32:54] [Debug] Main: Created Main logger!
         /// </code>
         /// </example>
@@ -99,7 +115,7 @@ namespace Tomoe.Utils {
             Console.ResetColor();
             Console.Write($"[{currentTime}] ");
             Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.Write($"[Debug]   ");
+            Console.Write($"[Debug] ");
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.Write(_branchName);
             Console.ResetColor();
@@ -112,7 +128,7 @@ namespace Tomoe.Utils {
         /// <example>
         /// <code>
         /// Logger logger = new Logger("Main");
-        /// logger.Info("Created Main logger!"); //Output something similar to 
+        /// logger.Info("Created Main logger!"); //Output something similar to
         ///                                      //[Fri, Oct 13 2020 17:32:54] [Info] Main: Created Main logger!
         /// </code>
         /// </example>
@@ -125,7 +141,7 @@ namespace Tomoe.Utils {
             Console.ResetColor();
             Console.Write($"[{currentTime}] ");
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.Write($"[Info]    ");
+            Console.Write($"[Info]  ");
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.Write(_branchName);
             Console.ResetColor();
@@ -142,7 +158,7 @@ namespace Tomoe.Utils {
         /// <example>
         /// <code>
         /// Logger logger = new Logger("Main");
-        /// logger.Warn("Created Main logger!"); //Output something similar to 
+        /// logger.Warn("Created Main logger!"); //Output something similar to
         ///                                      //[Fri, Oct 13 2020 17:32:54] [Warn] Main: Created Main logger!
         /// </code>
         /// </example>
@@ -155,7 +171,7 @@ namespace Tomoe.Utils {
             Console.ResetColor();
             Console.Write($"[{currentTime}] ");
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.Write($"[Warning] ");
+            Console.Write($"[Warn]  ");
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.Write(_branchName);
             Console.ResetColor();
@@ -172,7 +188,7 @@ namespace Tomoe.Utils {
         /// <example>
         /// <code>
         /// Logger logger = new Logger("Main");
-        /// logger.Errpr("Created Main logger!"); //Output something similar to 
+        /// logger.Errpr("Created Main logger!"); //Output something similar to
         ///                                       //[Fri, Oct 13 2020 17:32:54] [Error] Main: Created Main logger!
         /// </code>
         /// </example>
@@ -185,7 +201,7 @@ namespace Tomoe.Utils {
             Console.ResetColor();
             Console.Write($"[{currentTime}] ");
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.Write($"[Error]   ");
+            Console.Write($"[Error] ");
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.Write(_branchName);
             Console.ResetColor();
@@ -202,7 +218,7 @@ namespace Tomoe.Utils {
         /// <example>
         /// <code>
         /// Logger logger = new Logger("Main");
-        /// logger.Critical("Created Main logger!"); //Output something similar to 
+        /// logger.Critical("Created Main logger!"); //Output something similar to
         ///                                          //[Fri, Oct 13 2020 17:32:54] [Critical] Main: Created Main logger!
         /// </code>
         /// </example>
@@ -215,7 +231,7 @@ namespace Tomoe.Utils {
             Console.Write($"[{currentTime}] ");
             Console.ForegroundColor = ConsoleColor.White;
             Console.BackgroundColor = ConsoleColor.Red;
-            Console.Write($"[Critical]");
+            Console.Write($"[Crit]  ");
             Console.ResetColor();
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.Write($" {_branchName}");
