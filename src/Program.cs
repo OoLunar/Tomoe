@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using DSharpPlus;
@@ -18,7 +19,13 @@ namespace Tomoe {
         public const string SelfAction = "**[Denied: Cannot execute on myself]**";
         public const string Hierarchy = "**[Denied: Prevented by hierarchy]**";
         public static Config Config = Tomoe.Config.Init();
-        public static string ProjectRoot = Path.GetFullPath("../../../../", System.AppDomain.CurrentDomain.BaseDirectory).Replace('\\', '/');
+#if DEBUG
+        // Goes up 6 levels because it's starting from ./src/MCSharp/bin/Debug/ref/MCSharp.dll, or somewhere near there.
+        public static string ProjectRoot = Path.GetDirectoryName(Path.Join(Assembly.GetExecutingAssembly().Location, "../../../../../../"));
+#else
+        // Places the log directory right next to the executable.
+        public static string ProjectRoot = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+#endif
         public static Database.Database Database = new Database.Database();
         private static Logger _logger = new Logger("Main");
         private static CommandService _commandService;

@@ -4,3 +4,4 @@ obj/
 log/
 res/config.jsonc
 .dccache
+.obsidian
