@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Immutable;
-using System.Linq;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
@@ -40,13 +36,13 @@ namespace Tomoe.Commands.Config {
                         Program.SendMessage(context, $"{previousMuteRole.Mention} is now set as the mute role.");
                     }
                 });
-                DiscordMessage discordMessage = await Program.SendMessage(context, $"Previous mute role was {previousMuteRole.Mention}. Do you want to overwrite it with {muteRole.Mention}?");
+                DiscordMessage discordMessage = Program.SendMessage(context, $"Previous mute role was {previousMuteRole.Mention}. Do you want to overwrite it with {muteRole.Mention}?");
                 await discordMessage.CreateReactionAsync(thumbsUp);
                 await discordMessage.CreateReactionAsync(thumbsDown);
                 ReactionAdded.QueueList.Add(createNewRole);
             } else {
                 Program.Database.Driver.Guild.MuteRole(context.Guild.Id, muteRole.Id);
-                DiscordMessage discordMessage = await Program.SendMessage(context, "Setting role permissions for {muteRole.Mention}...");
+                DiscordMessage discordMessage = Program.SendMessage(context, "Setting role permissions for {muteRole.Mention}...");
                 await fixMuteRolePermissions(context, muteRole);
                 discordMessage.ModifyAsync($"{muteRole.Mention} is now set as the mute role.");
             }
@@ -57,7 +53,7 @@ namespace Tomoe.Commands.Config {
         [RequireBotPermissions(Permissions.ManageRoles)]
         [RequireGuild]
         public async Task SetupMute(CommandContext context) {
-            DiscordMessage message = await Program.SendMessage(context, "Creating mute role...") as DiscordMessage;
+            DiscordMessage message = Program.SendMessage(context, "Creating mute role...") as DiscordMessage;
             DiscordRole muteRole = await context.Guild.CreateRoleAsync("Muted", Permissions.None, DiscordColor.Gray, false, false, "Allows users to be muted.");
             _logger.Trace($"Created mute role '{muteRole.Name}' ({muteRole.Id}) for {context.Guild.Name} ({context.Guild.Id})!");
             message.ModifyAsync($"{context.User.Mention}: Overriding channel permissions...");

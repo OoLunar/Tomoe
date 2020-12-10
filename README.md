@@ -76,6 +76,7 @@ As mentioned previously, Tomoe aims to be the #1 bot choice for Discord Moderati
 | no_meme | :x: |
 | no_vc | :x: |
 | strike | :x: |
+| pardon| :x: |
 | temp_ban | :x: |
 | temp_mute | :x: |
 | temp_no_meme | :x: |

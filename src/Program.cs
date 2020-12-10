@@ -24,7 +24,7 @@ namespace Tomoe {
         public static string ProjectRoot = Path.GetDirectoryName(Path.Join(Assembly.GetExecutingAssembly().Location, "../../../../../"));
 #else
         // Places the log directory right next to the executable.
-        public static string ProjectRoot = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+        public static string ProjectRoot = Path.GetDirectoryName(System.AppContext.BaseDirectory);
 #endif
         public static Database.Database Database = new Database.Database();
         private static Logger _logger = new Logger("Main");
@@ -64,19 +64,19 @@ namespace Tomoe {
             await Task.Delay(-1);
         }
 
-        public static async Task<DiscordMessage> SendMessage(CommandContext context, string content, ExtensionMethods.FilteringAction filteringAction = (ExtensionMethods.FilteringAction.CodeBlocksEscape | ExtensionMethods.FilteringAction.AllMentions)) {
+        public static DiscordMessage SendMessage(CommandContext context, string content, ExtensionMethods.FilteringAction filteringAction = (ExtensionMethods.FilteringAction.CodeBlocksEscape | ExtensionMethods.FilteringAction.AllMentions)) {
             try {
-                return await context.RespondAsync($"{context.User.Mention}: {ExtensionMethods.Filter(content, context, filteringAction)}");
+                return context.RespondAsync($"{context.User.Mention}: {ExtensionMethods.Filter(content, context, filteringAction)}").GetAwaiter().GetResult();
             } catch (DSharpPlus.Exceptions.UnauthorizedException) {
-                return await (await context.Member.CreateDmChannelAsync()).SendMessageAsync($"Responding to <{context.Message.JumpLink}>: {ExtensionMethods.Filter(content, context, filteringAction)}");
+                return (context.Member.CreateDmChannelAsync().GetAwaiter().GetResult()).SendMessageAsync($"Responding to <{context.Message.JumpLink}>: {ExtensionMethods.Filter(content, context, filteringAction)}").GetAwaiter().GetResult();
             }
         }
 
-        public static async Task<DiscordMessage> SendMessage(CommandContext context, DiscordEmbed embed) {
+        public static DiscordMessage SendMessage(CommandContext context, DiscordEmbed embed) {
             try {
-                return await context.RespondAsync($"{context.User.Mention}: ", false, embed);
+                return context.RespondAsync($"{context.User.Mention}: ", false, embed).GetAwaiter().GetResult();
             } catch (DSharpPlus.Exceptions.UnauthorizedException) {
-                return await (await context.Member.CreateDmChannelAsync()).SendMessageAsync($"Responding to <{context.Message.JumpLink}>: ", false, embed);
+                return (context.Member.CreateDmChannelAsync().GetAwaiter().GetResult()).SendMessageAsync($"Responding to <{context.Message.JumpLink}>: ", false, embed).GetAwaiter().GetResult();
             }
         }
     }

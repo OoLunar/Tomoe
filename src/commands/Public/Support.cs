@@ -4,9 +4,11 @@ using DSharpPlus.CommandsNext.Attributes;
 
 namespace Tomoe.Commands.Public {
     public class Support : BaseCommandModule {
-        [Command("support")]
+        private const string _COMMAND_NAME = "support";
+        private const string _COMMAND_DESC = "Sends the support Discord invite.";
+
+        [Command(_COMMAND_NAME), Description(_COMMAND_DESC)]
         [Aliases(new string[] { "discord", "guild" })]
-        [Description("Sends the support Discord invite.")]
         public async Task Get(CommandContext context) => Tomoe.Program.SendMessage(context, "https://discord.gg/Y6JmYTNcGg");
     }
 }

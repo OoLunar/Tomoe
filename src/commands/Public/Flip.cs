@@ -4,12 +4,16 @@ using DSharpPlus.CommandsNext.Attributes;
 
 namespace Tomoe.Commands.Public {
     public class Flip : BaseCommandModule {
-        [Command("flip")]
-        [Description("A simple heads or tails command.")]
+        private const string _COMMAND_NAME = "flip";
+        private const string _COMMAND_DESC = "A simple heads or tails command.";
+        private const string _ARG_CHOICE1_DESC = "Option 1 to pick from.";
+        private const string _ARG_CHOICE2_DESC = "Option 2 to pick from.";
+
+        [Command(_COMMAND_NAME), Description(_COMMAND_DESC)]
         [Aliases(new string[] { "choose", "pick" })]
         public async Task Main(CommandContext context) => Program.SendMessage(context, new System.Random().Next(0, 1) == 0 ? "Heads" : "Tails");
 
-        [Command("flip")]
-        public async Task Main(CommandContext context, string choice1, string choice2) => Program.SendMessage(context, new System.Random().Next(0, 1) == 0 ? choice1 : choice2);
+        [Command(_COMMAND_NAME)]
+        public async Task Main(CommandContext context, [Description(_ARG_CHOICE1_DESC)] string choice1, [Description(_ARG_CHOICE2_DESC)] string choice2) => Program.SendMessage(context, new System.Random().Next(0, 1) == 0 ? choice1 : choice2);
     }
 }
