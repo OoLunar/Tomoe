@@ -1,10 +1,23 @@
 # Ping
 ## Summary
-Sends a Discord message, then edits the message with how long the original message took to send in milliseconds.
+Checks the latency between the bot and the Discord API Websocket. Best used to see if the bot is lagging.
 
 ## Description
-Sometimes the bot isn't responding as fast as it should. Pinging can give an idea of whether it's the bot or Discord's API that's acting up. Tomoe will record how long it takes to send a message, and edit the message with the time in milliseconds.
+Sometimes the bot isn't responding as fast as it should. Pinging can give an idea of whether it's the bot or Discord's API that's acting up. Tomoe uses `CommandContext.Client.Ping` to get the latency
+
+## Overloads
+- `ping`
+
+## Examples
+
 ```
 >>ping
 ```
-![image](https://user-images.githubusercontent.com/46751150/93499973-4eb07400-f8d9-11ea-83f3-c2b64cf8b5d3.png)
+
+![ping.png](/docs/images/ping.png)
+
+## Aliases
+None.
+
+## Remarks
+May not always be accurate.

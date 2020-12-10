@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Converters;
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Enums;
@@ -20,8 +21,7 @@ namespace Tomoe {
         public const string Hierarchy = "**[Denied: Prevented by hierarchy]**";
         public static Config Config = Tomoe.Config.Init();
 #if DEBUG
-        // Goes up 6 levels because it's starting from ./src/MCSharp/bin/Debug/ref/MCSharp.dll, or somewhere near there.
-        public static string ProjectRoot = Path.GetDirectoryName(Path.Join(Assembly.GetExecutingAssembly().Location, "../../../../../../"));
+        public static string ProjectRoot = Path.GetDirectoryName(Path.Join(Assembly.GetExecutingAssembly().Location, "../../../../../"));
 #else
         // Places the log directory right next to the executable.
         public static string ProjectRoot = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
@@ -36,15 +36,17 @@ namespace Tomoe {
         public async Task MainAsync() {
             _logger.Info("Starting...");
             using var loggerProvider = new LoggerProvider();
-            DiscordClient client = new DiscordClient(new DiscordConfiguration {
+            DiscordConfiguration discordConfiguration = new DiscordConfiguration {
                 AutoReconnect = true,
-                    Token = Config.DiscordApiToken,
-                    TokenType = TokenType.Bot,
-                    MinimumLogLevel = Microsoft.Extensions.Logging.LogLevel.Information,
-                    UseRelativeRatelimit = true,
-                    MessageCacheSize = 512,
-                    LoggerFactory = loggerProvider,
-            });
+                Token = Config.DiscordApiToken,
+                TokenType = TokenType.Bot,
+                MinimumLogLevel = Microsoft.Extensions.Logging.LogLevel.Information,
+                UseRelativeRatelimit = true,
+                MessageCacheSize = 512,
+                LoggerFactory = loggerProvider,
+            };
+
+            DiscordClient client = new DiscordClient(discordConfiguration);
 
             client.UseInteractivity(new InteractivityConfiguration {
                 // default pagination behaviour to just ignore the reactions
@@ -75,6 +77,26 @@ namespace Tomoe {
                 return await context.RespondAsync($"{context.User.Mention}: ", false, embed);
             } catch (DSharpPlus.Exceptions.UnauthorizedException) {
                 return await (await context.Member.CreateDmChannelAsync()).SendMessageAsync($"Responding to <{context.Message.JumpLink}>: ", false, embed);
+            }
+        }
+    }
+
+    public class ImageFormatConverter : IArgumentConverter<ImageFormat> {
+        public Task<Optional<ImageFormat>> ConvertAsync(string value, CommandContext ctx) {
+            switch (value.ToLowerInvariant()) {
+                case "png":
+                    return Task.FromResult(Optional.FromValue(ImageFormat.Png));
+                case "jpeg":
+                    return Task.FromResult(Optional.FromValue(ImageFormat.Jpeg));
+                case "webp":
+                    return Task.FromResult(Optional.FromValue(ImageFormat.WebP));
+                case "gif":
+                    return Task.FromResult(Optional.FromValue(ImageFormat.Gif));
+                case "unknown":
+                case "auto":
+                    return Task.FromResult(Optional.FromValue(ImageFormat.Auto));
+                default:
+                    return Task.FromResult(Optional.FromNoValue<ImageFormat>());
             }
         }
     }

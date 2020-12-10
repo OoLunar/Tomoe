@@ -11,7 +11,7 @@ namespace Tomoe.Commands.Moderation {
         [RequireUserPermissions(Permissions.BanMembers)]
         [RequireBotPermissions(Permissions.BanMembers)]
         [RequireGuild]
-        public async Task BanUser(CommandContext context, [Description("The member in question.")] DiscordUser victim, [Description("(Optional) Removed the victim's messages from the pass `x` days.")] int pruneDays, [Description("(Optional) Why is the victim being banned.")][RemainingText] string banReason) {
+        public async Task BanUser(CommandContext context, [Description("The person to be banned.")] DiscordUser victim, [Description("(Optional) Removed the victim's messages from the pass `x` days.")] int pruneDays, [Description("(Optional) Why is the victim being banned.")][RemainingText] string banReason = Program.MissingReason) {
             if (victim == context.Client.CurrentUser) {
                 Program.SendMessage(context, Program.SelfAction);
                 return;
@@ -34,15 +34,18 @@ namespace Tomoe.Commands.Moderation {
         }
 
         [Command("ban")]
-        [RequireBotPermissions(Permissions.BanMembers)]
-        [RequireUserPermissions(Permissions.BanMembers)]
         [RequireGuild]
-        public async Task BanUser(CommandContext context, [Description("The member in question.")] DiscordUser victim, [Description("(Optional) Why is the victim being banned."), RemainingText] string? banReason) => BanUser(context, victim, 0, banReason);
+        public async Task BanUser(CommandContext context, [Description("The person to be banned.")] DiscordUser victim, [Description("(Optional) Why is the victim being banned."), RemainingText] string banReason = Program.MissingReason) => BanUser(context, victim, 0, banReason);
 
         [Command("ban")]
-        [RequireBotPermissions(Permissions.BanMembers)]
-        [RequireUserPermissions(Permissions.BanMembers)]
         [RequireGuild]
-        public async Task BanUser(CommandContext context, [Description("The member in question.")] DiscordUser victim) => BanUser(context, victim, 0, null);
+        public async Task BanUser(CommandContext context, [Description("The person to be banned.")] DiscordUser victim) => BanUser(context, victim, 0, null);
+
+        [Command("ban")]
+        [RequireGuild]
+        public async Task BanUsers(CommandContext context, [Description("(Optional) Removed the victim's messages from the pass `x` days.")] int pruneDays = 7, [Description("(Optional) Why the people are getting banned.")] string banReason = Program.MissingReason, [Description("The people to be banned.")] params DiscordUser[] victims) {
+            foreach (DiscordUser victim in victims) BanUser(context, victim, pruneDays, banReason);
+            Program.SendMessage(context, $"Successfully massbanned {string.Join<DiscordUser>(", ", victims)}", ExtensionMethods.FilteringAction.RoleMentions);
+        }
     }
 }

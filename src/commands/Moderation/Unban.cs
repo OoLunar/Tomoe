@@ -10,7 +10,7 @@ namespace Tomoe.Commands.Moderation {
         [Command("unban"), Description("Unbans a user from the guild.")]
         [RequireUserPermissions(Permissions.BanMembers)]
         [RequireBotPermissions(Permissions.BanMembers)]
-        public async Task UnbanUser(CommandContext context, [Description("The member in question.")] DiscordUser victim, [Description("Why is the user being unbanned?")] string? unbanReason) {
+        public async Task UnbanUser(CommandContext context, [Description("The member in question.")] DiscordUser victim, [Description("Why is the user being unbanned?"), RemainingText] string unbanReason) {
             try {
                 context.Guild.UnbanMemberAsync(victim, unbanReason ?? Program.MissingReason);
                 DiscordMember guildVictim = await context.Guild.GetMemberAsync(victim.Id);
@@ -22,9 +22,7 @@ namespace Tomoe.Commands.Moderation {
             Program.SendMessage(context, $"{victim.Mention} has been unbanned. Reason:\n```{unbanReason.Filter(context) ?? Program.MissingReason}```");
         }
 
-        [Command("unban"), Description("Unbans a user from the guild.")]
-        [RequireUserPermissions(Permissions.BanMembers)]
-        [RequireBotPermissions(Permissions.BanMembers)]
+        [Command("unban")]
         public async Task UnbanUser(CommandContext context, [Description("The member in question.")] DiscordUser victim) => UnbanUser(context, victim, null);
     }
 }

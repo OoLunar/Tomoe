@@ -15,16 +15,16 @@ namespace Tomoe {
         public CommandService(Tomoe.Config config, DiscordClient discordClient) {
             CommandsNextExtension commands = discordClient.UseCommandsNext(new CommandsNextConfiguration {
                 StringPrefixes = new [] { config.Prefix },
-                    EnableDms = true,
                     CaseSensitive = false,
-                    EnableMentionPrefix = true
+                    EnableMentionPrefix = true,
+                    EnableDms = true
             });
-
+            commands.RegisterConverter(new ImageFormatConverter());
             commands.RegisterCommands(Assembly.GetEntryAssembly());
-            commands.CommandErrored += _commands_CommandErrored;
+            commands.CommandErrored += commandErrored;
         }
 
-        private async Task _commands_CommandErrored(CommandsNextExtension _, CommandErrorEventArgs e) {
+        private async Task commandErrored(CommandsNextExtension _, CommandErrorEventArgs e) {
             // No need to log when a command isn't found
             if (!(e.Exception is CommandNotFoundException) && !e.Handled) {
                 if (e.Exception is ChecksFailedException) {

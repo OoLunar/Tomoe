@@ -231,7 +231,7 @@ namespace Tomoe.Utils {
             Console.Write($"[{currentTime}] ");
             Console.ForegroundColor = ConsoleColor.White;
             Console.BackgroundColor = ConsoleColor.Red;
-            Console.Write($"[Crit]  ");
+            Console.Write($"[Crit] ");
             Console.ResetColor();
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.Write($" {_branchName}");

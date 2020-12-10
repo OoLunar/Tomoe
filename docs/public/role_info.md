@@ -18,29 +18,42 @@ Role Info gets the following information about a guild role:
 
 Note that if the embed is too large, the last field may get trimmed a bit so that the embed can be sent.
 
-![image](https://user-images.githubusercontent.com/46751150/93503456-b5d02780-f8dd-11ea-9db9-ad31945032b1.png)
+## Overloads
+- `>>roleinfo <role ping>`
+- `>>roleinfo <role id>`
+- `>>roleinfo <role name>`
 
-## Syntax
-The command can be executed in three ways.
+## Examples
+By ping
+```
+>>roleinfo @Mod
+```
+![role_info_overload_1.png](/docs/images/role_info_overload_1.png)
 
-Through mention (not recommended)
-```
->>role_info @Developer
-```
+<hr>
 
-Through ID (recommended)
+By id
 ```
->>role_info 744427304880701470
+>>roleinfo 777258375007305759
 ```
+![role_info_overload_2.png](/docs/images/role_info_overload_2.png)
 
-Through name (beta)
-```
->>role_info Developer
-```
+<hr>
 
+By name. See remarks
+```
+>>roleinfo mod
+```
+![role_info_overload_3.png](role_info_overload_3.png)
+
+## Aliases
+- `roleinfo`
+- `ri`
+
+## Remarks
 Getting the role by the name is still very much being tested. It's only recommended if it's the only role with said name. If multiple roles with the same name are present, the first role found with the request name will be sent. This will be fixed soon.
 
-### Can I get the @everyone role info?
+#### Can I get the @everyone role info?
 
 Yes. Here's how
 
@@ -51,11 +64,3 @@ or
 ```
 >>role_info everyone
 ```
-
-Through ID:
-
-![image](https://user-images.githubusercontent.com/46751150/93504111-a3a2b900-f8de-11ea-89d6-30dbc928e5a7.png)
-
-Through name:
-
-![image](https://user-images.githubusercontent.com/46751150/93504193-c503a500-f8de-11ea-981b-85c05e39485b.png)
