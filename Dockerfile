@@ -5,7 +5,7 @@ WORKDIR /src
 
 COPY ./ ./Tomoe/
 
-RUN dotnet restore -r linux-musl-x64 ./Tomoe/Tomoe.csproj
+RUN dotnet restore -r linux-musl-x64 --project=./Tomoe/Tomoe.csproj
 WORKDIR /src/Tomoe
 RUN dotnet build ./Tomoe.csproj -c Release -o /Tomoe/build -r linux-musl-x64
 
