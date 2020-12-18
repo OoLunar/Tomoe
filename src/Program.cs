@@ -14,11 +14,11 @@ using Tomoe.Utils;
 
 namespace Tomoe {
     class Program {
-        public const string MissingReason = "**[No reason was provided]**";
-        public const string MissingPermissions = "**[Denied: Missing permissions]**";
-        public const string NotAGuild = "**[Denied: Guild command]**";
-        public const string SelfAction = "**[Denied: Cannot execute on myself]**";
-        public const string Hierarchy = "**[Denied: Prevented by hierarchy]**";
+        public const string MissingReason = "**[No reason was provided.]**";
+        public const string MissingPermissions = "**[Denied: Missing permissions.]**";
+        public const string NotAGuild = "**[Denied: Guild command.]**";
+        public const string SelfAction = "**[Denied: Cannot execute on myself.]**";
+        public const string Hierarchy = "**[Denied: Prevented by hierarchy.]**";
         public static Config Config = Tomoe.Config.Init();
 #if DEBUG
 #pragma warning disable IL3000
