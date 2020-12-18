@@ -23,6 +23,7 @@ namespace Tomoe {
         public const string Hierarchy = "**[Denied: Prevented by hierarchy]**";
         public static Config Config = Tomoe.Config.Init();
 #if DEBUG
+#pragma warning disable IL3000
         public static string ProjectRoot = Path.GetDirectoryName(Path.Join(Assembly.GetExecutingAssembly().Location, "../../../../../"));
 #else
         // Places the log directory right next to the executable.
@@ -57,7 +58,7 @@ namespace Tomoe {
                     Timeout = TimeSpan.FromMinutes(2)
             });
 
-            client.MessageReactionAdded += Tomoe.Commands.Listeners.ReactionAdded.Main;
+            client.MessageReactionAdded += Tomoe.Commands.Listeners.ReactionAdded.Handler;
             client.Ready += Tomoe.Utils.Events.OnReady;
             new CommandService(Config, client);
 

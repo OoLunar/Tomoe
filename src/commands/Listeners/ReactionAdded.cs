@@ -19,7 +19,7 @@ namespace Tomoe.Commands.Listeners {
             public ReactionHandler Action { get; set; }
         }
 
-        public static Task Main(DiscordClient client, DSharpPlus.EventArgs.MessageReactionAddEventArgs eventArgs) {
+        public static Task Handler(DiscordClient client, DSharpPlus.EventArgs.MessageReactionAddEventArgs eventArgs) {
             _logger.Trace($"Reaction recieved: {eventArgs.Emoji}");
             foreach (Queue queue in QueueList) {
                 if (queue.User == eventArgs.User && queue.Emojis.Contains(eventArgs.Emoji) && eventArgs.Message.Id == queue.MessageId) {
