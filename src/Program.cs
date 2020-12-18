@@ -29,7 +29,6 @@ namespace Tomoe {
 #endif
         public static Database.Database Database = new Database.Database();
         private static Logger _logger = new Logger("Main");
-        private static CommandService _commandService;
         private static Logger _dSharpPlusLogger = new Logger("DSharpPlus");
 
         public static void Main(string[] args) => new Program().MainAsync().GetAwaiter().GetResult();

@@ -29,29 +29,43 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
         private static NpgsqlConnection _connection = new NpgsqlConnection($"Host={Program.Config.Host};Port={Program.Config.Port};Username={Program.Config.Username};Password={Program.Config.Password};Database={Program.Config.DBName};SSL Mode={Program.Config.SslMode}");
         private static Dictionary<statementType, NpgsqlCommand> _preparedStatements = new Dictionary<statementType, NpgsqlCommand>();
 
-        /// <summary>Executes an SQL query. Returns 0 on success, returns null on an empty value, returns the value when there's one value, returns a list when more than one values.</summary>
-        private dynamic executeQuery(statementType command, List<NpgsqlParameter> parameters, bool needResult = false) {
+        /// <summary>
+        /// Executes an SQL query from <see cref="Tomoe.Database.Drivers.PostgresSQL.PostgresUser._preparedStatements">_preparedStatements</see>, using <seealso cref="Tomoe.Database.Drivers.PostgresSQL.PostgresUser.statementType">statementType</seealso> as a key.
+        /// 
+        /// Returns a list of results if <paramref name="needsResult">needsResult</paramref> is true, otherwise returns null.
+        /// </summary>
+        /// <param name="command">Which SQL command to execute, using <see cref="Tomoe.Database.Drivers.PostgresSQL.PostgresUser.statementType">statementType</see> as an index.</param>
+        /// <param name="parameters">A list of <see cref="Npgsql.NpgsqlParameter">NpgsqlParameter's</see>.</param>
+        /// <param name="needsResult">Returns a list of results if true, otherwise returns null.</param>
+        /// <returns><see cref="System.Collections.Generic.List{T}">List&lt;dynamic&gt;</see> if <paramref name="needsResult">needsResult</paramref> is true, otherwise returns null.</returns>
+        private List<dynamic> executeQuery(statementType command, List<NpgsqlParameter> parameters, bool needsResult = false) {
             _logger.Trace($"Executing {command.ToString()}");
             NpgsqlCommand statement = _preparedStatements[command];
             Dictionary<string, NpgsqlParameter> sortedParameters = new Dictionary<string, NpgsqlParameter>();
             foreach (NpgsqlParameter param in parameters) sortedParameters.Add(param.ParameterName, param);
             foreach (NpgsqlParameter temp in statement.Parameters) temp.Value = sortedParameters[temp.ParameterName].Value;
-            if (needResult) {
+            if (needsResult) {
                 NpgsqlDataReader reader = statement.ExecuteReader();
                 List<dynamic> values = new List<dynamic>();
-                for (int i = 0; reader.Read(); i++) values.Add(reader.GetValue(i));
+                while (reader.Read())
+                    for (int i = 0; i < reader.FieldCount; i++) {
+                        if (reader[i].GetType() == typeof(System.DBNull))
+                            values.Add(null);
+                        else
+                            values.Add(reader[i]);
+                    }
                 reader.DisposeAsync().ConfigureAwait(false).GetAwaiter();
-                if (values.Count == 0) return null;
-                if (values.Count == 1) return values[0];
-                else return values;
+                if (values.Count == 0) values.Add(null);
+                return values;
             } else {
-                statement.ExecuteNonQueryAsync();
+                statement.ExecuteNonQuery();
                 return null;
             }
         }
 
-        /// <inheritdoc cref="Tomoe.Database.PostgresSQL.executeQuery(PreparedStatments.IndexedCommands, List{NpgsqlParameter}, bool)" />
-        private object executeQuery(statementType command, NpgsqlParameter parameters, bool needResult = false) => executeQuery(command, new List<NpgsqlParameter> { parameters }, needResult);
+        /// <inheritdoc cref="Tomoe.Database.Drivers.PostgresSQL.PostgresUser.executeQuery(statementType, List{NpgsqlParameter}, bool)" />
+        /// <param name="parameter">One <see cref="Npgsql.NpgsqlParameter">NpgsqlParameter</see>, which gets converted into a <see cref="System.Collections.Generic.List{T}">List&lt;NpgsqlParameter&gt;</see>.</param>
+        private List<dynamic> executeQuery(statementType command, NpgsqlParameter parameter, bool needsResult = false) => executeQuery(command, new List<NpgsqlParameter> { parameter }, needsResult);
 
         public PostgresUser() {
             _logger.Info("Opening connection to database...");
@@ -176,23 +190,23 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
         }
 
         public void InsertUser(ulong guildId, ulong userId) => executeQuery(statementType.InsertUser, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("userId", (long) userId) });
-        public ulong[] GetRoles(ulong guildId, ulong userId) => (ulong[]) executeQuery(statementType.GetRoles, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("userId", (long) userId) }, true);
+        public ulong[] GetRoles(ulong guildId, ulong userId) => (ulong[]) executeQuery(statementType.GetRoles, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("userId", (long) userId) }, true) [0];
         public void AddRole(ulong guildId, ulong userId, ulong roleId) => executeQuery(statementType.AddRole, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("userId", (long) userId), new NpgsqlParameter("roleId", (long) roleId) });
         public void RemoveRole(ulong guildId, ulong userId, ulong roleId) => executeQuery(statementType.RemoveRole, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("userId", (long) userId), new NpgsqlParameter("roleId", (long) roleId) });
         public void SetRoles(ulong guildId, ulong userId, ulong[] roleIds) => executeQuery(statementType.SetRoles, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("userId", (long) userId), new NpgsqlParameter("roleId", roleIds.Select((role) => long.Parse(role.ToString()))) });
 
         public void AddStrike(ulong guildId, ulong userId) => executeQuery(statementType.AddStrike, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("userId", (long) userId) });
         public void RemoveStrike(ulong guildId, ulong userId) => executeQuery(statementType.RemoveStrike, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("userId", (long) userId) });
-        public int GetStrikeCount(ulong guildId, ulong userId) => (int) executeQuery(statementType.GetStrikeCount, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("userId", (long) userId) }, true);
+        public int GetStrikeCount(ulong guildId, ulong userId) => (int) executeQuery(statementType.GetStrikeCount, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("userId", (long) userId) }, true) [0];
         public void SetStrikeCount(ulong guildId, ulong userId, int strikeCount) => executeQuery(statementType.SetStrikeCount, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("userId", (long) userId), new NpgsqlParameter("strikeCount", (short) strikeCount) });
 
-        public bool IsMuted(ulong guildId, ulong userId) => (bool) executeQuery(statementType.GetIsMuted, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("userId", (long) userId) }, true);
+        public bool IsMuted(ulong guildId, ulong userId) => (bool) executeQuery(statementType.GetIsMuted, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("userId", (long) userId) }, true) [0];
         public void IsMuted(ulong guildId, ulong userId, bool isMuted) => executeQuery(statementType.SetIsMuted, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("userId", (long) userId), new NpgsqlParameter("isMuted", isMuted) });
 
-        public bool IsNoMemed(ulong guildId, ulong userId) => (bool) executeQuery(statementType.GetIsNoMemed, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("userId", (long) userId) }, true);
+        public bool IsNoMemed(ulong guildId, ulong userId) => (bool) executeQuery(statementType.GetIsNoMemed, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("userId", (long) userId) }, true) [0];
         public void IsNoMemed(ulong guildId, ulong userId, bool isNoMemed) => executeQuery(statementType.SetIsNoMemed, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("userId", (long) userId), new NpgsqlParameter("isNoMemed", isNoMemed) });
 
-        public bool IsNoVC(ulong guildId, ulong userId) => (bool) executeQuery(statementType.GetIsNoVC, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("userId", (long) userId) }, true);
+        public bool IsNoVC(ulong guildId, ulong userId) => (bool) executeQuery(statementType.GetIsNoVC, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("userId", (long) userId) }, true) [0];
         public void IsNoVC(ulong guildId, ulong userId, bool isNoVC) => executeQuery(statementType.SetIsNoVC, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("userId", (long) userId), new NpgsqlParameter("isNoVC", isNoVC) });
     }
 }
