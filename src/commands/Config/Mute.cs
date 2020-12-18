@@ -15,7 +15,7 @@ namespace Tomoe.Commands.Config {
         [RequireUserPermissions(Permissions.ManageGuild)]
         [RequireGuild]
         public async Task SetupMute(CommandContext context, DiscordRole muteRole) {
-            ulong? previousMuteRoleId = Program.Database.Driver.Guild.MuteRole(context.Guild.Id);
+            ulong? previousMuteRoleId = Program.Database.Guild.MuteRole(context.Guild.Id);
             if (previousMuteRoleId.HasValue) {
                 DiscordRole previousMuteRole = context.Guild.GetRole(previousMuteRoleId.Value);
                 DiscordEmoji thumbsUp = DiscordEmoji.FromName(context.Client, "thumbsup");
@@ -26,7 +26,7 @@ namespace Tomoe.Commands.Config {
                 createNewRole.Emojis = new DiscordEmoji[] { thumbsUp, thumbsDown };
                 createNewRole.Action = new ReactionAdded.ReactionHandler(emoji => {
                     if (emoji == thumbsUp) {
-                        Program.Database.Driver.Guild.MuteRole(context.Guild.Id, muteRole.Id);
+                        Program.Database.Guild.MuteRole(context.Guild.Id, muteRole.Id);
                         _logger.Trace($"Set {muteRole.Name} ({muteRole.Id}) as mute role for {context.Guild.Name} ({context.Guild.Id})!");
                         fixMuteRolePermissions(context, muteRole);
                         Program.SendMessage(context, $"{muteRole.Mention} is now set as the mute role.");
@@ -41,7 +41,7 @@ namespace Tomoe.Commands.Config {
                 await discordMessage.CreateReactionAsync(thumbsDown);
                 ReactionAdded.QueueList.Add(createNewRole);
             } else {
-                Program.Database.Driver.Guild.MuteRole(context.Guild.Id, muteRole.Id);
+                Program.Database.Guild.MuteRole(context.Guild.Id, muteRole.Id);
                 DiscordMessage discordMessage = Program.SendMessage(context, "Setting role permissions for {muteRole.Mention}...");
                 await fixMuteRolePermissions(context, muteRole);
                 discordMessage.ModifyAsync($"{muteRole.Mention} is now set as the mute role.");

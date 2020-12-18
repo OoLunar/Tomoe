@@ -2,23 +2,26 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Npgsql.Logging;
 
 namespace Tomoe.Utils {
     public class Logger : ILogger {
 
         /// <summary>What to prefix the log content with.</summary>
         private readonly string _branchName;
+        /// <summary>A per branch log level. Defaults to the config's log level.</summary>
+        private readonly LogLevel _branchLogLevel;
         /// <summary>The logger's logger. Ironic.</summary>
         private static Logger _logger = new Logger("Logger");
         /// <summary>Unknown what this does. TODO: Implement this correctly.</summary>
         public IDisposable BeginScope<TState>(TState state) { throw new NotImplementedException(); }
 
         /// <summary>
-        /// Tests if a log level is enabled. Compares the <paramref name="logLevel">logLevel</paramref> with <see cref="Program.Config.LogLevel">Config.LogLevel</see>.
+        /// Tests if a log level is enabled. Compares the <paramref name="logLevel">logLevel</paramref> with <see cref="Config.LogLevel">Config.LogLevel</see>.
         /// </summary>
         /// <param name="logLevel">What level to test if is activated.</param>
         /// <returns>true if <paramref name="logLevel">logLevel</paramref> is enabled, otherwise false.</returns>
-        public bool IsEnabled(LogLevel logLevel) => Tomoe.Program.Config.LogLevel <= logLevel;
+        public bool IsEnabled(LogLevel logLevel) => Tomoe.Config.LogLevel <= logLevel;
 
         /// <summary>
         /// Logs stuff to console.
@@ -33,22 +36,22 @@ namespace Tomoe.Utils {
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter) {
             switch (logLevel) {
                 case LogLevel.Trace:
-                    if (Tomoe.Program.Config.LogLevel <= LogLevel.Trace) Trace(formatter(state, exception) ?? exception.Message);
+                    Trace(formatter(state, exception) ?? exception.Message);
                     break;
                 case LogLevel.Debug:
-                    if (Tomoe.Program.Config.LogLevel <= LogLevel.Debug) Debug(formatter(state, exception) ?? exception.Message);
+                    Debug(formatter(state, exception) ?? exception.Message);
                     break;
                 case LogLevel.Information:
-                    if (Tomoe.Program.Config.LogLevel <= LogLevel.Information) Info(formatter(state, exception) ?? exception.Message);
+                    Info(formatter(state, exception) ?? exception.Message);
                     break;
                 case LogLevel.Warning:
-                    if (Tomoe.Program.Config.LogLevel <= LogLevel.Warning) Warn(formatter(state, exception) ?? exception.Message);
+                    Warn(formatter(state, exception) ?? exception.Message);
                     break;
                 case LogLevel.Error:
-                    if (Tomoe.Program.Config.LogLevel <= LogLevel.Error) Error(formatter(state, exception) ?? exception.Message);
+                    Error(formatter(state, exception) ?? exception.Message);
                     break;
                 case LogLevel.Critical:
-                    if (Tomoe.Program.Config.LogLevel <= LogLevel.Critical) Critical(formatter(state, exception) ?? exception.Message, false);
+                    Critical(formatter(state, exception) ?? exception.Message, false);
                     break;
                 default:
                     break;
@@ -56,7 +59,28 @@ namespace Tomoe.Utils {
         }
 
         public void Log(LogLevel logLevel, string content) {
-
+            switch (logLevel) {
+                case LogLevel.Trace:
+                    Trace(content);
+                    break;
+                case LogLevel.Debug:
+                    Debug(content);
+                    break;
+                case LogLevel.Information:
+                    Info(content);
+                    break;
+                case LogLevel.Warning:
+                    Warn(content);
+                    break;
+                case LogLevel.Error:
+                    Error(content);
+                    break;
+                case LogLevel.Critical:
+                    Critical(content, false);
+                    break;
+                default:
+                    break;
+            }
         }
 
         /// <summary>
@@ -70,10 +94,18 @@ namespace Tomoe.Utils {
         /// </code>
         /// </example>
         /// <param name="branchName">The area of MCSharp that the logger is Logging.</param>
-        public Logger(string branchName) => _branchName = branchName;
+        public Logger(string branchName) {
+            _branchName = branchName;
+            _branchLogLevel = Config.LogLevel;
+        }
+
+        public Logger(string branchName, LogLevel branchLogLevel) {
+            _branchName = branchName;
+            _branchLogLevel = branchLogLevel;
+        }
 
         /// <summary>
-        /// Logs all values to console/file. If the <see cref="Tomoe.Utils.Logger.Program.Config.LogLevel"> isn't on Trace, nothing will log.
+        /// Logs all values to console/file. If the <see cref="Config.LogLevel"> isn't on Trace, nothing will log.
         /// </summary>
         /// <example>
         /// <code>
@@ -85,7 +117,7 @@ namespace Tomoe.Utils {
         /// <remarks>[Trace] has a blue font color.</remarks>
         /// <param name="value">What to be logged.</param>
         public async Task Trace(string value) {
-            if (Program.Config.LogLevel > LogLevel.Trace) return;
+            if (Config.LogLevel > LogLevel.Trace || _branchLogLevel > LogLevel.Trace) return;
             string currentTime = GetTime();
             Console.ResetColor();
             Console.Write($"[{currentTime}] ");
@@ -98,7 +130,7 @@ namespace Tomoe.Utils {
         }
 
         /// <summary>
-        /// Logs all values to console/file. If the <see cref="Tomoe.Utils.Logger.Program.Config.LogLevel"> isn't on Debug or Trace, nothing will log.
+        /// Logs all values to console/file. If the <see cref="Config.LogLevel"> isn't on Debug or Trace, nothing will log.
         /// </summary>
         /// <example>
         /// <code>
@@ -110,7 +142,7 @@ namespace Tomoe.Utils {
         /// <remarks>[Debug] has a dark grey font color.</remarks>
         /// <param name="value">What to be logged.</param>
         public async Task Debug(string value) {
-            if (Program.Config.LogLevel > LogLevel.Debug) return;
+            if (Config.LogLevel > LogLevel.Debug || _branchLogLevel > LogLevel.Debug) return;
             string currentTime = GetTime();
             Console.ResetColor();
             Console.Write($"[{currentTime}] ");
@@ -123,7 +155,7 @@ namespace Tomoe.Utils {
         }
 
         /// <summary>
-        /// Logs all values to console/file. If the <see cref="Tomoe.Utils.Logger.Program.Config.LogLevel"> isn't on Info or below, nothing will log.
+        /// Logs all values to console/file. If the <see cref="Config.LogLevel"> isn't on Info or below, nothing will log.
         /// </summary>
         /// <example>
         /// <code>
@@ -136,7 +168,7 @@ namespace Tomoe.Utils {
         /// <param name="value">What to be logged.</param>
         /// <param name="exit">Determines if the program exits. Defaults to false.</param>
         public async Task Info(string value, bool exit = false) {
-            if (Program.Config.LogLevel > LogLevel.Information) return;
+            if (Config.LogLevel > LogLevel.Information || _branchLogLevel > LogLevel.Information) return;
             string currentTime = GetTime();
             Console.ResetColor();
             Console.Write($"[{currentTime}] ");
@@ -153,7 +185,7 @@ namespace Tomoe.Utils {
         }
 
         /// <summary>
-        /// Logs all values to console/file. If the <see cref="Tomoe.Utils.Logger.Program.Config.LogLevel"> isn't on Warn or below, nothing will log.
+        /// Logs all values to console/file. If the <see cref="Config.LogLevel"> isn't on Warn or below, nothing will log.
         /// </summary>
         /// <example>
         /// <code>
@@ -166,7 +198,7 @@ namespace Tomoe.Utils {
         /// <param name="value">What to be logged.</param>
         /// <param name="exit">Determines if the program exits. Defaults to false.</param>
         public async Task Warn(string value, bool exit = false) {
-            if (Program.Config.LogLevel > LogLevel.Warning) return;
+            if (Config.LogLevel > LogLevel.Warning || _branchLogLevel > LogLevel.Warning) return;
             string currentTime = GetTime();
             Console.ResetColor();
             Console.Write($"[{currentTime}] ");
@@ -183,7 +215,7 @@ namespace Tomoe.Utils {
         }
 
         /// <summary>
-        /// Logs all values to console/file. If the <see cref="Tomoe.Utils.Logger.Program.Config.LogLevel"> isn't on Error or below, nothing will log.
+        /// Logs all values to console/file. If the <see cref="Config.LogLevel"> isn't on Error or below, nothing will log.
         /// </summary>
         /// <example>
         /// <code>
@@ -196,7 +228,7 @@ namespace Tomoe.Utils {
         /// <param name="value">What to be logged.</param>
         /// <param name="exit">Determines if the program exits. Defaults to false.</param>
         public async Task Error(string value, bool exit = false) {
-            if (Program.Config.LogLevel > LogLevel.Error) return;
+            if (Config.LogLevel > LogLevel.Error || _branchLogLevel > LogLevel.Error) return;
             string currentTime = GetTime();
             Console.ResetColor();
             Console.Write($"[{currentTime}] ");
@@ -252,9 +284,42 @@ namespace Tomoe.Utils {
 
     public class LoggerProvider : ILoggerFactory {
         private readonly ConcurrentDictionary<string, Logger> _loggers = new ConcurrentDictionary<string, Logger>();
-        public ILogger CreateLogger(string branchName) => _loggers.GetOrAdd(branchName, name => new Logger(name));
-        public void Dispose() => _loggers.Clear();
+        public ILogger CreateLogger(string branchName) {
+            if (branchName.ToLower().StartsWith("dsharpplus")) return _loggers.GetOrAdd(branchName, name => new Logger(name, Config.DiscordLogLevel));
+            else return _loggers.GetOrAdd(branchName, name => new Logger(name));
+        }
 
+        public void Dispose() => _loggers.Clear();
         public void AddProvider(ILoggerProvider provider) { }
+    }
+
+    class NLogLoggingProvider : INpgsqlLoggingProvider {
+        public NpgsqlLogger CreateLogger(string name) => new NpgsqlToLogger(name);
+    }
+
+    class NpgsqlToLogger : NpgsqlLogger {
+        readonly Logger _logger;
+        internal NpgsqlToLogger(string name) => _logger = new Logger(name, Config.NpgsqlLogLevel);
+        public override bool IsEnabled(NpgsqlLogLevel level) => _logger.IsEnabled(ToLogLevel(level));
+        public override void Log(NpgsqlLogLevel level, int connectorId, string msg, Exception exception) => _logger.Log(ToLogLevel(level), $"{(msg == null ? "No message" : msg)}{(exception == null ? "\n" + exception.ToString() : null)}");
+
+        static LogLevel ToLogLevel(NpgsqlLogLevel level) {
+            switch (level) {
+                case NpgsqlLogLevel.Trace:
+                    return LogLevel.Trace;
+                case NpgsqlLogLevel.Debug:
+                    return LogLevel.Debug;
+                case NpgsqlLogLevel.Info:
+                    return LogLevel.Information;
+                case NpgsqlLogLevel.Warn:
+                    return LogLevel.Warning;
+                case NpgsqlLogLevel.Error:
+                    return LogLevel.Error;
+                case NpgsqlLogLevel.Fatal:
+                    return LogLevel.Critical;
+                default:
+                    return LogLevel.Debug;
+            }
+        }
     }
 }

@@ -3,7 +3,7 @@ namespace Tomoe.Database.Interfaces {
         IUser User { get; }
         IGuild Guild { get; }
         ITags Tags { get; }
-        //ITasks Tasks { get; }
+        ITasks Tasks { get; }
     }
 
     public interface IUser {

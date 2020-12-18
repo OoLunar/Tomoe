@@ -10,6 +10,7 @@ using DSharpPlus.Entities;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Enums;
 using DSharpPlus.Interactivity.Extensions;
+using Tomoe.Database;
 using Tomoe.Utils;
 
 namespace Tomoe {
@@ -19,7 +20,6 @@ namespace Tomoe {
         public const string NotAGuild = "**[Denied: Guild command.]**";
         public const string SelfAction = "**[Denied: Cannot execute on myself.]**";
         public const string Hierarchy = "**[Denied: Prevented by hierarchy.]**";
-        public static Config Config = Tomoe.Config.Init();
 #if DEBUG
 #pragma warning disable IL3000
         public static string ProjectRoot = Path.GetDirectoryName(Path.Join(Assembly.GetExecutingAssembly().Location, "../../../../../"));
@@ -27,18 +27,17 @@ namespace Tomoe {
         // Places the log directory right next to the executable.
         public static string ProjectRoot = Path.GetDirectoryName(System.AppContext.BaseDirectory);
 #endif
-        public static Database.Database Database = new Database.Database();
+        public static Driver Database = new Driver();
         private static Logger _logger = new Logger("Main");
-        private static Logger _dSharpPlusLogger = new Logger("DSharpPlus");
 
         public static void Main(string[] args) => new Program().MainAsync().GetAwaiter().GetResult();
 
         public async Task MainAsync() {
-            _logger.Info("Starting...");
+            Tomoe.Config.Init();
             using var loggerProvider = new LoggerProvider();
             DiscordConfiguration discordConfiguration = new DiscordConfiguration {
                 AutoReconnect = true,
-                Token = Config.DiscordApiToken,
+                Token = Config.Token,
                 TokenType = TokenType.Bot,
                 MinimumLogLevel = Microsoft.Extensions.Logging.LogLevel.Information,
                 UseRelativeRatelimit = true,
@@ -57,7 +56,7 @@ namespace Tomoe {
 
             client.MessageReactionAdded += Tomoe.Commands.Listeners.ReactionAdded.Handler;
             client.Ready += Tomoe.Utils.Events.OnReady;
-            new CommandService(Config, client);
+            new CommandService(client);
 
             await client.ConnectAsync();
             _logger.Info("Started.");

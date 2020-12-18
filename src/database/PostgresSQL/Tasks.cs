@@ -7,7 +7,7 @@ using Tomoe.Database.Interfaces;
 using Tomoe.Utils;
 
 namespace Tomoe.Database.Drivers.PostgresSQL {
-    public class PostgresUser : IUser {
+    public class PostgresTasks : ITasks {
         private static Logger _logger = new Logger("Database/PostgresSQL/User");
         private enum statementType {
             InsertUser,
@@ -30,11 +30,11 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
         private Dictionary<statementType, NpgsqlCommand> _preparedStatements = new Dictionary<statementType, NpgsqlCommand>();
 
         /// <summary>
-        /// Executes an SQL query from <see cref="Tomoe.Database.Drivers.PostgresSQL.PostgresUser._preparedStatements">_preparedStatements</see>, using <seealso cref="Tomoe.Database.Drivers.PostgresSQL.PostgresUser.statementType">statementType</seealso> as a key.
+        /// Executes an SQL query from <see cref="Tomoe.Database.Drivers.PostgresSQL.PostgresTasks._preparedStatements">_preparedStatements</see>, using <seealso cref="Tomoe.Database.Drivers.PostgresSQL.PostgresTasks.statementType">statementType</seealso> as a key.
         /// 
         /// Returns a list of results if <paramref name="needsResult">needsResult</paramref> is true, otherwise returns null.
         /// </summary>
-        /// <param name="command">Which SQL command to execute, using <see cref="Tomoe.Database.Drivers.PostgresSQL.PostgresUser.statementType">statementType</see> as an index.</param>
+        /// <param name="command">Which SQL command to execute, using <see cref="Tomoe.Database.Drivers.PostgresSQL.PostgresTasks.statementType">statementType</see> as an index.</param>
         /// <param name="parameters">A list of <see cref="Npgsql.NpgsqlParameter">NpgsqlParameter's</see>.</param>
         /// <param name="needsResult">Returns a list of results if true, otherwise returns null.</param>
         /// <returns><see cref="System.Collections.Generic.List{T}">List&lt;dynamic&gt;</see> if <paramref name="needsResult">needsResult</paramref> is true, otherwise returns null.</returns>
@@ -63,13 +63,13 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
             }
         }
 
-        /// <inheritdoc cref="Tomoe.Database.Drivers.PostgresSQL.PostgresUser.executeQuery(statementType, List{NpgsqlParameter}, bool)" />
+        /// <inheritdoc cref="Tomoe.Database.Drivers.PostgresSQL.PostgresTasks.executeQuery(statementType, List{NpgsqlParameter}, bool)" />
         /// <param name="parameter">One <see cref="Npgsql.NpgsqlParameter">NpgsqlParameter</see>, which gets converted into a <see cref="System.Collections.Generic.List{T}">List&lt;NpgsqlParameter&gt;</see>.</param>
         private List<dynamic> executeQuery(statementType command, NpgsqlParameter parameter, bool needsResult = false) => executeQuery(command, new List<NpgsqlParameter> { parameter }, needsResult);
 
         private NpgsqlConnection _connection;
 
-        public PostgresUser(string host, int port, string username, string password, string database_name, SslMode sslMode) {
+        public PostgresTasks(string host, int port, string username, string password, string database_name, SslMode sslMode) {
             //NpgsqlLogManager.Provider = new NLogLoggingProvider();
             _connection = new NpgsqlConnection($"Host={host};Port={port};Username={username};Password={password};Database={database_name};SSL Mode={sslMode}");
             _logger.Info("Opening connection to database...");
@@ -78,7 +78,7 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
             } catch (System.Net.Sockets.SocketException error) {
                 _logger.Critical($"Failed to connect to database. {error.Message}", true);
             }
-            _logger.Info("Preparing SQL commands...");
+            /*_logger.Info("Preparing SQL commands...");
             _logger.Trace($"Preparing {statementType.InsertUser}...");
             NpgsqlCommand insertUser = new NpgsqlCommand("INSERT INTO guild_cache(guild_id, user_id) VALUES(@guildId, @userId)", _connection);
             insertUser.Parameters.Add(new NpgsqlParameter("guildId", NpgsqlDbType.Bigint));
@@ -191,6 +191,7 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
             setIsNoVC.Prepare();
             _preparedStatements.Add(statementType.SetIsNoVC, setIsNoVC);
             _logger.Debug("Done preparing commands!");
+            */
         }
 
         public void InsertUser(ulong guildId, ulong userId) => executeQuery(statementType.InsertUser, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("userId", (long) userId) });

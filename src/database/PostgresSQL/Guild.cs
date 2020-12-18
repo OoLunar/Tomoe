@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Npgsql;
+using Npgsql.Logging;
 using NpgsqlTypes;
 using Tomoe.Database.Interfaces;
 using Tomoe.Utils;
@@ -48,8 +49,7 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
             GetTag
         }
 
-        private static NpgsqlConnection _connection = new NpgsqlConnection($"Host={Program.Config.Host};Port={Program.Config.Port};Username={Program.Config.Username};Password={Program.Config.Password};Database={Program.Config.DBName};SSL Mode={Program.Config.SslMode}");
-        private static Dictionary<statementType, NpgsqlCommand> _preparedStatements = new Dictionary<statementType, NpgsqlCommand>();
+        private Dictionary<statementType, NpgsqlCommand> _preparedStatements = new Dictionary<statementType, NpgsqlCommand>();
         private static Logger _logger = new Logger("Database/PostgresSQL/Guild");
 
         /// <summary>
@@ -90,7 +90,11 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
         /// <param name="parameter">One <see cref="Npgsql.NpgsqlParameter">NpgsqlParameter</see>, which gets converted into a <see cref="System.Collections.Generic.List{T}">List&lt;NpgsqlParameter&gt;</see>.</param>
         private List<dynamic> executeQuery(statementType command, NpgsqlParameter parameter, bool needsResult = false) => executeQuery(command, new List<NpgsqlParameter> { parameter }, needsResult);
 
-        public PostgresGuild() {
+        private NpgsqlConnection _connection;
+
+        public PostgresGuild(string host, int port, string username, string password, string database_name, SslMode sslMode) {
+            //NpgsqlLogManager.Provider = new NLogLoggingProvider();
+            _connection = new NpgsqlConnection($"Host={host};Port={port};Username={username};Password={password};Database={database_name};SSL Mode={sslMode}");
             _logger.Info("Opening connection to database...");
             try {
                 _connection.Open();

@@ -18,14 +18,14 @@ namespace Tomoe.Commands.Public {
         [Description("Gets a tag's content.")]
         [RequireGuild]
         [TagCheck(false, TagType.Any, TagState.Exists)]
-        public async Task Get(CommandContext context, [RemainingText] string tagTitle) => Program.SendMessage(context, Program.Database.Driver.Tags.Get(context.Guild.Id, tagTitle.Trim().ToLowerInvariant()), (ExtensionMethods.FilteringAction.CodeBlocksIgnore | ExtensionMethods.FilteringAction.AllMentions));
+        public async Task Get(CommandContext context, [RemainingText] string tagTitle) => Program.SendMessage(context, Program.Database.Tags.Get(context.Guild.Id, tagTitle.Trim().ToLowerInvariant()), (ExtensionMethods.FilteringAction.CodeBlocksIgnore | ExtensionMethods.FilteringAction.AllMentions));
 
         [Command("create")]
         [Description("Creates a tag.")]
         [RequireGuild]
         [TagCheck(false, TagType.Any, TagState.Missing)]
         public async Task Create(CommandContext context, string tagTitle, [RemainingText] string content) {
-            Program.Database.Driver.Tags.Create(context.Guild.Id, context.User.Id, tagTitle.Trim().ToLowerInvariant(), ExtensionMethods.Filter(content, context, (ExtensionMethods.FilteringAction.CodeBlocksIgnore | ExtensionMethods.FilteringAction.AllMentions)));
+            Program.Database.Tags.Create(context.Guild.Id, context.User.Id, tagTitle.Trim().ToLowerInvariant(), ExtensionMethods.Filter(content, context, (ExtensionMethods.FilteringAction.CodeBlocksIgnore | ExtensionMethods.FilteringAction.AllMentions)));
             Program.SendMessage(context, $"Tag \"{tagTitle.Trim().ToLowerInvariant()}\" has been created!");
         }
 
@@ -34,7 +34,7 @@ namespace Tomoe.Commands.Public {
         [RequireGuild]
         [TagCheck(true, TagType.Tag, TagState.Exists)]
         public async Task Edit(CommandContext context, string tagTitle, [RemainingText] string content) {
-            Program.Database.Driver.Tags.Edit(context.Guild.Id, tagTitle, ExtensionMethods.Filter(content, context, (ExtensionMethods.FilteringAction.CodeBlocksIgnore | ExtensionMethods.FilteringAction.AllMentions)));
+            Program.Database.Tags.Edit(context.Guild.Id, tagTitle, ExtensionMethods.Filter(content, context, (ExtensionMethods.FilteringAction.CodeBlocksIgnore | ExtensionMethods.FilteringAction.AllMentions)));
             Program.SendMessage(context, $"Tag \"{tagTitle.Trim().ToLowerInvariant()}\" successfully edited.");
         }
 
@@ -43,7 +43,7 @@ namespace Tomoe.Commands.Public {
         [RequireGuild]
         [TagCheck(true, TagType.Tag, TagState.Exists)]
         public async Task Delete(CommandContext context, string tagTitle) {
-            Program.Database.Driver.Tags.Delete(context.Guild.Id, tagTitle);
+            Program.Database.Tags.Delete(context.Guild.Id, tagTitle);
             Program.SendMessage(context, $"Tag \"{tagTitle.Trim().ToLowerInvariant()}\" successfully deleted.");
         }
 
@@ -53,10 +53,10 @@ namespace Tomoe.Commands.Public {
         [Aliases("create_alias")]
         [TagCheck(false, TagType.Any, TagState.Missing)]
         public async Task CreateAlias(CommandContext context, string newName, string oldName) {
-            if (!Program.Database.Driver.Tags.Exist(context.Guild.Id, oldName.ToLowerInvariant())) Program.SendMessage(context, $"Tag \"{oldName.ToLowerInvariant()}\" does not exist!");
-            else if (Program.Database.Driver.Tags.IsAlias(context.Guild.Id, oldName.ToLowerInvariant()).Value) Program.SendMessage(context, $"**[Denied: Creating aliases of aliases aren't allowed. Use `>>tag create_alias {Program.Database.Driver.Tags.RealName(context.Guild.Id, oldName.ToLowerInvariant())}` to create the alias.]**", (ExtensionMethods.FilteringAction.CodeBlocksIgnore | ExtensionMethods.FilteringAction.AllMentions));
+            if (!Program.Database.Tags.Exist(context.Guild.Id, oldName.ToLowerInvariant())) Program.SendMessage(context, $"Tag \"{oldName.ToLowerInvariant()}\" does not exist!");
+            else if (Program.Database.Tags.IsAlias(context.Guild.Id, oldName.ToLowerInvariant()).Value) Program.SendMessage(context, $"**[Denied: Creating aliases of aliases aren't allowed. Use `>>tag create_alias {Program.Database.Tags.RealName(context.Guild.Id, oldName.ToLowerInvariant())}` to create the alias.]**", (ExtensionMethods.FilteringAction.CodeBlocksIgnore | ExtensionMethods.FilteringAction.AllMentions));
             else {
-                Program.Database.Driver.Tags.CreateAlias(context.Guild.Id, context.User.Id, newName, oldName);
+                Program.Database.Tags.CreateAlias(context.Guild.Id, context.User.Id, newName, oldName);
                 Program.SendMessage(context, $"Tag \"{newName.ToLowerInvariant()}\" has been created!");
             }
         }
@@ -66,7 +66,7 @@ namespace Tomoe.Commands.Public {
         [RequireGuild]
         [TagCheck(true, TagType.Alias, TagState.Exists)]
         public async Task DeleteAlias(CommandContext context, string tagTitle) {
-            Program.Database.Driver.Tags.DeleteAlias(context.Guild.Id, tagTitle);
+            Program.Database.Tags.DeleteAlias(context.Guild.Id, tagTitle);
             Program.SendMessage(context, $"Tag alias \"{tagTitle.Trim().ToLowerInvariant()}\" successfully deleted.");
         }
 
@@ -75,7 +75,7 @@ namespace Tomoe.Commands.Public {
         [RequireGuild]
         [TagCheck(true, TagType.Tag, TagState.Exists)]
         public async Task DeleteAllAliases(CommandContext context, string tagTitle) {
-            Program.Database.Driver.Tags.DeleteAllAliases(context.Guild.Id, tagTitle);
+            Program.Database.Tags.DeleteAllAliases(context.Guild.Id, tagTitle);
             Program.SendMessage(context, $"All aliases for \"{tagTitle.Trim().ToLowerInvariant()}\" have been removed!");
         }
 
@@ -84,15 +84,15 @@ namespace Tomoe.Commands.Public {
         [RequireGuild]
         [TagCheck(false, TagType.Any, TagState.Irrelevant)]
         public async Task Exist(CommandContext context, string tagTitle) {
-            if (!Program.Database.Driver.Tags.Exist(context.Guild.Id, tagTitle.Trim().ToLowerInvariant())) Program.SendMessage(context, $"\"{tagTitle.Trim().ToLowerInvariant()}\" doesn't exist!");
-            else Program.SendMessage(context, Program.Database.Driver.Tags.Exist(context.Guild.Id, tagTitle.Trim().ToLowerInvariant()) ? $"Tag \"{tagTitle.Trim().ToLowerInvariant()}\" does exist!" : $"Tag \"{tagTitle.Trim().ToLowerInvariant()}\" does not exist!");
+            if (!Program.Database.Tags.Exist(context.Guild.Id, tagTitle.Trim().ToLowerInvariant())) Program.SendMessage(context, $"\"{tagTitle.Trim().ToLowerInvariant()}\" doesn't exist!");
+            else Program.SendMessage(context, Program.Database.Tags.Exist(context.Guild.Id, tagTitle.Trim().ToLowerInvariant()) ? $"Tag \"{tagTitle.Trim().ToLowerInvariant()}\" does exist!" : $"Tag \"{tagTitle.Trim().ToLowerInvariant()}\" does not exist!");
         }
 
         [Command("is_alias")]
         [Description("Tests if a tag is an alias.")]
         [RequireGuild]
         [TagCheck(false, TagType.Any, TagState.Exists)]
-        public async Task IsAlias(CommandContext context, string tagTitle) => Program.SendMessage(context, $"Tag \"{tagTitle.Trim().ToLowerInvariant()}\" is {(Program.Database.Driver.Tags.IsAlias(context.Guild.Id, tagTitle.Trim().ToLowerInvariant()).Value ? null : "not")} an alias.");
+        public async Task IsAlias(CommandContext context, string tagTitle) => Program.SendMessage(context, $"Tag \"{tagTitle.Trim().ToLowerInvariant()}\" is {(Program.Database.Tags.IsAlias(context.Guild.Id, tagTitle.Trim().ToLowerInvariant()).Value ? null : "not")} an alias.");
 
         [Command("get_author")]
         [Description("Gets the author of a tag.")]
@@ -100,7 +100,7 @@ namespace Tomoe.Commands.Public {
         [Aliases("author")]
         [TagCheck(false, TagType.Any, TagState.Exists)]
         public async Task GetAuthor(CommandContext context, string tagTitle) {
-            ulong tagAuthor = Program.Database.Driver.Tags.GetAuthor(context.Guild.Id, tagTitle.Trim().ToLowerInvariant()).Value;
+            ulong tagAuthor = Program.Database.Tags.GetAuthor(context.Guild.Id, tagTitle.Trim().ToLowerInvariant()).Value;
             DiscordUser authorDiscordUser = await context.Client.GetUserAsync(tagAuthor);
             DiscordMember authorGuildMember = await context.Guild.GetMemberAsync(tagAuthor);
             DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder();
@@ -123,14 +123,14 @@ namespace Tomoe.Commands.Public {
         [TagCheck(false, TagType.Tag, TagState.Exists)]
         public async Task Claim(CommandContext context, string tagTitle) {
             if (context.Member.Roles.Any(role => role.Permissions.HasFlag(Permissions.Administrator) || role.Permissions.HasFlag(Permissions.ManageMessages))) {
-                Program.Database.Driver.Tags.Claim(context.Guild.Id, tagTitle.Trim().ToLowerInvariant(), context.User.Id);
+                Program.Database.Tags.Claim(context.Guild.Id, tagTitle.Trim().ToLowerInvariant(), context.User.Id);
                 Program.SendMessage(context, $"{context.User.Mention} has forcefully claimed tag \"{tagTitle.Trim().ToLowerInvariant()}\" using their admin powers.");
             } else {
-                ulong tagAuthor = Program.Database.Driver.Tags.GetAuthor(context.Guild.Id, tagTitle.Trim().ToLowerInvariant()).Value;
+                ulong tagAuthor = Program.Database.Tags.GetAuthor(context.Guild.Id, tagTitle.Trim().ToLowerInvariant()).Value;
                 DiscordMember guildAuthor = await context.Guild.GetMemberAsync(tagAuthor);
                 if (guildAuthor != null) Program.SendMessage(context, "**[Denied: Tag author is still in the guild!]**");
                 else {
-                    Program.Database.Driver.Tags.Claim(context.Guild.Id, tagTitle.Trim().ToLowerInvariant(), context.User.Id);
+                    Program.Database.Tags.Claim(context.Guild.Id, tagTitle.Trim().ToLowerInvariant(), context.User.Id);
                     Program.SendMessage(context, $"Due to the old tag author <@{tagAuthor}> ({tagAuthor}), leaving, the tag \"{tagTitle.Trim().ToLowerInvariant()}\" has been transferred to {context.User.Mention}", ExtensionMethods.FilteringAction.RoleMentions);
                 }
             }
@@ -142,13 +142,13 @@ namespace Tomoe.Commands.Public {
         [TagCheck(true, TagType.Tag, TagState.Exists)]
         public async Task Transfer(CommandContext context, string tagTitle, DiscordUser newAuthor) {
             if (context.Member.Roles.Any(role => role.Permissions.HasFlag(Permissions.Administrator) || role.Permissions.HasFlag(Permissions.ManageMessages))) {
-                Program.Database.Driver.Tags.Claim(context.Guild.Id, tagTitle.Trim().ToLowerInvariant(), newAuthor.Id);
+                Program.Database.Tags.Claim(context.Guild.Id, tagTitle.Trim().ToLowerInvariant(), newAuthor.Id);
                 Program.SendMessage(context, $"{context.User.Mention} forcefully transferred tag \"{tagTitle.Trim().ToLowerInvariant()}\" to {newAuthor.Mention} using their admin powers.");
             } else {
                 DiscordMember newAuthorMember = await context.Guild.GetMemberAsync(newAuthor.Id);
                 if (newAuthorMember == null) Program.SendMessage(context, $"**[Denied: {newAuthor} isn't in the guild.]**", ExtensionMethods.FilteringAction.RoleMentions);
                 else {
-                    Program.Database.Driver.Tags.Claim(context.Guild.Id, tagTitle.Trim().ToLowerInvariant(), newAuthor.Id);
+                    Program.Database.Tags.Claim(context.Guild.Id, tagTitle.Trim().ToLowerInvariant(), newAuthor.Id);
                     Program.SendMessage(context, $"Due to the old tag author, {context.User.Mention}, willing letting go of tag \"{tagTitle.Trim().ToLowerInvariant()}\", ownership has now been transferred to {newAuthor.Mention}", ExtensionMethods.FilteringAction.RoleMentions);
                 }
             }
@@ -159,7 +159,7 @@ namespace Tomoe.Commands.Public {
         [RequireGuild]
         [TagCheck(false, TagType.Tag, TagState.Exists)]
         public async Task AllAliases(CommandContext context, string tagTitle) {
-            string[] userTags = Program.Database.Driver.Tags.GetAliases(context.Guild.Id, tagTitle.Trim().ToLowerInvariant()) ?? new string[] { };
+            string[] userTags = Program.Database.Tags.GetAliases(context.Guild.Id, tagTitle.Trim().ToLowerInvariant()) ?? new string[] { };
             if (userTags.Length == 0) userTags = new string[] { "No aliases currently exist!" };
             DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder();
             embedBuilder.WithAuthor(context.User.Username, context.User.AvatarUrl ?? context.User.DefaultAvatarUrl, context.User.AvatarUrl ?? context.User.DefaultAvatarUrl);
@@ -173,7 +173,7 @@ namespace Tomoe.Commands.Public {
         [Description("Lists all the tags a person owns on the server.")]
         [RequireGuild]
         public async Task UserTags(CommandContext context, DiscordUser user) {
-            string[] userTags = Program.Database.Driver.Tags.GetUser(context.Guild.Id, user.Id) ?? new string[] { };
+            string[] userTags = Program.Database.Tags.GetUser(context.Guild.Id, user.Id) ?? new string[] { };
             if (userTags.Length == 0) userTags = new string[] { "No tags currently exist!" };
             DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder();
             embedBuilder.WithAuthor(context.User.Username, context.User.AvatarUrl ?? context.User.DefaultAvatarUrl, context.User.AvatarUrl ?? context.User.DefaultAvatarUrl);
@@ -192,7 +192,7 @@ namespace Tomoe.Commands.Public {
         [Description("Lists all the tags in this server.")]
         [RequireGuild]
         public async Task All(CommandContext context) {
-            string[] allTags = Program.Database.Driver.Tags.GetGuild(context.Guild.Id);
+            string[] allTags = Program.Database.Tags.GetGuild(context.Guild.Id);
             if (allTags[0] == null) allTags = new string[] { "No tags currently exist!" };
             DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder();
             embedBuilder.WithAuthor(context.Guild.Name, context.Guild.IconUrl ?? context.User.DefaultAvatarUrl, context.Guild.IconUrl ?? context.User.DefaultAvatarUrl);
@@ -207,8 +207,8 @@ namespace Tomoe.Commands.Public {
         [RequireGuild]
         [TagCheck(false, TagType.Alias, TagState.Exists)]
         public async Task RealName(CommandContext context, string tagTitle) {
-            if (!Program.Database.Driver.Tags.IsAlias(context.User.Id, tagTitle.Trim().ToLowerInvariant()).Value) Program.SendMessage(context, $"\"{tagTitle.Trim().ToLowerInvariant()}\" is the original tag!");
-            else Program.SendMessage(context, $"The original tag for the alias \"{tagTitle.Trim().ToLowerInvariant()}\" is `>>tag {Program.Database.Driver.Tags.RealName(context.Guild.Id, tagTitle.Trim().ToLowerInvariant())}`", (ExtensionMethods.FilteringAction.AllMentions | ExtensionMethods.FilteringAction.CodeBlocksIgnore));
+            if (!Program.Database.Tags.IsAlias(context.User.Id, tagTitle.Trim().ToLowerInvariant()).Value) Program.SendMessage(context, $"\"{tagTitle.Trim().ToLowerInvariant()}\" is the original tag!");
+            else Program.SendMessage(context, $"The original tag for the alias \"{tagTitle.Trim().ToLowerInvariant()}\" is `>>tag {Program.Database.Tags.RealName(context.Guild.Id, tagTitle.Trim().ToLowerInvariant())}`", (ExtensionMethods.FilteringAction.AllMentions | ExtensionMethods.FilteringAction.CodeBlocksIgnore));
         }
     }
 
@@ -242,19 +242,19 @@ namespace Tomoe.Commands.Public {
             if (tagTitle.Length > 32) {
                 Program.SendMessage(context, "**[Error: Tag title too long.]**", ExtensionMethods.FilteringAction.FilterAll);
                 return false;
-            } else if (_mustExist == TagState.Exists && !Program.Database.Driver.Tags.Exist(context.Guild.Id, tagTitle)) {
+            } else if (_mustExist == TagState.Exists && !Program.Database.Tags.Exist(context.Guild.Id, tagTitle)) {
                 Program.SendMessage(context, $"**[Error: \"{tagTitle}\" doesn't exist!]**", ExtensionMethods.FilteringAction.FilterAll);
                 return false;
-            } else if (_mustExist == TagState.Missing && Program.Database.Driver.Tags.Exist(context.Guild.Id, tagTitle)) {
+            } else if (_mustExist == TagState.Missing && Program.Database.Tags.Exist(context.Guild.Id, tagTitle)) {
                 Program.SendMessage(context, $"**[Error: \"{tagTitle}\" already exists!]**", ExtensionMethods.FilteringAction.FilterAll);
                 return false;
-            } else if (_requireOwner && Program.Database.Driver.Tags.GetAuthor(context.Guild.Id, tagTitle) != context.User.Id || context.Member.Roles.Any(role => role.Permissions.HasFlag(Permissions.Administrator) || role.Permissions.HasFlag(Permissions.ManageMessages))) {
+            } else if (_requireOwner && Program.Database.Tags.GetAuthor(context.Guild.Id, tagTitle) != context.User.Id || context.Member.Roles.Any(role => role.Permissions.HasFlag(Permissions.Administrator) || role.Permissions.HasFlag(Permissions.ManageMessages))) {
                 Program.SendMessage(context, "**[Denied: You aren't the tag owner!]**", ExtensionMethods.FilteringAction.FilterAll);
                 return false;
-            } else if (_requireTagType == TagType.Tag && Program.Database.Driver.Tags.IsAlias(context.Guild.Id, tagTitle).Value) {
+            } else if (_requireTagType == TagType.Tag && Program.Database.Tags.IsAlias(context.Guild.Id, tagTitle).Value) {
                 Program.SendMessage(context, "**[Denied: Tag isn't a tag.]**", ExtensionMethods.FilteringAction.FilterAll);
                 return false;
-            } else if (_requireTagType == TagType.Alias && !Program.Database.Driver.Tags.IsAlias(context.Guild.Id, tagTitle).Value) {
+            } else if (_requireTagType == TagType.Alias && !Program.Database.Tags.IsAlias(context.Guild.Id, tagTitle).Value) {
                 Program.SendMessage(context, "**[Denied: Tag isn't an alias.]**", ExtensionMethods.FilteringAction.FilterAll);
                 return false;
             } else return true;

@@ -12,9 +12,9 @@ using Tomoe.Utils;
 namespace Tomoe {
     public class CommandService {
         private Logger _logger = new Logger("CommandService");
-        public CommandService(Tomoe.Config config, DiscordClient discordClient) {
+        public CommandService(DiscordClient discordClient) {
             CommandsNextExtension commands = discordClient.UseCommandsNext(new CommandsNextConfiguration {
-                StringPrefixes = new [] { config.Prefix },
+                StringPrefixes = new [] { Config.Prefix },
                     CaseSensitive = false,
                     EnableMentionPrefix = true,
                     EnableDms = true
