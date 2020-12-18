@@ -17,25 +17,25 @@ namespace Tomoe.Database {
         public Interfaces.IUser User;
 
         [JsonProperty("driver")]
-        public static string SelectedDriver { get; set; }
+        private static string SelectedDriver { get; set; }
 
         [JsonProperty("host")]
-        public static string Host { get; set; }
+        private static string Host { get; set; }
 
         [JsonProperty("port")]
-        public static int Port { get; set; }
+        private static int Port { get; set; }
 
         [JsonProperty("username")]
-        public static string Username { get; set; }
+        private static string Username { get; set; }
 
         [JsonProperty("password")]
-        public static string Password { get; set; }
+        private static string Password { get; set; }
 
         [JsonProperty("database_name")]
-        public static string DatabaseName { get; set; }
+        private static string DatabaseName { get; set; }
 
         [JsonProperty("ssl_mode")]
-        public static SslMode SslMode { get; set; }
+        private static SslMode SslMode { get; set; }
 
         [JsonConstructor]
         public Driver(string selectedDriver, string host, int port, string username, string password, string databaseName, SslMode sslMode) {
@@ -50,7 +50,7 @@ namespace Tomoe.Database {
 
         public Driver() {
             bool foundDriver = false;
-            _logger.Trace("Searching classes...");
+            _logger.Debug("Searching classes...");
             Type[] assembly = Assembly.GetEntryAssembly().GetTypes().Where(asm => asm.GetInterface(typeof(Interfaces.IDatabase).Name) != null).ToArray(); // Single out all classes that inherit Route
             foreach (Type classType in assembly) {
                 _logger.Trace($"Found class: {classType.FullName}");
@@ -69,7 +69,7 @@ namespace Tomoe.Database {
                             PropertyInfo? tasksProperty = classType.GetProperty("Tasks");
                             PropertyInfo? userProperty = classType.GetProperty("User");
                             if (guildProperty != null && tagProperty != null && tasksProperty != null && userProperty != null) {
-                                _logger.Trace($"Class \"{classType.FullName}\" maps to the \"{SelectedDriver.ToString()}\" driver.");
+                                _logger.Debug($"Class \"{classType.FullName}\" maps to the \"{SelectedDriver.ToString()}\" driver.");
                                 Interfaces.IDatabase database = constructor.Invoke(new object[] { Host, Port, Username, Password, DatabaseName, SslMode }) as Interfaces.IDatabase;
                                 Guild = database.Guild;
                                 Tags = database.Tags;
@@ -77,7 +77,7 @@ namespace Tomoe.Database {
                                 User = database.User;
                                 foundDriver = true;
                             }
-                        }
+                        } else _logger.Trace("Class name did not match the requested driver name.");
                     }
                 }
             }

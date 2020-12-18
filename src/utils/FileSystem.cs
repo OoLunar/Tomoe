@@ -3,7 +3,8 @@ using System.IO;
 
 namespace Tomoe.Utils {
     public class FileSystem {
-        public static Logger Logger = new Logger("Filesystem");
+        private static Logger Logger = new Logger("Filesystem");
+        public static string ProjectRoot = Path.GetFullPath("../../../../", System.AppDomain.CurrentDomain.BaseDirectory).Replace('\\', '/');
 
         public static bool CreateFile(string file, bool retry = false) {
             if (File.Exists(file)) return true;

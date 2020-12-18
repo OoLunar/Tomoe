@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Npgsql.Logging;
@@ -13,6 +14,13 @@ namespace Tomoe.Utils {
         private readonly LogLevel _branchLogLevel;
         /// <summary>The logger's logger. Ironic.</summary>
         private static Logger _logger = new Logger("Logger");
+
+        /// <summary>
+        /// The log file.
+        /// </summary>
+        /// <returns></returns>
+        private static FileStream _logFile = new FileStream(FileSystem.ProjectRoot, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
+
         /// <summary>Unknown what this does. TODO: Implement this correctly.</summary>
         public IDisposable BeginScope<TState>(TState state) { throw new NotImplementedException(); }
 
