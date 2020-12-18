@@ -70,7 +70,6 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
         private NpgsqlConnection _connection;
 
         public PostgresTasks(string host, int port, string username, string password, string database_name, SslMode sslMode) {
-            //NpgsqlLogManager.Provider = new NLogLoggingProvider();
             _connection = new NpgsqlConnection($"Host={host};Port={port};Username={username};Password={password};Database={database_name};SSL Mode={sslMode}");
             _logger.Info("Opening connection to database...");
             try {

@@ -51,7 +51,6 @@ namespace Tomoe {
             } catch (Newtonsoft.Json.JsonSerializationException typeException) {
                 _logger.Critical($"Error resolving config option on '{tokenFile}' Make sure all the config options are valid. Error: {typeException.Message}");
             }
-
             Thread.Sleep(50);
         }
     }

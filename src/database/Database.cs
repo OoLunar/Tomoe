@@ -7,12 +7,9 @@ using Npgsql;
 using Tomoe.Utils;
 
 namespace Tomoe.Database {
-    public enum DriverType {
-        PostgresSQL
-    }
-
     public class Driver {
         private static Logger _logger = new Logger("Database/Driver/Setup");
+        private delegate void delegateConstructor(string host, int port, string username, string password, string databaseName, SslMode sslMode);
 
         public Interfaces.IGuild Guild;
         public Interfaces.ITags Tags;
@@ -20,7 +17,7 @@ namespace Tomoe.Database {
         public Interfaces.IUser User;
 
         [JsonProperty("driver")]
-        public static DriverType SelectedDriver { get; set; }
+        public static string SelectedDriver { get; set; }
 
         [JsonProperty("host")]
         public static string Host { get; set; }
@@ -41,7 +38,7 @@ namespace Tomoe.Database {
         public static SslMode SslMode { get; set; }
 
         [JsonConstructor]
-        public Driver(DriverType selectedDriver, string host, int port, string username, string password, string databaseName, SslMode sslMode) {
+        public Driver(string selectedDriver, string host, int port, string username, string password, string databaseName, SslMode sslMode) {
             SelectedDriver = selectedDriver;
             Host = host;
             Port = port;
@@ -52,33 +49,39 @@ namespace Tomoe.Database {
         }
 
         public Driver() {
-            _logger.Debug("Searching classes...");
+            bool foundDriver = false;
+            _logger.Trace("Searching classes...");
             Type[] assembly = Assembly.GetEntryAssembly().GetTypes().Where(asm => asm.GetInterface(typeof(Interfaces.IDatabase).Name) != null).ToArray(); // Single out all classes that inherit Route
             foreach (Type classType in assembly) {
-                _logger.Debug($"Found class: {classType.FullName}");
+                _logger.Trace($"Found class: {classType.FullName}");
                 foreach (ConstructorInfo constructor in classType.GetConstructors()) {
-                    ParameterInfo[] parameters = constructor.GetParameters();
-                    _logger.Debug($"Found parameters: {string.Join(", ", parameters as object[])}");
-                    if (parameters.Length != 6) continue;
-                    parameters = parameters.OrderBy(param => param.Position).ToArray();
-                    _logger.Debug("Parameters had the correct types and were in the correct order.");
-                    if (classType.Name.ToLower() == SelectedDriver.ToString().ToLower()) {
-                        _logger.Debug($"Class {classType.FullName} maps to the {SelectedDriver.ToString()} driver.");
-                        PropertyInfo? guildProperty = classType.GetProperty("Guild");
-                        PropertyInfo? tagProperty = classType.GetProperty("Tags");
-                        PropertyInfo? tasksProperty = classType.GetProperty("Tasks");
-                        PropertyInfo? userProperty = classType.GetProperty("User");
-                        if (guildProperty != null && tagProperty != null && tasksProperty != null && userProperty != null) {
-                            _logger.Debug("Assigning properties now...");
-                            Interfaces.IDatabase database = constructor.Invoke(new object[] { Host, Port, Username, Password, DatabaseName, SslMode }) as Interfaces.IDatabase;
-                            Guild = database.Guild;
-                            Tags = database.Tags;
-                            Tasks = database.Tasks;
-                            User = database.User;
+                    Type[] parameters = constructor.GetParameters().Select(param => param.ParameterType).ToArray();
+                    Type[] delegateParameters = typeof(delegateConstructor).GetMethod("Invoke").GetParameters().Select(param => param.ParameterType).ToArray();
+                    if (parameters.Length != delegateParameters.Length) continue;
+                    _logger.Trace($"Found parameters: {string.Join(", ", parameters as object[])}");
+                    _logger.Trace($"Delegate parameters: {string.Join(", ", delegateParameters as object[])}");
+                    if (parameters.SequenceEqual(delegateParameters)) {
+                        _logger.Trace("Parameters had the correct types and were in the correct order.");
+                        if (classType.Name.ToLower() == SelectedDriver.ToString().ToLower()) {
+                            _logger.Trace("Checking if the required properties are set...");
+                            PropertyInfo? guildProperty = classType.GetProperty("Guild");
+                            PropertyInfo? tagProperty = classType.GetProperty("Tags");
+                            PropertyInfo? tasksProperty = classType.GetProperty("Tasks");
+                            PropertyInfo? userProperty = classType.GetProperty("User");
+                            if (guildProperty != null && tagProperty != null && tasksProperty != null && userProperty != null) {
+                                _logger.Trace($"Class \"{classType.FullName}\" maps to the \"{SelectedDriver.ToString()}\" driver.");
+                                Interfaces.IDatabase database = constructor.Invoke(new object[] { Host, Port, Username, Password, DatabaseName, SslMode }) as Interfaces.IDatabase;
+                                Guild = database.Guild;
+                                Tags = database.Tags;
+                                Tasks = database.Tasks;
+                                User = database.User;
+                                foundDriver = true;
+                            }
                         }
                     }
                 }
             }
+            if (foundDriver == false) _logger.Critical("No database drivers found. Download some from https://github.com/OoLunar/Tomoe/tree/master/src/database/Drivers.");
         }
     }
 }

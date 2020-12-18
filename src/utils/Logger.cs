@@ -298,10 +298,12 @@ namespace Tomoe.Utils {
     }
 
     class NpgsqlToLogger : NpgsqlLogger {
-        readonly Logger _logger;
+        private static Logger _logger;
         internal NpgsqlToLogger(string name) => _logger = new Logger(name, Config.NpgsqlLogLevel);
         public override bool IsEnabled(NpgsqlLogLevel level) => _logger.IsEnabled(ToLogLevel(level));
-        public override void Log(NpgsqlLogLevel level, int connectorId, string msg, Exception exception) => _logger.Log(ToLogLevel(level), $"{(msg == null ? "No message" : msg)}{(exception == null ? "\n" + exception.ToString() : null)}");
+        public override void Log(NpgsqlLogLevel level, int connectorId, string msg, Exception? exception) {
+            _logger.Log(ToLogLevel(level), $"{msg}{(exception == null ? null : '\n' + exception.ToString())}");
+        }
 
         static LogLevel ToLogLevel(NpgsqlLogLevel level) {
             switch (level) {
