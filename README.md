@@ -42,7 +42,8 @@ As of this minute, Tomoe can do the following moderation commands:
 | :-: | :- | :- |
 | Ban | >>ban User [Reason] | Bans a guild member identified by mention or id, optionally with a reason. |
 | Kick | >>kick User [Reason] | Kicks a guild member identified by mention or id, optionally with a reason. |
-| Unban | >>unban User [Reason] | Unbans a guild member identified by mention or id, optionally with a reason.
+| Unban | >>unban User [Reason] | Unbans a guild member identified by mention or id, optionally with a reason. |
+
 While also being able to do the following public commands:
 
 | Command | Syntax | Definition |
