@@ -1,5 +1,6 @@
+using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.IO;
 using Npgsql;
 using NpgsqlTypes;
 using Tomoe.Database.Interfaces;
@@ -12,7 +13,8 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
             CreateTask,
             RemoveTask,
             SelectTask,
-            SelectAllReminders
+            SelectAllReminders,
+            SelectAllTasks
         }
 
         private Dictionary<statementType, NpgsqlCommand> _preparedStatements = new Dictionary<statementType, NpgsqlCommand>();
@@ -26,7 +28,7 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
         /// <param name="parameters">A list of <see cref="Npgsql.NpgsqlParameter">NpgsqlParameter's</see>.</param>
         /// <param name="needsResult">Returns a list of results if true, otherwise returns null.</param>
         /// <returns><see cref="System.Collections.Generic.List{T}">List&lt;dynamic&gt;</see> if <paramref name="needsResult">needsResult</paramref> is true, otherwise returns null.</returns>
-        private List<dynamic> executeQuery(statementType command, List<NpgsqlParameter> parameters, bool needsResult = false) {
+        private Dictionary<int, List<dynamic>> executeQuery(statementType command, List<NpgsqlParameter> parameters, bool needsResult = false) {
             _logger.Trace($"Executing prepared statement \"{command.ToString()}\"");
             NpgsqlCommand statement = _preparedStatements[command];
             Dictionary<string, NpgsqlParameter> sortedParameters = new Dictionary<string, NpgsqlParameter>();
@@ -34,16 +36,18 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
             foreach (NpgsqlParameter temp in statement.Parameters) temp.Value = sortedParameters[temp.ParameterName].Value;
             if (needsResult) {
                 NpgsqlDataReader reader = statement.ExecuteReader();
-                List<dynamic> values = new List<dynamic>();
+                Dictionary<int, List<dynamic>> values = new Dictionary<int, List<dynamic>>();
                 while (reader.Read())
                     for (int i = 0; i < reader.FieldCount; i++) {
+                        List<dynamic> list = new List<dynamic>();
                         if (reader[i].GetType() == typeof(System.DBNull))
-                            values.Add(null);
+                            list.Add(null);
                         else
-                            values.Add(reader[i]);
+                            list.Add(reader[i]);
+                        values.Add(i, list);
                     }
                 reader.DisposeAsync().ConfigureAwait(false).GetAwaiter();
-                if (values.Count == 0) values.Add(null);
+                if (values.Count == 0) values = null;
                 return values;
             } else {
                 statement.ExecuteNonQuery();
@@ -53,153 +57,117 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
 
         /// <inheritdoc cref="Tomoe.Database.Drivers.PostgresSQL.PostgresTasks.executeQuery(statementType, List{NpgsqlParameter}, bool)" />
         /// <param name="parameter">One <see cref="Npgsql.NpgsqlParameter">NpgsqlParameter</see>, which gets converted into a <see cref="System.Collections.Generic.List{T}">List&lt;NpgsqlParameter&gt;</see>.</param>
-        private List<dynamic> executeQuery(statementType command, NpgsqlParameter parameter, bool needsResult = false) => executeQuery(command, new List<NpgsqlParameter> { parameter }, needsResult);
+        private Dictionary<int, List<dynamic>> executeQuery(statementType command, NpgsqlParameter parameter, bool needsResult = false) => executeQuery(command, new List<NpgsqlParameter> { parameter }, needsResult);
 
         private NpgsqlConnection _connection;
 
         public PostgresTasks(string host, int port, string username, string password, string database_name, SslMode sslMode) {
-            /*
             _connection = new NpgsqlConnection($"Host={host};Port={port};Username={username};Password={password};Database={database_name};SSL Mode={sslMode}");
             _logger.Info("Opening connection to database...");
             try {
                 _connection.Open();
+                NpgsqlCommand createTagsTable = new NpgsqlCommand(File.ReadAllText(Path.Join(FileSystem.ProjectRoot, "res/sql/tasks.sql")), _connection);
+                createTagsTable.ExecuteNonQuery();
+                createTagsTable.Dispose();
             } catch (System.Net.Sockets.SocketException error) {
                 _logger.Critical($"Failed to connect to database. {error.Message}", true);
             }
             _logger.Trace($"Preparing {statementType.CreateTask}...");
             _logger.Info("Preparing SQL commands...");
-            NpgsqlCommand createTask = new NpgsqlCommand("INSERT INTO tasks VALUES(@taskType, @guildID, @channelID, @userID, @setOff, @setAt, @content)", _connection);
+            NpgsqlCommand createTask = new NpgsqlCommand("INSERT INTO tasks VALUES(@taskType, @guildId, @channelId, @userId, @setOff, @setAt, @content)", _connection);
+            createTask.Parameters.Add(new NpgsqlParameter("taskType", NpgsqlDbType.Smallint));
+            createTask.Parameters.Add(new NpgsqlParameter("guildId", NpgsqlDbType.Bigint));
+            createTask.Parameters.Add(new NpgsqlParameter("channelId", NpgsqlDbType.Bigint));
             createTask.Parameters.Add(new NpgsqlParameter("userId", NpgsqlDbType.Bigint));
-            createTask.Parameters.Add(new NpgsqlParameter("taskType", NpgsqlDbType.Bigint));
+            createTask.Parameters.Add(new NpgsqlParameter("setOff", NpgsqlDbType.Timestamp));
+            createTask.Parameters.Add(new NpgsqlParameter("setAt", NpgsqlDbType.Timestamp));
+            createTask.Parameters.Add(new NpgsqlParameter("content", NpgsqlDbType.Varchar));
             createTask.Prepare();
             _preparedStatements.Add(statementType.CreateTask, createTask);
 
-            _logger.Trace($"Preparing {statementType.GetRoles}...");
-            NpgsqlCommand getRoles = new NpgsqlCommand("SELECT role_ids FROM guild_cache WHERE user_id=@userId AND guild_id=@guildId", _connection);
-            getRoles.Parameters.Add(new NpgsqlParameter("userId", NpgsqlDbType.Bigint));
-            getRoles.Parameters.Add(new NpgsqlParameter("guildId", NpgsqlDbType.Bigint));
-            getRoles.Prepare();
-            _preparedStatements.Add(statementType.GetRoles, getRoles);
+            _logger.Trace($"Preparing {statementType.RemoveTask}...");
+            NpgsqlCommand removeTask = new NpgsqlCommand("DELETE FROM tasks WHERE user_id=@userId AND set_off=@setOff AND set_at=@setAt AND type=@taskType", _connection);
+            removeTask.Parameters.Add(new NpgsqlParameter("userId", NpgsqlDbType.Bigint));
+            removeTask.Parameters.Add(new NpgsqlParameter("setOff", NpgsqlDbType.Timestamp));
+            removeTask.Parameters.Add(new NpgsqlParameter("setAt", NpgsqlDbType.Timestamp));
+            removeTask.Parameters.Add(new NpgsqlParameter("taskType", NpgsqlDbType.Smallint));
+            removeTask.Prepare();
+            _preparedStatements.Add(statementType.RemoveTask, removeTask);
 
-            _logger.Trace($"Preparing {statementType.AddRole}...");
-            NpgsqlCommand addRole = new NpgsqlCommand("UPDATE guild_cache SET role_ids=array_append(role_ids, @roleId) WHERE user_id=@userId AND guild_id=@guildId", _connection);
-            addRole.Parameters.Add(new NpgsqlParameter("roleId", NpgsqlDbType.Bigint));
-            addRole.Parameters.Add(new NpgsqlParameter("userId", NpgsqlDbType.Bigint));
-            addRole.Parameters.Add(new NpgsqlParameter("guildId", NpgsqlDbType.Bigint));
-            addRole.Prepare();
-            _preparedStatements.Add(statementType.AddRole, addRole);
+            _logger.Trace($"Preparing {statementType.SelectTask}...");
+            NpgsqlCommand selectTask = new NpgsqlCommand("SELECT tasks(task_type, guild_id, channel_id, user_id, set_off, set_at, content) FROM tasks WHERE user_id=@userId AND type=@taskType", _connection);
+            selectTask.Parameters.Add(new NpgsqlParameter("userId", NpgsqlDbType.Bigint));
+            selectTask.Parameters.Add(new NpgsqlParameter("taskType", NpgsqlDbType.Smallint));
+            selectTask.Prepare();
+            _preparedStatements.Add(statementType.SelectTask, selectTask);
 
-            _logger.Trace($"Preparing {statementType.RemoveRole}...");
-            NpgsqlCommand removeRole = new NpgsqlCommand("UPDATE guild_cache SET role_ids=array_remove(role_ids, @roleId) WHERE user_id=@userId AND guild_id=@guildId", _connection);
-            removeRole.Parameters.Add(new NpgsqlParameter("roleId", NpgsqlDbType.Bigint));
-            removeRole.Parameters.Add(new NpgsqlParameter("userId", NpgsqlDbType.Bigint));
-            removeRole.Parameters.Add(new NpgsqlParameter("guildId", NpgsqlDbType.Bigint));
-            removeRole.Prepare();
-            _preparedStatements.Add(statementType.RemoveRole, removeRole);
+            _logger.Trace($"Preparing {statementType.SelectAllTasks}...");
+            NpgsqlCommand selectAllTasks = new NpgsqlCommand("SELECT * FROM tasks", _connection);
+            selectAllTasks.Prepare();
+            _preparedStatements.Add(statementType.SelectAllTasks, selectAllTasks);
 
-            _logger.Trace($"Preparing {statementType.SetRoles}...");
-            NpgsqlCommand setRoles = new NpgsqlCommand("UPDATE guild_cache SET role_ids=@roleIds WHERE user_id=@userId AND guild_id=@guildId", _connection);
-            setRoles.Parameters.Add(new NpgsqlParameter("roleIds", (NpgsqlDbType.Array | NpgsqlDbType.Bigint)));
-            setRoles.Parameters.Add(new NpgsqlParameter("userId", NpgsqlDbType.Bigint));
-            setRoles.Parameters.Add(new NpgsqlParameter("guildId", NpgsqlDbType.Bigint));
-            setRoles.Prepare();
-            _preparedStatements.Add(statementType.SetRoles, setRoles);
-
-            _logger.Trace($"Preparing {statementType.AddStrike}...");
-            NpgsqlCommand addStrike = new NpgsqlCommand("UPDATE guild_cache SET strikes=strikes + 1 WHERE user_id=@userId AND guild_id=@guildId", _connection);
-            addStrike.Parameters.Add(new NpgsqlParameter("userId", NpgsqlDbType.Bigint));
-            addStrike.Parameters.Add(new NpgsqlParameter("guildId", NpgsqlDbType.Bigint));
-            addStrike.Prepare();
-            _preparedStatements.Add(statementType.AddStrike, addStrike);
-
-            _logger.Trace($"Preparing {statementType.RemoveStrike}...");
-            NpgsqlCommand removeStrike = new NpgsqlCommand("UPDATE guild_cache SET strikes=strikes - 1 WHERE user_id=@userId AND guild_id=@guildId", _connection);
-            removeStrike.Parameters.Add(new NpgsqlParameter("userId", NpgsqlDbType.Bigint));
-            removeStrike.Parameters.Add(new NpgsqlParameter("guildId", NpgsqlDbType.Bigint));
-            removeStrike.Prepare();
-            _preparedStatements.Add(statementType.RemoveStrike, removeStrike);
-
-            _logger.Trace($"Preparing {statementType.GetStrikeCount}...");
-            NpgsqlCommand getStrikes = new NpgsqlCommand("SELECT strikes FROM guild_cache WHERE user_id=@userId AND guild_id=@guildId", _connection);
-            getStrikes.Parameters.Add(new NpgsqlParameter("userId", NpgsqlDbType.Bigint));
-            getStrikes.Parameters.Add(new NpgsqlParameter("guildId", NpgsqlDbType.Bigint));
-            getStrikes.Prepare();
-            _preparedStatements.Add(statementType.GetStrikeCount, getStrikes);
-
-            _logger.Trace($"Preparing {statementType.SetStrikeCount}...");
-            NpgsqlCommand setStrikes = new NpgsqlCommand("UPDATE guild_cache SET strikes=@strikeCount WHERE user_id=@userId AND guild_id=@guildId", _connection);
-            setStrikes.Parameters.Add(new NpgsqlParameter("strikeCount", NpgsqlDbType.Smallint));
-            setStrikes.Parameters.Add(new NpgsqlParameter("userId", NpgsqlDbType.Bigint));
-            setStrikes.Parameters.Add(new NpgsqlParameter("guildId", NpgsqlDbType.Bigint));
-            setStrikes.Prepare();
-            _preparedStatements.Add(statementType.SetStrikeCount, setStrikes);
-
-            _logger.Trace($"Preparing {statementType.GetIsMuted}...");
-            NpgsqlCommand getIsMuted = new NpgsqlCommand("SELECT muted FROM guild_cache WHERE user_id=@userId AND guild_id=@guildId", _connection);
-            getIsMuted.Parameters.Add(new NpgsqlParameter("userId", NpgsqlDbType.Bigint));
-            getIsMuted.Parameters.Add(new NpgsqlParameter("guildId", NpgsqlDbType.Bigint));
-            getIsMuted.Prepare();
-            _preparedStatements.Add(statementType.GetIsMuted, getIsMuted);
-
-            _logger.Trace($"Preparing {statementType.SetIsMuted}...");
-            NpgsqlCommand setIsMuted = new NpgsqlCommand("UPDATE guild_cache SET muted=@isMuted WHERE user_id=@userId AND guild_id=@guildId", _connection);
-            setIsMuted.Parameters.Add(new NpgsqlParameter("isMuted", NpgsqlDbType.Boolean));
-            setIsMuted.Parameters.Add(new NpgsqlParameter("userId", NpgsqlDbType.Bigint));
-            setIsMuted.Parameters.Add(new NpgsqlParameter("guildId", NpgsqlDbType.Bigint));
-            setIsMuted.Prepare();
-            _preparedStatements.Add(statementType.SetIsMuted, setIsMuted);
-
-            _logger.Trace($"Preparing {statementType.GetIsNoMemed}...");
-            NpgsqlCommand getIsNoMemed = new NpgsqlCommand("SELECT no_memed FROM guild_cache WHERE user_id=@userId AND guild_id=@guildId", _connection);
-            getIsNoMemed.Parameters.Add(new NpgsqlParameter("userId", NpgsqlDbType.Bigint));
-            getIsNoMemed.Parameters.Add(new NpgsqlParameter("guildId", NpgsqlDbType.Bigint));
-            getIsNoMemed.Prepare();
-            _preparedStatements.Add(statementType.GetIsNoMemed, getIsNoMemed);
-
-            _logger.Trace($"Preparing {statementType.SetIsNoMemed}...");
-            NpgsqlCommand setIsNoMemed = new NpgsqlCommand("UPDATE guild_cache SET no_memed=@isNoMemed WHERE user_id=@userId AND guild_id=@guildId", _connection);
-            setIsNoMemed.Parameters.Add(new NpgsqlParameter("isNoMemed", NpgsqlDbType.Boolean));
-            setIsNoMemed.Parameters.Add(new NpgsqlParameter("userId", NpgsqlDbType.Bigint));
-            setIsNoMemed.Parameters.Add(new NpgsqlParameter("guildId", NpgsqlDbType.Bigint));
-            setIsNoMemed.Prepare();
-            _preparedStatements.Add(statementType.SetIsNoMemed, setIsNoMemed);
-
-            _logger.Trace($"Preparing {statementType.GetIsNoVC}...");
-            NpgsqlCommand getIsNoVC = new NpgsqlCommand("SELECT no_voicechat FROM guild_cache WHERE user_id=@userId AND guild_id=@guildId", _connection);
-            getIsNoVC.Parameters.Add(new NpgsqlParameter("userId", NpgsqlDbType.Bigint));
-            getIsNoVC.Parameters.Add(new NpgsqlParameter("guildId", NpgsqlDbType.Bigint));
-            getIsNoVC.Prepare();
-            _preparedStatements.Add(statementType.GetIsNoVC, getIsNoVC);
-
-            _logger.Trace($"Preparing {statementType.SetIsNoVC}...");
-            NpgsqlCommand setIsNoVC = new NpgsqlCommand("UPDATE guild_cache SET no_voicechat=@isNoVC WHERE user_id=@userId AND guild_id=@guildId", _connection);
-            setIsNoVC.Parameters.Add(new NpgsqlParameter("isNoVC", NpgsqlDbType.Boolean));
-            setIsNoVC.Parameters.Add(new NpgsqlParameter("userId", NpgsqlDbType.Bigint));
-            setIsNoVC.Parameters.Add(new NpgsqlParameter("guildId", NpgsqlDbType.Bigint));
-            setIsNoVC.Prepare();
-            _preparedStatements.Add(statementType.SetIsNoVC, setIsNoVC);
-            _logger.Debug("Done preparing commands!");
+            _logger.Trace($"Preparing {statementType.SelectAllReminders}...");
+            NpgsqlCommand selectAllReminders = new NpgsqlCommand("SELECT * FROM tasks WHERE user_id=@userId", _connection);
+            selectAllReminders.Parameters.Add(new NpgsqlParameter("userId", NpgsqlDbType.Bigint));
+            selectAllReminders.Prepare();
+            _preparedStatements.Add(statementType.SelectAllReminders, selectAllReminders);
         }
-                    public void InsertUser(ulong guildId, ulong userId) => executeQuery(statementType.InsertUser, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("userId", (long) userId) });
-                    public ulong[] GetRoles(ulong guildId, ulong userId) => (ulong[]) executeQuery(statementType.GetRoles, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("userId", (long) userId) }, true) [0];
-                    public void AddRole(ulong guildId, ulong userId, ulong roleId) => executeQuery(statementType.AddRole, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("userId", (long) userId), new NpgsqlParameter("roleId", (long) roleId) });
-                    public void RemoveRole(ulong guildId, ulong userId, ulong roleId) => executeQuery(statementType.RemoveRole, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("userId", (long) userId), new NpgsqlParameter("roleId", (long) roleId) });
-                    public void SetRoles(ulong guildId, ulong userId, ulong[] roleIds) => executeQuery(statementType.SetRoles, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("userId", (long) userId), new NpgsqlParameter("roleId", roleIds.Select((role) => long.Parse(role.ToString()))) });
+        public void Create(TaskType taskType, ulong guildId, ulong channelId, ulong userId, DateTime setOff, DateTime setAt, string content) => executeQuery(statementType.CreateTask, new List<NpgsqlParameter>() { new NpgsqlParameter("taskType", (int) taskType), new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("channelId", (long) channelId), new NpgsqlParameter("userId", (long) userId), new NpgsqlParameter("setOff", setOff), new NpgsqlParameter("setAt", setAt), new NpgsqlParameter("content", content) });
+        public void Remove(ulong userId, DateTime setAt, DateTime setOff, TaskType taskType) => executeQuery(statementType.RemoveTask, new List<NpgsqlParameter>() { new NpgsqlParameter("userId", (long) userId), new NpgsqlParameter("setAt", setAt), new NpgsqlParameter("setOff", setOff), new NpgsqlParameter("taskType", (int) taskType) });
+        public Task[] Select(ulong userId, TaskType taskType) {
+            Dictionary<int, List<dynamic>> queryResults = executeQuery(statementType.SelectTask, new List<NpgsqlParameter>() { new NpgsqlParameter("userId", (long) userId), new NpgsqlParameter("taskType", (int) taskType) }, true);
+            List<Task> tasks = new List<Task>();
+            foreach (int i in queryResults.Keys) {
+                foreach (dynamic result in queryResults.Values) { // Order can be determined from the SQL query and how it was selected.
+                    Task task = new Task();
+                    task.TaskType = (TaskType) queryResults[i][0];
+                    task.GuildId = ulong.Parse(queryResults[i][1]);
+                    task.ChannelId = ulong.Parse(queryResults[i][2]);
+                    task.UserId = ulong.Parse(queryResults[i][3]);
+                    task.SetOff = DateTime.Parse(queryResults[i][4]);
+                    task.SetAt = DateTime.Parse(queryResults[i][5]);
+                    task.Content = queryResults[i][6].ToString();
+                    tasks.Add(task);
+                }
+            }
+            return tasks.ToArray();
+        }
+        public Task[] SelectAllTasks() {
+            Dictionary<int, List<dynamic>> queryResults = executeQuery(statementType.SelectAllTasks, new List<NpgsqlParameter>(), true);
+            List<Task> tasks = new List<Task>();
+            foreach (int i in queryResults.Keys) {
+                foreach (dynamic result in queryResults.Values) { // Order can be determined from the SQL query and how it was selected.
+                    Task task = new Task();
+                    task.TaskType = (TaskType) queryResults[i][0];
+                    task.GuildId = ulong.Parse(queryResults[i][1]);
+                    task.ChannelId = ulong.Parse(queryResults[i][2]);
+                    task.UserId = ulong.Parse(queryResults[i][3]);
+                    task.SetOff = DateTime.Parse(queryResults[i][4]);
+                    task.SetAt = DateTime.Parse(queryResults[i][5]);
+                    task.Content = queryResults[i][6].ToString();
+                    tasks.Add(task);
+                }
+            }
+            return tasks.ToArray();
+        }
 
-                    public void AddStrike(ulong guildId, ulong userId) => executeQuery(statementType.AddStrike, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("userId", (long) userId) });
-                    public void RemoveStrike(ulong guildId, ulong userId) => executeQuery(statementType.RemoveStrike, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("userId", (long) userId) });
-                    public int GetStrikeCount(ulong guildId, ulong userId) => (int) executeQuery(statementType.GetStrikeCount, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("userId", (long) userId) }, true) [0];
-                    public void SetStrikeCount(ulong guildId, ulong userId, int strikeCount) => executeQuery(statementType.SetStrikeCount, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("userId", (long) userId), new NpgsqlParameter("strikeCount", (short) strikeCount) });
-
-                    public bool IsMuted(ulong guildId, ulong userId) => (bool) executeQuery(statementType.GetIsMuted, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("userId", (long) userId) }, true) [0];
-                    public void IsMuted(ulong guildId, ulong userId, bool isMuted) => executeQuery(statementType.SetIsMuted, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("userId", (long) userId), new NpgsqlParameter("isMuted", isMuted) });
-
-                    public bool IsNoMemed(ulong guildId, ulong userId) => (bool) executeQuery(statementType.GetIsNoMemed, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("userId", (long) userId) }, true) [0];
-                    public void IsNoMemed(ulong guildId, ulong userId, bool isNoMemed) => executeQuery(statementType.SetIsNoMemed, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("userId", (long) userId), new NpgsqlParameter("isNoMemed", isNoMemed) });
-
-                    public bool IsNoVC(ulong guildId, ulong userId) => (bool) executeQuery(statementType.GetIsNoVC, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("userId", (long) userId) }, true) [0];
-                    public void IsNoVC(ulong guildId, ulong userId, bool isNoVC) => executeQuery(statementType.SetIsNoVC, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("userId", (long) userId), new NpgsqlParameter("isNoVC", isNoVC) });
-                    */
+        public Task[] SelectAllReminders(ulong userId) {
+            Dictionary<int, List<dynamic>> queryResults = executeQuery(statementType.SelectAllReminders, new NpgsqlParameter("userId", (long) userId), true);
+            List<Task> tasks = new List<Task>();
+            foreach (int i in queryResults.Keys) {
+                foreach (dynamic result in queryResults.Values) { // Order can be determined from the SQL query and how it was selected.
+                    Task task = new Task();
+                    task.TaskType = (TaskType) queryResults[i][0];
+                    task.GuildId = ulong.Parse(queryResults[i][1]);
+                    task.ChannelId = ulong.Parse(queryResults[i][2]);
+                    task.UserId = ulong.Parse(queryResults[i][3]);
+                    task.SetOff = DateTime.Parse(queryResults[i][4]);
+                    task.SetAt = DateTime.Parse(queryResults[i][5]);
+                    task.Content = queryResults[i][6].ToString();
+                    tasks.Add(task);
+                }
+            }
+            return tasks.ToArray();
         }
     }
 }
