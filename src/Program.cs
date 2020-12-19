@@ -1,6 +1,4 @@
 using System;
-using System.IO;
-using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using DSharpPlus;
@@ -20,20 +18,13 @@ namespace Tomoe {
         public const string NotAGuild = "**[Denied: Guild command.]**";
         public const string SelfAction = "**[Denied: Cannot execute on myself.]**";
         public const string Hierarchy = "**[Denied: Prevented by hierarchy.]**";
-#if DEBUG
-#pragma warning disable IL3000
-        public static string ProjectRoot = Path.GetDirectoryName(Path.Join(Assembly.GetExecutingAssembly().Location, "../../../../../"));
-#else
-        // Places the log directory right next to the executable.
-        public static string ProjectRoot = Path.GetDirectoryName(System.AppContext.BaseDirectory);
-#endif
         public static Driver Database = new Driver();
         private static Logger _logger = new Logger("Main");
 
         public static void Main(string[] args) => new Program().MainAsync().GetAwaiter().GetResult();
 
         public async Task MainAsync() {
-            Tomoe.Config.Init();
+            Config.Init();
             using var loggerProvider = new LoggerProvider();
             DiscordConfiguration discordConfiguration = new DiscordConfiguration {
                 AutoReconnect = true,

@@ -29,7 +29,7 @@ namespace Tomoe.Utils {
         /// </summary>
         /// <param name="logLevel">What level to test if is activated.</param>
         /// <returns>true if <paramref name="logLevel">logLevel</paramref> is enabled, otherwise false.</returns>
-        public bool IsEnabled(LogLevel logLevel) => Tomoe.Config.LogLevel <= logLevel;
+        public bool IsEnabled(LogLevel logLevel) => Config.LogLevel <= logLevel;
 
         /// <summary>
         /// Logs stuff to console.

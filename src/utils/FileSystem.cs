@@ -1,10 +1,17 @@
 using System;
 using System.IO;
+using System.Reflection;
 
 namespace Tomoe.Utils {
     public class FileSystem {
         private static Logger Logger = new Logger("Filesystem");
-        public static string ProjectRoot = Path.GetFullPath("../../../../", System.AppDomain.CurrentDomain.BaseDirectory).Replace('\\', '/');
+#if DEBUG
+#pragma warning disable IL3000
+        public static string ProjectRoot = Path.GetDirectoryName(Path.Join(Assembly.GetExecutingAssembly().Location, "../../../../../"));
+#else
+        // Places the log directory right next to the executable.
+        public static string ProjectRoot = Path.GetDirectoryName(System.AppContext.BaseDirectory);
+#endif
 
         public static bool CreateFile(string file, bool retry = false) {
             if (File.Exists(file)) return true;

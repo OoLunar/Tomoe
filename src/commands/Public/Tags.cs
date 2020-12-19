@@ -10,14 +10,13 @@ using DSharpPlus.Interactivity.Extensions;
 
 namespace Tomoe.Commands.Public {
     [Group("tag")]
+    [Description("Gets a tag's content.")]
+    [RequireGuild]
+    [TagCheck(false, TagType.Any, TagState.Exists)]
     public class Tags : BaseCommandModule {
         private static Utils.Logger _logger = new Utils.Logger("Commands/Public/Tags");
 
         [GroupCommand]
-        [Aliases("get")]
-        [Description("Gets a tag's content.")]
-        [RequireGuild]
-        [TagCheck(false, TagType.Any, TagState.Exists)]
         public async Task Get(CommandContext context, [RemainingText] string tagTitle) => Program.SendMessage(context, Program.Database.Tags.Get(context.Guild.Id, tagTitle.Trim().ToLowerInvariant()), (ExtensionMethods.FilteringAction.CodeBlocksIgnore | ExtensionMethods.FilteringAction.AllMentions));
 
         [Command("create")]
@@ -224,7 +223,7 @@ namespace Tomoe.Commands.Public {
         Irrelevant
     }
 
-    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+    [AttributeUsage((AttributeTargets.Method | AttributeTargets.Class), AllowMultiple = false)]
     public sealed class TagCheck : CheckBaseAttribute {
         private readonly bool _requireOwner = false;
         private readonly TagType _requireTagType = TagType.Any;
@@ -238,7 +237,7 @@ namespace Tomoe.Commands.Public {
 
         public override async Task<bool> ExecuteCheckAsync(CommandContext context, bool isHelpCommand) {
             if (isHelpCommand) return true;
-            string tagTitle = context.RawArguments[0].Trim().ToLowerInvariant();
+            string tagTitle = context.RawArgumentString.Split(' ') [0].Trim().ToLowerInvariant();
             if (tagTitle.Length > 32) {
                 Program.SendMessage(context, "**[Error: Tag title too long.]**", ExtensionMethods.FilteringAction.FilterAll);
                 return false;

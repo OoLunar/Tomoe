@@ -5,9 +5,8 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Tomoe.Database;
-using Tomoe.Utils;
 
-namespace Tomoe {
+namespace Tomoe.Utils {
     public class Config {
         [JsonProperty("discord_api_token")]
         public static string Token;
@@ -29,6 +28,9 @@ namespace Tomoe {
 
         [JsonProperty("repository_link")]
         public static string RepositoryLink;
+
+        [JsonProperty("auto_update")]
+        public static bool AutoUpdate;
 
         private static string tokenFile = Path.Combine(FileSystem.ProjectRoot, "res/config.jsonc");
         private static Logger _logger = new Logger("Config", LogLevel.Information);

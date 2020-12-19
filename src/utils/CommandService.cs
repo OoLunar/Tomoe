@@ -5,11 +5,10 @@ using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.CommandsNext.Exceptions;
-using Tomoe.Utils;
 
 // Copied from https://github.com/TheRealHona/DSharpPlusBotTemplate/blob/main/TemplateDiscordBot/Services/CommandService.cs
 // Go take a look at their project!
-namespace Tomoe {
+namespace Tomoe.Utils {
     public class CommandService {
         private Logger _logger = new Logger("CommandService");
         public CommandService(DiscordClient discordClient) {
@@ -30,9 +29,9 @@ namespace Tomoe {
                 if (e.Exception is ChecksFailedException) {
                     ChecksFailedException error = e.Exception as ChecksFailedException;
                     if (error.Context.Channel.IsPrivate) Program.SendMessage(e.Context, Program.NotAGuild);
-                    else if (error.FailedChecks.OfType<RequireUserPermissionsAttribute>() != null) Program.SendMessage(e.Context, Program.MissingPermissions);
+                    else if (error.FailedChecks.OfType<RequireUserPermissionsAttribute>() != null && e.Command.Module.ModuleType != typeof(Tomoe.Commands.Public.Tags)) Program.SendMessage(e.Context, Program.MissingPermissions);
                 } else if (e.Exception is System.NotImplementedException) Program.SendMessage(e.Context, $"{e.Command.Name} hasn't been implemented yet!");
-                else _logger.Error($"'{e.Command?.QualifiedName ?? "<unknown command>"}' errored: {e.Exception.GetType()}: {e.Exception.Message ?? "<no message>"}\n{e.Exception.StackTrace}");
+                else _logger.Error($"'{e.Command?.QualifiedName ?? "<unknown command>"}' errored: {e.Exception.GetType()}, {e.Exception.Message ?? "<no message>"}\n{e.Exception.StackTrace}");
             }
         }
     }

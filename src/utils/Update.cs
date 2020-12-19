@@ -1,10 +1,10 @@
-using LibGit2Sharp;
+using System;
 
 namespace Tomoe.Utils {
     public static class Update {
-        public static Repository currentRepo = new Repository(FileSystem.ProjectRoot);
+        private static Logger _logger = new Logger("Updater");
         public static void Check() {
-
+            throw new NotImplementedException();
         }
     }
 }

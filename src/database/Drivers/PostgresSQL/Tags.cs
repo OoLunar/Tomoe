@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
 using Npgsql;
-using Npgsql.Logging;
 using NpgsqlTypes;
 using Tomoe.Database.Interfaces;
 using Tomoe.Utils;
@@ -29,8 +28,6 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
         }
 
         private Dictionary<statementType, NpgsqlCommand> _preparedStatements = new Dictionary<statementType, NpgsqlCommand>();
-
-        //https://discord.gg/fQ7NME4WXd
 
         /// <summary>
         /// Executes an SQL query from <see cref="Tomoe.Database.Drivers.PostgresSQL.PostgresTags._preparedStatements">_preparedStatements</see>, using <seealso cref="Tomoe.Database.Drivers.PostgresSQL.PostgresTags.statementType">statementType</seealso> as a key.
@@ -77,15 +74,15 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
             _logger.Info("Opening connection to database...");
             try {
                 _connection.Open();
-                NpgsqlCommand createTagsTable = new NpgsqlCommand(File.ReadAllText(Path.Join(Program.ProjectRoot, "res/sql/tags.sql")), _connection);
+                NpgsqlCommand createTagsTable = new NpgsqlCommand(File.ReadAllText(Path.Join(FileSystem.ProjectRoot, "res/sql/tags.sql")), _connection);
                 createTagsTable.ExecuteNonQuery();
                 createTagsTable.Dispose();
 
-                NpgsqlCommand createAliasTable = new NpgsqlCommand(File.ReadAllText(Path.Join(Program.ProjectRoot, "res/sql/tag_aliases.sql")), _connection);
+                NpgsqlCommand createAliasTable = new NpgsqlCommand(File.ReadAllText(Path.Join(FileSystem.ProjectRoot, "res/sql/tag_aliases.sql")), _connection);
                 createAliasTable.ExecuteNonQuery();
                 createAliasTable.Dispose();
 
-                NpgsqlCommand createFunctions = new NpgsqlCommand(File.ReadAllText(Path.Join(Program.ProjectRoot, "res/sql/tag_functions.sql")), _connection);
+                NpgsqlCommand createFunctions = new NpgsqlCommand(File.ReadAllText(Path.Join(FileSystem.ProjectRoot, "res/sql/tag_functions.sql")), _connection);
                 createFunctions.ExecuteNonQuery();
                 createFunctions.Dispose();
             } catch (System.Net.Sockets.SocketException error) {
