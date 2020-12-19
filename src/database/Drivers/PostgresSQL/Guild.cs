@@ -62,7 +62,7 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
         /// <param name="needsResult">Returns a list of results if true, otherwise returns null.</param>
         /// <returns><see cref="System.Collections.Generic.List{T}">List&lt;dynamic&gt;</see> if <paramref name="needsResult">needsResult</paramref> is true, otherwise returns null.</returns>
         private List<dynamic> executeQuery(statementType command, List<NpgsqlParameter> parameters, bool needsResult = false) {
-            _logger.Trace($"Executing {command.ToString()}");
+            _logger.Trace($"Executing prepared statement \"{command.ToString()}\"");
             NpgsqlCommand statement = _preparedStatements[command];
             Dictionary<string, NpgsqlParameter> sortedParameters = new Dictionary<string, NpgsqlParameter>();
             foreach (NpgsqlParameter param in parameters) sortedParameters.Add(param.ParameterName, param);
