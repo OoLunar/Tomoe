@@ -47,8 +47,6 @@ namespace Tomoe.Utils {
                 System.Environment.Exit(1);
             }
 
-            if (!Directory.Exists(Path.Join(FileSystem.ProjectRoot, "log/"))) FileSystem.CreateDirectory(Path.Join(FileSystem.ProjectRoot, "log/"));
-
             try {
                 new Newtonsoft.Json.JsonSerializer().Deserialize<Config>(new JsonTextReader(new StreamReader(System.IO.File.OpenRead(tokenFile))));
             } catch (Newtonsoft.Json.JsonReaderException jsonException) {
@@ -56,6 +54,7 @@ namespace Tomoe.Utils {
             } catch (Newtonsoft.Json.JsonSerializationException typeException) {
                 _logger.Critical($"Error resolving config option on '{tokenFile}' Make sure all the config options are valid. Error: {typeException.Message}");
             }
+            if (LogToFile && !Directory.Exists(Path.Join(FileSystem.ProjectRoot, "log/"))) FileSystem.CreateDirectory(Path.Join(FileSystem.ProjectRoot, "log/"));
             Thread.Sleep(50);
         }
     }
