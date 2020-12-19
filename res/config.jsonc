@@ -1,0 +1,46 @@
+{
+	/*Token to have your bot login to Discord.*/
+	"discord_api_token": "<insert Discord Token here>",
+	/*The default prefix when the bot joins.*/
+	"discord_bot_prefix": ">>",
+	/* Options are:
+	 * - None
+	 * - Trace
+	 * - Debug
+	 * - Information
+	 * - Warn
+	 * - Error
+	 * - Critical
+	 */
+	"tomoe_log_level": "Information",
+	"discord_log_level": "Information",
+	/*Ignored when database.driver is not set to PostgresSQL*/
+	"npgsql_log_level": "Information",
+	/*An HTTPS link to the git repository.*/
+	"repository_link": "https://github.com/OoLunar/Tomoe.git",
+	"log_to_file": true,
+	/*Whether to auto-update using the git library*/
+	"auto_update": true,
+	/*Database details*/
+	"database": {
+		/*PostgresSQL database. More support will be added in the future.*/
+		"driver": "PostgresSQL",
+		/*The IP or hostname that the database is listening on.*/
+		"host": "<insert hostname>",
+		/*The port that the database is listening on.*/
+		"port": 5432,
+		/*The username used to login to the database.*/
+		"username": "tomoe_discord_bot",
+		/*An Postgres compliant password used to login. Must be Postgres compliant.*/
+		"password": "<insert postgres password>",
+		/*Database name.*/
+		"database_name": "tomoe",
+		/* Choose security levels. Options are:
+		* - Require
+		* - Prefer
+		* - Disable
+		* Defaults to Require.
+		*/
+		"ssl_mode": "Require"
+	}
+}
