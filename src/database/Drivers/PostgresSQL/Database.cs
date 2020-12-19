@@ -17,6 +17,7 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
 
         public PostgresSQL(string host, int port, string username, string password, string database_name, SslMode sslMode) {
             NpgsqlLogManager.Provider = new NLogLoggingProvider();
+            NpgsqlLogManager.IsParameterLoggingEnabled = true;
             _postgresUser = new PostgresUser(host, port, username, password, database_name, sslMode);
             _postgresGuild = new PostgresGuild(host, port, username, password, database_name, sslMode);
             _postgresTags = new PostgresTags(host, port, username, password, database_name, sslMode);

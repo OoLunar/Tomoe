@@ -32,6 +32,9 @@ namespace Tomoe.Utils {
         [JsonProperty("auto_update")]
         public static bool AutoUpdate;
 
+        [JsonProperty("log_to_file")]
+        public static bool LogToFile;
+
         private static string tokenFile = Path.Combine(FileSystem.ProjectRoot, "res/config.jsonc");
         private static Logger _logger = new Logger("Config", LogLevel.Information);
 
@@ -43,6 +46,8 @@ namespace Tomoe.Utils {
                 _logger.Critical($"'{tokenFile}' was created, which means that the Discord Bot Token and the PostgreSQL information will need to be filled out. All PostgreSQL information should be alphanumeric.");
                 System.Environment.Exit(1);
             }
+
+            if (!Directory.Exists(Path.Join(FileSystem.ProjectRoot, "log/"))) FileSystem.CreateDirectory(Path.Join(FileSystem.ProjectRoot, "log/"));
 
             try {
                 new Newtonsoft.Json.JsonSerializer().Deserialize<Config>(new JsonTextReader(new StreamReader(System.IO.File.OpenRead(tokenFile))));

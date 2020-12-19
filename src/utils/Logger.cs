@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Npgsql.Logging;
@@ -15,11 +16,8 @@ namespace Tomoe.Utils {
         /// <summary>The logger's logger. Ironic.</summary>
         private static Logger _logger = new Logger("Logger");
 
-        /// <summary>
-        /// The log file.
-        /// </summary>
-        /// <returns></returns>
-        private static FileStream _logFile = new FileStream(FileSystem.ProjectRoot, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
+        /// <summary>The log file.</summary>
+        private static FileStream _logFile = new FileStream(Path.Join(FileSystem.ProjectRoot, $"log/{GetTime()}.log"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
 
         /// <summary>Unknown what this does. TODO: Implement this correctly.</summary>
         public IDisposable BeginScope<TState>(TState state) { throw new NotImplementedException(); }
@@ -135,6 +133,10 @@ namespace Tomoe.Utils {
             Console.Write(_branchName);
             Console.ResetColor();
             Console.WriteLine($": {value}");
+            if (Config.LogToFile && _logFile != null) {
+                await _logFile.WriteAsync(Encoding.UTF8.GetBytes($"[{currentTime}] [Trace] {_branchName}: {value}{Environment.NewLine}"));
+                await _logFile.FlushAsync();
+            }
         }
 
         /// <summary>
@@ -160,6 +162,10 @@ namespace Tomoe.Utils {
             Console.Write(_branchName);
             Console.ResetColor();
             Console.WriteLine($": {value}");
+            if (Config.LogToFile && _logFile != null) {
+                await _logFile.WriteAsync(Encoding.UTF8.GetBytes($"[{currentTime}] [Debug] {_branchName}: {value}{Environment.NewLine}"));
+                await _logFile.FlushAsync();
+            }
         }
 
         /// <summary>
@@ -186,7 +192,12 @@ namespace Tomoe.Utils {
             Console.Write(_branchName);
             Console.ResetColor();
             Console.WriteLine($": {value}");
+            if (Config.LogToFile && _logFile != null) {
+                await _logFile.WriteAsync(Encoding.UTF8.GetBytes($"[{currentTime}] [Info]  {_branchName}: {value}{Environment.NewLine}"));
+                await _logFile.FlushAsync();
+            }
             if (exit) {
+                _logFile.Dispose();
                 Console.WriteLine("Exiting...");
                 Environment.Exit(1);
             }
@@ -216,7 +227,12 @@ namespace Tomoe.Utils {
             Console.Write(_branchName);
             Console.ResetColor();
             Console.WriteLine($": {value}");
+            if (Config.LogToFile && _logFile != null) {
+                await _logFile.WriteAsync(Encoding.UTF8.GetBytes($"[{currentTime}] [Warn]  {_branchName}: {value}{Environment.NewLine}"));
+                await _logFile.FlushAsync();
+            }
             if (exit) {
+                _logFile.Dispose();
                 Console.WriteLine("Exiting...");
                 Environment.Exit(1);
             }
@@ -246,7 +262,12 @@ namespace Tomoe.Utils {
             Console.Write(_branchName);
             Console.ResetColor();
             Console.WriteLine($": {value}");
+            if (Config.LogToFile && _logFile != null) {
+                await _logFile.WriteAsync(Encoding.UTF8.GetBytes($"[{currentTime}] [Error] {_branchName}: {value}{Environment.NewLine}"));
+                await _logFile.FlushAsync();
+            }
             if (exit) {
+                _logFile.Dispose();
                 Console.WriteLine("Exiting...");
                 Environment.Exit(1);
             }
@@ -271,23 +292,26 @@ namespace Tomoe.Utils {
             Console.Write($"[{currentTime}] ");
             Console.ForegroundColor = ConsoleColor.White;
             Console.BackgroundColor = ConsoleColor.Red;
-            Console.Write($"[Crit] ");
+            Console.Write($"[Crit]  ");
             Console.ResetColor();
             Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.Write($" {_branchName}");
+            Console.Write(_branchName);
             Console.ResetColor();
             Console.WriteLine($": {value}");
+            if (Config.LogToFile && _logFile != null) {
+                await _logFile.WriteAsync(Encoding.UTF8.GetBytes($"[{currentTime}] [Crit]  {_branchName}: {value}{Environment.NewLine}"));
+                await _logFile.FlushAsync();
+            }
             if (exit) {
+                _logFile.Dispose();
                 Console.WriteLine("Exiting...");
                 Environment.Exit(1);
             }
         }
 
-        /// <summary>
-        /// Gets the time in <a href="https://tools.ietf.org/html/rfc2616#section-14.29">rfc2616, section 14.29 format</a>, slightly tweaked.
-        /// </summary>
+        /// <summary>Gets the time in <code>yyyy-MM-dd HH:mm:ss</code> following rfc3339 format, slightly tweaked (see removed 'T'). See https://tools.ietf.org/html/rfc3339#section-5.6.</summary>
         /// <returns>string</returns>
-        public static string GetTime() => DateTime.Now.ToLocalTime().ToString("ddd, dd MMM yyyy HH':'mm':'ss");
+        public static string GetTime() => DateTime.Now.ToLocalTime().ToString("yyyy'-'MM'-'dd' 'HH':'mm':'ss");
     }
 
     public class LoggerProvider : ILoggerFactory {
