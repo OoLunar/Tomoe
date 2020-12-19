@@ -8,7 +8,7 @@ using Tomoe.Utils;
 
 namespace Tomoe.Database.Drivers.PostgresSQL {
     public class PostgresTasks : ITasks {
-        private static Logger _logger = new Logger("Database/PostgresSQL/User");
+        private static Logger _logger = new Logger("Database/PostgresSQL/Tasks");
         private enum statementType {
             CreateTask,
             RemoveTask,
@@ -72,8 +72,8 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
             } catch (System.Net.Sockets.SocketException error) {
                 _logger.Critical($"Failed to connect to database. {error.Message}", true);
             }
-            _logger.Trace($"Preparing {statementType.CreateTask}...");
             _logger.Info("Preparing SQL commands...");
+            _logger.Trace($"Preparing {statementType.CreateTask}...");
             NpgsqlCommand createTask = new NpgsqlCommand("INSERT INTO tasks VALUES(@taskType, @guildId, @channelId, @userId, @setOff, @setAt, @content)", _connection);
             createTask.Parameters.Add(new NpgsqlParameter("taskType", NpgsqlDbType.Smallint));
             createTask.Parameters.Add(new NpgsqlParameter("guildId", NpgsqlDbType.Bigint));
@@ -86,7 +86,7 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
             _preparedStatements.Add(statementType.CreateTask, createTask);
 
             _logger.Trace($"Preparing {statementType.RemoveTask}...");
-            NpgsqlCommand removeTask = new NpgsqlCommand("DELETE FROM tasks WHERE user_id=@userId AND set_off=@setOff AND set_at=@setAt AND type=@taskType", _connection);
+            NpgsqlCommand removeTask = new NpgsqlCommand("DELETE FROM tasks WHERE user_id=@userId AND set_off=@setOff AND set_at=@setAt AND task_type=@taskType", _connection);
             removeTask.Parameters.Add(new NpgsqlParameter("userId", NpgsqlDbType.Bigint));
             removeTask.Parameters.Add(new NpgsqlParameter("setOff", NpgsqlDbType.Timestamp));
             removeTask.Parameters.Add(new NpgsqlParameter("setAt", NpgsqlDbType.Timestamp));
@@ -95,7 +95,7 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
             _preparedStatements.Add(statementType.RemoveTask, removeTask);
 
             _logger.Trace($"Preparing {statementType.SelectTask}...");
-            NpgsqlCommand selectTask = new NpgsqlCommand("SELECT tasks(task_type, guild_id, channel_id, user_id, set_off, set_at, content) FROM tasks WHERE user_id=@userId AND type=@taskType", _connection);
+            NpgsqlCommand selectTask = new NpgsqlCommand("SELECT task_type, guild_id, channel_id, user_id, set_off, set_at, content FROM tasks WHERE user_id=@userId AND task_type=@taskType", _connection);
             selectTask.Parameters.Add(new NpgsqlParameter("userId", NpgsqlDbType.Bigint));
             selectTask.Parameters.Add(new NpgsqlParameter("taskType", NpgsqlDbType.Smallint));
             selectTask.Prepare();
