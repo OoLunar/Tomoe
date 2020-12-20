@@ -26,7 +26,7 @@ dotnet run # First run might take a minute since it has to download dependencies
 1. Edit the config file `res/config.jsonc` to suit your needs
 2. Run the actual bot (how you do this is up to you but make sure that you have a volume from `./res` to `/Tomoe/res` inside the container)
 
-**The Docker image is `ghcr.io/oolunar/tomoe` **
+**The Docker image is `ghcr.io/oolunar/tomoe`**
 
 # Tomoe, The Discord Moderation Bot
 
@@ -60,7 +60,7 @@ While also being able to do the following public commands:
 | Support | >>support | Sends the link to the support guild. |
 | Tags | >>tag | A full tag system. See `>>help tag` for a more indepth list. |
 
-Some might have noticed that all commands are snake case. This is best for simplicity and consistancy.
+Some might have noticed that all commands are snake_case and PascalCase. This is best for simplicity and consistancy.
 
 ## Anything notable about Tomoe?
 
