@@ -18,7 +18,7 @@ namespace Tomoe.Commands.Moderation {
         public async Task UnbanUser(CommandContext context, [Description(_VICTIM_DESC)] DiscordUser victim, [Description(_UNBAN_REASON), RemainingText] string unbanReason = Program.MissingReason) {
             var guildBans = await context.Guild.GetBansAsync();
             if (guildBans.Count == 0 || guildBans.Any(discordBan => discordBan.User != victim)) {
-                Program.SendMessage(context, $"\"{victim.Username}#{victim.Discriminator}\" ({victim.Id}) isn't banned!");
+                Program.SendMessage(context, $"\"{victim.Mention} isn't banned!");
                 return;
             }
             try {
@@ -26,10 +26,10 @@ namespace Tomoe.Commands.Moderation {
                 DiscordMember guildVictim = await context.Guild.GetMemberAsync(victim.Id);
                 await (await guildVictim.CreateDmChannelAsync()).SendMessageAsync($"You've been unbanned by **{context.User.Mention}** from **{context.Guild.Name}**. Reason:\n```{unbanReason.Filter(context) ?? Program.MissingReason}```");
             } catch (NotFoundException) {
-                Program.SendMessage(context, $"Failed to message them because they aren't in the guild anymore, but they have been unbanned. Reason:\n```{unbanReason.Filter(context) ?? Program.MissingReason}```", (ExtensionMethods.FilteringAction.RoleMentions | ExtensionMethods.FilteringAction.CodeBlocksIgnore));
+                Program.SendMessage(context, $"Failed to message them, but {victim.Mention} has been unbanned. Reason:\n```{unbanReason.Filter(context) ?? Program.MissingReason}```", ExtensionMethods.FilteringAction.CodeBlocksIgnore, new System.Collections.Generic.List<IMention>() { new UserMention(victim.Id) });
                 return;
             }
-            Program.SendMessage(context, $"{victim.Mention} has been unbanned. Reason:\n```{unbanReason.Filter(context) ?? Program.MissingReason}```");
+            Program.SendMessage(context, $"{victim.Mention} has been unbanned. Reason:\n```{unbanReason.Filter(context) ?? Program.MissingReason}```", ExtensionMethods.FilteringAction.CodeBlocksIgnore, new System.Collections.Generic.List<IMention>() { new UserMention(victim.Id) });
         }
     }
 }

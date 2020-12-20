@@ -24,7 +24,7 @@ namespace Tomoe.Utils {
         public static LogLevel NpgsqlLogLevel;
 
         [JsonProperty("database")]
-        public static Driver Database;
+        public static DatabaseLoader Database;
 
         [JsonProperty("repository_link")]
         public static string RepositoryLink;

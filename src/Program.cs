@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using DSharpPlus;
@@ -18,10 +19,11 @@ namespace Tomoe {
         public const string NotAGuild = "**[Denied: Guild command.]**";
         public const string SelfAction = "**[Denied: Cannot execute on myself.]**";
         public const string Hierarchy = "**[Denied: Prevented by hierarchy.]**";
-        public static Driver Database = new Driver();
+        public static DatabaseLoader Database = new DatabaseLoader();
+        public static DiscordClient Client;
         private static Logger _logger = new Logger("Main");
 
-        public static void Main(string[] args) => new Program().MainAsync().GetAwaiter().GetResult();
+        public static void Main(string[] args) => new Program().MainAsync().ConfigureAwait(false).GetAwaiter().GetResult();
 
         public async Task MainAsync() {
             Config.Init();
@@ -36,37 +38,43 @@ namespace Tomoe {
                 LoggerFactory = loggerProvider,
             };
 
-            DiscordClient client = new DiscordClient(discordConfiguration);
+            Client = new DiscordClient(discordConfiguration);
 
-            client.UseInteractivity(new InteractivityConfiguration {
+            Client.UseInteractivity(new InteractivityConfiguration {
                 // default pagination behaviour to just ignore the reactions
                 PaginationBehaviour = PaginationBehaviour.WrapAround,
                     // default timeout for other actions to 2 minutes
                     Timeout = TimeSpan.FromMinutes(2)
             });
 
-            client.MessageReactionAdded += Tomoe.Commands.Listeners.ReactionAdded.Handler;
-            client.Ready += Tomoe.Utils.Events.OnReady;
-            new CommandService(client);
+            Client.MessageReactionAdded += Tomoe.Commands.Listeners.ReactionAdded.Handler;
+            Client.Ready += Tomoe.Utils.Events.OnReady;
+            new CommandService(Client);
 
-            await client.ConnectAsync();
+            await Client.ConnectAsync();
+            _logger.Info("Starting routines...");
+            Tomoe.Commands.Public.Reminders.StartRoutine();
             _logger.Info("Started.");
             await Task.Delay(-1);
         }
 
-        public static DiscordMessage SendMessage(CommandContext context, string content, ExtensionMethods.FilteringAction filteringAction = (ExtensionMethods.FilteringAction.CodeBlocksEscape | ExtensionMethods.FilteringAction.AllMentions)) {
+        public static DiscordMessage SendMessage(dynamic context, string content, ExtensionMethods.FilteringAction filteringAction = ExtensionMethods.FilteringAction.CodeBlocksEscape, List<IMention> mentionList = null) {
+            if (mentionList == null) mentionList = new List<IMention>();
+            mentionList.Add(new UserMention(context.User.Id));
             try {
-                return context.RespondAsync($"{context.User.Mention}: {ExtensionMethods.Filter(content, context, filteringAction)}").GetAwaiter().GetResult();
+                return context.RespondAsync($"{context.User.Mention}: {ExtensionMethods.Filter(content, context, filteringAction)}", false, null, mentionList as IEnumerable<IMention>).ConfigureAwait(false).GetAwaiter().GetResult();
             } catch (DSharpPlus.Exceptions.UnauthorizedException) {
-                return (context.Member.CreateDmChannelAsync().GetAwaiter().GetResult()).SendMessageAsync($"Responding to <{context.Message.JumpLink}>: {ExtensionMethods.Filter(content, context, filteringAction)}").GetAwaiter().GetResult();
+                return (context.Member.CreateDmChannelAsync().ConfigureAwait(false).GetAwaiter().GetResult()).SendMessageAsync($"Responding to <{context.Message.JumpLink}>: {ExtensionMethods.Filter(content, context, filteringAction)}").ConfigureAwait(false).GetAwaiter().GetResult();
             }
         }
 
-        public static DiscordMessage SendMessage(CommandContext context, DiscordEmbed embed) {
+        public static DiscordMessage SendMessage(dynamic context, DiscordEmbed embed, List<IMention> mentionList = null) {
+            if (mentionList == null) mentionList = new List<IMention>();
+            mentionList.Add(new UserMention(context.User.Id));
             try {
-                return context.RespondAsync($"{context.User.Mention}: ", false, embed).GetAwaiter().GetResult();
+                return context.RespondAsync($"{context.User.Mention}: ", false, embed, mentionList as IEnumerable<IMention>).ConfigureAwait(false).GetAwaiter().GetResult();
             } catch (DSharpPlus.Exceptions.UnauthorizedException) {
-                return (context.Member.CreateDmChannelAsync().GetAwaiter().GetResult()).SendMessageAsync($"Responding to <{context.Message.JumpLink}>: ", false, embed).GetAwaiter().GetResult();
+                return (context.Member.CreateDmChannelAsync().ConfigureAwait(false).GetAwaiter().GetResult()).SendMessageAsync($"Responding to <{context.Message.JumpLink}>: ", false, embed).ConfigureAwait(false).GetAwaiter().GetResult();
             }
         }
     }
@@ -96,35 +104,12 @@ namespace Tomoe {
         public enum FilteringAction {
             CodeBlocksIgnore = 1,
             CodeBlocksEscape = 2,
-            CodeBlocksZeroWidthSpace = 4,
-            UserMentions = 8,
-            RoleMentions = 16,
-            AllMentions = 32,
-            IgnoreAll = 64,
-            FilterAll = 128
+            CodeBlocksZeroWidthSpace = 4
         }
 
-        public static string Filter(this string modifyString, CommandContext context, FilteringAction filteringAction = FilteringAction.FilterAll) {
+        public static string Filter(this string modifyString, dynamic context, FilteringAction filteringAction = FilteringAction.CodeBlocksEscape) {
             if (string.IsNullOrEmpty(modifyString)) return null;
-            if (filteringAction.HasFlag(FilteringAction.UserMentions) || filteringAction.HasFlag(FilteringAction.FilterAll) || filteringAction.HasFlag(FilteringAction.AllMentions))
-                while (Regex.IsMatch(modifyString, @"<@!?(\d+)>", RegexOptions.Multiline)) {
-                    // Replaces all mentions with ID's
-                    string mentionNickID = Regex.Match(modifyString, @"<@!?(\d+)>", RegexOptions.Multiline).Groups[1].Value;
-                    if (!string.IsNullOrEmpty(mentionNickID)) {
-                        mentionNickID = $"`<\0@{mentionNickID}>` (User {context.Guild.GetMemberAsync(ulong.Parse(mentionNickID)).GetAwaiter().GetResult().GetCommonName()})";
-                        modifyString = Regex.Replace(modifyString, @"<@!?\d+>", mentionNickID);
-                    }
-                }
-            if (filteringAction.HasFlag(FilteringAction.RoleMentions) || filteringAction.HasFlag(FilteringAction.FilterAll) || filteringAction.HasFlag(FilteringAction.AllMentions))
-                while (Regex.IsMatch(modifyString, @"<@&(\d+)>", RegexOptions.Multiline) || modifyString.Contains("@everyone") || modifyString.Contains("@here")) {
-                    string roleID = Regex.Match(modifyString, @"<@&(\d+)>", RegexOptions.Multiline).Groups[1].Value;
-                    if (!string.IsNullOrEmpty(roleID)) {
-                        roleID = $"`<\0@\0&{roleID}>` (Role {context.Guild.GetRole(ulong.Parse(roleID)).Name})";
-                        modifyString = Regex.Replace(modifyString, @"<@&\d+>", roleID);
-                    }
-                    modifyString = modifyString.Replace("@everyone", $"`<\0@\0&{context.Guild.Id}>` (Failed everyone attempt)").Replace("@here", $"`<\0@\0&{context.Guild.Id}>` (Failed here attempt)");
-                }
-            if (filteringAction.HasFlag(FilteringAction.CodeBlocksZeroWidthSpace) || filteringAction.HasFlag(FilteringAction.FilterAll)) return modifyString.Replace("`", "​`​"); // There are zero width spaces before and after the backtick.
+            if (filteringAction.HasFlag(FilteringAction.CodeBlocksZeroWidthSpace) || filteringAction.HasFlag(FilteringAction.CodeBlocksEscape)) return modifyString.Replace("`", "​`​"); // There are zero width spaces before and after the backtick.
             else if (filteringAction.HasFlag(FilteringAction.CodeBlocksEscape)) return modifyString.Replace("\\", "\\\\").Replace("`", "\\`");
             else return modifyString;
         }

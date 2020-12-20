@@ -2,7 +2,6 @@ using System.Threading.Tasks;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
-using static Tomoe.ExtensionMethods;
 
 namespace Tomoe.Commands.Public {
     public class Raw : BaseCommandModule {
@@ -12,6 +11,6 @@ namespace Tomoe.Commands.Public {
 
         [Command(_COMMAND_NAME), Description(_COMMAND_DESC)]
         [Aliases("source")]
-        public async Task Message(CommandContext context, [Description(_ARG_MESSAGE_DESC)] DiscordMessage message) => Program.SendMessage(context, $"\n{message.Content}", (FilteringAction.CodeBlocksEscape | FilteringAction.AllMentions));
+        public async Task Message(CommandContext context, [Description(_ARG_MESSAGE_DESC)] DiscordMessage message) => Program.SendMessage(context, $"\n{message.Content}");
     }
 }

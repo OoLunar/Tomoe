@@ -42,7 +42,7 @@ namespace Tomoe.Commands.Config {
                 ReactionAdded.QueueList.Add(createNewRole);
             } else {
                 Program.Database.Guild.MuteRole(context.Guild.Id, muteRole.Id);
-                DiscordMessage discordMessage = Program.SendMessage(context, "Setting role permissions for {muteRole.Mention}...");
+                DiscordMessage discordMessage = Program.SendMessage(context, $"Setting role permissions for {muteRole.Mention}...");
                 await fixMuteRolePermissions(context, muteRole);
                 discordMessage.ModifyAsync($"{muteRole.Mention} is now set as the mute role.");
             }

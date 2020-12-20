@@ -7,7 +7,7 @@ using Npgsql;
 using Tomoe.Utils;
 
 namespace Tomoe.Database {
-    public class Driver {
+    public class DatabaseLoader {
         private static Logger _logger = new Logger("Database/Driver/Setup");
         private delegate void delegateConstructor(string host, int port, string username, string password, string databaseName, SslMode sslMode);
 
@@ -38,7 +38,7 @@ namespace Tomoe.Database {
         private static SslMode SslMode { get; set; }
 
         [JsonConstructor]
-        public Driver(string selectedDriver, string host, int port, string username, string password, string databaseName, SslMode sslMode) {
+        public DatabaseLoader(string selectedDriver, string host, int port, string username, string password, string databaseName, SslMode sslMode) {
             SelectedDriver = selectedDriver;
             Host = host;
             Port = port;
@@ -48,7 +48,7 @@ namespace Tomoe.Database {
             SslMode = sslMode;
         }
 
-        public Driver() {
+        public DatabaseLoader() {
             bool foundDriver = false;
             _logger.Debug("Searching classes...");
             Type[] assembly = Assembly.GetEntryAssembly().GetTypes().Where(asm => asm.GetInterface(typeof(Interfaces.IDatabase).Name) != null).ToArray(); // Single out all classes that inherit Route

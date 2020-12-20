@@ -21,7 +21,7 @@ namespace Tomoe.Commands.Public {
         public async Task ByName(CommandContext context, [Description(_ARG_ROLENAME_DESC), RemainingText] string roleName) {
             DiscordRole roleInQuestion = null;
             // Check if it's the @everyone or @here roles.
-            if (roleName.ToLower() == "everyone" || roleName.ToLower() == "here") {
+            if (roleName.ToLower() == "everyone" || roleName.ToLower() == "@here") {
                 roleInQuestion = context.Guild.GetRole(context.Guild.Id);
             } else {
                 // Loop through all the other roles if it isn't

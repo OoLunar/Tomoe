@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
@@ -26,10 +27,10 @@ namespace Tomoe.Commands.Moderation {
                 (await guildVictim.CreateDmChannelAsync()).SendMessageAsync($"You've been kicked by **{context.User.Mention}** from **{context.Guild.Name}**. Reason:\n```{kickReason.Filter(context) ?? Program.MissingReason}```");
                 guildVictim.RemoveAsync(kickReason ?? Program.MissingReason);
             } catch (NotFoundException) {
-                Program.SendMessage(context, $"Failed to kick them because they aren't in the guild. Kick Reason:\n```{kickReason.Filter(context) ?? Program.MissingReason}```", (ExtensionMethods.FilteringAction.RoleMentions | ExtensionMethods.FilteringAction.CodeBlocksIgnore));
+                Program.SendMessage(context, $"Failed to kick them because they aren't in the guild. Kick Reason:\n```{kickReason.Filter(context) ?? Program.MissingReason}```", ExtensionMethods.FilteringAction.CodeBlocksIgnore, new System.Collections.Generic.List<IMention>() { new UserMention(victim.Id) });
                 return;
             }
-            Program.SendMessage(context, $"{victim.Mention} has been kicked. Reason:\n```{kickReason.Filter(context) ?? Program.MissingReason}```", (ExtensionMethods.FilteringAction.RoleMentions | ExtensionMethods.FilteringAction.CodeBlocksIgnore));
+            Program.SendMessage(context, $"{victim.Mention} has been kicked. Reason:\n```{kickReason.Filter(context) ?? Program.MissingReason}```", ExtensionMethods.FilteringAction.CodeBlocksIgnore, new System.Collections.Generic.List<IMention>() { new UserMention(victim.Id) });
         }
 
         [Command(_COMMAND_NAME), RequireGuild]
@@ -38,7 +39,7 @@ namespace Tomoe.Commands.Moderation {
         [Command(_COMMAND_NAME), RequireGuild]
         public async Task KickUsers(CommandContext context, [Description(_MASS_KICK_REASON)] string kickReason = Program.MissingReason, [Description(_MASS_VICTIM_DESC)] params DiscordUser[] victims) {
             foreach (DiscordUser victim in victims) KickUser(context, victim, kickReason);
-            Program.SendMessage(context, $"Successfully masskicked {string.Join<DiscordUser>(", ", victims)}", ExtensionMethods.FilteringAction.RoleMentions);
+            Program.SendMessage(context, $"Successfully masskicked {string.Join<DiscordUser>(", ", victims)}. Reason: ```\n{kickReason.Filter(context)}\n```", ExtensionMethods.FilteringAction.CodeBlocksIgnore, victims.Select(user => new UserMention(user.Id) as IMention).ToList());
         }
 
         [Command(_COMMAND_NAME), RequireGuild]

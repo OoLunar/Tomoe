@@ -28,9 +28,9 @@ namespace Tomoe.Utils {
             if (!(e.Exception is CommandNotFoundException) && !e.Handled) {
                 if (e.Exception is ChecksFailedException) {
                     ChecksFailedException error = e.Exception as ChecksFailedException;
-                    if (error.Context.Channel.IsPrivate) Program.SendMessage(e.Context, Program.NotAGuild);
-                    else if (error.FailedChecks.OfType<RequireUserPermissionsAttribute>() != null && e.Command.Module.ModuleType != typeof(Tomoe.Commands.Public.Tags)) Program.SendMessage(e.Context, Program.MissingPermissions);
-                } else if (e.Exception is System.NotImplementedException) Program.SendMessage(e.Context, $"{e.Command.Name} hasn't been implemented yet!");
+                    if (error.Context.Channel.IsPrivate) Program.SendMessage(e.Context, Program.NotAGuild, ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
+                    else if (error.FailedChecks.OfType<RequireUserPermissionsAttribute>() != null && e.Command.Module.ModuleType != typeof(Tomoe.Commands.Public.Tags)) Program.SendMessage(e.Context, Program.MissingPermissions, ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
+                } else if (e.Exception is System.NotImplementedException) Program.SendMessage(e.Context, $"{e.Command.Name} hasn't been implemented yet!", ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
                 else _logger.Error($"'{e.Command?.QualifiedName ?? "<unknown command>"}' errored: {e.Exception.GetType()}, {e.Exception.Message ?? "<no message>"}\n{e.Exception.StackTrace}");
             }
         }

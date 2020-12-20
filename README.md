@@ -7,7 +7,8 @@ If you wish to host Tomoe yourself, skip on down to prerequisites. If you just w
 Tomoe uses dotnet 5.0. You can get it from [Microsoft](https://dotnet.microsoft.com/download/dotnet/5.0) or the [Mono Project](https://www.mono-project.com/download/stable/). I am currently developing Tomoe with the Microsoft link, Visual Studio Code, and [Windows Terminal](https://www.microsoft.com/en-us/p/windows-terminal/9n0dx20hk701). Tomoe works on Windows 10 Home and Ubuntu 20.04/20.10. Hopefully I can test on mac soon. While everything should theoretically work, there are no promises. If anything isn't working correctly, please open an issue and let me know.
 
 ## Setup
-- Run a PostgreSQL instance that is reachable by the bot
+
+* Run a PostgreSQL instance that is reachable by the bot
 
 ``` bash
 git clone https://github.com/OoLunar/Tomoe.git
@@ -21,10 +22,11 @@ dotnet run # First run might take a minute since it has to download dependencies
 ```
 
 ### Docker
+
 1. Edit the config file `res/config.jsonc` to suit your needs
 2. Run the actual bot (how you do this is up to you but make sure that you have a volume from `./res` to `/Tomoe/res` inside the container)
 
-**The Docker image is `ghcr.io/oolunar/tomoe`**
+**The Docker image is `ghcr.io/oolunar/tomoe` **
 
 # Tomoe, The Discord Moderation Bot
 
@@ -86,8 +88,7 @@ As mentioned previously, Tomoe aims to be the #1 bot choice for Discord Moderati
 | perm_no_meme | :x: |
 | perm_no_vc | :x: |
 | report | :x: |
-| remind | :x: |
-| reminders | :x: |
+| remind | :heavy_check_mark: |
 | flip | :heavy_check_mark: |
 | invite | :heavy_check_mark: |
 | profile_picture | :heavy_check_mark: |
