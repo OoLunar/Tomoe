@@ -24,13 +24,13 @@ namespace Tomoe.Commands.Moderation {
             }
             try {
                 DiscordMember guildVictim = await context.Guild.GetMemberAsync(victim.Id);
-                (await guildVictim.CreateDmChannelAsync()).SendMessageAsync($"You've been kicked by **{context.User.Mention}** from **{context.Guild.Name}**. Reason:\n```{kickReason.Filter(context) ?? Program.MissingReason}```");
+                (await guildVictim.CreateDmChannelAsync()).SendMessageAsync($"You've been kicked by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: ```\n{kickReason.Filter(context) ?? Program.MissingReason}\n```");
                 guildVictim.RemoveAsync(kickReason ?? Program.MissingReason);
             } catch (NotFoundException) {
-                Program.SendMessage(context, $"Failed to kick them because they aren't in the guild. Kick Reason:\n```{kickReason.Filter(context) ?? Program.MissingReason}```", ExtensionMethods.FilteringAction.CodeBlocksIgnore, new System.Collections.Generic.List<IMention>() { new UserMention(victim.Id) });
+                Program.SendMessage(context, $"Failed to kick {victim.Mention} since they aren't in the guild. Kick Reason:\n```{kickReason.Filter(context) ?? Program.MissingReason}```", ExtensionMethods.FilteringAction.CodeBlocksIgnore, new System.Collections.Generic.List<IMention>() { new UserMention(victim.Id) });
                 return;
             }
-            Program.SendMessage(context, $"{victim.Mention} has been kicked. Reason:\n```{kickReason.Filter(context) ?? Program.MissingReason}```", ExtensionMethods.FilteringAction.CodeBlocksIgnore, new System.Collections.Generic.List<IMention>() { new UserMention(victim.Id) });
+            Program.SendMessage(context, $"{victim.Mention} has been kicked. Reason: ```\n{kickReason.Filter(context) ?? Program.MissingReason}\n```", ExtensionMethods.FilteringAction.CodeBlocksIgnore, new System.Collections.Generic.List<IMention>() { new UserMention(victim.Id) });
         }
 
         [Command(_COMMAND_NAME), RequireGuild]

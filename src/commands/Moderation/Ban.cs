@@ -31,14 +31,14 @@ namespace Tomoe.Commands.Moderation {
                     Program.SendMessage(context, Program.Hierarchy);
                     return;
                 }
-                (await guildVictim.CreateDmChannelAsync()).SendMessageAsync($"You've been banned by **{context.User.Mention}** from **{context.Guild.Name}**. Reason:\n```{banReason.Filter(context) ?? Program.MissingReason}```");
+                (await guildVictim.CreateDmChannelAsync()).SendMessageAsync($"You've been banned by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: ```\n{banReason.Filter(context) ?? Program.MissingReason}\n```");
                 await context.Guild.BanMemberAsync(victim.Id, pruneDays, banReason ?? Program.MissingReason);
             } catch (NotFoundException) {
                 await context.Guild.BanMemberAsync(victim.Id, pruneDays, banReason ?? Program.MissingReason);
-                Program.SendMessage(context, $"Failed to message {victim.Mention} because they aren't in the guild anymore, but they have been banned. Reason:\n```{banReason.Filter(context, ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace) ?? Program.MissingReason}```", ExtensionMethods.FilteringAction.CodeBlocksIgnore, new System.Collections.Generic.List<IMention>() { new UserMention(victim.Id) });
+                Program.SendMessage(context, $"Failed to message {victim.Mention}, but they have been banned. Reason: ```\n{banReason.Filter(context, ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace) ?? Program.MissingReason}\n```", ExtensionMethods.FilteringAction.CodeBlocksIgnore, new System.Collections.Generic.List<IMention>() { new UserMention(victim.Id) });
                 return;
             }
-            Program.SendMessage(context, $"{victim.Mention} has been permanently banned. Reason:\n```{banReason.Filter(context, ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace) ?? Program.MissingReason}```", ExtensionMethods.FilteringAction.CodeBlocksIgnore, new System.Collections.Generic.List<IMention>() { new UserMention(victim.Id) });
+            Program.SendMessage(context, $"{victim.Mention} has been permanently banned. Reason: ```\n{banReason.Filter(context, ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace) ?? Program.MissingReason}```\n", ExtensionMethods.FilteringAction.CodeBlocksIgnore, new System.Collections.Generic.List<IMention>() { new UserMention(victim.Id) });
         }
 
         [Command(_COMMAND_NAME), RequireGuild]
@@ -50,7 +50,7 @@ namespace Tomoe.Commands.Moderation {
         [Command(_COMMAND_NAME), RequireGuild]
         public async Task BanUsers(CommandContext context, [Description(_PURGED_DESC)] int pruneDays = 7, [Description(_MASS_BAN_REASON)] string banReason = Program.MissingReason, [Description(_MASS_VICTIM_DESC)] params DiscordUser[] victims) {
             foreach (DiscordUser victim in victims) BanUser(context, victim, pruneDays, banReason);
-            Program.SendMessage(context, $"Successfully massbanned {string.Join<DiscordUser>(", ", victims)}. Reason:\n```\n{banReason.Filter(context)}\n```", ExtensionMethods.FilteringAction.CodeBlocksIgnore, victims.Select(user => new UserMention(user.Id) as IMention).ToList());
+            Program.SendMessage(context, $"Successfully massbanned {string.Join<DiscordUser>(", ", victims)}. Reason: ```\n{banReason.Filter(context)}\n```", ExtensionMethods.FilteringAction.CodeBlocksIgnore, victims.Select(user => new UserMention(user.Id) as IMention).ToList());
         }
 
         [Command(_COMMAND_NAME), RequireGuild]

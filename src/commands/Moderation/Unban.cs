@@ -18,18 +18,18 @@ namespace Tomoe.Commands.Moderation {
         public async Task UnbanUser(CommandContext context, [Description(_VICTIM_DESC)] DiscordUser victim, [Description(_UNBAN_REASON), RemainingText] string unbanReason = Program.MissingReason) {
             var guildBans = await context.Guild.GetBansAsync();
             if (guildBans.Count == 0 || guildBans.Any(discordBan => discordBan.User != victim)) {
-                Program.SendMessage(context, $"\"{victim.Mention} isn't banned!");
+                Program.SendMessage(context, $"{victim.Mention} isn't banned!");
                 return;
             }
             try {
                 context.Guild.UnbanMemberAsync(victim, unbanReason ?? Program.MissingReason);
                 DiscordMember guildVictim = await context.Guild.GetMemberAsync(victim.Id);
-                await (await guildVictim.CreateDmChannelAsync()).SendMessageAsync($"You've been unbanned by **{context.User.Mention}** from **{context.Guild.Name}**. Reason:\n```{unbanReason.Filter(context) ?? Program.MissingReason}```");
+                await (await guildVictim.CreateDmChannelAsync()).SendMessageAsync($"You've been unbanned by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: ```\n{unbanReason.Filter(context) ?? Program.MissingReason}\n```");
             } catch (NotFoundException) {
-                Program.SendMessage(context, $"Failed to message them, but {victim.Mention} has been unbanned. Reason:\n```{unbanReason.Filter(context) ?? Program.MissingReason}```", ExtensionMethods.FilteringAction.CodeBlocksIgnore, new System.Collections.Generic.List<IMention>() { new UserMention(victim.Id) });
+                Program.SendMessage(context, $"Failed to message {victim.Mention}, howevery they were unbanned. Reason: ```\n{unbanReason.Filter(context) ?? Program.MissingReason}\n```", ExtensionMethods.FilteringAction.CodeBlocksIgnore, new System.Collections.Generic.List<IMention>() { new UserMention(victim.Id) });
                 return;
             }
-            Program.SendMessage(context, $"{victim.Mention} has been unbanned. Reason:\n```{unbanReason.Filter(context) ?? Program.MissingReason}```", ExtensionMethods.FilteringAction.CodeBlocksIgnore, new System.Collections.Generic.List<IMention>() { new UserMention(victim.Id) });
+            Program.SendMessage(context, $"{victim.Mention} has been unbanned. Reason: ```\n{unbanReason.Filter(context) ?? Program.MissingReason}\n```", ExtensionMethods.FilteringAction.CodeBlocksIgnore, new System.Collections.Generic.List<IMention>() { new UserMention(victim.Id) });
         }
     }
 }
