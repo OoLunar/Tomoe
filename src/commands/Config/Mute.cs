@@ -30,11 +30,11 @@ namespace Tomoe.Commands.Config {
                     if (emoji == thumbsUp) {
                         Program.Database.Guild.MuteRole(context.Guild.Id, muteRole.Id);
                         _logger.Trace($"Set {muteRole.Name} ({muteRole.Id}) as mute role for {context.Guild.Name} ({context.Guild.Id})!");
-                        fixMuteRolePermissions(context, muteRole);
+                        fixMuteRolePermissions(context.Guild, muteRole);
                         Program.SendMessage(context, $"{muteRole.Mention} is now set as the mute role.");
                     } else if (emoji == thumbsDown) {
                         _logger.Trace($"Set previous mute role {previousMuteRole.Name} ({previousMuteRole.Id}) as mute role for {context.Guild.Name} ({context.Guild.Id})!");
-                        fixMuteRolePermissions(context, previousMuteRole);
+                        fixMuteRolePermissions(context.Guild, previousMuteRole);
                         Program.SendMessage(context, $"{previousMuteRole.Mention} is now set as the mute role.");
                     }
                 });
@@ -45,7 +45,7 @@ namespace Tomoe.Commands.Config {
             } else {
                 Program.Database.Guild.MuteRole(context.Guild.Id, muteRole.Id);
                 DiscordMessage discordMessage = Program.SendMessage(context, $"Setting role permissions for {muteRole.Mention}...");
-                await fixMuteRolePermissions(context, muteRole);
+                await fixMuteRolePermissions(context.Guild, muteRole);
                 discordMessage.ModifyAsync($"{muteRole.Mention} is now set as the mute role.");
             }
         }
@@ -88,24 +88,24 @@ namespace Tomoe.Commands.Config {
             DiscordRole muteRole = await context.Guild.CreateRoleAsync("Muted", Permissions.None, DiscordColor.Gray, false, false, "Allows users to be muted.");
             _logger.Trace($"Created mute role '{muteRole.Name}' ({muteRole.Id}) for {context.Guild.Name} ({context.Guild.Id})!");
             message.ModifyAsync($"{context.User.Mention}: Overriding channel permissions...", null, new List<IMention>() { new UserMention(context.User.Id) });
-            await fixMuteRolePermissions(context, muteRole);
+            await fixMuteRolePermissions(context.Guild, muteRole);
             Program.Database.Guild.MuteRole(context.Guild.Id, muteRole.Id);
             await message.ModifyAsync($"{context.User.Mention}: Done! Mute role is now {muteRole.Mention}", null, new List<IMention>() { new UserMention(context.User.Id) });
         }
 
-        public static Task fixMuteRolePermissions(CommandContext context, DiscordRole muteRole) {
-            foreach (DiscordChannel channel in context.Guild.Channels.Values) {
+        public static Task fixMuteRolePermissions(DiscordGuild guild, DiscordRole muteRole) {
+            foreach (DiscordChannel channel in guild.Channels.Values) {
                 switch (channel.Type) {
                     case ChannelType.Text:
-                        _logger.Trace($"Overwriting permission {Permissions.SendMessages.ToString()} and {Permissions.AddReactions} for mute role {muteRole.Name} ({muteRole.Id}) on {channel.Type.ToString()} channel {channel.Name} ({channel.Id}) for {context.Guild.Name} ({context.Guild.Id})...");
+                        _logger.Trace($"Overwriting permission {Permissions.SendMessages.ToString()} and {Permissions.AddReactions} for mute role {muteRole.Name} ({muteRole.Id}) on {channel.Type.ToString()} channel {channel.Name} ({channel.Id}) for {guild.Name} ({guild.Id})...");
                         channel.AddOverwriteAsync(muteRole, Permissions.None, Permissions.SendMessages | Permissions.AddReactions, "Disallows users to send messages/communicate through reactions.").ConfigureAwait(false).GetAwaiter();
                         break;
                     case ChannelType.Voice:
-                        _logger.Trace($"Overwriting permission {Permissions.Speak.ToString()} and {Permissions.Stream.ToString()} for mute role {muteRole.Name} ({muteRole.Id}) on {channel.Type.ToString()} channel {channel.Name} ({channel.Id}) for {context.Guild.Name} ({context.Guild.Id})...").ConfigureAwait(false).GetAwaiter();
+                        _logger.Trace($"Overwriting permission {Permissions.Speak.ToString()} and {Permissions.Stream.ToString()} for mute role {muteRole.Name} ({muteRole.Id}) on {channel.Type.ToString()} channel {channel.Name} ({channel.Id}) for {guild.Name} ({guild.Id})...").ConfigureAwait(false).GetAwaiter();
                         channel.AddOverwriteAsync(muteRole, Permissions.None, Permissions.Speak | Permissions.Stream, "Disallows users to communicate in voice channels and through streams.");
                         break;
                     case ChannelType.Category:
-                        _logger.Trace($"Overwriting permission {Permissions.SendMessages}, {Permissions.AddReactions}, {Permissions.Speak.ToString()} and {Permissions.Stream.ToString()} for mute role {muteRole.Name} ({muteRole.Id}) on {channel.Type.ToString()} channel {channel.Name} ({channel.Id}) for {context.Guild.Name} ({context.Guild.Id})...").ConfigureAwait(false).GetAwaiter();
+                        _logger.Trace($"Overwriting permission {Permissions.SendMessages}, {Permissions.AddReactions}, {Permissions.Speak.ToString()} and {Permissions.Stream.ToString()} for mute role {muteRole.Name} ({muteRole.Id}) on {channel.Type.ToString()} channel {channel.Name} ({channel.Id}) for {guild.Name} ({guild.Id})...").ConfigureAwait(false).GetAwaiter();
                         channel.AddOverwriteAsync(muteRole, Permissions.None, Permissions.SendMessages | Permissions.AddReactions | Permissions.Speak | Permissions.Stream, "Disallows users to send messages/communicate through reactions/voice channels and through streams.");
                         break;
                 }

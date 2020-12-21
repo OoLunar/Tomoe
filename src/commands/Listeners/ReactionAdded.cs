@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Entities;
+using DSharpPlus.EventArgs;
 using Tomoe.Utils;
 
 namespace Tomoe.Commands.Listeners {
@@ -19,7 +20,7 @@ namespace Tomoe.Commands.Listeners {
             public ReactionHandler Action { get; set; }
         }
 
-        public static async Task Handler(DiscordClient client, DSharpPlus.EventArgs.MessageReactionAddEventArgs eventArgs) {
+        public static async Task Handler(DiscordClient client, MessageReactionAddEventArgs eventArgs) {
             _logger.Trace($"Reaction recieved: {eventArgs.Emoji}");
             foreach (Queue queue in QueueList) {
                 if (queue.User == eventArgs.User && queue.Emojis.Contains(eventArgs.Emoji) && eventArgs.Message.Id == queue.MessageId) {
