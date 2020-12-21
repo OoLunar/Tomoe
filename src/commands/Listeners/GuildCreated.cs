@@ -14,7 +14,7 @@ namespace Tomoe.Commands.Listeners {
                         await Commands.Config.Mute.fixMuteRolePermissions(eventArgs.Guild, muteRole);
                     }
                 }
-            }
+            } else Program.Database.Guild.InsertGuildId(eventArgs.Guild.Id);
         }
     }
 }
