@@ -19,6 +19,7 @@ namespace Tomoe {
         public const string NotAGuild = "**[Denied: Guild command.]**";
         public const string SelfAction = "**[Denied: Cannot execute on myself.]**";
         public const string Hierarchy = "**[Denied: Prevented by hierarchy.]**";
+        public const string MissingMuteRole = "**[Error: No mute role has been set!]**";
         public static DatabaseLoader Database = new DatabaseLoader();
         public static DiscordClient Client;
         private static Logger _logger = new Logger("Main");

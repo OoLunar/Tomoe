@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
@@ -6,6 +7,7 @@ using DSharpPlus.Entities;
 using Tomoe.Commands.Listeners;
 using Tomoe.Utils;
 
+//TODO: Rewrite this abomination when you're not running on 30 minutes of sleep.
 namespace Tomoe.Commands.Config {
     [Group("config")]
     public class Mute : BaseCommandModule {
@@ -18,13 +20,13 @@ namespace Tomoe.Commands.Config {
             ulong? previousMuteRoleId = Program.Database.Guild.MuteRole(context.Guild.Id);
             if (previousMuteRoleId.HasValue) {
                 DiscordRole previousMuteRole = context.Guild.GetRole(previousMuteRoleId.Value);
-                DiscordEmoji thumbsUp = DiscordEmoji.FromName(context.Client, "thumbsup");
-                DiscordEmoji thumbsDown = DiscordEmoji.FromName(context.Client, "thumbsdown");
+                DiscordEmoji thumbsUp = DiscordEmoji.FromUnicode(context.Client, "👍");
+                DiscordEmoji thumbsDown = DiscordEmoji.FromUnicode(context.Client, "👎");
                 ReactionAdded.Queue createNewRole = new ReactionAdded.Queue();
                 createNewRole.MessageId = context.Message.Id;
                 createNewRole.User = context.User;
                 createNewRole.Emojis = new DiscordEmoji[] { thumbsUp, thumbsDown };
-                createNewRole.Action = new ReactionAdded.ReactionHandler(emoji => {
+                createNewRole.Action = new ReactionAdded.ReactionHandler(async emoji => {
                     if (emoji == thumbsUp) {
                         Program.Database.Guild.MuteRole(context.Guild.Id, muteRole.Id);
                         _logger.Trace($"Set {muteRole.Name} ({muteRole.Id}) as mute role for {context.Guild.Name} ({context.Guild.Id})!");
@@ -53,12 +55,42 @@ namespace Tomoe.Commands.Config {
         [RequireBotPermissions(Permissions.ManageRoles)]
         [RequireGuild]
         public async Task SetupMute(CommandContext context) {
+            ulong? previousMuteRoleId = Program.Database.Guild.MuteRole(context.Guild.Id);
+            if (previousMuteRoleId.HasValue) {
+                DiscordRole previousMuteRole = context.Guild.GetRole(previousMuteRoleId.Value);
+                if (previousMuteRole == null) {
+                    await createMuteRole(context);
+                    return;
+                }
+                DiscordEmoji thumbsUp = DiscordEmoji.FromUnicode(context.Client, "👍");
+                DiscordEmoji thumbsDown = DiscordEmoji.FromUnicode(context.Client, "👎");
+                ReactionAdded.Queue createNewRole = new ReactionAdded.Queue();
+                createNewRole.User = context.User;
+                createNewRole.Emojis = new DiscordEmoji[] { thumbsUp, thumbsDown };
+                createNewRole.Action = new ReactionAdded.ReactionHandler(async emoji => {
+                    if (emoji == thumbsUp) {
+                        await createMuteRole(context);
+                    } else if (emoji == thumbsDown) {
+                        Program.SendMessage(context, $"Roles were left untouched.");
+                    }
+                });
+                DiscordMessage discordMessage = Program.SendMessage(context, $"Previous mute role was {previousMuteRole.Mention}. Do you want to overwrite it?");
+                createNewRole.MessageId = discordMessage.Id;
+                await discordMessage.CreateReactionAsync(thumbsUp);
+                await discordMessage.CreateReactionAsync(thumbsDown);
+                ReactionAdded.QueueList.Add(createNewRole);
+                return;
+            }
+        }
+
+        public static async Task createMuteRole(CommandContext context) {
             DiscordMessage message = Program.SendMessage(context, "Creating mute role...") as DiscordMessage;
             DiscordRole muteRole = await context.Guild.CreateRoleAsync("Muted", Permissions.None, DiscordColor.Gray, false, false, "Allows users to be muted.");
             _logger.Trace($"Created mute role '{muteRole.Name}' ({muteRole.Id}) for {context.Guild.Name} ({context.Guild.Id})!");
-            message.ModifyAsync($"{context.User.Mention}: Overriding channel permissions...");
+            message.ModifyAsync($"{context.User.Mention}: Overriding channel permissions...", null, new List<IMention>() { new UserMention(context.User.Id) });
             await fixMuteRolePermissions(context, muteRole);
-            message.ModifyAsync($"{context.User.Mention}: Done! Mute role is now {muteRole.Mention}");
+            Program.Database.Guild.MuteRole(context.Guild.Id, muteRole.Id);
+            await message.ModifyAsync($"{context.User.Mention}: Done! Mute role is now {muteRole.Mention}", null, new List<IMention>() { new UserMention(context.User.Id) });
         }
 
         public static Task fixMuteRolePermissions(CommandContext context, DiscordRole muteRole) {
