@@ -5,7 +5,7 @@ using DSharpPlus.EventArgs;
 
 namespace Tomoe.Commands.Listeners {
     public class GuildCreated {
-        public async Task Handler(DiscordClient client, GuildCreateEventArgs eventArgs) {
+        public static async Task Handler(DiscordClient client, GuildCreateEventArgs eventArgs) {
             if (Program.Database.Guild.GuildIdExists(eventArgs.Guild.Id)) {
                 ulong? muteRoleId = Program.Database.Guild.MuteRole(eventArgs.Guild.Id);
                 if (muteRoleId.HasValue) {

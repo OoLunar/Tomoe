@@ -11,7 +11,7 @@ namespace Tomoe.Commands.Moderation {
         [Description("Mutes a person permanently.")]
         [RequireBotPermissions(Permissions.ManageRoles)]
         [RequireUserPermissions(Permissions.ManageMessages)]
-        public async Task MutePermanently(CommandContext context, DiscordUser victim, [RemainingText] string muteReason = Program.MissingReason) {
+        public async Task Permanently(CommandContext context, DiscordUser victim, [RemainingText] string muteReason = Program.MissingReason) {
             if (victim == context.Client.CurrentUser) {
                 Program.SendMessage(context, Program.SelfAction);
                 return;
