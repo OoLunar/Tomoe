@@ -96,14 +96,14 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
             _preparedStatements.Add(statementType.Drop, drop);
 
             _logger.Trace($"Preparing {statementType.Edit}...");
-            NpgsqlCommand edit = new NpgsqlCommand("UPDATE strikes SET reason=array_append(reason, @newReason) WHERE id=@strikeId", _connection);
-            edit.Parameters.Add(new NpgsqlParameter("reason", NpgsqlDbType.Bigint));
+            NpgsqlCommand edit = new NpgsqlCommand("UPDATE strikes SET reason=array_append(reason, @reason) WHERE id=@strikeId", _connection);
+            edit.Parameters.Add(new NpgsqlParameter("reason", NpgsqlDbType.Varchar));
             edit.Parameters.Add(new NpgsqlParameter("strikeId", NpgsqlDbType.Integer));
             edit.Prepare();
             _preparedStatements.Add(statementType.Edit, edit);
 
             _logger.Trace($"Preparing {statementType.GetIssued}...");
-            NpgsqlCommand getIssued = new NpgsqlCommand("SELECT tasks(guild_id, victim_id, issuer_id, reason, jumplink, victim_messaged, dropped, created_at) FROM strikes WHERE guild_id=@guildId AND issuer_id=@issuerId", _connection);
+            NpgsqlCommand getIssued = new NpgsqlCommand("SELECT guild_id, victim_id, issuer_id, reason, jumplink, victim_messaged, dropped, created_at FROM strikes WHERE guild_id=@guildId AND issuer_id=@issuerId", _connection);
             getIssued.Parameters.Add(new NpgsqlParameter("guildId", NpgsqlDbType.Bigint));
             getIssued.Parameters.Add(new NpgsqlParameter("issuerId", NpgsqlDbType.Bigint));
             getIssued.Prepare();
