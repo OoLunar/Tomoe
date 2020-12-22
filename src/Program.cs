@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
@@ -21,7 +20,7 @@ namespace Tomoe {
         public const string Hierarchy = "**[Denied: Prevented by hierarchy.]**";
         public const string MissingMuteRole = "**[Error: No mute role has been set!]**";
         public static DatabaseLoader Database = new DatabaseLoader();
-        public static DiscordClient Client;
+        public static DiscordShardedClient Client;
         private static Logger _logger = new Logger("Main");
 
         public static void Main(string[] args) => new Program().MainAsync().ConfigureAwait(false).GetAwaiter().GetResult();
@@ -39,9 +38,9 @@ namespace Tomoe {
                 LoggerFactory = loggerProvider,
             };
 
-            Client = new DiscordClient(discordConfiguration);
+            Client = new DiscordShardedClient(discordConfiguration);
 
-            Client.UseInteractivity(new InteractivityConfiguration {
+            Client.UseInteractivityAsync(new InteractivityConfiguration {
                 // default pagination behaviour to just ignore the reactions
                 PaginationBehaviour = PaginationBehaviour.WrapAround,
                     // default timeout for other actions to 2 minutes
@@ -50,9 +49,9 @@ namespace Tomoe {
 
             Client.MessageReactionAdded += Tomoe.Commands.Listeners.ReactionAdded.Handler;
             Client.Ready += Tomoe.Utils.Events.OnReady;
-            new CommandService(Client);
+            await CommandService.Launch(Client);
 
-            await Client.ConnectAsync();
+            await Client.StartAsync();
             _logger.Info("Starting routines...");
             Tomoe.Commands.Public.Reminders.StartRoutine();
             _logger.Info("Started.");

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -10,20 +11,29 @@ using DSharpPlus.CommandsNext.Exceptions;
 // Go take a look at their project!
 namespace Tomoe.Utils {
     public class CommandService {
-        private Logger _logger = new Logger("CommandService");
-        public CommandService(DiscordClient discordClient) {
-            CommandsNextExtension commands = discordClient.UseCommandsNext(new CommandsNextConfiguration {
-                StringPrefixes = new [] { Config.Prefix },
-                    CaseSensitive = false,
-                    EnableMentionPrefix = true,
-                    EnableDms = true
-            });
-            commands.RegisterConverter(new ImageFormatConverter());
-            commands.RegisterCommands(Assembly.GetEntryAssembly());
-            commands.CommandErrored += commandErrored;
+        private static Logger _logger = new Logger("CommandService");
+        public static async Task Launch(DiscordShardedClient discordClient) {
+            while (true) {
+                try {
+                    IReadOnlyDictionary<int, DSharpPlus.CommandsNext.CommandsNextExtension> commandsCollection = await discordClient.UseCommandsNextAsync(new CommandsNextConfiguration {
+                        StringPrefixes = new [] { Config.Prefix },
+                            CaseSensitive = false,
+                            EnableMentionPrefix = true,
+                            EnableDms = true
+                    });
+                    foreach (CommandsNextExtension commands in commandsCollection.Values) {
+                        commands.RegisterConverter(new ImageFormatConverter());
+                        commands.RegisterCommands(Assembly.GetEntryAssembly());
+                        commands.CommandErrored += commandErrored;
+                    }
+                    break;
+                } catch (System.InvalidOperationException) {
+                    _logger.Error("Failed to initalize shards on CommandsNext. Trying again...");
+                }
+            }
         }
 
-        private async Task commandErrored(CommandsNextExtension _, CommandErrorEventArgs e) {
+        private static async Task commandErrored(CommandsNextExtension _, CommandErrorEventArgs e) {
             // No need to log when a command isn't found
             if (!(e.Exception is CommandNotFoundException) && !e.Handled) {
                 if (e.Exception is ChecksFailedException) {

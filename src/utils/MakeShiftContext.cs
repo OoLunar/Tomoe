@@ -11,13 +11,14 @@ namespace Tomoe.Utils {
         public DiscordMember Member;
         public DiscordUser User;
         public DiscordMessage Message;
-        public DiscordClient Client = Program.Client;
+        public DiscordShardedClient Client = Program.Client;
 
         public MakeShiftContext(ulong guildId, ulong channelId, ulong messageId, ulong userId) {
+            DiscordClient shard = Client.GetShard(guildId);
             _logger.Trace($"Getting user {userId}");
-            User = Client.GetUserAsync(userId).ConfigureAwait(false).GetAwaiter().GetResult();
+            User = shard.GetUserAsync(userId).ConfigureAwait(false).GetAwaiter().GetResult();
             _logger.Trace($"Getting guild {guildId}");
-            Guild = Client.GetGuildAsync(guildId).ConfigureAwait(false).GetAwaiter().GetResult();
+            Guild = shard.GetGuildAsync(guildId).ConfigureAwait(false).GetAwaiter().GetResult();
             _logger.Trace($"Getting channel {userId} from guild {guildId}");
             Channel = Guild.GetChannel(channelId);
             _logger.Trace($"Getting member {userId} from guild {guildId}");
