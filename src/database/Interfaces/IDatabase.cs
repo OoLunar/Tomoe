@@ -4,5 +4,6 @@ namespace Tomoe.Database.Interfaces {
         IGuild Guild { get; }
         ITags Tags { get; }
         ITasks Tasks { get; }
+        IStrikes Strikes { get; }
     }
 }

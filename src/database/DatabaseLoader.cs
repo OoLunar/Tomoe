@@ -15,6 +15,7 @@ namespace Tomoe.Database {
         public Interfaces.ITags Tags;
         public Interfaces.ITasks Tasks;
         public Interfaces.IUser User;
+        public Interfaces.IStrikes Strikes;
 
         [JsonProperty("driver")]
         private static string SelectedDriver { get; set; }
@@ -75,6 +76,7 @@ namespace Tomoe.Database {
                                 Tags = database.Tags;
                                 Tasks = database.Tasks;
                                 User = database.User;
+                                Strikes = database.Strikes;
                                 foundDriver = true;
                             }
                         } else _logger.Trace("Class name did not match the requested driver name.");

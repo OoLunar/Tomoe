@@ -7,7 +7,7 @@ using Tomoe.Database.Interfaces;
 using Tomoe.Utils;
 
 namespace Tomoe.Database.Drivers.PostgresSQL {
-    public class PostgresStrike : IStrikes {
+    public class PostgresStrikes : IStrikes {
         private static Logger _logger = new Logger("Database/PostgresSQL/Strike");
         private enum statementType {
             GetStrike,
@@ -66,7 +66,7 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
 
         private NpgsqlConnection _connection;
 
-        public PostgresStrike(string host, int port, string username, string password, string database_name, SslMode sslMode) {
+        public PostgresStrikes(string host, int port, string username, string password, string database_name, SslMode sslMode) {
             _connection = new NpgsqlConnection($"Host={host};Port={port};Username={username};Password={password};Database={database_name};SSL Mode={sslMode}");
             _logger.Info("Opening connection to database...");
             try {
@@ -128,9 +128,9 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
         public int Add(ulong guildId, ulong victimId, ulong issuerId, string reason, string jumpLink, bool victimMessaged) => (int) executeQuery(statementType.Add, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("victimId", (long) victimId), new NpgsqlParameter("issuerId", (long) issuerId), new NpgsqlParameter("reason", reason), new NpgsqlParameter("jumpLink", jumpLink), new NpgsqlParameter("victimMessaged", victimMessaged) }, true) [0][0];
         public void Drop(int strikeId) => executeQuery(statementType.Drop, new NpgsqlParameter("strikeId", strikeId));
         public void Edit(int strikeId, string reason) => executeQuery(statementType.Edit, new List<NpgsqlParameter>() { new NpgsqlParameter("strikeId", strikeId), new NpgsqlParameter("reason", reason) });
-        public Strike Get(int strikeId) {
+        public Strikes Get(int strikeId) {
             List<dynamic> queryResults = executeQuery(statementType.Edit, new NpgsqlParameter("strikeId", strikeId), true) [0];
-            Strike strike = new Strike();
+            Strikes strike = new Strikes();
             strike.GuildId = (ulong) queryResults[0];
             strike.VictimId = (ulong) queryResults[1];
             strike.IssuerId = (ulong) queryResults[2];
@@ -141,11 +141,11 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
             strike.CreatedAt = (DateTime) queryResults[7];
             return strike;
         }
-        public Strike[] GetVictim(ulong guildId, ulong victimId) {
+        public Strikes[] GetVictim(ulong guildId, ulong victimId) {
             Dictionary<int, List<dynamic>> queryResults = executeQuery(statementType.GetVictim, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("victimId", (long) victimId) }, true);
-            List<Strike> strikes = new List<Strike>();
+            List<Strikes> strikes = new List<Strikes>();
             foreach (List<dynamic> query in queryResults.Values) {
-                Strike strike = new Strike();
+                Strikes strike = new Strikes();
                 strike.GuildId = (ulong) query[0];
                 strike.VictimId = (ulong) query[1];
                 strike.IssuerId = (ulong) query[2];
@@ -158,11 +158,11 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
             }
             return strikes.ToArray();
         }
-        public Strike[] GetIssued(ulong guildId, ulong issuerId) {
+        public Strikes[] GetIssued(ulong guildId, ulong issuerId) {
             Dictionary<int, List<dynamic>> queryResults = executeQuery(statementType.GetIssued, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("issuerId", (long) issuerId) });
-            List<Strike> strikes = new List<Strike>();
+            List<Strikes> strikes = new List<Strikes>();
             foreach (List<dynamic> query in queryResults.Values) {
-                Strike strike = new Strike();
+                Strikes strike = new Strikes();
                 strike.GuildId = (ulong) query[0];
                 strike.VictimId = (ulong) query[1];
                 strike.IssuerId = (ulong) query[2];
