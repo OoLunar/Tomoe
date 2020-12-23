@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Text.Json;
 using System.Threading;
@@ -9,53 +10,44 @@ using Tomoe.Database;
 namespace Tomoe.Utils {
     public class Config {
         [JsonProperty("discord_api_token")]
-        public static string Token;
+        public static string Token = string.Empty;
 
         [JsonProperty("discord_bot_prefix")]
-        public static string Prefix;
+        public static string Prefix = ">>";
 
-        [JsonProperty("tomoe_log_level")]
-        public static LogLevel LogLevel;
-
-        [JsonProperty("discord_log_level")]
-        public static LogLevel DiscordLogLevel;
-
-        [JsonProperty("npgsql_log_level")]
-        public static LogLevel NpgsqlLogLevel;
+        [JsonProperty("logging")]
+        public static Logging Logging = new Logging();
 
         [JsonProperty("database")]
         public static DatabaseLoader Database;
 
         [JsonProperty("repository_link")]
-        public static string RepositoryLink;
+        public static string RepositoryLink = "https://github.com/OoLunar/Tomoe.git";
 
         [JsonProperty("auto_update")]
-        public static bool AutoUpdate;
+        public static bool AutoUpdate = true;
 
-        [JsonProperty("log_to_file")]
-        public static bool LogToFile;
-
-        private static string tokenFile = Path.Combine(FileSystem.ProjectRoot, "res/config.jsonc");
+        private static string _tokenFile = Path.Join(FileSystem.ProjectRoot, "res/config.jsonc");
         private static Logger _logger = new Logger("Config", LogLevel.Information);
 
         public static async Task Init() {
             _logger.Info("Starting...");
-            if (!File.Exists(Path.Join(FileSystem.ProjectRoot, "res/config.jsonc"))) {
-                Utils.FileSystem.CreateFile(tokenFile);
-                File.WriteAllText(tokenFile, "{\r\n\t/*Token to have your bot login to Discord.*/\r\n\t\"discord_api_token\": \"<insert Discord Token here>\",\r\n\t/*The default prefix when the bot joins.*/\r\n\t\"discord_bot_prefix\": \">>\",\r\n\t/* Options are:\r\n\t * - None\r\n\t * - Trace\r\n\t * - Debug\r\n\t * - Information\r\n\t * - Warn\r\n\t * - Error\r\n\t * - Critical\r\n\t */\r\n\t\"tomoe_log_level\": \"Information\",\r\n\t\"discord_log_level\": \"Information\",\r\n\t/*Ignored when database.driver is not set to PostgresSQL*/\r\n\t\"npgsql_log_level\": \"Information\",\r\n\t/*An HTTPS link to the git repository.*/\r\n\t\"repository_link\": \"https://github.com/OoLunar/Tomoe.git\",\r\n\t\"log_to_file\": true,\r\n\t/*Whether to auto-update using the git library*/\r\n\t\"auto_update\": true,\r\n\t/*Database details*/\r\n\t\"database\": {\r\n\t\t/*PostgresSQL database. More support will be added in the future.*/\r\n\t\t\"driver\": \"PostgresSQL\",\r\n\t\t/*The IP or hostname that the database is listening on.*/\r\n\t\t\"host\": \"<insert hostname>\",\r\n\t\t/*The port that the database is listening on.*/\r\n\t\t\"port\": 5432,\r\n\t\t/*The username used to login to the database.*/\r\n\t\t\"username\": \"tomoe_discord_bot\",\r\n\t\t/*An Postgres compliant password used to login. Must be Postgres compliant.*/\r\n\t\t\"password\": \"<insert postgres password>\",\r\n\t\t/*Database name.*/\r\n\t\t\"database_name\": \"tomoe\",\r\n\t\t/* Choose security levels. Options are:\r\n\t\t* - Require\r\n\t\t* - Prefer\r\n\t\t* - Disable\r\n\t\t* Defaults to Require.\r\n\t\t*/\r\n\t\t\"ssl_mode\": \"Require\"\r\n\t}\r\n}");
-                _logger.Critical($"'{tokenFile}' was created, which means that the Discord Bot Token and the PostgreSQL information will need to be filled out. All PostgreSQL information should be alphanumeric.");
-                System.Environment.Exit(1);
+            if (File.Exists(_tokenFile)) {
+                try {
+                    new Newtonsoft.Json.JsonSerializer().Deserialize<Config>(new JsonTextReader(new StreamReader(System.IO.File.OpenRead(_tokenFile))));
+                } catch (Newtonsoft.Json.JsonReaderException jsonException) {
+                    _logger.Critical($"Invalid JSONC on \"{_tokenFile}\". {jsonException.Message}");
+                } catch (Newtonsoft.Json.JsonSerializationException typeException) {
+                    _logger.Critical($"Error resolving config option on \"{_tokenFile}\" Make sure all the config options are valid. Error: {typeException.Message}");
+                }
+                Thread.Sleep(50);
+                if (Logging.SaveToFile && !Directory.Exists(Path.Join(FileSystem.ProjectRoot, "log/"))) FileSystem.CreateDirectory(Path.Join(FileSystem.ProjectRoot, "log/"));
+            } else {
+                FileSystem.CreateFile(_tokenFile);
+                File.WriteAllText(_tokenFile, "{\r\n    /*Token to have your bot login to Discord.*/\r\n    \"discord_api_token\": \"<insert Discord Token here>\",\r\n    /*The default prefix when the bot joins.*/\r\n    \"discord_bot_prefix\": \">>\",\r\n    /*An HTTPS link to the git repository.*/\r\n    \"repository_link\": \"https://github.com/OoLunar/Tomoe.git\",\r\n    /*Whether to auto-update using the git library*/\r\n    \"auto_update\": true,\r\n    \"logging\": {\r\n        /* Options are:\r\n\t     * - None\r\n\t     * - Trace\r\n\t     * - Debug\r\n\t     * - Information\r\n\t     * - Warn\r\n\t     * - Error\r\n\t     * - Critical\r\n        */\r\n        \"tomoe\": \"Information\",\r\n        \"discord\": \"Information\",\r\n        /*Ignored when database.driver is not set to PostgresSQL*/\r\n        \"npgsql\": \"Information\",\r\n        \"show_commands_id\": true,\r\n        \"save_to_file\": true\r\n    },\r\n    /*Database details*/\r\n    \"database\": {\r\n        /*PostgresSQL database. More support will be added in the future.*/\r\n        \"driver\": \"PostgresSQL\",\r\n        /*The IP or hostname that the database is listening on.*/\r\n        \"host\": \"<insert hostname>\",\r\n        /*The port that the database is listening on.*/\r\n        \"port\": 5432,\r\n        /*The username used to login to the database.*/\r\n        \"username\": \"tomoe_discord_bot\",\r\n        /*An Postgres compliant password used to login. Must be Postgres compliant.*/\r\n        \"password\": \"<insert password>\",\r\n        /*Database name.*/\r\n        \"database_name\": \"tomoe\",\r\n        /* Choose security levels. Options are:\r\n\t\t* - Require\r\n\t\t* - Prefer\r\n\t\t* - Disable\r\n\t\t* Defaults to Require.\r\n\t\t*/\r\n        \"ssl_mode\": \"Require\"\r\n    }\r\n}");
+                _logger.Critical($"\"{_tokenFile}\" was created, which means that the Discord Bot Token and the database driver information will need to be filled out.");
+                Environment.Exit(1);
             }
-
-            try {
-                new Newtonsoft.Json.JsonSerializer().Deserialize<Config>(new JsonTextReader(new StreamReader(System.IO.File.OpenRead(tokenFile))));
-            } catch (Newtonsoft.Json.JsonReaderException jsonException) {
-                _logger.Critical($"Invalid JSONC on '{tokenFile}'. {jsonException.Message}");
-            } catch (Newtonsoft.Json.JsonSerializationException typeException) {
-                _logger.Critical($"Error resolving config option on '{tokenFile}' Make sure all the config options are valid. Error: {typeException.Message}");
-            }
-            if (LogToFile && !Directory.Exists(Path.Join(FileSystem.ProjectRoot, "log/"))) FileSystem.CreateDirectory(Path.Join(FileSystem.ProjectRoot, "log/"));
-            Thread.Sleep(50);
         }
     }
 }

@@ -8,26 +8,28 @@ using Npgsql.Logging;
 
 namespace Tomoe.Utils {
     public class Logger : ILogger {
+        private static Random random = new Random();
 
         /// <summary>What to prefix the log content with.</summary>
         private readonly string _branchName;
+
         /// <summary>A per branch log level. Defaults to the config's log level.</summary>
         private readonly LogLevel _branchLogLevel;
-        /// <summary>The logger's logger. Ironic.</summary>
-        private static Logger _logger = new Logger("Logger");
 
         /// <summary>The log file.</summary>
         private static FileStream _logFile = new FileStream(Path.Join(FileSystem.ProjectRoot, $"log/{GetTime()}.log"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
+
+        private string guid = string.Empty;
 
         /// <summary>Unknown what this does. TODO: Implement this correctly.</summary>
         public IDisposable BeginScope<TState>(TState state) { throw new NotImplementedException(); }
 
         /// <summary>
-        /// Tests if a log level is enabled. Compares the <paramref name="logLevel">logLevel</paramref> with <see cref="Config.LogLevel">Config.LogLevel</see>.
+        /// Tests if a log level is enabled. Compares the <paramref name="logLevel">logLevel</paramref> with <see cref="Config.Logging.Tomoe">Config.Logging.Tomoe</see>.
         /// </summary>
         /// <param name="logLevel">What level to test if is activated.</param>
         /// <returns>true if <paramref name="logLevel">logLevel</paramref> is enabled, otherwise false.</returns>
-        public bool IsEnabled(LogLevel logLevel) => Config.LogLevel <= logLevel;
+        public bool IsEnabled(LogLevel logLevel) => Config.Logging.Tomoe <= logLevel;
 
         /// <summary>
         /// Logs stuff to console.
@@ -102,16 +104,20 @@ namespace Tomoe.Utils {
         /// <param name="branchName">The area of MCSharp that the logger is Logging.</param>
         public Logger(string branchName) {
             _branchName = branchName;
-            _branchLogLevel = Config.LogLevel;
+            _branchLogLevel = Config.Logging.Tomoe;
+            if (branchName.Contains("Commands"))
+                while (guid.Length < 4) guid += Convert.ToChar(Convert.ToInt32(Math.Floor(26 * random.NextDouble() + 65))).ToString();
         }
 
         public Logger(string branchName, LogLevel branchLogLevel) {
             _branchName = branchName;
             _branchLogLevel = branchLogLevel;
+            if (branchName.Contains("Commands"))
+                while (guid.Length < 4) guid += Convert.ToChar(Convert.ToInt32(Math.Floor(26 * random.NextDouble() + 65))).ToString();
         }
 
         /// <summary>
-        /// Logs all values to console/file. If the <see cref="Config.LogLevel"> isn't on Trace, nothing will log.
+        /// Logs all values to console/file. If the <see cref="Config.Logging.Tomoe"> isn't on Trace, nothing will log.
         /// </summary>
         /// <example>
         /// <code>
@@ -123,24 +129,28 @@ namespace Tomoe.Utils {
         /// <remarks>[Trace] has a blue font color.</remarks>
         /// <param name="value">What to be logged.</param>
         public async Task Trace(string value) {
-            if (Config.LogLevel > LogLevel.Trace || _branchLogLevel > LogLevel.Trace) return;
+            if (Config.Logging.Tomoe > LogLevel.Trace || _branchLogLevel > LogLevel.Trace) return;
             string currentTime = GetTime();
             Console.ResetColor();
             Console.Write($"[{currentTime}] ");
             Console.ForegroundColor = ConsoleColor.Blue;
             Console.Write($"[Trace] ");
+            if (Config.Logging.ShowId) {
+                Console.ForegroundColor = ConsoleColor.DarkMagenta;
+                Console.Write($"[{guid}] ");
+            }
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.Write(_branchName);
             Console.ResetColor();
             Console.WriteLine($": {value}");
-            if (Config.LogToFile && _logFile != null) {
+            if (Config.Logging.SaveToFile && _logFile != null) {
                 await _logFile.WriteAsync(Encoding.UTF8.GetBytes($"[{currentTime}] [Trace] {_branchName}: {value}{Environment.NewLine}"));
                 await _logFile.FlushAsync();
             }
         }
 
         /// <summary>
-        /// Logs all values to console/file. If the <see cref="Config.LogLevel"> isn't on Debug or Trace, nothing will log.
+        /// Logs all values to console/file. If the <see cref="Config.Logging.Tomoe"> isn't on Debug or Trace, nothing will log.
         /// </summary>
         /// <example>
         /// <code>
@@ -152,24 +162,28 @@ namespace Tomoe.Utils {
         /// <remarks>[Debug] has a dark grey font color.</remarks>
         /// <param name="value">What to be logged.</param>
         public async Task Debug(string value) {
-            if (Config.LogLevel > LogLevel.Debug || _branchLogLevel > LogLevel.Debug) return;
+            if (Config.Logging.Tomoe > LogLevel.Debug || _branchLogLevel > LogLevel.Debug) return;
             string currentTime = GetTime();
             Console.ResetColor();
             Console.Write($"[{currentTime}] ");
             Console.ForegroundColor = ConsoleColor.DarkGray;
             Console.Write($"[Debug] ");
+            if (Config.Logging.ShowId) {
+                Console.ForegroundColor = ConsoleColor.DarkMagenta;
+                Console.Write($"[{guid}] ");
+            }
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.Write(_branchName);
             Console.ResetColor();
             Console.WriteLine($": {value}");
-            if (Config.LogToFile && _logFile != null) {
+            if (Config.Logging.SaveToFile && _logFile != null) {
                 await _logFile.WriteAsync(Encoding.UTF8.GetBytes($"[{currentTime}] [Debug] {_branchName}: {value}{Environment.NewLine}"));
                 await _logFile.FlushAsync();
             }
         }
 
         /// <summary>
-        /// Logs all values to console/file. If the <see cref="Config.LogLevel"> isn't on Info or below, nothing will log.
+        /// Logs all values to console/file. If the <see cref="Config.Logging.Tomoe"> isn't on Info or below, nothing will log.
         /// </summary>
         /// <example>
         /// <code>
@@ -182,17 +196,21 @@ namespace Tomoe.Utils {
         /// <param name="value">What to be logged.</param>
         /// <param name="exit">Determines if the program exits. Defaults to false.</param>
         public async Task Info(string value, bool exit = false) {
-            if (Config.LogLevel > LogLevel.Information || _branchLogLevel > LogLevel.Information) return;
+            if (Config.Logging.Tomoe > LogLevel.Information || _branchLogLevel > LogLevel.Information) return;
             string currentTime = GetTime();
             Console.ResetColor();
             Console.Write($"[{currentTime}] ");
             Console.ForegroundColor = ConsoleColor.Green;
             Console.Write($"[Info]  ");
+            if (Config.Logging.ShowId) {
+                Console.ForegroundColor = ConsoleColor.DarkMagenta;
+                Console.Write($"[{guid}] ");
+            }
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.Write(_branchName);
             Console.ResetColor();
             Console.WriteLine($": {value}");
-            if (Config.LogToFile && _logFile != null) {
+            if (Config.Logging.SaveToFile && _logFile != null) {
                 await _logFile.WriteAsync(Encoding.UTF8.GetBytes($"[{currentTime}] [Info]  {_branchName}: {value}{Environment.NewLine}"));
                 await _logFile.FlushAsync();
             }
@@ -204,7 +222,7 @@ namespace Tomoe.Utils {
         }
 
         /// <summary>
-        /// Logs all values to console/file. If the <see cref="Config.LogLevel"> isn't on Warn or below, nothing will log.
+        /// Logs all values to console/file. If the <see cref="Config.Logging.Tomoe"> isn't on Warn or below, nothing will log.
         /// </summary>
         /// <example>
         /// <code>
@@ -217,17 +235,21 @@ namespace Tomoe.Utils {
         /// <param name="value">What to be logged.</param>
         /// <param name="exit">Determines if the program exits. Defaults to false.</param>
         public async Task Warn(string value, bool exit = false) {
-            if (Config.LogLevel > LogLevel.Warning || _branchLogLevel > LogLevel.Warning) return;
+            if (Config.Logging.Tomoe > LogLevel.Warning || _branchLogLevel > LogLevel.Warning) return;
             string currentTime = GetTime();
             Console.ResetColor();
             Console.Write($"[{currentTime}] ");
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.Write($"[Warn]  ");
+            if (Config.Logging.ShowId) {
+                Console.ForegroundColor = ConsoleColor.DarkMagenta;
+                Console.Write($"[{guid}] ");
+            }
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.Write(_branchName);
             Console.ResetColor();
             Console.WriteLine($": {value}");
-            if (Config.LogToFile && _logFile != null) {
+            if (Config.Logging.SaveToFile && _logFile != null) {
                 await _logFile.WriteAsync(Encoding.UTF8.GetBytes($"[{currentTime}] [Warn]  {_branchName}: {value}{Environment.NewLine}"));
                 await _logFile.FlushAsync();
             }
@@ -239,7 +261,7 @@ namespace Tomoe.Utils {
         }
 
         /// <summary>
-        /// Logs all values to console/file. If the <see cref="Config.LogLevel"> isn't on Error or below, nothing will log.
+        /// Logs all values to console/file. If the <see cref="Config.Logging.Tomoe"> isn't on Error or below, nothing will log.
         /// </summary>
         /// <example>
         /// <code>
@@ -252,17 +274,21 @@ namespace Tomoe.Utils {
         /// <param name="value">What to be logged.</param>
         /// <param name="exit">Determines if the program exits. Defaults to false.</param>
         public async Task Error(string value, bool exit = false) {
-            if (Config.LogLevel > LogLevel.Error || _branchLogLevel > LogLevel.Error) return;
+            if (Config.Logging.Tomoe > LogLevel.Error || _branchLogLevel > LogLevel.Error) return;
             string currentTime = GetTime();
             Console.ResetColor();
             Console.Write($"[{currentTime}] ");
             Console.ForegroundColor = ConsoleColor.Red;
             Console.Write($"[Error] ");
+            if (Config.Logging.ShowId) {
+                Console.ForegroundColor = ConsoleColor.DarkMagenta;
+                Console.Write($"[{guid}] ");
+            }
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.Write(_branchName);
             Console.ResetColor();
             Console.WriteLine($": {value}");
-            if (Config.LogToFile && _logFile != null) {
+            if (Config.Logging.SaveToFile && _logFile != null) {
                 await _logFile.WriteAsync(Encoding.UTF8.GetBytes($"[{currentTime}] [Error] {_branchName}: {value}{Environment.NewLine}"));
                 await _logFile.FlushAsync();
             }
@@ -294,11 +320,15 @@ namespace Tomoe.Utils {
             Console.BackgroundColor = ConsoleColor.Red;
             Console.Write($"[Crit]  ");
             Console.ResetColor();
+            if (Config.Logging.ShowId) {
+                Console.ForegroundColor = ConsoleColor.DarkMagenta;
+                Console.Write($"[{guid}] ");
+            }
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.Write(_branchName);
             Console.ResetColor();
             Console.WriteLine($": {value}");
-            if (Config.LogToFile && _logFile != null) {
+            if (Config.Logging.SaveToFile && _logFile != null) {
                 await _logFile.WriteAsync(Encoding.UTF8.GetBytes($"[{currentTime}] [Crit]  {_branchName}: {value}{Environment.NewLine}"));
                 await _logFile.FlushAsync();
             }
@@ -317,7 +347,7 @@ namespace Tomoe.Utils {
     public class LoggerProvider : ILoggerFactory {
         private readonly ConcurrentDictionary<string, Logger> _loggers = new ConcurrentDictionary<string, Logger>();
         public ILogger CreateLogger(string branchName) {
-            if (branchName.ToLower().StartsWith("dsharpplus")) return _loggers.GetOrAdd(branchName, name => new Logger(name, Config.DiscordLogLevel));
+            if (branchName.ToLower().StartsWith("dsharpplus")) return _loggers.GetOrAdd(branchName, name => new Logger(name, Config.Logging.Discord));
             else return _loggers.GetOrAdd(branchName, name => new Logger(name));
         }
 
@@ -331,7 +361,7 @@ namespace Tomoe.Utils {
 
     class NpgsqlToLogger : NpgsqlLogger {
         private static Logger _logger;
-        internal NpgsqlToLogger(string name) => _logger = new Logger(name, Config.NpgsqlLogLevel);
+        internal NpgsqlToLogger(string name) => _logger = new Logger(name, Config.Logging.Npgsql);
         public override bool IsEnabled(NpgsqlLogLevel level) => _logger.IsEnabled(ToLogLevel(level));
         public override void Log(NpgsqlLogLevel level, int connectorId, string msg, Exception? exception) {
             _logger.Log(ToLogLevel(level), $"{msg}{(exception == null ? null : '\n' + exception.ToString())}");
