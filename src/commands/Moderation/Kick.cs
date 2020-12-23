@@ -22,10 +22,16 @@ namespace Tomoe.Commands.Moderation {
                 Program.SendMessage(context, Program.SelfAction);
                 return;
             }
+            //TODO: Clean this up
             try {
                 DiscordMember guildVictim = await context.Guild.GetMemberAsync(victim.Id);
-                (await guildVictim.CreateDmChannelAsync()).SendMessageAsync($"You've been kicked by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: ```\n{kickReason.Filter(context) ?? Program.MissingReason}\n```");
-                guildVictim.RemoveAsync(kickReason ?? Program.MissingReason);
+                try {
+                    if (guildVictim.Hierarchy > context.Guild.CurrentMember.Hierarchy) {
+                        Program.SendMessage(context, Program.Hierarchy);
+                        return;
+                    } else if (!guildVictim.IsBot) await guildVictim.SendMessageAsync($"You've been kicked by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: ```\n{kickReason.Filter(context) ?? Program.MissingReason}\n```");
+                } catch (UnauthorizedException) { }
+                guildVictim.RemoveAsync(kickReason);
             } catch (NotFoundException) {
                 Program.SendMessage(context, $"Failed to kick {victim.Mention} since they aren't in the guild. Kick Reason:\n```{kickReason.Filter(context) ?? Program.MissingReason}```", ExtensionMethods.FilteringAction.CodeBlocksIgnore, new System.Collections.Generic.List<IMention>() { new UserMention(victim.Id) });
                 return;

@@ -16,11 +16,13 @@ namespace Tomoe.Commands.Moderation {
 
             try {
                 DiscordMember guildVictim = await context.Guild.GetMemberAsync(droppedStrike.VictimId);
-                (await guildVictim.CreateDmChannelAsync()).SendMessageAsync($"Strike #{droppedStrike.StrikeCount} has been dropped by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: ```\n{pardonReason.Filter(context) ?? Program.MissingReason}\n```\nContext: {droppedStrike.JumpLink}");
+                if (!guildVictim.IsBot) await guildVictim.SendMessageAsync($"Strike #{droppedStrike.StrikeCount} has been dropped by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: ```\n{pardonReason.Filter(context) ?? Program.MissingReason}\n```\nContext: {droppedStrike.JumpLink}");
             } catch (NotFoundException) {
                 sentDm = false;
+            } catch (UnauthorizedException) {
+                sentDm = false;
             }
-            Program.SendMessage(context, $"Case #{droppedStrike.Id} has been dropped, <@{droppedStrike.VictimId}> has been pardoned{(sentDm == true ? '.' : " (Failed to DM).")}Reason: ```\n{pardonReason.Filter(context, ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace) ?? Program.MissingReason}\n```", default, new List<IMention>() { new UserMention(droppedStrike.VictimId) });
+            Program.SendMessage(context, $"Case #{droppedStrike.Id} has been dropped, <@{droppedStrike.VictimId}> has been pardoned{(sentDm ? '.' : " (Failed to DM).")}Reason: ```\n{pardonReason.Filter(context, ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace) ?? Program.MissingReason}\n```", default, new List<IMention>() { new UserMention(droppedStrike.VictimId) });
         }
     }
 }

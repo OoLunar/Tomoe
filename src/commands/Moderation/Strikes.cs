@@ -26,16 +26,16 @@ namespace Tomoe.Commands.Moderation {
                 if (guildVictim.Hierarchy > (await context.Guild.GetMemberAsync(context.Client.CurrentUser.Id)).Hierarchy) {
                     Program.SendMessage(context, Program.Hierarchy);
                     return;
-                }
-
-                (await guildVictim.CreateDmChannelAsync()).SendMessageAsync($"You've been given a strike by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: ```\n{strikeReason.Filter(context) ?? Program.MissingReason}\n```");
+                } else if (!guildVictim.IsBot) await guildVictim.SendMessageAsync($"You've been given a strike by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: ```\n{strikeReason.Filter(context) ?? Program.MissingReason}\n```");
             } catch (NotFoundException) {
                 sentDm = false;
             } catch (BadRequestException) {
                 sentDm = false;
+            } catch (UnauthorizedException) {
+                sentDm = false;
             }
             Strike strike = Program.Database.Strikes.Add(context.Guild.Id, victim.Id, context.User.Id, strikeReason, context.Message.JumpLink.ToString(), sentDm);
-            Program.SendMessage(context, $"Case #{strike.Id}, {victim.Mention} has been striked{(sentDm == true ? '.' : " (Failed to DM).")} This is strike #{strike.StrikeCount}. Reason: ```\n{strikeReason.Filter(context, ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace) ?? Program.MissingReason}\n```", default, new List<IMention>() { new UserMention(victim.Id) });
+            Program.SendMessage(context, $"Case #{strike.Id}, {victim.Mention} has been striked{(sentDm ? '.' : " (Failed to DM).")} This is strike #{strike.StrikeCount}. Reason: ```\n{strikeReason.Filter(context, ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace) ?? Program.MissingReason}\n```", default, new List<IMention>() { new UserMention(victim.Id) });
         }
 
         [Command("check")]

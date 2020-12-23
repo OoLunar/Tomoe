@@ -21,15 +21,19 @@ namespace Tomoe.Commands.Moderation {
                 Program.SendMessage(context, $"{victim.Mention} isn't banned!");
                 return;
             }
+
+            bool sentDm = true;
+
             try {
-                context.Guild.UnbanMemberAsync(victim, unbanReason ?? Program.MissingReason);
+                await context.Guild.UnbanMemberAsync(victim, unbanReason ?? Program.MissingReason);
                 DiscordMember guildVictim = await context.Guild.GetMemberAsync(victim.Id);
-                await (await guildVictim.CreateDmChannelAsync()).SendMessageAsync($"You've been unbanned by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: ```\n{unbanReason.Filter(context) ?? Program.MissingReason}\n```");
+                await guildVictim.SendMessageAsync($"You've been unbanned by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: ```\n{unbanReason.Filter(context) ?? Program.MissingReason}\n```");
             } catch (NotFoundException) {
-                Program.SendMessage(context, $"Failed to message {victim.Mention}, howevery they were unbanned. Reason: ```\n{unbanReason.Filter(context) ?? Program.MissingReason}\n```", ExtensionMethods.FilteringAction.CodeBlocksIgnore, new System.Collections.Generic.List<IMention>() { new UserMention(victim.Id) });
-                return;
+                sentDm = false;
+            } catch (UnauthorizedException) {
+                sentDm = false;
             }
-            Program.SendMessage(context, $"{victim.Mention} has been unbanned. Reason: ```\n{unbanReason.Filter(context) ?? Program.MissingReason}\n```", ExtensionMethods.FilteringAction.CodeBlocksIgnore, new System.Collections.Generic.List<IMention>() { new UserMention(victim.Id) });
+            Program.SendMessage(context, $"{victim.Mention} has been unbanned{(sentDm ? '.' : " (Failed to DM).")} Reason: ```\n{unbanReason.Filter(context) ?? Program.MissingReason}\n```", ExtensionMethods.FilteringAction.CodeBlocksIgnore, new System.Collections.Generic.List<IMention>() { new UserMention(victim.Id) });
         }
     }
 }

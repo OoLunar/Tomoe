@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using DSharpPlus;
@@ -25,20 +26,22 @@ namespace Tomoe.Commands.Moderation {
             }
 
             if (pruneDays < 7) pruneDays = 7;
+            bool sentDm = true;
             try {
                 DiscordMember guildVictim = await context.Guild.GetMemberAsync(victim.Id);
-                if (guildVictim.Hierarchy > (await context.Guild.GetMemberAsync(context.Client.CurrentUser.Id)).Hierarchy) {
+                if (guildVictim.Hierarchy > context.Guild.CurrentMember.Hierarchy) {
                     Program.SendMessage(context, Program.Hierarchy);
                     return;
-                }
-                (await guildVictim.CreateDmChannelAsync()).SendMessageAsync($"You've been banned by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: ```\n{banReason.Filter(context) ?? Program.MissingReason}\n```");
-                await context.Guild.BanMemberAsync(victim.Id, pruneDays, banReason ?? Program.MissingReason);
+                } else if (!guildVictim.IsBot) await guildVictim.SendMessageAsync($"You've been banned by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: ```\n{banReason.Filter(context) ?? Program.MissingReason}\n```");
             } catch (NotFoundException) {
-                await context.Guild.BanMemberAsync(victim.Id, pruneDays, banReason ?? Program.MissingReason);
-                Program.SendMessage(context, $"Failed to message {victim.Mention}, but they have been banned. Reason: ```\n{banReason.Filter(context, ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace) ?? Program.MissingReason}\n```", ExtensionMethods.FilteringAction.CodeBlocksIgnore, new System.Collections.Generic.List<IMention>() { new UserMention(victim.Id) });
-                return;
+                sentDm = false;
+            } catch (BadRequestException) {
+                sentDm = false;
+            } catch (UnauthorizedException) {
+                sentDm = false;
             }
-            Program.SendMessage(context, $"{victim.Mention} has been permanently banned. Reason: ```\n{banReason.Filter(context, ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace) ?? Program.MissingReason}```\n", ExtensionMethods.FilteringAction.CodeBlocksIgnore, new System.Collections.Generic.List<IMention>() { new UserMention(victim.Id) });
+            await context.Guild.BanMemberAsync(victim.Id, pruneDays, banReason ?? Program.MissingReason);
+            Program.SendMessage(context, $"{victim.Mention} has been permanently banned{(sentDm ? '.' : " (Failed to DM).")} Reason: ```\n{banReason.Filter(context, ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace) ?? Program.MissingReason}```\n", ExtensionMethods.FilteringAction.CodeBlocksIgnore, new List<IMention>() { new UserMention(victim.Id) });
         }
 
         [Command(_COMMAND_NAME), RequireGuild]
@@ -49,8 +52,27 @@ namespace Tomoe.Commands.Moderation {
 
         [Command(_COMMAND_NAME), RequireGuild]
         public async Task BanUsers(CommandContext context, [Description(_PURGED_DESC)] int pruneDays = 7, [Description(_MASS_BAN_REASON)] string banReason = Program.MissingReason, [Description(_MASS_VICTIM_DESC)] params DiscordUser[] victims) {
-            foreach (DiscordUser victim in victims) BanUser(context, victim, pruneDays, banReason);
-            Program.SendMessage(context, $"Successfully massbanned {string.Join<DiscordUser>(", ", victims)}. Reason: ```\n{banReason.Filter(context)}\n```", ExtensionMethods.FilteringAction.CodeBlocksIgnore, victims.Select(user => new UserMention(user.Id) as IMention).ToList());
+            if (pruneDays < 7) pruneDays = 7;
+            List<IMention> mentions = new List<IMention>();
+            foreach (DiscordUser victim in victims) {
+                if (victim == context.Client.CurrentUser) {
+                    Program.SendMessage(context, Program.SelfAction);
+                    return;
+                }
+
+                try {
+                    DiscordMember guildVictim = await context.Guild.GetMemberAsync(victim.Id);
+                    if (guildVictim.Hierarchy > (await context.Guild.GetMemberAsync(context.Client.CurrentUser.Id)).Hierarchy) {
+                        Program.SendMessage(context, Program.Hierarchy);
+                        return;
+                    }
+
+                    await guildVictim.SendMessageAsync($"You've been banned by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: ```\n{banReason.Filter(context) ?? Program.MissingReason}\n```");
+                } catch (NotFoundException) { } catch (BadRequestException) { } catch (UnauthorizedException) { }
+                await context.Guild.BanMemberAsync(victim.Id, pruneDays, banReason ?? Program.MissingReason);
+                mentions.Add(new UserMention(victim.Id));
+            }
+            Program.SendMessage(context, $"Successfully massbanned {string.Join<DiscordUser>(", ", victims)}. Reason: ```\n{banReason.Filter(context)}\n```", ExtensionMethods.FilteringAction.CodeBlocksIgnore, mentions);
         }
 
         [Command(_COMMAND_NAME), RequireGuild]
