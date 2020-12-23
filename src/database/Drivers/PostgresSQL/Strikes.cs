@@ -8,7 +8,9 @@ using Tomoe.Utils;
 
 namespace Tomoe.Database.Drivers.PostgresSQL {
     public class PostgresStrikes : IStrikes {
-        private static Logger _logger = new Logger("Database/PostgresSQL/Strike");
+        private static Logger _logger = new Logger("Database.PostgresSQL.Strike");
+        private NpgsqlConnection _connection;
+        private Dictionary<statementType, NpgsqlCommand> _preparedStatements = new Dictionary<statementType, NpgsqlCommand>();
         private enum statementType {
             GetStrike,
             GetVictim,
@@ -18,19 +20,11 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
             Edit
         }
 
-        private Dictionary<statementType, NpgsqlCommand> _preparedStatements = new Dictionary<statementType, NpgsqlCommand>();
-
-        /// <summary>
-        /// Executes an SQL query from <see cref="Tomoe.Database.Drivers.PostgresSQL.PostgresTasks._preparedStatements">_preparedStatements</see>, using <seealso cref="Tomoe.Database.Drivers.PostgresSQL.PostgresTasks.statementType">statementType</seealso> as a key.
-        /// 
-        /// Returns a list of results if <paramref name="needsResult">needsResult</paramref> is true, otherwise returns null.
-        /// </summary>
-        /// <param name="command">Which SQL command to execute, using <see cref="Tomoe.Database.Drivers.PostgresSQL.PostgresTasks.statementType">statementType</see> as an index.</param>
-        /// <param name="parameters">A list of <see cref="Npgsql.NpgsqlParameter">NpgsqlParameter's</see>.</param>
-        /// <param name="needsResult">Returns a list of results if true, otherwise returns null.</param>
-        /// <returns><see cref="System.Collections.Generic.List{T}">List&lt;dynamic&gt;</see> if <paramref name="needsResult">needsResult</paramref> is true, otherwise returns null.</returns>
         private Dictionary<int, List<dynamic>> executeQuery(statementType command, List<NpgsqlParameter> parameters, bool needsResult = false) {
-            _logger.Trace($"Executing prepared statement \"{command.ToString()}\"");
+            List<string> keyValue = new List<string>();
+            foreach (NpgsqlParameter param in parameters) keyValue.Add($"\"{param.ParameterName}: {param.Value}\"");
+            _logger.Trace($"Executing prepared statement \"{command.ToString()}\" with parameters: {string.Join(", ", keyValue.ToArray())}");
+
             NpgsqlCommand statement = _preparedStatements[command];
             Dictionary<string, NpgsqlParameter> sortedParameters = new Dictionary<string, NpgsqlParameter>();
             foreach (NpgsqlParameter param in parameters) sortedParameters.Add(param.ParameterName, param);
@@ -46,7 +40,7 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
                             list.Add(null);
                         else
                             list.Add(reader[i]);
-                        _logger.Trace($"Recieved values: {reader[i]} on iteration {i}");
+                        _logger.Trace($"Recieved values: {reader[i]?? "null"} on iteration {i}");
                     }
                     values.Add(indexCount, list);
                     indexCount++;
@@ -60,11 +54,9 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
             }
         }
 
-        /// <inheritdoc cref="Tomoe.Database.Drivers.PostgresSQL.PostgresTasks.executeQuery(statementType, List{NpgsqlParameter}, bool)" />
+        /// <inheritdoc cref="Tomoe.Database.Drivers.PostgresSQL.PostgresStrikes.executeQuery(statementType, List{NpgsqlParameter}, bool)" />
         /// <param name="parameter">One <see cref="Npgsql.NpgsqlParameter">NpgsqlParameter</see>, which gets converted into a <see cref="System.Collections.Generic.List{T}">List&lt;NpgsqlParameter&gt;</see>.</param>
         private Dictionary<int, List<dynamic>> executeQuery(statementType command, NpgsqlParameter parameter, bool needsResult = false) => executeQuery(command, new List<NpgsqlParameter> { parameter }, needsResult);
-
-        private NpgsqlConnection _connection;
 
         public PostgresStrikes(string host, int port, string username, string password, string database_name, SslMode sslMode) {
             _connection = new NpgsqlConnection($"Host={host};Port={port};Username={username};Password={password};Database={database_name};SSL Mode={sslMode}");
@@ -78,7 +70,7 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
                 _logger.Critical($"Failed to connect to database. {error.Message}", true);
             }
             _logger.Info("Preparing SQL commands...");
-            _logger.Trace($"Preparing {statementType.Add}...");
+            _logger.Debug($"Preparing {statementType.Add}...");
             NpgsqlCommand add = new NpgsqlCommand("INSERT INTO strikes VALUES(@guildId, @victimId, @issuerId, ARRAY[@reason], @jumpLink, @victimMessaged, DEFAULT, DEFAULT, DEFAULT, calc_strike_count(@guildId, @victimId)) RETURNING dropped, created_at, id, strike_count", _connection);
             add.Parameters.Add(new NpgsqlParameter("guildId", NpgsqlDbType.Bigint));
             add.Parameters.Add(new NpgsqlParameter("victimId", NpgsqlDbType.Bigint));
@@ -89,41 +81,39 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
             add.Prepare();
             _preparedStatements.Add(statementType.Add, add);
 
-            _logger.Trace($"Preparing {statementType.Drop}...");
+            _logger.Debug($"Preparing {statementType.Drop}...");
             NpgsqlCommand drop = new NpgsqlCommand("UPDATE strikes SET dropped=true, reason=array_append(reason, @reason) WHERE id=@strikeId RETURNING guild_id, victim_id, issuer_id, reason, victim_messaged, created_at, strike_count", _connection);
             drop.Parameters.Add(new NpgsqlParameter("strikeId", NpgsqlDbType.Bigint));
             drop.Parameters.Add(new NpgsqlParameter("reason", NpgsqlDbType.Varchar));
             drop.Prepare();
             _preparedStatements.Add(statementType.Drop, drop);
 
-            _logger.Trace($"Preparing {statementType.Edit}...");
+            _logger.Debug($"Preparing {statementType.Edit}...");
             NpgsqlCommand edit = new NpgsqlCommand("UPDATE strikes SET reason=array_append(reason, @reason) WHERE id=@strikeId", _connection);
             edit.Parameters.Add(new NpgsqlParameter("reason", NpgsqlDbType.Varchar));
             edit.Parameters.Add(new NpgsqlParameter("strikeId", NpgsqlDbType.Integer));
             edit.Prepare();
             _preparedStatements.Add(statementType.Edit, edit);
 
-            _logger.Trace($"Preparing {statementType.GetIssued}...");
+            _logger.Debug($"Preparing {statementType.GetIssued}...");
             NpgsqlCommand getIssued = new NpgsqlCommand("SELECT guild_id, victim_id, issuer_id, reason, jumplink, victim_messaged, dropped, created_at, id, strike_count FROM strikes WHERE guild_id=@guildId AND issuer_id=@issuerId", _connection);
             getIssued.Parameters.Add(new NpgsqlParameter("guildId", NpgsqlDbType.Bigint));
             getIssued.Parameters.Add(new NpgsqlParameter("issuerId", NpgsqlDbType.Bigint));
             getIssued.Prepare();
             _preparedStatements.Add(statementType.GetIssued, getIssued);
 
-            _logger.Trace($"Preparing {statementType.GetStrike}...");
+            _logger.Debug($"Preparing {statementType.GetStrike}...");
             NpgsqlCommand getStrike = new NpgsqlCommand("SELECT * FROM strikes WHERE id=@strikeId", _connection);
             getStrike.Parameters.Add(new NpgsqlParameter("strikeId", NpgsqlDbType.Integer));
             getStrike.Prepare();
             _preparedStatements.Add(statementType.GetStrike, getStrike);
 
-            _logger.Trace($"Preparing {statementType.GetVictim}...");
+            _logger.Debug($"Preparing {statementType.GetVictim}...");
             NpgsqlCommand getStrikes = new NpgsqlCommand("SELECT * FROM strikes WHERE guild_id=@guildId AND victim_id=@victimId", _connection);
             getStrikes.Parameters.Add(new NpgsqlParameter("guildId", NpgsqlDbType.Bigint));
             getStrikes.Parameters.Add(new NpgsqlParameter("victimId", NpgsqlDbType.Bigint));
             getStrikes.Prepare();
             _preparedStatements.Add(statementType.GetVictim, getStrikes);
-
-            _logger.Debug("Done preparing commands!");
         }
 
         public Strike Add(ulong guildId, ulong victimId, ulong issuerId, string reason, string jumpLink, bool victimMessaged) {

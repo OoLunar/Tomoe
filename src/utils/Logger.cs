@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Npgsql.Logging;
@@ -19,7 +21,7 @@ namespace Tomoe.Utils {
         /// <summary>The log file.</summary>
         private static FileStream _logFile = new FileStream(Path.Join(FileSystem.ProjectRoot, $"log/{GetTime()}.log"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
 
-        private string guid = string.Empty;
+        private string _threadId;
 
         /// <summary>Unknown what this does. TODO: Implement this correctly.</summary>
         public IDisposable BeginScope<TState>(TState state) { throw new NotImplementedException(); }
@@ -105,15 +107,13 @@ namespace Tomoe.Utils {
         public Logger(string branchName) {
             _branchName = branchName;
             _branchLogLevel = Config.Logging.Tomoe;
-            if (branchName.Contains("Commands"))
-                while (guid.Length < 4) guid += Convert.ToChar(Convert.ToInt32(Math.Floor(26 * random.NextDouble() + 65))).ToString();
+            _threadId = Thread.CurrentThread.Name;
         }
 
         public Logger(string branchName, LogLevel branchLogLevel) {
             _branchName = branchName;
             _branchLogLevel = branchLogLevel;
-            if (branchName.Contains("Commands"))
-                while (guid.Length < 4) guid += Convert.ToChar(Convert.ToInt32(Math.Floor(26 * random.NextDouble() + 65))).ToString();
+            _threadId = Thread.CurrentThread.Name;
         }
 
         /// <summary>
@@ -137,7 +137,7 @@ namespace Tomoe.Utils {
             Console.Write($"[Trace] ");
             if (Config.Logging.ShowId) {
                 Console.ForegroundColor = ConsoleColor.DarkMagenta;
-                Console.Write($"[{guid}] ");
+                Console.Write($"[{_threadId}] ");
             }
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.Write(_branchName);
@@ -170,7 +170,7 @@ namespace Tomoe.Utils {
             Console.Write($"[Debug] ");
             if (Config.Logging.ShowId) {
                 Console.ForegroundColor = ConsoleColor.DarkMagenta;
-                Console.Write($"[{guid}] ");
+                Console.Write($"[{_threadId}] ");
             }
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.Write(_branchName);
@@ -204,7 +204,7 @@ namespace Tomoe.Utils {
             Console.Write($"[Info]  ");
             if (Config.Logging.ShowId) {
                 Console.ForegroundColor = ConsoleColor.DarkMagenta;
-                Console.Write($"[{guid}] ");
+                Console.Write($"[{_threadId}] ");
             }
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.Write(_branchName);
@@ -243,7 +243,7 @@ namespace Tomoe.Utils {
             Console.Write($"[Warn]  ");
             if (Config.Logging.ShowId) {
                 Console.ForegroundColor = ConsoleColor.DarkMagenta;
-                Console.Write($"[{guid}] ");
+                Console.Write($"[{_threadId}] ");
             }
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.Write(_branchName);
@@ -282,7 +282,7 @@ namespace Tomoe.Utils {
             Console.Write($"[Error] ");
             if (Config.Logging.ShowId) {
                 Console.ForegroundColor = ConsoleColor.DarkMagenta;
-                Console.Write($"[{guid}] ");
+                Console.Write($"[{_threadId}] ");
             }
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.Write(_branchName);
@@ -322,7 +322,7 @@ namespace Tomoe.Utils {
             Console.ResetColor();
             if (Config.Logging.ShowId) {
                 Console.ForegroundColor = ConsoleColor.DarkMagenta;
-                Console.Write($"[{guid}] ");
+                Console.Write($"[{_threadId}] ");
             }
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.Write(_branchName);

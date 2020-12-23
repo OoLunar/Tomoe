@@ -23,7 +23,7 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
             _postgresUser = new PostgresUser(host, port, username, password, database_name, sslMode);
             _postgresGuild = new PostgresGuild(host, port, username, password, database_name, sslMode);
             _postgresTags = new PostgresTags(host, port, username, password, database_name, sslMode);
-            _postgresTasks = new PostgresTasks(host, port, username, password, database_name, sslMode);
+            _postgresTasks = new PostgresAssignment(host, port, username, password, database_name, sslMode);
             _postgresStrikes = new PostgresStrikes(host, port, username, password, database_name, sslMode);
         }
     }

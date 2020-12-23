@@ -73,7 +73,7 @@ namespace Tomoe.Commands.Public {
             timer.Elapsed += async(object sender, ElapsedEventArgs e) => {
                 Tomoe.Database.Interfaces.Assignment[] tasks;
                 try {
-                    tasks = Program.Database.Tasks.SelectAllTasks();
+                    tasks = Program.Database.Tasks.SelectAllAssignments();
                 } catch (NpgsqlOperationInProgressException) {
                     return;
                 }

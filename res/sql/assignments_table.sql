@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS tasks(
+CREATE TABLE IF NOT EXISTS assignments(
     task_type smallint NOT NULL,
     guild_id bigint NOT NULL,
     channel_id bigint NOT NULL,

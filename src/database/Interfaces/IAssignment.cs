@@ -1,13 +1,12 @@
 using System;
 
 namespace Tomoe.Database.Interfaces {
-    // Better not be faking them.
     public interface IAssignment {
         void Create(AssignmentType taskType, ulong guildId, ulong channelId, ulong messageId, ulong userId, DateTime setOff, DateTime setAt, string content);
         void Remove(int taskId);
         Assignment[] Select(ulong userId, AssignmentType taskType);
         Assignment? Select(ulong userId, AssignmentType taskType, int taskId);
-        Assignment[] SelectAllTasks();
+        Assignment[] SelectAllAssignments();
         Assignment[] SelectAllReminders(ulong userId);
     }
 
