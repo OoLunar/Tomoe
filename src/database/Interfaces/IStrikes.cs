@@ -1,7 +1,7 @@
 using System;
 
 namespace Tomoe.Database.Interfaces {
-    public struct Strikes {
+    public struct Strike {
         public ulong GuildId;
         public ulong VictimId;
         public ulong IssuerId;
@@ -11,13 +11,14 @@ namespace Tomoe.Database.Interfaces {
         public bool Dropped;
         public DateTime CreatedAt;
         public int Id;
+        public int StrikeCount;
     }
     public interface IStrikes {
-        Strikes Get(int strikeId);
-        Strikes[] GetVictim(ulong guildId, ulong victimId);
-        Strikes[] GetIssued(ulong guildId, ulong issuerId);
-        int Add(ulong guildId, ulong victimId, ulong issuerId, string reason, string jumpLink, bool victimMessaged);
-        void Drop(int strikeId);
+        Strike? Get(int strikeId);
+        Strike[] GetVictim(ulong guildId, ulong victimId);
+        Strike[] GetIssued(ulong guildId, ulong issuerId);
+        Strike Add(ulong guildId, ulong victimId, ulong issuerId, string reason, string jumpLink, bool victimMessaged);
+        Strike Drop(int strikeId, string reason);
         void Edit(int strikeId, string reason);
     }
 }

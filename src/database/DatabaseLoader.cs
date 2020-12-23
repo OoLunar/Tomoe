@@ -13,7 +13,7 @@ namespace Tomoe.Database {
 
         public Interfaces.IGuild Guild;
         public Interfaces.ITags Tags;
-        public Interfaces.ITasks Tasks;
+        public Interfaces.IAssignment Tasks;
         public Interfaces.IUser User;
         public Interfaces.IStrikes Strikes;
 

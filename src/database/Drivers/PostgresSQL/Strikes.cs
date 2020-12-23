@@ -38,7 +38,7 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
             if (needsResult) {
                 NpgsqlDataReader reader = statement.ExecuteReaderAsync().ConfigureAwait(false).GetAwaiter().GetResult();
                 Dictionary<int, List<dynamic>> values = new Dictionary<int, List<dynamic>>();
-                int indexCount = 1;
+                int indexCount = 0;
                 while (reader.Read()) {
                     List<dynamic> list = new List<dynamic>();
                     for (int i = 0; i < reader.FieldCount; i++) {
@@ -79,19 +79,20 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
             }
             _logger.Info("Preparing SQL commands...");
             _logger.Trace($"Preparing {statementType.Add}...");
-            NpgsqlCommand add = new NpgsqlCommand("INSERT INTO strikes VALUES(@guildId, @victimId, @issuerId, @reason, @jumpLink, @victimMessaged) RETURNING id", _connection);
+            NpgsqlCommand add = new NpgsqlCommand("INSERT INTO strikes VALUES(@guildId, @victimId, @issuerId, ARRAY[@reason], @jumpLink, @victimMessaged, DEFAULT, DEFAULT, DEFAULT, calc_strike_count(@guildId, @victimId)) RETURNING dropped, created_at, id, strike_count", _connection);
             add.Parameters.Add(new NpgsqlParameter("guildId", NpgsqlDbType.Bigint));
             add.Parameters.Add(new NpgsqlParameter("victimId", NpgsqlDbType.Bigint));
             add.Parameters.Add(new NpgsqlParameter("issuerId", NpgsqlDbType.Bigint));
-            add.Parameters.Add(new NpgsqlParameter("reason", (NpgsqlDbType.Array | NpgsqlDbType.Varchar)));
+            add.Parameters.Add(new NpgsqlParameter("reason", NpgsqlDbType.Varchar));
             add.Parameters.Add(new NpgsqlParameter("jumpLink", NpgsqlDbType.Varchar));
             add.Parameters.Add(new NpgsqlParameter("victimMessaged", NpgsqlDbType.Boolean));
             add.Prepare();
             _preparedStatements.Add(statementType.Add, add);
 
             _logger.Trace($"Preparing {statementType.Drop}...");
-            NpgsqlCommand drop = new NpgsqlCommand("UPDATE strikes SET dropped=true WHERE id=@strikeId", _connection);
+            NpgsqlCommand drop = new NpgsqlCommand("UPDATE strikes SET dropped=true, reason=array_append(reason, @reason) WHERE id=@strikeId RETURNING guild_id, victim_id, issuer_id, reason, victim_messaged, created_at, strike_count", _connection);
             drop.Parameters.Add(new NpgsqlParameter("strikeId", NpgsqlDbType.Bigint));
+            drop.Parameters.Add(new NpgsqlParameter("reason", NpgsqlDbType.Varchar));
             drop.Prepare();
             _preparedStatements.Add(statementType.Drop, drop);
 
@@ -103,7 +104,7 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
             _preparedStatements.Add(statementType.Edit, edit);
 
             _logger.Trace($"Preparing {statementType.GetIssued}...");
-            NpgsqlCommand getIssued = new NpgsqlCommand("SELECT guild_id, victim_id, issuer_id, reason, jumplink, victim_messaged, dropped, created_at FROM strikes WHERE guild_id=@guildId AND issuer_id=@issuerId", _connection);
+            NpgsqlCommand getIssued = new NpgsqlCommand("SELECT guild_id, victim_id, issuer_id, reason, jumplink, victim_messaged, dropped, created_at, id, strike_count FROM strikes WHERE guild_id=@guildId AND issuer_id=@issuerId", _connection);
             getIssued.Parameters.Add(new NpgsqlParameter("guildId", NpgsqlDbType.Bigint));
             getIssued.Parameters.Add(new NpgsqlParameter("issuerId", NpgsqlDbType.Bigint));
             getIssued.Prepare();
@@ -125,12 +126,42 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
             _logger.Debug("Done preparing commands!");
         }
 
-        public int Add(ulong guildId, ulong victimId, ulong issuerId, string reason, string jumpLink, bool victimMessaged) => (int) executeQuery(statementType.Add, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("victimId", (long) victimId), new NpgsqlParameter("issuerId", (long) issuerId), new NpgsqlParameter("reason", reason), new NpgsqlParameter("jumpLink", jumpLink), new NpgsqlParameter("victimMessaged", victimMessaged) }, true) [0][0];
-        public void Drop(int strikeId) => executeQuery(statementType.Drop, new NpgsqlParameter("strikeId", strikeId));
+        public Strike Add(ulong guildId, ulong victimId, ulong issuerId, string reason, string jumpLink, bool victimMessaged) {
+            List<dynamic> queryResults = executeQuery(statementType.Add, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("victimId", (long) victimId), new NpgsqlParameter("issuerId", (long) issuerId), new NpgsqlParameter("reason", reason), new NpgsqlParameter("jumpLink", jumpLink), new NpgsqlParameter("victimMessaged", victimMessaged) }, true) [0];
+            Strike strike = new Strike();
+            strike.GuildId = guildId;
+            strike.VictimId = victimId;
+            strike.IssuerId = issuerId;
+            strike.Reason = new string[] { reason };
+            strike.JumpLink = jumpLink;
+            strike.VictimMessaged = victimMessaged;
+            strike.Dropped = (bool) queryResults[0];
+            strike.CreatedAt = (DateTime) queryResults[1];
+            strike.Id = (int) queryResults[2];
+            strike.StrikeCount = (int) queryResults[3];
+            return strike;
+        }
+
+        public Strike Drop(int strikeId, string reason) {
+            List<dynamic> queryResults = executeQuery(statementType.Drop, new List<NpgsqlParameter>() { new NpgsqlParameter("strikeId", strikeId), new NpgsqlParameter("reason", reason) }) [0];
+            Strike strike = new Strike();
+            strike.GuildId = queryResults[0];
+            strike.VictimId = queryResults[1];
+            strike.IssuerId = queryResults[2];
+            strike.Reason = queryResults[3];
+            strike.JumpLink = queryResults[4];
+            strike.VictimMessaged = queryResults[5];
+            strike.Dropped = true;
+            strike.CreatedAt = queryResults[6];
+            strike.Id = strikeId;
+            strike.StrikeCount = queryResults[7];
+            return strike;
+        }
         public void Edit(int strikeId, string reason) => executeQuery(statementType.Edit, new List<NpgsqlParameter>() { new NpgsqlParameter("strikeId", strikeId), new NpgsqlParameter("reason", reason) });
-        public Strikes Get(int strikeId) {
+        public Strike? Get(int strikeId) {
             List<dynamic> queryResults = executeQuery(statementType.Edit, new NpgsqlParameter("strikeId", strikeId), true) [0];
-            Strikes strike = new Strikes();
+            Strike strike = new Strike();
+            if (queryResults == null) return null;
             strike.GuildId = (ulong) queryResults[0];
             strike.VictimId = (ulong) queryResults[1];
             strike.IssuerId = (ulong) queryResults[2];
@@ -139,13 +170,16 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
             strike.VictimMessaged = (bool) queryResults[5];
             strike.Dropped = (bool) queryResults[6];
             strike.CreatedAt = (DateTime) queryResults[7];
+            strike.Id = (int) queryResults[8];
+            strike.StrikeCount = (int) queryResults[9];
             return strike;
         }
-        public Strikes[] GetVictim(ulong guildId, ulong victimId) {
+        public Strike[] GetVictim(ulong guildId, ulong victimId) {
             Dictionary<int, List<dynamic>> queryResults = executeQuery(statementType.GetVictim, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("victimId", (long) victimId) }, true);
-            List<Strikes> strikes = new List<Strikes>();
+            List<Strike> strikes = new List<Strike>();
+            if (queryResults == null) return null;
             foreach (List<dynamic> query in queryResults.Values) {
-                Strikes strike = new Strikes();
+                Strike strike = new Strike();
                 strike.GuildId = (ulong) query[0];
                 strike.VictimId = (ulong) query[1];
                 strike.IssuerId = (ulong) query[2];
@@ -154,15 +188,18 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
                 strike.VictimMessaged = (bool) query[5];
                 strike.Dropped = (bool) query[6];
                 strike.CreatedAt = (DateTime) query[7];
+                strike.Id = (int) query[8];
+                strike.StrikeCount = (int) query[9];
                 strikes.Add(strike);
             }
             return strikes.ToArray();
         }
-        public Strikes[] GetIssued(ulong guildId, ulong issuerId) {
+        public Strike[] GetIssued(ulong guildId, ulong issuerId) {
             Dictionary<int, List<dynamic>> queryResults = executeQuery(statementType.GetIssued, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("issuerId", (long) issuerId) });
-            List<Strikes> strikes = new List<Strikes>();
+            List<Strike> strikes = new List<Strike>();
+            if (queryResults == null) return null;
             foreach (List<dynamic> query in queryResults.Values) {
-                Strikes strike = new Strikes();
+                Strike strike = new Strike();
                 strike.GuildId = (ulong) query[0];
                 strike.VictimId = (ulong) query[1];
                 strike.IssuerId = (ulong) query[2];
@@ -171,6 +208,7 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
                 strike.VictimMessaged = (bool) query[5];
                 strike.Dropped = (bool) query[6];
                 strike.CreatedAt = (DateTime) query[7];
+                strike.Id = (int) query[8];
                 strikes.Add(strike);
             }
             return strikes.ToArray();

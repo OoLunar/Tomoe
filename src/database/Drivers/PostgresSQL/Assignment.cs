@@ -7,7 +7,7 @@ using Tomoe.Database.Interfaces;
 using Tomoe.Utils;
 
 namespace Tomoe.Database.Drivers.PostgresSQL {
-    public class PostgresTasks : ITasks {
+    public class PostgresTasks : IAssignment {
         private static Logger _logger = new Logger("Database/PostgresSQL/Tasks");
         private enum statementType {
             CreateTask,
@@ -125,15 +125,15 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
             selectAllReminders.Prepare();
             _preparedStatements.Add(statementType.SelectAllReminders, selectAllReminders);
         }
-        public void Create(TaskType taskType, ulong guildId, ulong channelId, ulong messageId, ulong userId, DateTime setOff, DateTime setAt, string content) => executeQuery(statementType.CreateTask, new List<NpgsqlParameter>() { new NpgsqlParameter("taskType", (int) taskType), new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("channelId", (long) channelId), new NpgsqlParameter("messageId", (long) messageId), new NpgsqlParameter("userId", (long) userId), new NpgsqlParameter("setOff", setOff), new NpgsqlParameter("setAt", setAt), new NpgsqlParameter("content", content) });
+        public void Create(AssignmentType taskType, ulong guildId, ulong channelId, ulong messageId, ulong userId, DateTime setOff, DateTime setAt, string content) => executeQuery(statementType.CreateTask, new List<NpgsqlParameter>() { new NpgsqlParameter("taskType", (int) taskType), new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("channelId", (long) channelId), new NpgsqlParameter("messageId", (long) messageId), new NpgsqlParameter("userId", (long) userId), new NpgsqlParameter("setOff", setOff), new NpgsqlParameter("setAt", setAt), new NpgsqlParameter("content", content) });
         public void Remove(int taskId) => executeQuery(statementType.RemoveTask, new NpgsqlParameter("taskId", taskId));
-        public Task[] Select(ulong userId, TaskType taskType) {
+        public Assignment[] Select(ulong userId, AssignmentType taskType) {
             Dictionary<int, List<dynamic>> queryResults = executeQuery(statementType.SelectTask, new List<NpgsqlParameter>() { new NpgsqlParameter("userId", (long) userId), new NpgsqlParameter("taskType", (int) taskType) }, true);
             if (queryResults == null) return null;
-            List<Task> tasks = new List<Task>();
+            List<Assignment> tasks = new List<Assignment>();
             foreach (int i in queryResults.Keys) { // Order can be determined from the SQL query and how it was selected.
-                Task task = new Task();
-                task.TaskType = (TaskType) queryResults[i][0];
+                Assignment task = new Assignment();
+                task.TaskType = (AssignmentType) queryResults[i][0];
                 task.GuildId = (ulong) queryResults[i][1];
                 task.ChannelId = (ulong) queryResults[i][2];
                 task.MessageId = (ulong) queryResults[i][3];
@@ -147,12 +147,12 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
             return tasks.ToArray();
         }
 
-        public Task? Select(ulong userId, TaskType taskType, int taskId) {
+        public Assignment? Select(ulong userId, AssignmentType taskType, int taskId) {
             Dictionary<int, List<dynamic>> queryResults = executeQuery(statementType.SelectTask, new List<NpgsqlParameter>() { new NpgsqlParameter("userId", (long) userId), new NpgsqlParameter("taskType", (int) taskType), new NpgsqlParameter("taskId", taskId) }, true);
             if (queryResults == null) return null;
-            Task task = new Task();
+            Assignment task = new Assignment();
             foreach (int key in queryResults.Keys) {
-                task.TaskType = (TaskType) queryResults[key][0];
+                task.TaskType = (AssignmentType) queryResults[key][0];
                 task.GuildId = (ulong) queryResults[key][1];
                 task.ChannelId = (ulong) queryResults[key][2];
                 task.MessageId = (ulong) queryResults[key][3];
@@ -165,13 +165,13 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
             return task;
         }
 
-        public Task[] SelectAllTasks() {
+        public Assignment[] SelectAllTasks() {
             Dictionary<int, List<dynamic>> queryResults = executeQuery(statementType.SelectAllTasks, new List<NpgsqlParameter>(), true);
             if (queryResults == null) return null;
-            List<Task> tasks = new List<Task>();
+            List<Assignment> tasks = new List<Assignment>();
             foreach (int i in queryResults.Keys) { // Order can be determined from the SQL query and how it was selected.
-                Task task = new Task();
-                task.TaskType = (TaskType) queryResults[i][0];
+                Assignment task = new Assignment();
+                task.TaskType = (AssignmentType) queryResults[i][0];
                 task.GuildId = (ulong) queryResults[i][1];
                 task.ChannelId = (ulong) queryResults[i][2];
                 task.MessageId = (ulong) queryResults[i][3];
@@ -185,13 +185,13 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
             return tasks.ToArray();
         }
 
-        public Task[] SelectAllReminders(ulong userId) {
+        public Assignment[] SelectAllReminders(ulong userId) {
             Dictionary<int, List<dynamic>> queryResults = executeQuery(statementType.SelectAllReminders, new NpgsqlParameter("userId", (long) userId), true);
             if (queryResults == null) return null;
-            List<Task> tasks = new List<Task>();
+            List<Assignment> tasks = new List<Assignment>();
             foreach (int i in queryResults.Keys) { // Order can be determined from the SQL query and how it was selected.
-                Task task = new Task();
-                task.TaskType = (TaskType) queryResults[i][0];
+                Assignment task = new Assignment();
+                task.TaskType = (AssignmentType) queryResults[i][0];
                 task.GuildId = (ulong) queryResults[i][1];
                 task.ChannelId = (ulong) queryResults[i][2];
                 task.MessageId = (ulong) queryResults[i][3];
