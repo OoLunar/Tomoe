@@ -11,11 +11,11 @@ using DSharpPlus.CommandsNext.Exceptions;
 // Go take a look at their project!
 namespace Tomoe.Utils {
     public class CommandService {
-        private static Logger _logger = new Logger("CommandService");
+        private static readonly Logger _logger = new Logger("CommandService");
         public static async Task Launch(DiscordShardedClient discordClient) {
             while (true) {
                 try {
-                    IReadOnlyDictionary<int, DSharpPlus.CommandsNext.CommandsNextExtension> commandsCollection = await discordClient.UseCommandsNextAsync(new CommandsNextConfiguration {
+                    IReadOnlyDictionary<int, CommandsNextExtension> commandsCollection = await discordClient.UseCommandsNextAsync(new CommandsNextConfiguration {
                         StringPrefixes = new [] { Config.Prefix },
                             CaseSensitive = false,
                             EnableMentionPrefix = true,

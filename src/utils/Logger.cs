@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -10,7 +9,6 @@ using Npgsql.Logging;
 
 namespace Tomoe.Utils {
     public class Logger : ILogger {
-        private static Random random = new Random();
 
         /// <summary>What to prefix the log content with.</summary>
         private readonly string _branchName;
@@ -19,9 +17,9 @@ namespace Tomoe.Utils {
         private readonly LogLevel _branchLogLevel;
 
         /// <summary>The log file.</summary>
-        private static FileStream _logFile = new FileStream(Path.Join(FileSystem.ProjectRoot, $"log/{GetTime()}.log"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
+        private static readonly FileStream _logFile = new FileStream(Path.Join(FileSystem.ProjectRoot, $"log/{GetTime()}.log"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
 
-        private string _threadId;
+        private readonly string _threadId;
 
         /// <summary>Unknown what this does. TODO: Implement this correctly.</summary>
         public IDisposable BeginScope<TState>(TState state) { throw new NotImplementedException(); }
@@ -351,7 +349,7 @@ namespace Tomoe.Utils {
             else return _loggers.GetOrAdd(branchName, name => new Logger(name));
         }
 
-        public void Dispose() => _loggers.Clear();
+        public void Dispose() => GC.SuppressFinalize(this);
         public void AddProvider(ILoggerProvider provider) { }
     }
 

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
@@ -7,10 +8,7 @@ using DSharpPlus.Exceptions;
 
 namespace Tomoe.Commands.Moderation {
     public class Mute : BaseCommandModule {
-        [Command("mute")]
-        [Description("Mutes a person permanently.")]
-        [RequireBotPermissions(Permissions.ManageRoles)]
-        [RequireUserPermissions(Permissions.ManageMessages)]
+        [Command("mute"), Description("Mutes a person permanently."), RequireBotPermissions(Permissions.ManageRoles), RequireUserPermissions(Permissions.ManageMessages)]
         public async Task Permanently(CommandContext context, DiscordUser victim, [RemainingText] string muteReason = Program.MissingReason) {
             if (victim == context.Client.CurrentUser) {
                 Program.SendMessage(context, Program.SelfAction);
@@ -37,7 +35,7 @@ namespace Tomoe.Commands.Moderation {
                     if (guildVictim.Hierarchy > context.Guild.CurrentMember.Hierarchy) {
                         Program.SendMessage(context, Program.Hierarchy);
                         return;
-                    } else if (guildVictim.IsBot) await guildVictim.SendMessageAsync($"You've been muted by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: ```\n{muteReason.Filter(context)}\n```");
+                    } else if (guildVictim.IsBot) await guildVictim.SendMessageAsync($"You've been muted by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: ```\n{muteReason.Filter()}\n```");
                 } catch (UnauthorizedException) {
                     sentDm = false;
                 }
@@ -47,7 +45,7 @@ namespace Tomoe.Commands.Moderation {
             }
 
             Program.Database.User.IsMuted(context.Guild.Id, victim.Id, true);
-            Program.SendMessage(context, $"{victim.Mention} has been muted{(sentDm ? '.' : " (Failed to DM).")} Reason: ```\n{muteReason.Filter(context)}\n```", ExtensionMethods.FilteringAction.CodeBlocksIgnore, new System.Collections.Generic.List<IMention>() { new UserMention(victim.Id) });
+            Program.SendMessage(context, $"{victim.Mention} has been muted{(sentDm ? '.' : " (Failed to DM).")} Reason: ```\n{muteReason.Filter()}\n```", ExtensionMethods.FilteringAction.CodeBlocksIgnore, new List<IMention>() { new UserMention(victim.Id) });
         }
     }
 }

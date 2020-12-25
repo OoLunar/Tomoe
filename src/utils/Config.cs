@@ -27,17 +27,17 @@ namespace Tomoe.Utils {
         [JsonProperty("auto_update")]
         public static bool AutoUpdate = true;
 
-        private static string _tokenFile = Path.Join(FileSystem.ProjectRoot, "res/config.jsonc");
-        private static Logger _logger = new Logger("Config", LogLevel.Information);
+        private static readonly string _tokenFile = Path.Join(FileSystem.ProjectRoot, "res/config.jsonc");
+        private static readonly Logger _logger = new Logger("Config", LogLevel.Information);
 
         public static async Task Init() {
             _logger.Info("Starting...");
             if (File.Exists(_tokenFile)) {
                 try {
-                    new Newtonsoft.Json.JsonSerializer().Deserialize<Config>(new JsonTextReader(new StreamReader(System.IO.File.OpenRead(_tokenFile))));
-                } catch (Newtonsoft.Json.JsonReaderException jsonException) {
+                    new Newtonsoft.Json.JsonSerializer().Deserialize<Config>(new JsonTextReader(new StreamReader(File.OpenRead(_tokenFile))));
+                } catch (JsonReaderException jsonException) {
                     _logger.Critical($"Invalid JSONC on \"{_tokenFile}\". {jsonException.Message}");
-                } catch (Newtonsoft.Json.JsonSerializationException typeException) {
+                } catch (JsonSerializationException typeException) {
                     _logger.Critical($"Error resolving config option on \"{_tokenFile}\" Make sure all the config options are valid. Error: {typeException.Message}");
                 }
                 Thread.Sleep(50);

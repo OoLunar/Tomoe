@@ -8,7 +8,7 @@ using Tomoe.Utils;
 
 namespace Tomoe.Database {
     public class DatabaseLoader {
-        private static Logger _logger = new Logger("Database/Driver/Setup");
+        private static readonly Logger _logger = new Logger("Database/Driver/Setup");
         private delegate void delegateConstructor(string host, int port, string username, string password, string databaseName, SslMode sslMode);
 
         public Interfaces.IGuild Guild;
@@ -70,7 +70,7 @@ namespace Tomoe.Database {
                             PropertyInfo? userProperty = classType.GetProperty("User");
                             PropertyInfo? strikesProperty = classType.GetProperty("Strikes");
                             if (guildProperty != null && tagProperty != null && tasksProperty != null && userProperty != null && strikesProperty != null) {
-                                _logger.Debug($"({classType.FullName}) Successfully maps to the \"{SelectedDriver.ToString()}\" driver.");
+                                _logger.Debug($"({classType.FullName}) Successfully maps to the \"{SelectedDriver}\" driver.");
                                 Interfaces.IDatabase database = constructor.Invoke(new object[] { Host, Port, Username, Password, DatabaseName, SslMode }) as Interfaces.IDatabase;
                                 Guild = database.Guild;
                                 Tags = database.Tags;

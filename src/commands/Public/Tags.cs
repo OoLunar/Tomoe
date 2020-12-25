@@ -5,6 +5,7 @@ using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Enums;
 using DSharpPlus.Interactivity.Extensions;
 
@@ -13,7 +14,6 @@ namespace Tomoe.Commands.Public {
     [Description("Gets a tag's content.")]
     [RequireGuild]
     public class Tags : BaseCommandModule {
-        private static Utils.Logger _logger = new Utils.Logger("Commands/Public/Tags");
 
         [GroupCommand]
         public async Task Get(CommandContext context, [RemainingText] string tagTitle) {
@@ -22,38 +22,25 @@ namespace Tomoe.Commands.Public {
             } else Program.SendMessage(context, Program.Database.Tags.Get(context.Guild.Id, tagTitle.Trim().ToLowerInvariant()) ?? $"**[Error: \"{tagTitle}\" doesn't exist!]**", ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
         }
 
-        [Command("create")]
-        [Description("Creates a tag.")]
-        [RequireGuild]
-        [TagCheck(false, TagType.Any, TagState.Missing)]
+        [Command("create"), Description("Creates a tag."), RequireGuild, TagCheck(false, TagType.Any, TagState.Missing)]
         public async Task Create(CommandContext context, string tagTitle, [RemainingText] string content) {
-            Program.Database.Tags.Create(context.Guild.Id, context.User.Id, tagTitle.Trim().ToLowerInvariant(), content.Filter(context, ExtensionMethods.FilteringAction.CodeBlocksIgnore));
+            Program.Database.Tags.Create(context.Guild.Id, context.User.Id, tagTitle.Trim().ToLowerInvariant(), content.Filter(ExtensionMethods.FilteringAction.CodeBlocksIgnore));
             Program.SendMessage(context, $"Tag \"{tagTitle.Trim().ToLowerInvariant()}\" has been created!", ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
         }
 
-        [Command("edit")]
-        [Description("Edits a tag.")]
-        [RequireGuild]
-        [TagCheck(true, TagType.Tag, TagState.Exists)]
+        [Command("edit"), Description("Edits a tag."), RequireGuild, TagCheck(true, TagType.Tag, TagState.Exists)]
         public async Task Edit(CommandContext context, string tagTitle, [RemainingText] string content) {
-            Program.Database.Tags.Edit(context.Guild.Id, tagTitle, ExtensionMethods.Filter(content, context, ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace));
+            Program.Database.Tags.Edit(context.Guild.Id, tagTitle, ExtensionMethods.Filter(content, ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace));
             Program.SendMessage(context, $"Tag \"{tagTitle.Trim().ToLowerInvariant()}\" successfully edited.", ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
         }
 
-        [Command("delete")]
-        [Description("Deletes a tag.")]
-        [RequireGuild]
-        [TagCheck(true, TagType.Tag, TagState.Exists)]
+        [Command("delete"), Description("Deletes a tag."), RequireGuild, TagCheck(true, TagType.Tag, TagState.Exists)]
         public async Task Delete(CommandContext context, string tagTitle) {
             Program.Database.Tags.Delete(context.Guild.Id, tagTitle);
             Program.SendMessage(context, $"Tag \"{tagTitle.Trim().ToLowerInvariant()}\" successfully deleted.", ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
         }
 
-        [Command("alias")]
-        [Description("Creates an alias for a tag.")]
-        [RequireGuild]
-        [Aliases("create_alias")]
-        [TagCheck(false, TagType.Any, TagState.Missing)]
+        [Command("alias"), Description("Creates an alias for a tag."), RequireGuild, Aliases("create_alias"), TagCheck(false, TagType.Any, TagState.Missing)]
         public async Task CreateAlias(CommandContext context, string newName, string oldName) {
             if (!Program.Database.Tags.Exist(context.Guild.Id, oldName.ToLowerInvariant())) Program.SendMessage(context, $"Tag \"{oldName.ToLowerInvariant()}\" does not exist!", ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
             else if (Program.Database.Tags.IsAlias(context.Guild.Id, oldName.ToLowerInvariant()).Value) Program.SendMessage(context, $"**[Denied: Creating aliases of aliases aren't allowed. Use `>>tag create_alias {Program.Database.Tags.RealName(context.Guild.Id, oldName.ToLowerInvariant())}` to create the alias.]**", ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
@@ -63,44 +50,28 @@ namespace Tomoe.Commands.Public {
             }
         }
 
-        [Command("delete_alias")]
-        [Description("Deletes a tag alias.")]
-        [RequireGuild]
-        [TagCheck(true, TagType.Alias, TagState.Exists)]
+        [Command("delete_alias"), Description("Deletes a tag alias."), RequireGuild, TagCheck(true, TagType.Alias, TagState.Exists)]
         public async Task DeleteAlias(CommandContext context, string tagTitle) {
             Program.Database.Tags.DeleteAlias(context.Guild.Id, tagTitle);
             Program.SendMessage(context, $"Tag alias \"{tagTitle.Trim().ToLowerInvariant()}\" successfully deleted.", ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
         }
 
-        [Command("delete_all_aliases")]
-        [Description("Deletes all aliases for a tag.")]
-        [RequireGuild]
-        [TagCheck(true, TagType.Tag, TagState.Exists)]
+        [Command("delete_all_aliases"), Description("Deletes all aliases for a tag."), RequireGuild, TagCheck(true, TagType.Tag, TagState.Exists)]
         public async Task DeleteAllAliases(CommandContext context, string tagTitle) {
             Program.Database.Tags.DeleteAllAliases(context.Guild.Id, tagTitle);
             Program.SendMessage(context, $"All aliases for \"{tagTitle.Trim().ToLowerInvariant()}\" have been removed!", ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
         }
 
-        [Command("exist")]
-        [Description("Tests if a tag exists.")]
-        [RequireGuild]
-        [TagCheck(false, TagType.Any, TagState.Irrelevant)]
+        [Command("exist"), Description("Tests if a tag exists."), RequireGuild, TagCheck(false, TagType.Any, TagState.Irrelevant)]
         public async Task Exist(CommandContext context, string tagTitle) {
             if (!Program.Database.Tags.Exist(context.Guild.Id, tagTitle.Trim().ToLowerInvariant())) Program.SendMessage(context, $"\"{tagTitle.Trim().ToLowerInvariant()}\" doesn't exist!", ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
             else Program.SendMessage(context, Program.Database.Tags.Exist(context.Guild.Id, tagTitle.Trim().ToLowerInvariant()) ? $"Tag \"{tagTitle.Trim().ToLowerInvariant()}\" does exist!" : $"Tag \"{tagTitle.Trim().ToLowerInvariant()}\" does not exist!", ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
         }
 
-        [Command("is_alias")]
-        [Description("Tests if a tag is an alias.")]
-        [RequireGuild]
-        [TagCheck(false, TagType.Any, TagState.Exists)]
+        [Command("is_alias"), Description("Tests if a tag is an alias."), RequireGuild, TagCheck(false, TagType.Any, TagState.Exists)]
         public async Task IsAlias(CommandContext context, string tagTitle) => Program.SendMessage(context, $"Tag \"{tagTitle.Trim().ToLowerInvariant()}\" is {(Program.Database.Tags.IsAlias(context.Guild.Id, tagTitle.Trim().ToLowerInvariant()).Value ? null : "not")} an alias.", ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
 
-        [Command("get_author")]
-        [Description("Gets the author of a tag.")]
-        [RequireGuild]
-        [Aliases("author")]
-        [TagCheck(false, TagType.Any, TagState.Exists)]
+        [Command("get_author"), Description("Gets the author of a tag."), RequireGuild, Aliases("author"), TagCheck(false, TagType.Any, TagState.Exists)]
         public async Task GetAuthor(CommandContext context, string tagTitle) {
             ulong tagAuthor = Program.Database.Tags.GetAuthor(context.Guild.Id, tagTitle.Trim().ToLowerInvariant()).Value;
             DiscordUser authorDiscordUser = await context.Client.GetUserAsync(tagAuthor);
@@ -119,10 +90,7 @@ namespace Tomoe.Commands.Public {
             Program.SendMessage(context, embedBuilder.Build());
         }
 
-        [Command("claim")]
-        [Description("Claims a tag.")]
-        [RequireGuild]
-        [TagCheck(false, TagType.Tag, TagState.Exists)]
+        [Command("claim"), Description("Claims a tag."), RequireGuild, TagCheck(false, TagType.Tag, TagState.Exists)]
         public async Task Claim(CommandContext context, string tagTitle) {
             if (context.Member.Roles.Any(role => role.Permissions.HasFlag(Permissions.Administrator) || role.Permissions.HasFlag(Permissions.ManageMessages))) {
                 Program.Database.Tags.Claim(context.Guild.Id, tagTitle.Trim().ToLowerInvariant(), context.User.Id);
@@ -138,10 +106,7 @@ namespace Tomoe.Commands.Public {
             }
         }
 
-        [Command("transfer")]
-        [Description("Transfers tag ownership to another person.")]
-        [RequireGuild]
-        [TagCheck(true, TagType.Tag, TagState.Exists)]
+        [Command("transfer"), Description("Transfers tag ownership to another person."), RequireGuild, TagCheck(true, TagType.Tag, TagState.Exists)]
         public async Task Transfer(CommandContext context, string tagTitle, DiscordUser newAuthor) {
             if (context.Member.Roles.Any(role => role.Permissions.HasFlag(Permissions.Administrator) || role.Permissions.HasFlag(Permissions.ManageMessages))) {
                 Program.Database.Tags.Claim(context.Guild.Id, tagTitle.Trim().ToLowerInvariant(), newAuthor.Id);
@@ -156,57 +121,45 @@ namespace Tomoe.Commands.Public {
             }
         }
 
-        [Command("get_aliases")]
-        [Description("Gets all aliases of a tag.")]
-        [RequireGuild]
-        [TagCheck(false, TagType.Tag, TagState.Exists)]
+        [Command("get_aliases"), Description("Gets all aliases of a tag."), RequireGuild, TagCheck(false, TagType.Tag, TagState.Exists)]
         public async Task AllAliases(CommandContext context, string tagTitle) {
-            string[] userTags = Program.Database.Tags.GetAliases(context.Guild.Id, tagTitle.Trim().ToLowerInvariant()) ?? new string[] { };
+            string[] userTags = Program.Database.Tags.GetAliases(context.Guild.Id, tagTitle.Trim().ToLowerInvariant()) ?? Array.Empty<string>();
             if (userTags.Length == 0) userTags = new string[] { "No aliases currently exist!" };
-            DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder();
+            DiscordEmbedBuilder embedBuilder = new();
             embedBuilder.WithAuthor(context.User.Username, context.User.AvatarUrl ?? context.User.DefaultAvatarUrl, context.User.AvatarUrl ?? context.User.DefaultAvatarUrl);
             embedBuilder.WithTitle($"All aliases for tag \"{tagTitle.Trim().ToLowerInvariant()}\"");
-            var interactivity = context.Client.GetInteractivity();
+            InteractivityExtension interactivity = context.Client.GetInteractivity();
             await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, interactivity.GeneratePagesInEmbed(string.Join(", ", userTags), SplitType.Character, embedBuilder), timeoutoverride : TimeSpan.FromMinutes(2));
             return;
         }
 
-        [Command("user")]
-        [Description("Lists all the tags a person owns on the server.")]
-        [RequireGuild]
+        [Command("user"), Description("Lists all the tags a person owns on the server."), RequireGuild]
         public async Task UserTags(CommandContext context, DiscordUser user) {
-            string[] userTags = Program.Database.Tags.GetUser(context.Guild.Id, user.Id) ?? new string[] { };
+            string[] userTags = Program.Database.Tags.GetUser(context.Guild.Id, user.Id) ?? Array.Empty<string>();
             if (userTags.Length == 0) userTags = new string[] { "No tags currently exist!" };
             DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder();
             embedBuilder.WithAuthor(context.User.Username, context.User.AvatarUrl ?? context.User.DefaultAvatarUrl, context.User.AvatarUrl ?? context.User.DefaultAvatarUrl);
             embedBuilder.WithTitle($"All tags by {user.Username} on \"{context.Guild.Name}\"");
-            var interactivity = context.Client.GetInteractivity();
+            InteractivityExtension interactivity = context.Client.GetInteractivity();
             await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, interactivity.GeneratePagesInEmbed(string.Join(", ", userTags), SplitType.Character, embedBuilder), timeoutoverride : TimeSpan.FromMinutes(2));
             return;
         }
 
-        [Command("user")]
-        [Description("Lists all the tags for the current user on the server.")]
-        [RequireGuild]
+        [Command("user"), Description("Lists all the tags for the current user on the server."), RequireGuild]
         public async Task UserTags(CommandContext context) => await UserTags(context, context.User);
 
-        [Command("all")]
-        [Description("Lists all the tags in this server.")]
-        [RequireGuild]
+        [Command("all"), Description("Lists all the tags in this server."), RequireGuild]
         public async Task All(CommandContext context) {
             string[] allTags = Program.Database.Tags.GetGuild(context.Guild.Id);
             if (allTags[0] == null) allTags = new string[] { "No tags currently exist!" };
-            DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder();
+            DiscordEmbedBuilder embedBuilder = new();
             embedBuilder.WithAuthor(context.Guild.Name, context.Guild.IconUrl ?? context.User.DefaultAvatarUrl, context.Guild.IconUrl ?? context.User.DefaultAvatarUrl);
             embedBuilder.WithTitle($"All tags for \"{context.Guild.Name}\"");
-            var interactivity = context.Client.GetInteractivity();
+            InteractivityExtension interactivity = context.Client.GetInteractivity();
             await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, interactivity.GeneratePagesInEmbed(string.Join(", ", allTags), SplitType.Character, embedBuilder), timeoutoverride : TimeSpan.FromMinutes(2));
         }
 
-        [Command("realname")]
-        [Description("Gets the original tag using an alias.")]
-        [RequireGuild]
-        [TagCheck(false, TagType.Alias, TagState.Exists)]
+        [Command("realname"), Description("Gets the original tag using an alias."), RequireGuild, TagCheck(false, TagType.Alias, TagState.Exists)]
         public async Task RealName(CommandContext context, string tagTitle) {
             if (!Program.Database.Tags.IsAlias(context.User.Id, tagTitle.Trim().ToLowerInvariant()).Value) Program.SendMessage(context, $"\"{tagTitle.Trim().ToLowerInvariant()}\" is the original tag!", ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
             else Program.SendMessage(context, $"The original tag for the alias \"{tagTitle.Trim().ToLowerInvariant()}\" is `>>tag {Program.Database.Tags.RealName(context.Guild.Id, tagTitle.Trim().ToLowerInvariant())}`", ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);

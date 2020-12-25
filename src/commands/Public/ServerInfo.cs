@@ -7,9 +7,7 @@ using DSharpPlus.Entities;
 
 namespace Tomoe.Commands.Public {
     public class ServerInfo : BaseCommandModule {
-        [Command("serverinfo")]
-        [Description("Gets general info about the server.")]
-        [Aliases("server_info")]
+        [Command("serverinfo"), Description("Gets general info about the server."), Aliases("server_info")]
         public async Task Get(CommandContext context) {
             DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder();
             embedBuilder.WithTitle(context.Guild.Name);

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
@@ -6,8 +7,7 @@ using DSharpPlus.Exceptions;
 
 namespace Tomoe.Commands.Moderation {
     public class Unmute : BaseCommandModule {
-        [Command("unmute")]
-        [Description("Unmutes an individual.")]
+        [Command("unmute"), Description("Unmutes an individual.")]
         public async Task Individual(CommandContext context, DiscordUser victim, [RemainingText] string unmuteReason = Program.MissingReason) {
             if (victim == context.Client.CurrentUser) {
                 Program.SendMessage(context, Program.SelfAction);
@@ -34,7 +34,7 @@ namespace Tomoe.Commands.Moderation {
                     if (guildVictim.Hierarchy > context.Guild.CurrentMember.Hierarchy) {
                         Program.SendMessage(context, Program.Hierarchy);
                         return;
-                    } else if (guildVictim.IsBot) await guildVictim.SendMessageAsync($"You've been unmuted by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: ```\n{unmuteReason.Filter(context)}\n```");
+                    } else if (guildVictim.IsBot) await guildVictim.SendMessageAsync($"You've been unmuted by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: ```\n{unmuteReason.Filter()}\n```");
                 } catch (UnauthorizedException) {
                     sentDm = false;
                 }
@@ -43,7 +43,7 @@ namespace Tomoe.Commands.Moderation {
                 sentDm = false;
             }
             Program.Database.User.IsMuted(context.Guild.Id, victim.Id, false);
-            Program.SendMessage(context, $"{victim.Mention} has been unmuted{(sentDm ? '.' : " (Failed to DM).")} Reason: ```\n{unmuteReason.Filter(context)}\n```", ExtensionMethods.FilteringAction.CodeBlocksIgnore, new System.Collections.Generic.List<IMention>() { new UserMention(victim.Id) });
+            Program.SendMessage(context, $"{victim.Mention} has been unmuted{(sentDm ? '.' : " (Failed to DM).")} Reason: ```\n{unmuteReason.Filter()}\n```", ExtensionMethods.FilteringAction.CodeBlocksIgnore, new List<IMention>() { new UserMention(victim.Id) });
         }
     }
 }

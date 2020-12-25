@@ -4,7 +4,6 @@ using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
-using Tomoe.Utils;
 
 namespace Tomoe.Commands.Public {
     public class RoleInfo : BaseCommandModule {
@@ -13,11 +12,7 @@ namespace Tomoe.Commands.Public {
         private const string _ARG_ROLENAME_DESC = "The role's name.";
         private const string _ARG_ROLE_DESC = "The role id or pinged. Please refrain from pinging the roles.";
 
-        private static Logger _logger = new Logger("Commands/Public/RoleInfo");
-
-        [Command(_COMMAND_NAME), Description(_COMMAND_DESC)]
-        [Aliases(new string[] { "roleinfo", "ri" })]
-        [Priority(0)]
+        [Command(_COMMAND_NAME), Description(_COMMAND_DESC), Aliases(new string[] { "roleinfo", "ri" }), Priority(0)]
         public async Task ByName(CommandContext context, [Description(_ARG_ROLENAME_DESC), RemainingText] string roleName) {
             DiscordRole roleInQuestion = null;
             // Check if it's the @everyone or @here roles.
@@ -35,8 +30,7 @@ namespace Tomoe.Commands.Public {
             else ByPing(context, roleInQuestion); // Role was found, forward it to ByPing.
         }
 
-        [Command(_COMMAND_NAME)]
-        [Priority(1)]
+        [Command(_COMMAND_NAME), Priority(1)]
         public async Task ByPing(CommandContext context, [Description(_ARG_ROLE_DESC)] DiscordRole role) {
             DiscordEmbedBuilder embed = new DiscordEmbedBuilder();
             embed.WithAuthor(context.User.Username, context.User.AvatarUrl, context.User.AvatarUrl);

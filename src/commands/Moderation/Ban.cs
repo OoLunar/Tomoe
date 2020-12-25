@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
@@ -17,8 +16,7 @@ namespace Tomoe.Commands.Moderation {
         private const string _MASS_VICTIM_DESC = "The people to be banned.";
         private const string _MASS_BAN_REASON = "(Optional) The reason why the people are being banned.";
 
-        [Command(_COMMAND_NAME), Description(_COMMAND_DESC), RequireGuild]
-        [RequireUserPermissions(Permissions.BanMembers), RequireBotPermissions(Permissions.BanMembers)]
+        [Command(_COMMAND_NAME), Description(_COMMAND_DESC), RequireGuild, RequireUserPermissions(Permissions.BanMembers), RequireBotPermissions(Permissions.BanMembers)]
         public async Task BanUser(CommandContext context, [Description(_SINGLE_VICTIM_DESC)] DiscordUser victim, [Description(_PURGED_DESC)] int pruneDays, [Description(_SINGLE_BAN_REASON), RemainingText] string banReason = Program.MissingReason) {
             if (victim == context.Client.CurrentUser) {
                 Program.SendMessage(context, Program.SelfAction);
@@ -32,7 +30,7 @@ namespace Tomoe.Commands.Moderation {
                 if (guildVictim.Hierarchy > context.Guild.CurrentMember.Hierarchy) {
                     Program.SendMessage(context, Program.Hierarchy);
                     return;
-                } else if (!guildVictim.IsBot) await guildVictim.SendMessageAsync($"You've been banned by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: ```\n{banReason.Filter(context) ?? Program.MissingReason}\n```");
+                } else if (!guildVictim.IsBot) await guildVictim.SendMessageAsync($"You've been banned by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: ```\n{banReason.Filter() ?? Program.MissingReason}\n```");
             } catch (NotFoundException) {
                 sentDm = false;
             } catch (BadRequestException) {
@@ -41,7 +39,7 @@ namespace Tomoe.Commands.Moderation {
                 sentDm = false;
             }
             await context.Guild.BanMemberAsync(victim.Id, pruneDays, banReason ?? Program.MissingReason);
-            Program.SendMessage(context, $"{victim.Mention} has been permanently banned{(sentDm ? '.' : " (Failed to DM).")} Reason: ```\n{banReason.Filter(context, ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace) ?? Program.MissingReason}```\n", ExtensionMethods.FilteringAction.CodeBlocksIgnore, new List<IMention>() { new UserMention(victim.Id) });
+            Program.SendMessage(context, $"{victim.Mention} has been permanently banned{(sentDm ? '.' : " (Failed to DM).")} Reason: ```\n{banReason.Filter(ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace) ?? Program.MissingReason}```\n", ExtensionMethods.FilteringAction.CodeBlocksIgnore, new List<IMention>() { new UserMention(victim.Id) });
         }
 
         [Command(_COMMAND_NAME), RequireGuild]
@@ -67,12 +65,12 @@ namespace Tomoe.Commands.Moderation {
                         return;
                     }
 
-                    await guildVictim.SendMessageAsync($"You've been banned by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: ```\n{banReason.Filter(context) ?? Program.MissingReason}\n```");
+                    await guildVictim.SendMessageAsync($"You've been banned by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: ```\n{banReason.Filter() ?? Program.MissingReason}\n```");
                 } catch (NotFoundException) { } catch (BadRequestException) { } catch (UnauthorizedException) { }
                 await context.Guild.BanMemberAsync(victim.Id, pruneDays, banReason ?? Program.MissingReason);
                 mentions.Add(new UserMention(victim.Id));
             }
-            Program.SendMessage(context, $"Successfully massbanned {string.Join<DiscordUser>(", ", victims)}. Reason: ```\n{banReason.Filter(context)}\n```", ExtensionMethods.FilteringAction.CodeBlocksIgnore, mentions);
+            Program.SendMessage(context, $"Successfully massbanned {string.Join<DiscordUser>(", ", victims)}. Reason: ```\n{banReason.Filter()}\n```", ExtensionMethods.FilteringAction.CodeBlocksIgnore, mentions);
         }
 
         [Command(_COMMAND_NAME), RequireGuild]

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
@@ -7,23 +8,21 @@ using DSharpPlus.Entities;
 using Tomoe.Commands.Listeners;
 using Tomoe.Utils;
 
-//TODO: Rewrite this abomination when you're not running on 30 minutes of sleep.
 namespace Tomoe.Commands.Config {
     [Group("config")]
     public class Mute : BaseCommandModule {
-        private static Logger _logger = new Logger("Config/Mute");
+        private static readonly Logger _logger = new Logger("Config/Mute");
 
         [Command("mute"), Description("Sets up or assigns the mute role.")]
         [RequireUserPermissions(Permissions.ManageGuild)]
         [RequireGuild]
-        public async Task SetupMute(CommandContext context, DiscordRole muteRole) {
+        public static async Task SetupMute(CommandContext context, DiscordRole muteRole) {
             ulong? previousMuteRoleId = Program.Database.Guild.MuteRole(context.Guild.Id);
-            if (previousMuteRoleId.HasValue) {
+            if (previousMuteRoleId.HasValue && previousMuteRoleId.Value != muteRole.Id) {
                 DiscordRole previousMuteRole = context.Guild.GetRole(previousMuteRoleId.Value);
                 DiscordEmoji thumbsUp = DiscordEmoji.FromUnicode(context.Client, "👍");
                 DiscordEmoji thumbsDown = DiscordEmoji.FromUnicode(context.Client, "👎");
-                ReactionAdded.Queue createNewRole = new ReactionAdded.Queue();
-                createNewRole.MessageId = context.Message.Id;
+                ReactionAdded.Queue createNewRole = new();
                 createNewRole.User = context.User;
                 createNewRole.Emojis = new DiscordEmoji[] { thumbsUp, thumbsDown };
                 createNewRole.Action = new ReactionAdded.ReactionHandler(async emoji => {
@@ -41,6 +40,7 @@ namespace Tomoe.Commands.Config {
                 DiscordMessage discordMessage = Program.SendMessage(context, $"Previous mute role was {previousMuteRole.Mention}. Do you want to overwrite it with {muteRole.Mention}?");
                 await discordMessage.CreateReactionAsync(thumbsUp);
                 await discordMessage.CreateReactionAsync(thumbsDown);
+                createNewRole.MessageId = discordMessage.Id;
                 ReactionAdded.QueueList.Add(createNewRole);
             } else {
                 Program.Database.Guild.MuteRole(context.Guild.Id, muteRole.Id);
@@ -54,7 +54,7 @@ namespace Tomoe.Commands.Config {
         [RequireUserPermissions(Permissions.ManageGuild)]
         [RequireBotPermissions(Permissions.ManageRoles)]
         [RequireGuild]
-        public async Task SetupMute(CommandContext context) {
+        public static async Task SetupMute(CommandContext context) {
             ulong? previousMuteRoleId = Program.Database.Guild.MuteRole(context.Guild.Id);
             if (previousMuteRoleId.HasValue) {
                 DiscordRole previousMuteRole = context.Guild.GetRole(previousMuteRoleId.Value);
@@ -64,7 +64,7 @@ namespace Tomoe.Commands.Config {
                 }
                 DiscordEmoji thumbsUp = DiscordEmoji.FromUnicode(context.Client, "👍");
                 DiscordEmoji thumbsDown = DiscordEmoji.FromUnicode(context.Client, "👎");
-                ReactionAdded.Queue createNewRole = new ReactionAdded.Queue();
+                ReactionAdded.Queue createNewRole = new();
                 createNewRole.User = context.User;
                 createNewRole.Emojis = new DiscordEmoji[] { thumbsUp, thumbsDown };
                 createNewRole.Action = new ReactionAdded.ReactionHandler(async emoji => {
@@ -80,11 +80,11 @@ namespace Tomoe.Commands.Config {
                 await discordMessage.CreateReactionAsync(thumbsDown);
                 ReactionAdded.QueueList.Add(createNewRole);
                 return;
-            }
+            } else await createMuteRole(context);
         }
 
         public static async Task createMuteRole(CommandContext context) {
-            DiscordMessage message = Program.SendMessage(context, "Creating mute role...") as DiscordMessage;
+            DiscordMessage message = Program.SendMessage(context, "Creating mute role...");
             DiscordRole muteRole = await context.Guild.CreateRoleAsync("Muted", Permissions.None, DiscordColor.Gray, false, false, "Allows users to be muted.");
             _logger.Trace($"Created mute role '{muteRole.Name}' ({muteRole.Id}) for {context.Guild.Name} ({context.Guild.Id})!");
             message.ModifyAsync($"{context.User.Mention}: Overriding channel permissions...", null, new List<IMention>() { new UserMention(context.User.Id) });
@@ -97,16 +97,19 @@ namespace Tomoe.Commands.Config {
             foreach (DiscordChannel channel in guild.Channels.Values) {
                 switch (channel.Type) {
                     case ChannelType.Text:
-                        _logger.Trace($"Overwriting permission {Permissions.SendMessages.ToString()} and {Permissions.AddReactions} for mute role {muteRole.Name} ({muteRole.Id}) on {channel.Type.ToString()} channel {channel.Name} ({channel.Id}) for {guild.Name} ({guild.Id})...");
+                        _logger.Trace($"Overwriting permission {Permissions.SendMessages} and {Permissions.AddReactions} for mute role {muteRole.Name} ({muteRole.Id}) on {channel.Type} channel {channel.Name} ({channel.Id}) for {guild.Name} ({guild.Id})...");
                         channel.AddOverwriteAsync(muteRole, Permissions.None, Permissions.SendMessages | Permissions.AddReactions, "Disallows users to send messages/communicate through reactions.").ConfigureAwait(false).GetAwaiter();
+                        Thread.Sleep(50);
                         break;
                     case ChannelType.Voice:
-                        _logger.Trace($"Overwriting permission {Permissions.Speak.ToString()} and {Permissions.Stream.ToString()} for mute role {muteRole.Name} ({muteRole.Id}) on {channel.Type.ToString()} channel {channel.Name} ({channel.Id}) for {guild.Name} ({guild.Id})...").ConfigureAwait(false).GetAwaiter();
+                        _logger.Trace($"Overwriting permission {Permissions.Speak} and {Permissions.Stream} for mute role {muteRole.Name} ({muteRole.Id}) on {channel.Type} channel {channel.Name} ({channel.Id}) for {guild.Name} ({guild.Id})...").ConfigureAwait(false).GetAwaiter();
                         channel.AddOverwriteAsync(muteRole, Permissions.None, Permissions.Speak | Permissions.Stream, "Disallows users to communicate in voice channels and through streams.");
+                        Thread.Sleep(50);
                         break;
                     case ChannelType.Category:
-                        _logger.Trace($"Overwriting permission {Permissions.SendMessages}, {Permissions.AddReactions}, {Permissions.Speak.ToString()} and {Permissions.Stream.ToString()} for mute role {muteRole.Name} ({muteRole.Id}) on {channel.Type.ToString()} channel {channel.Name} ({channel.Id}) for {guild.Name} ({guild.Id})...").ConfigureAwait(false).GetAwaiter();
+                        _logger.Trace($"Overwriting permission {Permissions.SendMessages}, {Permissions.AddReactions}, {Permissions.Speak} and {Permissions.Stream} for mute role {muteRole.Name} ({muteRole.Id}) on {channel.Type} channel {channel.Name} ({channel.Id}) for {guild.Name} ({guild.Id})...").ConfigureAwait(false).GetAwaiter();
                         channel.AddOverwriteAsync(muteRole, Permissions.None, Permissions.SendMessages | Permissions.AddReactions | Permissions.Speak | Permissions.Stream, "Disallows users to send messages/communicate through reactions/voice channels and through streams.");
+                        Thread.Sleep(50);
                         break;
                 }
             }

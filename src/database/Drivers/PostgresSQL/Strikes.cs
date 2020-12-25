@@ -8,9 +8,9 @@ using Tomoe.Utils;
 
 namespace Tomoe.Database.Drivers.PostgresSQL {
     public class PostgresStrikes : IStrikes {
-        private static Logger _logger = new Logger("Database.PostgresSQL.Strike");
-        private NpgsqlConnection _connection;
-        private Dictionary<statementType, NpgsqlCommand> _preparedStatements = new Dictionary<statementType, NpgsqlCommand>();
+        private static readonly Logger _logger = new Logger("Database.PostgresSQL.Strike");
+        private readonly NpgsqlConnection _connection;
+        private readonly Dictionary<statementType, NpgsqlCommand> _preparedStatements = new Dictionary<statementType, NpgsqlCommand>();
         private enum statementType {
             GetStrike,
             GetVictim,
@@ -23,7 +23,7 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
         private Dictionary<int, List<dynamic>> executeQuery(statementType command, List<NpgsqlParameter> parameters, bool needsResult = false) {
             List<string> keyValue = new List<string>();
             foreach (NpgsqlParameter param in parameters) keyValue.Add($"\"{param.ParameterName}: {param.Value}\"");
-            _logger.Trace($"Executing prepared statement \"{command.ToString()}\" with parameters: {string.Join(", ", keyValue.ToArray())}");
+            _logger.Trace($"Executing prepared statement \"{command}\" with parameters: {string.Join(", ", keyValue.ToArray())}");
 
             NpgsqlCommand statement = _preparedStatements[command];
             Dictionary<string, NpgsqlParameter> sortedParameters = new Dictionary<string, NpgsqlParameter>();
@@ -36,7 +36,7 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
                 while (reader.Read()) {
                     List<dynamic> list = new List<dynamic>();
                     for (int i = 0; i < reader.FieldCount; i++) {
-                        if (reader[i].GetType() == typeof(System.DBNull))
+                        if (reader[i].GetType() == typeof(DBNull))
                             list.Add(null);
                         else
                             list.Add(reader[i]);
@@ -118,7 +118,7 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
 
         public Strike Add(ulong guildId, ulong victimId, ulong issuerId, string reason, string jumpLink, bool victimMessaged) {
             List<dynamic> queryResults = executeQuery(statementType.Add, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("victimId", (long) victimId), new NpgsqlParameter("issuerId", (long) issuerId), new NpgsqlParameter("reason", reason), new NpgsqlParameter("jumpLink", jumpLink), new NpgsqlParameter("victimMessaged", victimMessaged) }, true) [0];
-            Strike strike = new Strike();
+            Strike strike = new();
             strike.GuildId = guildId;
             strike.VictimId = victimId;
             strike.IssuerId = issuerId;
@@ -134,7 +134,7 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
 
         public Strike Drop(int strikeId, string reason) {
             List<dynamic> queryResults = executeQuery(statementType.Drop, new List<NpgsqlParameter>() { new NpgsqlParameter("strikeId", strikeId), new NpgsqlParameter("reason", reason) }) [0];
-            Strike strike = new Strike();
+            Strike strike = new();
             strike.GuildId = queryResults[0];
             strike.VictimId = queryResults[1];
             strike.IssuerId = queryResults[2];
@@ -150,7 +150,7 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
         public void Edit(int strikeId, string reason) => executeQuery(statementType.Edit, new List<NpgsqlParameter>() { new NpgsqlParameter("strikeId", strikeId), new NpgsqlParameter("reason", reason) });
         public Strike? Get(int strikeId) {
             List<dynamic> queryResults = executeQuery(statementType.Edit, new NpgsqlParameter("strikeId", strikeId), true) [0];
-            Strike strike = new Strike();
+            Strike strike = new();
             if (queryResults == null) return null;
             strike.GuildId = (ulong) queryResults[0];
             strike.VictimId = (ulong) queryResults[1];
@@ -164,12 +164,13 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
             strike.StrikeCount = (int) queryResults[9];
             return strike;
         }
+
         public Strike[] GetVictim(ulong guildId, ulong victimId) {
             Dictionary<int, List<dynamic>> queryResults = executeQuery(statementType.GetVictim, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("victimId", (long) victimId) }, true);
             List<Strike> strikes = new List<Strike>();
             if (queryResults == null) return null;
             foreach (List<dynamic> query in queryResults.Values) {
-                Strike strike = new Strike();
+                Strike strike = new();
                 strike.GuildId = (ulong) query[0];
                 strike.VictimId = (ulong) query[1];
                 strike.IssuerId = (ulong) query[2];
@@ -189,7 +190,7 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
             List<Strike> strikes = new List<Strike>();
             if (queryResults == null) return null;
             foreach (List<dynamic> query in queryResults.Values) {
-                Strike strike = new Strike();
+                Strike strike = new();
                 strike.GuildId = (ulong) query[0];
                 strike.VictimId = (ulong) query[1];
                 strike.IssuerId = (ulong) query[2];

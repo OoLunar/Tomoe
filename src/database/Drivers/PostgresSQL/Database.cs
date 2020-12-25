@@ -5,11 +5,11 @@ using Tomoe.Utils;
 
 namespace Tomoe.Database.Drivers.PostgresSQL {
     public class PostgresSQL : IDatabase {
-        private IUser _postgresUser;
-        private IGuild _postgresGuild;
-        private ITags _postgresTags;
-        private IAssignment _postgresTasks;
-        private IStrikes _postgresStrikes;
+        private readonly IUser _postgresUser;
+        private readonly IGuild _postgresGuild;
+        private readonly ITags _postgresTags;
+        private readonly IAssignment _postgresTasks;
+        private readonly IStrikes _postgresStrikes;
 
         public IUser User => _postgresUser;
         public IGuild Guild => _postgresGuild;

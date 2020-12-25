@@ -8,9 +8,9 @@ using Tomoe.Utils;
 
 namespace Tomoe.Database.Drivers.PostgresSQL {
     public class PostgresGuild : IGuild {
-        private static Logger _logger = new Logger("Database.PostgresSQL.Guild");
-        private NpgsqlConnection _connection;
-        private Dictionary<statementType, NpgsqlCommand> _preparedStatements = new Dictionary<statementType, NpgsqlCommand>();
+        private static readonly Logger _logger = new Logger("Database.PostgresSQL.Guild");
+        private readonly NpgsqlConnection _connection;
+        private readonly Dictionary<statementType, NpgsqlCommand> _preparedStatements = new Dictionary<statementType, NpgsqlCommand>();
         private enum statementType {
             GetAntiInvite,
             SetAntiInvite,
@@ -55,7 +55,7 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
         private Dictionary<int, List<dynamic>> executeQuery(statementType command, List<NpgsqlParameter> parameters, bool needsResult = false) {
             List<string> keyValue = new List<string>();
             foreach (NpgsqlParameter param in parameters) keyValue.Add($"\"{param.ParameterName}: {param.Value}\"");
-            _logger.Trace($"Executing prepared statement \"{command.ToString()}\" with parameters: {string.Join(", ", keyValue.ToArray())}");
+            _logger.Trace($"Executing prepared statement \"{command}\" with parameters: {string.Join(", ", keyValue.ToArray())}");
 
             NpgsqlCommand statement = _preparedStatements[command];
             Dictionary<string, NpgsqlParameter> sortedParameters = new Dictionary<string, NpgsqlParameter>();
@@ -86,8 +86,8 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
             }
         }
 
-        /// <inheritdoc cref="Tomoe.Database.Drivers.PostgresSQL.PostgresGuild.executeQuery(statementType, List{NpgsqlParameter}, bool)" />
-        /// <param name="parameter">One <see cref="Npgsql.NpgsqlParameter">NpgsqlParameter</see>, which gets converted into a <see cref="System.Collections.Generic.List{T}">List&lt;NpgsqlParameter&gt;</see>.</param>
+        /// <inheritdoc cref="executeQuery(statementType, List{NpgsqlParameter}, bool)" />
+        /// <param name="parameter">One <see cref="NpgsqlParameter">NpgsqlParameter</see>, which gets converted into a <see cref="List{T}">List&lt;NpgsqlParameter&gt;</see>.</param>
         private Dictionary<int, List<dynamic>> executeQuery(statementType command, NpgsqlParameter parameter, bool needsResult = false) => executeQuery(command, new List<NpgsqlParameter> { parameter }, needsResult);
 
         public PostgresGuild(string host, int port, string username, string password, string database_name, SslMode sslMode) {
@@ -348,54 +348,55 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
         }
 
         public void InsertGuildId(ulong guildId) => executeQuery(statementType.InsertGuildId, new NpgsqlParameter("guildId", (long) guildId));
-        public bool GuildIdExists(ulong guildId) => (bool) executeQuery(statementType.GuildIdExists, new NpgsqlParameter("guildId", (long) guildId), true) [0][0];
+        public bool GuildIdExists(ulong guildId) => executeQuery(statementType.GuildIdExists, new NpgsqlParameter("guildId", (long) guildId), true) ? [0] ? [0] ?? null;
 
-        public bool AntiInvite(ulong guildId) => (bool) executeQuery(statementType.GetAntiInvite, new NpgsqlParameter("guildId", (long) guildId), true) [0][0];
+        public bool AntiInvite(ulong guildId) => executeQuery(statementType.GetAntiInvite, new NpgsqlParameter("guildId", (long) guildId), true) ? [0] ? [0] ?? null;
         public void AntiInvite(ulong guildId, bool isEnabled) => executeQuery(statementType.SetAntiInvite, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("isEnabled", isEnabled) });
 
         public string[] AllowedInvites(ulong guildId) => executeQuery(statementType.GetAllowedInvites, new NpgsqlParameter("guildId", (long) guildId), true) [0].ConvertAll<string>(invite => invite.ToString()).ToArray();
         public void AllowedInvites(ulong guildId, string[] allowedInvites) => executeQuery(statementType.SetAllowedInvites, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("allowedInvites", allowedInvites) });
         public void AddAllowedInvite(ulong guildId, string invite) => executeQuery(statementType.AddAllowedInvite, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("invite", invite) });
         public void RemoveAllowedInvite(ulong guildId, string invite) => executeQuery(statementType.RemoveAllowedInvite, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("invite", invite) });
-        public bool IsAllowedInvite(ulong guildId, string invite) => (bool) executeQuery(statementType.IsAllowedInvite, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("invite", invite) }, true) [0][0];
+        public bool IsAllowedInvite(ulong guildId, string invite) => executeQuery(statementType.IsAllowedInvite, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("invite", invite) }, true) ? [0] ? [0] ?? null;
 
-        public int MaxLines(ulong guildId) => (int) executeQuery(statementType.GetMaxLines, new NpgsqlParameter("guildId", (long) guildId), true) [0][0];
+        public int MaxLines(ulong guildId) => executeQuery(statementType.GetMaxLines, new NpgsqlParameter("guildId", (long) guildId), true) ? [0] ? [0] ?? null;
         public void MaxLines(ulong guildId, int maxLines) => executeQuery(statementType.SetMaxLines, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("maxLines", maxLines) }, true);
 
-        public int MaxMentions(ulong guildId) => (int) executeQuery(statementType.GetMaxMentions, new NpgsqlParameter("guildId", (long) guildId), true) [0][0];
+        public int MaxMentions(ulong guildId) => executeQuery(statementType.GetMaxMentions, new NpgsqlParameter("guildId", (long) guildId), true) ? [0] ? [0] ?? null;
         public void MaxMentions(ulong guildId, int maxMentions) => executeQuery(statementType.SetMaxMentions, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("maxMentions", maxMentions) });
 
-        public bool AutoDehoist(ulong guildId) => (bool) executeQuery(statementType.GetAutoDehoist, new NpgsqlParameter("guildId", (long) guildId), true) [0][0];
+        public bool AutoDehoist(ulong guildId) => executeQuery(statementType.GetAutoDehoist, new NpgsqlParameter("guildId", (long) guildId), true) ? [0] ? [0] ?? null;
         public void AutoDehoist(ulong guildId, bool isEnabled) => executeQuery(statementType.SetAutoDehoist, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("isEnabled", isEnabled) });
 
-        public bool AutoRaidMode(ulong guildId) => (bool) executeQuery(statementType.GetAutoRaidMode, new NpgsqlParameter("guildId", (long) guildId), true) [0][0];
+        public bool AutoRaidMode(ulong guildId) => executeQuery(statementType.GetAutoRaidMode, new NpgsqlParameter("guildId", (long) guildId), true) ? [0] ? [0] ?? null;
         public void AutoRaidMode(ulong guildId, bool isEnabled) => executeQuery(statementType.SetAutoRaidMode, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("isEnabled", isEnabled) });
 
         public ulong[] IgnoredChannels(ulong guildId) => executeQuery(statementType.GetIgnoredChannels, new NpgsqlParameter("guildId", (long) guildId), true) [0].ConvertAll<ulong>(channelId => ulong.Parse(channelId)).ToArray();
         public void IgnoredChannels(ulong guildId, ulong[] ignoredChannels) => executeQuery(statementType.SetIgnoredChannels, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("channelIds", ignoredChannels.Select((role) => long.Parse(role.ToString()))) });
         public void AddIgnoredChannel(ulong guildId, ulong channelId) => executeQuery(statementType.AddIgnoredChannel, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("channelId", (long) channelId) });
         public void RemoveIgnoredChannel(ulong guildId, ulong channelId) => executeQuery(statementType.RemoveIgnoredChannel, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("channelId", (long) channelId) });
-        public bool IsIgnoredChannel(ulong guildId, ulong channelId) => (bool) executeQuery(statementType.IsIgnoredChannel, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("channelId", (long) channelId) }, true) [0][0];
+        public bool IsIgnoredChannel(ulong guildId, ulong channelId) => executeQuery(statementType.IsIgnoredChannel, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("channelId", (long) channelId) }, true) ? [0] ? [0] ?? null;
 
         public ulong[] AdminRoles(ulong guildId) => executeQuery(statementType.GetAdminRoles, new NpgsqlParameter("guildId", (long) guildId), true) [0].ConvertAll<ulong>(roleId => ulong.Parse(roleId)).ToArray();
         public void AdminRoles(ulong guildId, ulong[] roleIds) => executeQuery(statementType.SetAdminRoles, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("roleIds", roleIds.Select((role) => long.Parse(role.ToString()))) });
         public void AddAdminRole(ulong guildId, ulong roleId) => executeQuery(statementType.AddAdminRole, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("roleId", (long) roleId) });
         public void RemoveAdminRole(ulong guildId, ulong roleId) => executeQuery(statementType.RemoveAdminRole, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("roleId", (long) roleId) });
-        public bool IsAdminRole(ulong guildId, ulong roleId) => (bool) executeQuery(statementType.IsAdminRole, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("roleId", (long) roleId) }, true) [0][0];
+        public bool IsAdminRole(ulong guildId, ulong roleId) => executeQuery(statementType.IsAdminRole, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("roleId", (long) roleId) }, true) ? [0] ? [0] ?? null;
 
-        public ulong? MuteRole(ulong guildId) => (ulong?) executeQuery(statementType.GetMuteRole, new NpgsqlParameter("guildId", (long) guildId), true) [0][0];
+        public ulong? MuteRole(ulong guildId) => executeQuery(statementType.GetMuteRole, new NpgsqlParameter("guildId", (long) guildId), true) ? [0] ? [0] ?? null;
+
         public void MuteRole(ulong guildId, ulong roleId) => executeQuery(statementType.SetMuteRole, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("roleId", (long) roleId) });
 
-        public ulong? NoMemeRole(ulong guildId) => (ulong?) executeQuery(statementType.GetNoMemeRole, new NpgsqlParameter("guildId", (long) guildId), true) [0][0];
+        public ulong? NoMemeRole(ulong guildId) => (ulong?) executeQuery(statementType.GetNoMemeRole, new NpgsqlParameter("guildId", (long) guildId), true) ? [0] ? [0] ?? null;
         public void NoMemeRole(ulong guildId, ulong roleId) => executeQuery(statementType.SetNoMemeRole, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("roleId", (long) roleId) });
 
-        public ulong? NoVCRole(ulong guildId) => (ulong?) executeQuery(statementType.GetNoVCRole, new NpgsqlParameter("guildId", (long) guildId), true) [0][0];
+        public ulong? NoVCRole(ulong guildId) => (ulong?) executeQuery(statementType.GetNoVCRole, new NpgsqlParameter("guildId", (long) guildId), true) ? [0] ? [0] ?? null;
         public void NoVCRole(ulong guildId, ulong roleId) => executeQuery(statementType.SetNoVCRole, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("roleId", (long) roleId) });
 
-        public bool AntiRaid(ulong guildId) => (bool) executeQuery(statementType.GetAntiRaid, new NpgsqlParameter("guildId", (long) guildId), true) [0][0];
+        public bool AntiRaid(ulong guildId) => executeQuery(statementType.GetAntiRaid, new NpgsqlParameter("guildId", (long) guildId), true) ? [0] ? [0] ?? null;
         public void AntiRaid(ulong guildId, bool isEnabled) => executeQuery(statementType.SetAntiRaid, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("isEnabled", isEnabled) });
 
-        public int AntiRaidSetOff(ulong guildId) => (int) executeQuery(statementType.GetAntiRaidSetOff, new NpgsqlParameter("guildId", (long) guildId), true) [0][0];
+        public int AntiRaidSetOff(ulong guildId) => executeQuery(statementType.GetAntiRaidSetOff, new NpgsqlParameter("guildId", (long) guildId), true) ? [0] ? [0] ?? null;
         public void AntiRaidSetOff(ulong guildId, int interval) => executeQuery(statementType.SetAntiRaidSetOff, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("interval", interval) });
     }
 }

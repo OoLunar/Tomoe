@@ -4,14 +4,14 @@ using System.Reflection;
 
 namespace Tomoe.Utils {
     public class FileSystem {
-#if DEBUG
-#pragma warning disable IL3000
+        #if DEBUG
+        #pragma warning disable IL3000
         public static string ProjectRoot = Path.GetDirectoryName(Path.GetFullPath(Path.Join(Assembly.GetExecutingAssembly().Location, "../../../../../")));
-#else
+        #else
         // Places the log directory right next to the executable.
         public static string ProjectRoot = Path.GetDirectoryName(Path.GetFullPath(System.AppContext.BaseDirectory));
-#endif
-        private static Logger _logger = new Logger("Filesystem");
+        #endif
+        private static readonly Logger _logger = new Logger("Filesystem");
 
         public static bool CreateFile(string file, bool retry = false) {
             if (File.Exists(file)) return true;

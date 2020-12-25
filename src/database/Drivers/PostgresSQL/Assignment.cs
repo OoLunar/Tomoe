@@ -8,9 +8,9 @@ using Tomoe.Utils;
 
 namespace Tomoe.Database.Drivers.PostgresSQL {
     public class PostgresAssignment : IAssignment {
-        private static Logger _logger = new Logger("Database.PostgresSQL.Assignment");
-        private NpgsqlConnection _connection;
-        private Dictionary<statementType, NpgsqlCommand> _preparedStatements = new Dictionary<statementType, NpgsqlCommand>();
+        private static readonly Logger _logger = new Logger("Database.PostgresSQL.Assignment");
+        private readonly NpgsqlConnection _connection;
+        private readonly Dictionary<statementType, NpgsqlCommand> _preparedStatements = new Dictionary<statementType, NpgsqlCommand>();
         private enum statementType {
             Create,
             Remove,
@@ -21,18 +21,18 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
         }
 
         /// <summary>
-        /// Executes an SQL query from <see cref="Tomoe.Database.Drivers.PostgresSQL.PostgresAssignment._preparedStatements">_preparedStatements</see>, using <seealso cref="Tomoe.Database.Drivers.PostgresSQL.PostgresAssignment.statementType">statementType</seealso> as a key.
+        /// Executes an SQL query from <see cref="_preparedStatements">_preparedStatements</see>, using <seealso cref="statementType">statementType</seealso> as a key.
         /// 
         /// Returns a list of results if <paramref name="needsResult">needsResult</paramref> is true, otherwise returns null.
         /// </summary>
-        /// <param name="command">Which SQL command to execute, using <see cref="Tomoe.Database.Drivers.PostgresSQL.PostgresAssignment.statementType">statementType</see> as an index.</param>
-        /// <param name="parameters">A list of <see cref="Npgsql.NpgsqlParameter">NpgsqlParameter's</see>.</param>
+        /// <param name="command">Which SQL command to execute, using <see cref="statementType">statementType</see> as an index.</param>
+        /// <param name="parameters">A list of <see cref="NpgsqlParameter">NpgsqlParameter's</see>.</param>
         /// <param name="needsResult">Returns a list of results if true, otherwise returns null.</param>
-        /// <returns><see cref="System.Collections.Generic.List{T}">List&lt;dynamic&gt;</see> if <paramref name="needsResult">needsResult</paramref> is true, otherwise returns null.</returns>
+        /// <returns><see cref="List{T}">List&lt;dynamic&gt;</see> if <paramref name="needsResult">needsResult</paramref> is true, otherwise returns null.</returns>
         private Dictionary<int, List<dynamic>> executeQuery(statementType command, List<NpgsqlParameter> parameters, bool needsResult = false) {
             List<string> keyValue = new List<string>();
             foreach (NpgsqlParameter param in parameters) keyValue.Add($"\"{param.ParameterName}: {param.Value}\"");
-            _logger.Trace($"Executing prepared statement \"{command.ToString()}\" with parameters: {string.Join(", ", keyValue.ToArray())}");
+            _logger.Trace($"Executing prepared statement \"{command}\" with parameters: {string.Join(", ", keyValue.ToArray())}");
 
             NpgsqlCommand statement = _preparedStatements[command];
             Dictionary<string, NpgsqlParameter> sortedParameters = new Dictionary<string, NpgsqlParameter>();
@@ -133,7 +133,7 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
             if (queryResults == null) return null;
             List<Assignment> assignments = new List<Assignment>();
             foreach (int i in queryResults.Keys) { // Order can be determined from the SQL query and how it was selected.
-                Assignment assignment = new Assignment();
+                Assignment assignment = new();
                 assignment.TaskType = (AssignmentType) queryResults[i][0];
                 assignment.GuildId = (ulong) queryResults[i][1];
                 assignment.ChannelId = (ulong) queryResults[i][2];
@@ -171,7 +171,7 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
             if (queryResults == null) return null;
             List<Assignment> assignments = new List<Assignment>();
             foreach (int i in queryResults.Keys) { // Order can be determined from the SQL query and how it was selected.
-                Assignment assignment = new Assignment();
+                Assignment assignment = new();
                 assignment.TaskType = (AssignmentType) queryResults[i][0];
                 assignment.GuildId = (ulong) queryResults[i][1];
                 assignment.ChannelId = (ulong) queryResults[i][2];
@@ -191,7 +191,7 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
             if (queryResults == null) return null;
             List<Assignment> assignments = new List<Assignment>();
             foreach (int i in queryResults.Keys) { // Order can be determined from the SQL query and how it was selected.
-                Assignment assignment = new Assignment();
+                Assignment assignment = new();
                 assignment.TaskType = (AssignmentType) queryResults[i][0];
                 assignment.GuildId = (ulong) queryResults[i][1];
                 assignment.ChannelId = (ulong) queryResults[i][2];

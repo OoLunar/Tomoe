@@ -21,11 +21,11 @@ namespace Tomoe {
         public const string MissingMuteRole = "**[Error: No mute role has been set!]**";
         public static DatabaseLoader Database = new DatabaseLoader();
         public static DiscordShardedClient Client;
-        private static Logger _logger = new Logger("Main");
+        private static readonly Logger _logger = new Logger("Main");
 
-        public static void Main(string[] args) => new Program().MainAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+        public static void Main() => MainAsync().ConfigureAwait(false).GetAwaiter().GetResult();
 
-        public async Task MainAsync() {
+        public static async Task MainAsync() {
             Config.Init();
             using var loggerProvider = new LoggerProvider();
             DiscordConfiguration discordConfiguration = new DiscordConfiguration {
@@ -62,9 +62,9 @@ namespace Tomoe {
             if (mentionList == null) mentionList = new List<IMention>();
             mentionList.Add(new UserMention(context.User.Id));
             try {
-                return context.RespondAsync($"{context.User.Mention}: {ExtensionMethods.Filter(content, context, filteringAction)}", false, null, mentionList as IEnumerable<IMention>).ConfigureAwait(false).GetAwaiter().GetResult();
+                return context.RespondAsync($"{context.User.Mention}: {ExtensionMethods.Filter(content, filteringAction)}", false, null, mentionList as IEnumerable<IMention>).ConfigureAwait(false).GetAwaiter().GetResult();
             } catch (DSharpPlus.Exceptions.UnauthorizedException) {
-                return (context.Member.CreateDmChannelAsync().ConfigureAwait(false).GetAwaiter().GetResult()).SendMessageAsync($"Responding to <{context.Message.JumpLink}>: {ExtensionMethods.Filter(content, context, filteringAction)}").ConfigureAwait(false).GetAwaiter().GetResult();
+                return context.Member.SendMessageAsync($"Responding to <{context.Message.JumpLink}>: {ExtensionMethods.Filter(content, filteringAction)}").ConfigureAwait(false).GetAwaiter().GetResult();
             }
         }
 
@@ -74,7 +74,7 @@ namespace Tomoe {
             try {
                 return context.RespondAsync($"{context.User.Mention}: ", false, embed, mentionList as IEnumerable<IMention>).ConfigureAwait(false).GetAwaiter().GetResult();
             } catch (DSharpPlus.Exceptions.UnauthorizedException) {
-                return (context.Member.CreateDmChannelAsync().ConfigureAwait(false).GetAwaiter().GetResult()).SendMessageAsync($"Responding to <{context.Message.JumpLink}>: ", false, embed).ConfigureAwait(false).GetAwaiter().GetResult();
+                return context.Member.SendMessageAsync($"Responding to <{context.Message.JumpLink}>: ", false, embed).ConfigureAwait(false).GetAwaiter().GetResult();
             }
         }
     }
@@ -107,7 +107,7 @@ namespace Tomoe {
             CodeBlocksZeroWidthSpace = 4
         }
 
-        public static string Filter(this string modifyString, dynamic context, FilteringAction filteringAction = FilteringAction.CodeBlocksEscape) {
+        public static string Filter(this string modifyString, FilteringAction filteringAction = FilteringAction.CodeBlocksEscape) {
             if (string.IsNullOrEmpty(modifyString)) return null;
             if (filteringAction.HasFlag(FilteringAction.CodeBlocksZeroWidthSpace) || filteringAction.HasFlag(FilteringAction.CodeBlocksEscape)) return modifyString.Replace("`", "​`​"); // There are zero width spaces before and after the backtick.
             else if (filteringAction.HasFlag(FilteringAction.CodeBlocksEscape)) return modifyString.Replace("\\", "\\\\").Replace("`", "\\`");
@@ -116,7 +116,7 @@ namespace Tomoe {
 
         public static string GetCommonName(this DiscordMember guildMember) {
             if (guildMember == null) return null;
-            else return guildMember.Nickname != null ? guildMember.Nickname : guildMember.Username;
+            else return guildMember.Nickname ?? guildMember.Username;
         }
     }
 }

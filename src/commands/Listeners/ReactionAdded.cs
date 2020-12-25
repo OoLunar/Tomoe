@@ -9,8 +9,8 @@ using Tomoe.Utils;
 
 namespace Tomoe.Commands.Listeners {
     public class ReactionAdded {
-        private static Logger _logger = new Logger("Listeners/ReactionAdded");
-        public static List<Queue> QueueList = new List<Queue>();
+        private static readonly Logger _logger = new Logger("Listeners/ReactionAdded");
+        public static readonly List<Queue> QueueList = new List<Queue>();
         public delegate Task ReactionHandler(DiscordEmoji emoji);
 
         public struct Queue {

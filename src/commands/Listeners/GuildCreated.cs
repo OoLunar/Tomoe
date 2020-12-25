@@ -11,7 +11,7 @@ namespace Tomoe.Commands.Listeners {
                 if (muteRoleId.HasValue) {
                     DiscordRole muteRole = eventArgs.Guild.GetRole(muteRoleId.Value);
                     if (muteRole != null) {
-                        await Commands.Config.Mute.fixMuteRolePermissions(eventArgs.Guild, muteRole);
+                        await Config.Mute.fixMuteRolePermissions(eventArgs.Guild, muteRole);
                     }
                 }
             } else Program.Database.Guild.InsertGuildId(eventArgs.Guild.Id);

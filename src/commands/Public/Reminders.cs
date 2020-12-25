@@ -15,7 +15,7 @@ namespace Tomoe.Commands.Public {
     [Aliases("reminders")]
     [Description("Creates a reminder to go off at the specified time.")]
     public class Reminders : BaseCommandModule {
-        private static Logger _logger = new Logger("Commands/Public/Tasks");
+        private static readonly Logger _logger = new Logger("Commands/Public/Tasks");
         [GroupCommand]
         public async Task Create(CommandContext context, TimeSpan setOff, [RemainingText] string content) {
             Program.Database.Tasks.Create(Database.Interfaces.AssignmentType.Reminder, context.Guild.Id, context.Channel.Id, context.Message.Id, context.User.Id, DateTime.Now + setOff, DateTime.Now, content);
@@ -28,7 +28,7 @@ namespace Tomoe.Commands.Public {
         [Command("list")]
         [Description("Lists what reminders are set.")]
         public async Task List(CommandContext context) {
-            Tomoe.Database.Interfaces.Assignment[] tasks = Program.Database.Tasks.SelectAllReminders(context.User.Id);
+            Database.Interfaces.Assignment[] tasks = Program.Database.Tasks.SelectAllReminders(context.User.Id);
             List<string> reminders = new List<string>();
             if (tasks == null) reminders.Add("No reminders are set!");
             else {
@@ -39,7 +39,7 @@ namespace Tomoe.Commands.Public {
                 }
             }
 
-            DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder();
+            DiscordEmbedBuilder embedBuilder = new();
             embedBuilder.WithAuthor(context.Guild.Name, context.Guild.IconUrl ?? context.User.DefaultAvatarUrl, context.Guild.IconUrl ?? context.User.DefaultAvatarUrl);
             embedBuilder.WithTitle($"All reminders for {context.Member.GetCommonName()}");
             var interactivity = context.Client.GetInteractivity();
@@ -50,7 +50,7 @@ namespace Tomoe.Commands.Public {
         [Description("Removes a reminder.")]
         public async Task Remove(CommandContext context, int taskId) {
             _logger.Trace("Executing remove");
-            Tomoe.Database.Interfaces.Assignment? task = Program.Database.Tasks.Select(context.User.Id, Database.Interfaces.AssignmentType.Reminder, taskId);
+            Database.Interfaces.Assignment? task = Program.Database.Tasks.Select(context.User.Id, Database.Interfaces.AssignmentType.Reminder, taskId);
             if (!task.HasValue) Program.SendMessage(context, $"Reminder #{taskId} does not exist!");
             else {
                 Program.Database.Tasks.Remove(taskId);
@@ -68,21 +68,21 @@ namespace Tomoe.Commands.Public {
         }
 
         public static void StartRoutine() {
-            Timer timer = new Timer();
+            Timer timer = new();
             timer.Interval = 1000;
             timer.Elapsed += async(object sender, ElapsedEventArgs e) => {
-                Tomoe.Database.Interfaces.Assignment[] tasks;
+                Database.Interfaces.Assignment[] tasks;
                 try {
                     tasks = Program.Database.Tasks.SelectAllAssignments();
                 } catch (NpgsqlOperationInProgressException) {
                     return;
                 }
                 if (tasks == null) return;
-                foreach (Tomoe.Database.Interfaces.Assignment task in tasks) {
+                foreach (Database.Interfaces.Assignment task in tasks) {
                     if (task.SetOff.CompareTo(DateTime.Now) < 0) {
                         MakeShiftContext context = new MakeShiftContext(task.GuildId, task.ChannelId, task.MessageId, task.UserId);
                         switch (task.TaskType) {
-                            case Tomoe.Database.Interfaces.AssignmentType.Reminder:
+                            case Database.Interfaces.AssignmentType.Reminder:
                                 Program.SendMessage(context, $"Set at {task.SetAt.ToString("MMM dd', 'HHH':'mm")}: {task.Content}", ExtensionMethods.FilteringAction.CodeBlocksIgnore);
                                 Program.Database.Tasks.Remove(task.TaskId);
                                 break;

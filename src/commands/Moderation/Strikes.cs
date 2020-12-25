@@ -8,9 +8,7 @@ using DSharpPlus.Exceptions;
 using Tomoe.Database.Interfaces;
 
 namespace Tomoe.Commands.Moderation {
-    [Group("strike")]
-    [Description("Gives a strike/warning to the specified victim.")]
-    [RequireUserPermissions(Permissions.KickMembers)]
+    [Group("strike"), Description("Gives a strike/warning to the specified victim."), RequireUserPermissions(Permissions.KickMembers)]
     public class Strikes : BaseCommandModule {
         [GroupCommand]
         public async Task Add(CommandContext context, DiscordUser victim, [RemainingText] string strikeReason = Program.MissingReason) {
@@ -26,7 +24,7 @@ namespace Tomoe.Commands.Moderation {
                 if (guildVictim.Hierarchy > (await context.Guild.GetMemberAsync(context.Client.CurrentUser.Id)).Hierarchy) {
                     Program.SendMessage(context, Program.Hierarchy);
                     return;
-                } else if (!guildVictim.IsBot) await guildVictim.SendMessageAsync($"You've been given a strike by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: ```\n{strikeReason.Filter(context) ?? Program.MissingReason}\n```");
+                } else if (!guildVictim.IsBot) await guildVictim.SendMessageAsync($"You've been given a strike by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: ```\n{strikeReason.Filter() ?? Program.MissingReason}\n```");
             } catch (NotFoundException) {
                 sentDm = false;
             } catch (BadRequestException) {
@@ -35,15 +33,12 @@ namespace Tomoe.Commands.Moderation {
                 sentDm = false;
             }
             Strike strike = Program.Database.Strikes.Add(context.Guild.Id, victim.Id, context.User.Id, strikeReason, context.Message.JumpLink.ToString(), sentDm);
-            Program.SendMessage(context, $"Case #{strike.Id}, {victim.Mention} has been striked{(sentDm ? '.' : " (Failed to DM).")} This is strike #{strike.StrikeCount}. Reason: ```\n{strikeReason.Filter(context, ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace) ?? Program.MissingReason}\n```", default, new List<IMention>() { new UserMention(victim.Id) });
+            Program.SendMessage(context, $"Case #{strike.Id}, {victim.Mention} has been striked{(sentDm ? '.' : " (Failed to DM).")} This is strike #{strike.StrikeCount}. Reason: ```\n{strikeReason.Filter(ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace) ?? Program.MissingReason}\n```", default, new List<IMention>() { new UserMention(victim.Id) });
         }
 
-        [Command("check")]
-        [Description("Gets the users past history")]
-        [RequireUserPermissions(Permissions.KickMembers)]
-        [Aliases("history")]
+        [Command("check"), Description("Gets the users past history"), RequireUserPermissions(Permissions.KickMembers), Aliases("history")]
         public async Task Check(CommandContext context, DiscordUser victim) {
-            DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder();
+            DiscordEmbedBuilder embedBuilder = new();
             embedBuilder.Title = $"{victim.Username}'s Past History";
             Strike[] pastStrikes = Program.Database.Strikes.GetVictim(context.Guild.Id, victim.Id);
             if (pastStrikes == null) embedBuilder.Description = "No strikes have been found!";

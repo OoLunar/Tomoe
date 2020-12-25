@@ -5,7 +5,7 @@ using DSharpPlus.Entities;
 
 namespace Tomoe.Utils {
     public class MakeShiftContext {
-        private static Logger _logger = new Logger("Utils/MakeShiftContext");
+        private static readonly Logger _logger = new Logger("Utils/MakeShiftContext");
         public DiscordGuild Guild;
         public DiscordChannel Channel;
         public DiscordMember Member;

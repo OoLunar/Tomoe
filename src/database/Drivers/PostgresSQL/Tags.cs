@@ -7,9 +7,9 @@ using Tomoe.Utils;
 
 namespace Tomoe.Database.Drivers.PostgresSQL {
     public class PostgresTags : ITags {
-        private static Logger _logger = new Logger("Database.PostgresSQL.Tags");
-        private NpgsqlConnection _connection;
-        private Dictionary<statementType, NpgsqlCommand> _preparedStatements = new Dictionary<statementType, NpgsqlCommand>();
+        private static readonly Logger _logger = new Logger("Database.PostgresSQL.Tags");
+        private readonly NpgsqlConnection _connection;
+        private readonly Dictionary<statementType, NpgsqlCommand> _preparedStatements = new Dictionary<statementType, NpgsqlCommand>();
         private enum statementType {
             Get,
             GetGuild,
@@ -32,7 +32,7 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
         private Dictionary<int, List<dynamic>> executeQuery(statementType command, List<NpgsqlParameter> parameters, bool needsResult = false) {
             List<string> keyValue = new List<string>();
             foreach (NpgsqlParameter param in parameters) keyValue.Add($"\"{param.ParameterName}: {param.Value}\"");
-            _logger.Trace($"Executing prepared statement \"{command.ToString()}\" with parameters: {string.Join(", ", keyValue.ToArray())}");
+            _logger.Trace($"Executing prepared statement \"{command}\" with parameters: {string.Join(", ", keyValue.ToArray())}");
 
             NpgsqlCommand statement = _preparedStatements[command];
             Dictionary<string, NpgsqlParameter> sortedParameters = new Dictionary<string, NpgsqlParameter>();
@@ -214,14 +214,14 @@ namespace Tomoe.Database.Drivers.PostgresSQL {
         public void DeleteAlias(ulong guildId, string tagTitle) => executeQuery(statementType.DeleteAlias, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("tagTitle", tagTitle) });
         public void DeleteAllAliases(ulong guildId, string tagTitle) => executeQuery(statementType.DeleteAllAliases, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("tagTitle", tagTitle) });
         public void Edit(ulong guildId, string tagTitle, string content) => executeQuery(statementType.Edit, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("tagTitle", tagTitle), new NpgsqlParameter("content", content) });
-        public string Get(ulong guildId, string tagTitle) => (string?) executeQuery(statementType.Get, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("tagTitle", tagTitle) }, true) [0][0];
-        public string RealName(ulong guildId, string tagTitle) => (string) executeQuery(statementType.RealName, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("tagTitle", tagTitle) }, true) [0][0];
-        public ulong? GetAuthor(ulong guildId, string tagTitle) => (ulong?) executeQuery(statementType.GetAuthor, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("tagTitle", tagTitle) }, true) [0][0];
-        public bool? IsAlias(ulong guildId, string tagTitle) => (bool?) executeQuery(statementType.IsAlias, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("tagTitle", tagTitle) }, true) [0][0];
-        public bool Exist(ulong guildId, string tagTitle) => (bool) executeQuery(statementType.Exist, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("tagTitle", tagTitle) }, true) [0][0];
-        public string[] GetAliases(ulong guildId, string tagTitle) => executeQuery(statementType.GetAliases, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("tagTitle", tagTitle) }, true) [0].ConvertAll<string>(tag => tag.ToString()).ToArray();
-        public string[] GetGuild(ulong guildId) => executeQuery(statementType.GetGuild, new NpgsqlParameter("guildId", (long) guildId), true) [0].ConvertAll<string>(tag => tag.ToString()).ToArray();
-        public string[] GetUser(ulong guildId, ulong userId) => executeQuery(statementType.GetUserGuild, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("userId", (long) userId) }, true) [0].ConvertAll<string>(tag => tag.ToString()).ToArray();
-        public string[] GetUser(ulong userId) => executeQuery(statementType.GetUserOverall, new NpgsqlParameter("userId", (long) userId)) [0].ConvertAll<string>(tag => tag.ToString()).ToArray();
+        public string Get(ulong guildId, string tagTitle) => executeQuery(statementType.Get, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("tagTitle", tagTitle) }, true) ? [0] ? [0] ?? null;
+        public string RealName(ulong guildId, string tagTitle) => executeQuery(statementType.RealName, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("tagTitle", tagTitle) }, true) ? [0] ? [0] ?? null;
+        public ulong? GetAuthor(ulong guildId, string tagTitle) => executeQuery(statementType.GetAuthor, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("tagTitle", tagTitle) }, true) ? [0] ? [0] ?? null;
+        public bool? IsAlias(ulong guildId, string tagTitle) => executeQuery(statementType.IsAlias, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("tagTitle", tagTitle) }, true) ? [0] ? [0] ?? null;
+        public bool Exist(ulong guildId, string tagTitle) => executeQuery(statementType.Exist, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("tagTitle", tagTitle) }, true) ? [0] ? [0] ?? null;
+        public string[] GetAliases(ulong guildId, string tagTitle) => executeQuery(statementType.GetAliases, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("tagTitle", tagTitle) }, true) ? [0].ConvertAll<string>(tag => tag.ToString()).ToArray() ?? null;
+        public string[] GetGuild(ulong guildId) => executeQuery(statementType.GetGuild, new NpgsqlParameter("guildId", (long) guildId), true) ? [0].ConvertAll<string>(tag => tag.ToString()).ToArray() ?? null;
+        public string[] GetUser(ulong guildId, ulong userId) => executeQuery(statementType.GetUserGuild, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long) guildId), new NpgsqlParameter("userId", (long) userId) }, true) ? [0].ConvertAll<string>(tag => tag.ToString()).ToArray() ?? null;
+        public string[] GetUser(ulong userId) => executeQuery(statementType.GetUserOverall, new NpgsqlParameter("userId", (long) userId)) ? [0].ConvertAll<string>(tag => tag.ToString()).ToArray() ?? null;
     }
 }
