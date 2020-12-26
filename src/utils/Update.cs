@@ -1,9 +1,12 @@
 using System;
 
-namespace Tomoe.Utils {
-    public static class Update {
-        public static void Check() {
-            throw new NotImplementedException();
-        }
-    }
+namespace Tomoe.Utils
+{
+	internal static class Update
+	{
+		internal static void Check()
+		{
+			throw new NotImplementedException();
+		}
+	}
 }

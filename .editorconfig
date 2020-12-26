@@ -10,3 +10,4 @@ end_of_line = lf
 charset = utf-8
 trim_trailing_whitespace = true
 insert_final_newline = true
+dotnet_code_quality.ca1051.exclude_structs = true

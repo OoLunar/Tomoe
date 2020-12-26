@@ -9,88 +9,123 @@ using DSharpPlus.Interactivity.Enums;
 using DSharpPlus.Interactivity.Extensions;
 using Npgsql;
 using Tomoe.Utils;
+using DSharpPlus.Interactivity;
 
-namespace Tomoe.Commands.Public {
-    [Group("remind")]
-    [Aliases("reminders")]
-    [Description("Creates a reminder to go off at the specified time.")]
-    public class Reminders : BaseCommandModule {
-        private static readonly Logger _logger = new Logger("Commands/Public/Tasks");
-        [GroupCommand]
-        public async Task Create(CommandContext context, TimeSpan setOff, [RemainingText] string content) {
-            Program.Database.Tasks.Create(Database.Interfaces.AssignmentType.Reminder, context.Guild.Id, context.Channel.Id, context.Message.Id, context.User.Id, DateTime.Now + setOff, DateTime.Now, content);
-            Program.SendMessage(context, $"Set off at {DateTime.Now.Add(setOff).ToString("MMM dd', 'HHH':'mm':'ss")}: ```\n{content}```", ExtensionMethods.FilteringAction.CodeBlocksIgnore);
-        }
+namespace Tomoe.Commands.Public
+{
+	[Group("remind")]
+	[Aliases("reminders")]
+	[Description("Creates a reminder to go off at the specified time.")]
+	public class Reminders : BaseCommandModule
+	{
+		private static readonly Logger Logger = new Logger("Commands/Public/Tasks");
+		[GroupCommand]
+		public async Task Create(CommandContext context, TimeSpan setOff, [RemainingText] string content)
+		{
+			Program.Database.Tasks.Create(Database.Interfaces.AssignmentType.Reminder, context.Guild.Id, context.Channel.Id, context.Message.Id, context.User.Id, DateTime.Now + setOff, DateTime.Now, content);
+			_ = Program.SendMessage(context, $"Set off at {DateTime.Now.Add(setOff).ToString("MMM dd', 'HHH':'mm':'ss")}: ```\n{content}```", ExtensionMethods.FilteringAction.CodeBlocksIgnore);
+		}
 
-        [GroupCommand]
-        public async Task ListByGroup(CommandContext context) => await List(context);
+		[GroupCommand]
+		public async Task ListByGroup(CommandContext context) => await List(context);
 
-        [Command("list")]
-        [Description("Lists what reminders are set.")]
-        public async Task List(CommandContext context) {
-            Database.Interfaces.Assignment[] tasks = Program.Database.Tasks.SelectAllReminders(context.User.Id);
-            List<string> reminders = new List<string>();
-            if (tasks == null) reminders.Add("No reminders are set!");
-            else {
-                _logger.Trace(tasks.Length.ToString());
-                foreach (Tomoe.Database.Interfaces.Assignment task in tasks) {
-                    _logger.Trace($"Id #{task.TaskId}, Set off at {task.SetOff.ToString("MMM dd', 'HHH':'mm':'ss")}: {task.Content}");
-                    reminders.Add($"Id #{task.TaskId}, Set off at {task.SetOff.ToString("MMM dd', 'HHH':'mm':'ss")}: {task.Content}");
-                }
-            }
+		[Command("list")]
+		[Description("Lists what reminders are set.")]
+		public async Task List(CommandContext context)
+		{
+			Database.Interfaces.Assignment[] tasks = Program.Database.Tasks.SelectAllReminders(context.User.Id);
+			List<string> reminders = new List<string>();
+			if (tasks == null)
+			{
+				reminders.Add("No reminders are set!");
+			}
+			else
+			{
+				Logger.Trace(tasks.Length.ToString());
+				foreach (Tomoe.Database.Interfaces.Assignment task in tasks)
+				{
+					Logger.Trace($"Id #{task.TaskId}, Set off at {task.SetOff.ToString("MMM dd', 'HHH':'mm':'ss")}: {task.Content}");
+					reminders.Add($"Id #{task.TaskId}, Set off at {task.SetOff.ToString("MMM dd', 'HHH':'mm':'ss")}: {task.Content}");
+				}
+			}
 
-            DiscordEmbedBuilder embedBuilder = new();
-            embedBuilder.WithAuthor(context.Guild.Name, context.Guild.IconUrl ?? context.User.DefaultAvatarUrl, context.Guild.IconUrl ?? context.User.DefaultAvatarUrl);
-            embedBuilder.WithTitle($"All reminders for {context.Member.GetCommonName()}");
-            var interactivity = context.Client.GetInteractivity();
-            await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, interactivity.GeneratePagesInEmbed(string.Join("\n", reminders.ToArray()), SplitType.Character, embedBuilder), timeoutoverride : TimeSpan.FromMinutes(2));
-        }
+			DiscordEmbedBuilder embedBuilder = new();
+			embedBuilder.Author = new()
+			{
+				Name = context.Guild.Name,
+				Url = context.Guild.IconUrl ?? context.User.DefaultAvatarUrl,
+				IconUrl = context.Guild.IconUrl ?? context.User.DefaultAvatarUrl
+			};
+			embedBuilder.Title = $"All reminders for {context.Member.GetCommonName()}";
+			InteractivityExtension interactivity = context.Client.GetInteractivity();
+			await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, interactivity.GeneratePagesInEmbed(string.Join("\n", reminders.ToArray()), SplitType.Character, embedBuilder), timeoutoverride: TimeSpan.FromMinutes(2));
+		}
 
-        [Command("remove")]
-        [Description("Removes a reminder.")]
-        public async Task Remove(CommandContext context, int taskId) {
-            _logger.Trace("Executing remove");
-            Database.Interfaces.Assignment? task = Program.Database.Tasks.Select(context.User.Id, Database.Interfaces.AssignmentType.Reminder, taskId);
-            if (!task.HasValue) Program.SendMessage(context, $"Reminder #{taskId} does not exist!");
-            else {
-                Program.Database.Tasks.Remove(taskId);
-                Program.SendMessage(context, $"Reminder #{taskId} was removed!");
-            }
-        }
+		[Command("remove")]
+		[Description("Removes a reminder.")]
+		public async Task Remove(CommandContext context, int taskId)
+		{
+			Logger.Trace("Executing remove");
+			Database.Interfaces.Assignment? task = Program.Database.Tasks.Select(context.User.Id, Database.Interfaces.AssignmentType.Reminder, taskId);
+			if (!task.HasValue)
+			{
+				_ = Program.SendMessage(context, $"Reminder #{taskId} does not exist!");
+			}
+			else
+			{
+				Program.Database.Tasks.Remove(taskId);
+				_ = Program.SendMessage(context, $"Reminder #{taskId} was removed!");
+			}
+		}
 
-        [Command("remove")]
-        public async Task Remove(CommandContext context, string taskId) {
-            try {
-                Remove(context, int.Parse(taskId.Remove(0, 1)));
-            } catch (FormatException) {
-                Program.SendMessage(context, $"\"{taskId}\" is not an id.");
-            }
-        }
+		[Command("remove")]
+		public async Task Remove(CommandContext context, string taskId)
+		{
+			try
+			{
+				_ = Remove(context, int.Parse(taskId.Remove(0, 1)));
+			}
+			catch (FormatException)
+			{
+				_ = Program.SendMessage(context, $"\"{taskId}\" is not an id.");
+			}
+		}
 
-        public static void StartRoutine() {
-            Timer timer = new();
-            timer.Interval = 1000;
-            timer.Elapsed += async(object sender, ElapsedEventArgs e) => {
-                Database.Interfaces.Assignment[] tasks;
-                try {
-                    tasks = Program.Database.Tasks.SelectAllAssignments();
-                } catch (NpgsqlOperationInProgressException) {
-                    return;
-                }
-                if (tasks == null) return;
-                foreach (Database.Interfaces.Assignment task in tasks) {
-                    if (task.SetOff.CompareTo(DateTime.Now) < 0) {
-                        MakeShiftContext context = new MakeShiftContext(task.GuildId, task.ChannelId, task.MessageId, task.UserId);
-                        switch (task.TaskType) {
-                            case Database.Interfaces.AssignmentType.Reminder:
-                                Program.SendMessage(context, $"Set at {task.SetAt.ToString("MMM dd', 'HHH':'mm")}: {task.Content}", ExtensionMethods.FilteringAction.CodeBlocksIgnore);
-                                Program.Database.Tasks.Remove(task.TaskId);
-                                break;
-                        }
-                    }
-                }
-            };
-            timer.Start();
-        }
-    }
+		public static void StartRoutine()
+		{
+			Timer timer = new();
+			timer.Interval = 1000;
+			timer.Elapsed += async (object sender, ElapsedEventArgs e) =>
+			{
+				Database.Interfaces.Assignment[] tasks;
+				try
+				{
+					tasks = Program.Database.Tasks.SelectAllAssignments();
+				}
+				catch (NpgsqlOperationInProgressException)
+				{
+					return;
+				}
+				if (tasks == null)
+				{
+					return;
+				}
+				foreach (Database.Interfaces.Assignment task in tasks)
+				{
+					if (task.SetOff.CompareTo(DateTime.Now) < 0)
+					{
+						MakeShiftContext context = new MakeShiftContext(task.GuildId, task.ChannelId, task.MessageId, task.UserId);
+						switch (task.TaskType)
+						{
+							case Database.Interfaces.AssignmentType.Reminder:
+								_ = Program.SendMessage(context, $"Set at {task.SetAt.ToString("MMM dd', 'HHH':'mm")}: {task.Content}", ExtensionMethods.FilteringAction.CodeBlocksIgnore);
+								Program.Database.Tasks.Remove(task.TaskId);
+								break;
+						}
+					}
+				}
+			};
+			timer.Start();
+		}
+	}
 }

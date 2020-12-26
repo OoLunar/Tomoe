@@ -2,30 +2,33 @@ using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
-namespace Tomoe.Utils {
-    public class Logging {
-        [JsonProperty("tomoe")]
-        public LogLevel Tomoe;
+namespace Tomoe.Utils
+{
+	internal class Logging
+	{
+		[JsonProperty("tomoe")]
+		internal LogLevel Tomoe;
 
-        [JsonProperty("discord")]
-        public LogLevel Discord;
+		[JsonProperty("discord")]
+		internal LogLevel Discord;
 
-        [JsonProperty("npgsql")]
-        public LogLevel Npgsql;
+		[JsonProperty("npgsql")]
+		internal LogLevel Npgsql;
 
-        [JsonProperty("show_id")]
-        public bool ShowId;
+		[JsonProperty("show_id")]
+		internal bool ShowId;
 
-        [JsonProperty("save_to_file")]
-        public bool SaveToFile;
+		[JsonProperty("save_to_file")]
+		internal bool SaveToFile;
 
-        [JsonConstructor]
-        public Logging(LogLevel tomoe = LogLevel.Information, LogLevel discord = LogLevel.Information, LogLevel npgsql = LogLevel.Information, bool showId = false, bool saveToFile = true) {
-            Tomoe = tomoe;
-            Discord = discord;
-            Npgsql = npgsql;
-            ShowId = showId;
-            SaveToFile = saveToFile;
-        }
-    }
+		[JsonConstructor]
+		internal Logging(LogLevel tomoe = LogLevel.Information, LogLevel discord = LogLevel.Information, LogLevel npgsql = LogLevel.Information, bool showId = false, bool saveToFile = true)
+		{
+			Tomoe = tomoe;
+			Discord = discord;
+			Npgsql = npgsql;
+			ShowId = showId;
+			SaveToFile = saveToFile;
+		}
+	}
 }
