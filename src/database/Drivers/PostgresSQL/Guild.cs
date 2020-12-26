@@ -440,7 +440,7 @@ namespace Tomoe.Database.Drivers.PostgresSQL
 		public void RemoveAdminRole(ulong guildId, ulong roleId) => ExecuteQuery(StatementType.RemoveAdminRole, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("roleId", (long)roleId) });
 		public bool IsAdminRole(ulong guildId, ulong roleId) => ExecuteQuery(StatementType.IsAdminRole, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("roleId", (long)roleId) }, true)?[0][0] ?? null;
 
-		public ulong? MuteRole(ulong guildId) => ExecuteQuery(StatementType.GetMuteRole, new NpgsqlParameter("guildId", (long)guildId), true)?[0][0] ?? null;
+		public ulong? MuteRole(ulong guildId) => (ulong?)ExecuteQuery(StatementType.GetMuteRole, new NpgsqlParameter("guildId", (long)guildId), true)?[0][0] ?? null;
 
 		public void MuteRole(ulong guildId, ulong roleId) => ExecuteQuery(StatementType.SetMuteRole, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("roleId", (long)roleId) });
 

@@ -1,9 +1,14 @@
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using DSharpPlus.Interactivity;
+using DSharpPlus.Interactivity.Extensions;
+using DSharpPlus.Interactivity.Enums;
 
 namespace Tomoe.Commands.Public
 {
@@ -14,39 +19,80 @@ namespace Tomoe.Commands.Public
 		private const string _ARG_ROLENAME_DESC = "The role's name.";
 		private const string _ARG_ROLE_DESC = "The role id or pinged. Please refrain from pinging the roles.";
 
-		[Command(_COMMAND_NAME), Description(_COMMAND_DESC), Aliases(new string[] { "roleinfo", "ri" }), Priority(0)]
+		[Command(_COMMAND_NAME), Description(_COMMAND_DESC), Aliases(new string[] { "roleinfo", "ri" }), Priority(1)]
 		public async Task ByName(CommandContext context, [Description(_ARG_ROLENAME_DESC), RemainingText] string roleName)
 		{
 			roleName = roleName.ToLower();
-			DiscordRole roleInQuestion = null;
+			List<DiscordRole> rolesInQuestion = new List<DiscordRole>();
 			// Check if it's the @everyone or @here roles.
 			if (roleName == "everyone" || roleName == "@here")
 			{
-				roleInQuestion = context.Guild.GetRole(context.Guild.Id);
+				await ByPing(context, context.Guild.GetRole(context.Guild.Id));
+				return;
 			}
 			else
 			{
-				// Loop through all the other roles if it isn't
-				// TODO: Let the user choose which role they want info on if there are duplciate named roles.
 				foreach (DiscordRole role in context.Guild.Roles.Values)
 				{
 					if (role.Name.ToLower() == roleName)
 					{
-						roleInQuestion = role;
+						rolesInQuestion.Add(role);
 					}
 				}
 			}
-			if (roleInQuestion == null)
+
+
+			if (rolesInQuestion.Count == 0)
 			{
 				_ = Program.SendMessage(context, $"There was no role called \"{roleName}\""); // No role was found. Inform the user.
 			}
+			else if (rolesInQuestion.Count == 1)
+			{
+				await ByPing(context, rolesInQuestion[0]);
+			}
 			else
 			{
-				_ = ByPing(context, roleInQuestion); // Role was found, forward it to ByPing.
+				Program.SendMessage(context, "Getting role permissions...");
+				InteractivityExtension interactivity = context.Client.GetInteractivity();
+				List<Page> embeds = new List<Page>();
+				foreach (DiscordRole role in rolesInQuestion)
+				{
+					DiscordEmbedBuilder embed = new();
+					embed.Author = new()
+					{
+						Name = context.User.Username,
+						IconUrl = context.User.AvatarUrl,
+						Url = context.User.AvatarUrl
+					};
+					embed.Color = role.Color;
+					embed.Title = $"Role Info for **{role.Name}**";
+					embed.Footer = new()
+					{
+						Text = $"Page {embeds.Count + 1}"
+					};
+					int roleMemberCount = 0;
+					string roleUsers = string.Empty;
+					foreach (DiscordMember member in context.Guild.Members.Values)
+					{
+						if (member.Roles.Contains(role) || role.Name == "@everyone")
+						{
+							roleMemberCount++;
+							if (roleUsers.Length < 992)
+							{
+								roleUsers += $"{member.Mention} "; // Max embed length is 1024. Max username length is 32. 1024 - 32 = 992.
+							}
+						}
+					}
+					_ = embed.AddField("**Members**", string.IsNullOrEmpty(roleUsers) ? "None" : roleUsers);
+					embed.Description = $"Id: **{role.Id}**\nName: **{role.Name}**\nCreation: **{role.CreationTimestamp}**\nPosition: **{role.Position}**\nColor: **{role.Color}**\nMentionable: **{role.IsMentionable}**\nHoisted: **{role.IsHoisted}**\nManaged: **{role.IsManaged}**\nPermissions: **{role.Permissions.ToPermissionString()}**\nMembers: **{roleMemberCount}**";
+					embeds.Add(new Page(null, embed));
+					Thread.Sleep(50);
+				}
+				interactivity.SendPaginatedMessageAsync(context.Channel, context.User, embeds.AsEnumerable(), default, PaginationBehaviour.Ignore);
 			}
 		}
 
-		[Command(_COMMAND_NAME), Priority(1)]
+		[Command(_COMMAND_NAME), Priority(0)]
 		public async Task ByPing(CommandContext context, [Description(_ARG_ROLE_DESC)] DiscordRole role)
 		{
 			DiscordEmbedBuilder embed = new();
