@@ -4,7 +4,7 @@ If you wish to host Tomoe yourself, skip on down to prerequisites. If you just w
 
 ## Prerequisites
 
-Tomoe uses dotnet 5.0. You can get it from [Microsoft](https://dotnet.microsoft.com/download/dotnet/5.0) or the [Mono Project](https://www.mono-project.com/download/stable/). I am currently developing Tomoe with the Microsoft link, Visual Studio Code, and [Windows Terminal](https://www.microsoft.com/en-us/p/windows-terminal/9n0dx20hk701). Tomoe works on Windows 10 Home and Ubuntu 20.04/20.10. Hopefully I can test on mac soon. While everything should theoretically work, there are no promises. If anything isn't working correctly, please open an issue and let me know.
+Tomoe uses dotnet 5.0. You can get it from [Microsoft](https://dotnet.microsoft.com/download/dotnet/5.0). I am currently developing Tomoe Visual Studio Code and [Windows Terminal](https://www.microsoft.com/en-us/p/windows-terminal/9n0dx20hk701). Tomoe works on Windows 10 Home and Ubuntu 20.04/20.10. Hopefully I can test on mac soon. While everything should theoretically work, there are no promises. If anything isn't working correctly, please open an issue and let me know. Mono is not supported due to DSharpPlus choosing not to support it.
 
 ## Setup
 
