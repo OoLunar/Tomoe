@@ -6,6 +6,7 @@ using DSharpPlus.Entities;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Enums;
 using DSharpPlus.Interactivity.Extensions;
+using DSharpPlus.EventArgs;
 using Tomoe.Database;
 using Tomoe.Utils;
 
@@ -50,8 +51,9 @@ namespace Tomoe
 				Timeout = TimeSpan.FromMinutes(2)
 			});
 
-			Client.MessageReactionAdded += Commands.Listeners.ReactionAdded.Handler;
-			Client.Ready += Events.OnReady;
+			Client.MessageReactionAdded += (DiscordClient client, MessageReactionAddEventArgs eventArgs) => Task.Run(async () => Commands.Listeners.ReactionAdded.Handler(client, eventArgs));
+			Client.GuildCreated += (DiscordClient client, GuildCreateEventArgs eventArgs) => Task.Run(async () => Commands.Listeners.GuildCreated.Handler(client, eventArgs));
+			Client.Ready += (DiscordClient client, ReadyEventArgs eventArgs) => Task.Run(async () => Events.OnReady(client, eventArgs));
 			await CommandService.Launch(Client);
 
 			await Client.StartAsync();

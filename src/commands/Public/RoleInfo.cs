@@ -9,6 +9,8 @@ using DSharpPlus.Entities;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
 using DSharpPlus.Interactivity.Enums;
+using Tomoe.Utils;
+using System;
 
 namespace Tomoe.Commands.Public
 {
@@ -18,6 +20,7 @@ namespace Tomoe.Commands.Public
 		private const string _COMMAND_DESC = "Gets information about a server role.";
 		private const string _ARG_ROLENAME_DESC = "The role's name.";
 		private const string _ARG_ROLE_DESC = "The role id or pinged. Please refrain from pinging the roles.";
+		private static Logger Logger = new Logger("Commands.Public.RoleInfo");
 
 		[Command(_COMMAND_NAME), Description(_COMMAND_DESC), Aliases(new string[] { "roleinfo", "ri" }), Priority(1)]
 		public async Task ByName(CommandContext context, [Description(_ARG_ROLENAME_DESC), RemainingText] string roleName)
@@ -52,7 +55,7 @@ namespace Tomoe.Commands.Public
 			}
 			else
 			{
-				Program.SendMessage(context, "Getting role permissions...");
+				DiscordMessage message = Program.SendMessage(context, "Getting role permissions...");
 				InteractivityExtension interactivity = context.Client.GetInteractivity();
 				List<Page> embeds = new List<Page>();
 				foreach (DiscordRole role in rolesInQuestion)
@@ -86,9 +89,10 @@ namespace Tomoe.Commands.Public
 					_ = embed.AddField("**Members**", string.IsNullOrEmpty(roleUsers) ? "None" : roleUsers);
 					embed.Description = $"Id: **{role.Id}**\nName: **{role.Name}**\nCreation: **{role.CreationTimestamp}**\nPosition: **{role.Position}**\nColor: **{role.Color}**\nMentionable: **{role.IsMentionable}**\nHoisted: **{role.IsHoisted}**\nManaged: **{role.IsManaged}**\nPermissions: **{role.Permissions.ToPermissionString()}**\nMembers: **{roleMemberCount}**";
 					embeds.Add(new Page(null, embed));
-					Thread.Sleep(50);
+					await Task.Delay(50);
 				}
-				interactivity.SendPaginatedMessageAsync(context.Channel, context.User, embeds.AsEnumerable(), default, PaginationBehaviour.Ignore);
+				_ = await message.ModifyAsync($"{context.User.Mention}: Found a total of {embeds.Count} roles called {roleName.ToLowerInvariant()}.");
+				await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, embeds.Take(embeds.Count), default, PaginationBehaviour.Ignore);
 			}
 		}
 
