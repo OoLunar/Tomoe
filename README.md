@@ -45,7 +45,7 @@ As of this minute, Tomoe can do the following moderation commands:
 | Ban | >>ban \<User> [Reason] | Bans a guild member identified by mention or id, optionally with a reason. |
 | Kick | >>kick \<User> [Reason] | Kicks a guild member identified by mention or id, optionally with a reason. |
 | Mute | >>mute \<User> [Reason] | Mutes a user provided `>>config mute` has been set. |
-| Pardon | >>pardon CaseId [Reason] | Removes a strike from a user, using the case ID to find the strike. |
+| Pardon | >>pardon \<CaseId> [Reason] | Removes a strike from a user, using the case ID to find the strike. |
 | Strike | >>strike \<User> [Reason] | Adds a strike to the users record. |
 | Unban | >>unban \<User> [Reason] | Unbans a guild member identified by mention or id, optionally with a reason. |
 | Unmute | >>unmute \<User> [Reason] | Unmutes a guild member. |
@@ -56,7 +56,7 @@ While also being able to do the following public commands:
 | :-: | :- | :- |
 | Bot Info | >>bot_info | Sends information about the current bot instance. |
 | Flip | >>flip | Sends heads or tails using `System.Random()` . Optionally allows you to choose between multiple choices. |
-| Guild Icon | Sends the server icon in 1024x1024px png format. |
+| Guild Icon | >>guild_icon |Sends the server icon in 1024x1024px png format. |
 | Invite | >>invite | Sends the link to add Tomoe to a guild. |
 | Profile Picture | >>profile_picture User | Sends a 1024x1024px PNG of the user asked for, identified by mention or id. |
 | Ping | >>ping | Times how long to took to send a message, then edits the sent message with how long it took in milliseconds. |
