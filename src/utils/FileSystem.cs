@@ -8,14 +8,14 @@ namespace Tomoe.Utils
 	{
 #if DEBUG
 #pragma warning disable IL3000
-		internal static string ProjectRoot = Path.GetDirectoryName(Path.GetFullPath(Path.Join(Assembly.GetExecutingAssembly().Location, "../../../../../")));
+		public static string ProjectRoot = Path.GetDirectoryName(Path.GetFullPath(Path.Join(Assembly.GetExecutingAssembly().Location, "../../../../../")));
 #else
         // Places the log directory right next to the executable.
-        internal static string ProjectRoot = Path.GetDirectoryName(Path.GetFullPath(System.AppContext.BaseDirectory));
+        public static string ProjectRoot = Path.GetDirectoryName(Path.GetFullPath(System.AppContext.BaseDirectory));
 #endif
 		private static readonly Logger Logger = new Logger("Filesystem");
 
-		internal static bool CreateFile(string file, bool retry = false)
+		public static bool CreateFile(string file, bool retry = false)
 		{
 			if (File.Exists(file))
 			{
@@ -61,7 +61,7 @@ namespace Tomoe.Utils
 			}
 		}
 
-		internal static bool CreateDirectory(string directory)
+		public static bool CreateDirectory(string directory)
 		{
 			if (Directory.Exists(directory))
 			{

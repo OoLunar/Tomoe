@@ -9,7 +9,7 @@ using Npgsql.Logging;
 
 namespace Tomoe.Utils
 {
-	public class Logger : ILogger
+	internal class Logger : ILogger
 	{
 
 		/// <summary>What to prefix the log content with.</summary>

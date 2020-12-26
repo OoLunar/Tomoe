@@ -12,27 +12,27 @@ namespace Tomoe.Utils
 	internal class Config
 	{
 		[JsonProperty("discord_api_token")]
-		internal static string Token = string.Empty;
+		public static string Token = string.Empty;
 
 		[JsonProperty("discord_bot_prefix")]
-		internal static string Prefix = ">>";
+		public static string Prefix = ">>";
 
 		[JsonProperty("logging")]
-		internal static Logging Logging = new Logging();
+		public static Logging Logging = new Logging();
 
 		[JsonProperty("database")]
-		internal static DatabaseLoader Database;
+		public static DatabaseLoader Database;
 
 		[JsonProperty("repository_link")]
-		internal static string RepositoryLink = "https://github.com/OoLunar/Tomoe.git";
+		public static string RepositoryLink = "https://github.com/OoLunar/Tomoe.git";
 
 		[JsonProperty("auto_update")]
-		internal static bool AutoUpdate = true;
+		public static bool AutoUpdate = true;
 
 		private static readonly string TokenFile = Path.Join(FileSystem.ProjectRoot, "res/config.jsonc");
 		private static readonly Logger Logger = new Logger("Config", LogLevel.Information);
 
-		internal static async Task Init()
+		public static async Task Init()
 		{
 			Logger.Info("Starting...");
 			if (File.Exists(TokenFile))

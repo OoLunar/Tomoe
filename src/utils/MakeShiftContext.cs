@@ -5,17 +5,17 @@ using DSharpPlus.Entities;
 
 namespace Tomoe.Utils
 {
-	public class MakeShiftContext
+	internal class MakeShiftContext
 	{
 		private static readonly Logger Logger = new Logger("Utils/MakeShiftContext");
-		internal DiscordGuild Guild;
-		internal DiscordChannel Channel;
-		internal DiscordMember Member;
-		internal DiscordUser User;
-		internal DiscordMessage Message;
-		internal DiscordShardedClient Client = Program.Client;
+		public DiscordGuild Guild;
+		public DiscordChannel Channel;
+		public DiscordMember Member;
+		public DiscordUser User;
+		public DiscordMessage Message;
+		public DiscordShardedClient Client = Program.Client;
 
-		internal MakeShiftContext(ulong guildId, ulong channelId, ulong messageId, ulong userId)
+		public MakeShiftContext(ulong guildId, ulong channelId, ulong messageId, ulong userId)
 		{
 			DiscordClient shard = Client.GetShard(guildId);
 			Logger.Trace($"Getting user {userId}");
@@ -38,6 +38,6 @@ namespace Tomoe.Utils
 		/// <param name="embed">Embed to attach.</param>
 		/// <param name="mentions">A list of mentions permitted to trigger a ping.</param>
 		/// <returns></returns>
-		internal Task<DiscordMessage> RespondAsync(string content = null, bool isTTS = false, DiscordEmbed embed = null, IEnumerable<IMention> mentions = null) => this.Message.RespondAsync(content, isTTS, embed, mentions);
+		public Task<DiscordMessage> RespondAsync(string content = null, bool isTTS = false, DiscordEmbed embed = null, IEnumerable<IMention> mentions = null) => this.Message.RespondAsync(content, isTTS, embed, mentions);
 	}
 }

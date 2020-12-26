@@ -34,7 +34,7 @@ Tomoe is all about moderation for big time servers and aims to be Vortex, Zeppel
 
 ## What is Tomoe written in?
 
-C#. However once Tomoe is finished 100%, I plan on creating a seperate branch and rewriting Tomoe in Rust for efficency. Please keep in mind that plans may change.
+C#. However once Tomoe is finished 100%, I plan on creating a separate branch and rewriting Tomoe in Rust for efficency. Please keep in mind that plans may change.
 
 ## What can Tomoe do?
 
@@ -42,21 +42,29 @@ As of this minute, Tomoe can do the following moderation commands:
 
 | Command | Syntax | Definition |
 | :-: | :- | :- |
-| Ban | >>ban User [Reason] | Bans a guild member identified by mention or id, optionally with a reason. |
-| Kick | >>kick User [Reason] | Kicks a guild member identified by mention or id, optionally with a reason. |
-| Unban | >>unban User [Reason] | Unbans a guild member identified by mention or id, optionally with a reason. |
+| Ban | >>ban \<User> [Reason] | Bans a guild member identified by mention or id, optionally with a reason. |
+| Kick | >>kick \<User> [Reason] | Kicks a guild member identified by mention or id, optionally with a reason. |
+| Mute | >>mute \<User> [Reason] | Mutes a user provided `>>config mute` has been set. |
+| Pardon | >>pardon CaseId [Reason] | Removes a strike from a user, using the case ID to find the strike. |
+| Strike | >>strike \<User> [Reason] | Adds a strike to the users record. |
+| Unban | >>unban \<User> [Reason] | Unbans a guild member identified by mention or id, optionally with a reason. |
+| Unmute | >>unmute \<User> [Reason] | Unmutes a guild member. |
 
 While also being able to do the following public commands:
 
 | Command | Syntax | Definition |
 | :-: | :- | :- |
-| Flip | >>flip | Sends heads or tails using System. Random() |
+| Bot Info | >>bot_info | Sends information about the current bot instance. |
+| Flip | >>flip | Sends heads or tails using `System.Random()` . Optionally allows you to choose between multiple choices. |
+| Guild Icon | Sends the server icon in 1024x1024px png format. |
 | Invite | >>invite | Sends the link to add Tomoe to a guild. |
 | Profile Picture | >>profile_picture User | Sends a 1024x1024px PNG of the user asked for, identified by mention or id. |
 | Ping | >>ping | Times how long to took to send a message, then edits the sent message with how long it took in milliseconds. |
 | Raw | >>raw \<Message id> | Gets the raw version of a message id. |
+| Reminders | >>remind \<TimeSpan> [Content] | Reminds the user in the specified time to do `xyz`. |
 | Repo | >>repo | Sends the repo of Tomoe. |
 | Role Info | >>role_info \<Role> | Sends all information about the role indentified by ping, name or id in an embed. Also shows who has the role, along with a member count. |
+| Server Info | >>server_info | Sends general information about the guild. |
 | Support | >>support | Sends the link to the support guild. |
 | Tags | >>tag | A full tag system. See `>>help tag` for a more indepth list. |
 
@@ -77,8 +85,9 @@ As mentioned previously, Tomoe aims to be the #1 bot choice for Discord Moderati
 | mute | :heavy_check_mark: |
 | meme_ban | :x: |
 | vc_ban | :x: |
-| strike | :x: |
-| pardon| :x: |
+| strike | :heavy_check_mark: |
+| strike history | :heavy_check_mark: |
+| pardon| :heavy_check_mark: |
 | temp_ban | :x: |
 | temp_mute | :x: |
 | temp_meme_ban | :x: |
@@ -88,16 +97,36 @@ As mentioned previously, Tomoe aims to be the #1 bot choice for Discord Moderati
 | unmeme_ban | :x: |
 | unvc_ban | :x: |
 | report | :x: |
-| remind | :heavy_check_mark: |
+| config mute | :heavy_check_mark: |
+| bot_info | :heavy_check_mark: |
 | flip | :heavy_check_mark: |
+| guild_icon | :heavy_check_mark: |
 | invite | :heavy_check_mark: |
-| profile_picture | :heavy_check_mark: |
-| ping | :heavy_check_mark: |
+| pfp | :heavy_check_mark: |
 | raw | :heavy_check_mark: |
+| reminders | :heavy_check_mark: |
+| reminders list | :heavy_check_mark: |
+| reminders remove | :heavy_check_mark: |
 | repo | :heavy_check_mark: |
 | role_info | :heavy_check_mark: |
+| server_info | :heavy_check_mark: |
 | support | :heavy_check_mark: |
 | tag | :heavy_check_mark: |
+| tag alias | :heavy_check_mark: |
+| tag all | :heavy_check_mark: |
+| tag claim | :heavy_check_mark: |
+| tag create | :heavy_check_mark: |
+| tag delete | :heavy_check_mark: |
+| tag delete_alias | :heavy_check_mark: |
+| tag delete_all_aliases | :heavy_check_mark: |
+| tag edit | :heavy_check_mark: |
+| tag exist | :heavy_check_mark: |
+| tag get_aliases | :heavy_check_mark: |
+| tag get_author | :heavy_check_mark: |
+| tag is_alias | :heavy_check_mark: |
+| tag realname | :heavy_check_mark: |
+| tag transfer | :heavy_check_mark: |
+| tag user | :heavy_check_mark: |
 
 *Naming may change for simplicity.
 

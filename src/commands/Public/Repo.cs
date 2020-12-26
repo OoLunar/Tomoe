@@ -11,6 +11,6 @@ namespace Tomoe.Commands.Public
 
 		[Command(_COMMAND_NAME), Description(_COMMAND_DESC)]
 		[Aliases(new string[] { "github", "gh", "gitlab", "repository" })]
-		public async Task Get(CommandContext context) => Program.SendMessage(context, "https://github.com/OoLunar/Tomoe");
+		public async Task Get(CommandContext context) => Program.SendMessage(context, Utils.Config.RepositoryLink);
 	}
 }

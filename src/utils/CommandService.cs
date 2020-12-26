@@ -5,16 +5,17 @@ using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
+using System;
 using DSharpPlus.CommandsNext.Exceptions;
 
 // Copied from https://github.com/TheRealHona/DSharpPlusBotTemplate/blob/main/TemplateDiscordBot/Services/CommandService.cs
 // Go take a look at their project!
 namespace Tomoe.Utils
 {
-	public class CommandService
+	internal class CommandService
 	{
 		private static readonly Logger Logger = new Logger("CommandService");
-		public static async Task Launch(DiscordShardedClient discordClient)
+		internal static async Task Launch(DiscordShardedClient discordClient)
 		{
 			while (true)
 			{
@@ -35,7 +36,7 @@ namespace Tomoe.Utils
 					}
 					break;
 				}
-				catch (System.InvalidOperationException)
+				catch (InvalidOperationException)
 				{
 					Logger.Error("Failed to initalize shards on CommandsNext. Trying again...");
 				}
@@ -59,7 +60,7 @@ namespace Tomoe.Utils
 						_ = Program.SendMessage(e.Context, Program.MissingPermissions, ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
 					}
 				}
-				else if (e.Exception is System.NotImplementedException)
+				else if (e.Exception is NotImplementedException)
 				{
 					_ = Program.SendMessage(e.Context, $"{e.Command.Name} hasn't been implemented yet!", ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
 				}

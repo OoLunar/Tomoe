@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using DSharpPlus;
-using DSharpPlus.CommandsNext;
-using DSharpPlus.CommandsNext.Converters;
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Enums;
@@ -98,57 +96,5 @@ namespace Tomoe
 				return context.Member.SendMessageAsync($"Responding to <{context.Message.JumpLink}>: ", false, embed).ConfigureAwait(false).GetAwaiter().GetResult();
 			}
 		}
-	}
-
-	public class ImageFormatConverter : IArgumentConverter<ImageFormat>
-	{
-		public Task<Optional<ImageFormat>> ConvertAsync(string value, CommandContext ctx)
-		{
-			switch (value.ToLowerInvariant())
-			{
-				case "png":
-					return Task.FromResult(Optional.FromValue(ImageFormat.Png));
-				case "jpeg":
-					return Task.FromResult(Optional.FromValue(ImageFormat.Jpeg));
-				case "webp":
-					return Task.FromResult(Optional.FromValue(ImageFormat.WebP));
-				case "gif":
-					return Task.FromResult(Optional.FromValue(ImageFormat.Gif));
-				case "unknown":
-				case "auto":
-					return Task.FromResult(Optional.FromValue(ImageFormat.Auto));
-				default:
-					return Task.FromResult(Optional.FromNoValue<ImageFormat>());
-			}
-		}
-	}
-
-	public static class ExtensionMethods
-	{
-		[Flags]
-		public enum FilteringAction
-		{
-			CodeBlocksIgnore = 1,
-			CodeBlocksEscape = 2,
-			CodeBlocksZeroWidthSpace = 4
-		}
-
-		public static string Filter(this string modifyString, FilteringAction filteringAction = FilteringAction.CodeBlocksEscape)
-		{
-			if (string.IsNullOrEmpty(modifyString))
-			{
-				return null;
-			}
-			else if (filteringAction.HasFlag(FilteringAction.CodeBlocksZeroWidthSpace) || filteringAction.HasFlag(FilteringAction.CodeBlocksEscape))
-			{
-				return modifyString.Replace("`", "​`​"); // There are zero width spaces before and after the backtick.
-			}
-			else
-			{
-				return filteringAction.HasFlag(FilteringAction.CodeBlocksEscape) ? modifyString.Replace("\\", "\\\\").Replace("`", "\\`") : modifyString;
-			}
-		}
-
-		public static string GetCommonName(this DiscordMember guildMember) => guildMember == null ? null : guildMember.Nickname ?? guildMember.Username;
 	}
 }
