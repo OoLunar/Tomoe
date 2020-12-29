@@ -19,7 +19,7 @@ namespace Tomoe.Commands.Moderation
 				_ = Program.SendMessage(context, Program.SelfAction);
 				return;
 			}
-			//TODO: Clean this up
+
 			try
 			{
 				DiscordMember guildVictim = await context.Guild.GetMemberAsync(victim.Id);

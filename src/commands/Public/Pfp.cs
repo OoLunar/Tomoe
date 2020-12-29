@@ -8,7 +8,7 @@ namespace Tomoe.Commands.Public
 {
 	public class Pfp : BaseCommandModule
 	{
-		[Command("pfp"), Description("Gets the profile picture of the requested user. Defaults to the requestor when no user is specified."), Aliases(new[] { "profile_picture", "avatar" })]
+		[Command("pfp"), Description("Gets the profile picture of the requested user. Defaults to the requestor when no user is specified."), Aliases(new[] { "profilepicture", "profile_picture", "avatar" })]
 		public async Task Mention(CommandContext context) => Mention(context, context.User, 1024, ImageFormat.Png);
 
 		[Command("pfp")]

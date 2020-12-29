@@ -10,7 +10,7 @@ namespace Tomoe.Commands.Moderation
 {
 	public class Pardon : BaseCommandModule
 	{
-		[Command("Pardon"), Description("Drops a strike.")]
+		[Command("pardon"), Description("Drops a strike.")]
 		public async Task Person(CommandContext context, int strikeId, [RemainingText] string pardonReason = Program.MissingReason)
 		{
 			Strike droppedStrike = Program.Database.Strikes.Drop(strikeId, pardonReason);

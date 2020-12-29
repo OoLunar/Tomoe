@@ -11,9 +11,7 @@ using DSharpPlus.Interactivity.Extensions;
 
 namespace Tomoe.Commands.Public
 {
-	[Group("tag")]
-	[Description("Gets a tag's content.")]
-	[RequireGuild]
+	[Group("tag"), Description("Gets a tag's content."), RequireGuild]
 	public class Tags : BaseCommandModule
 	{
 
@@ -51,8 +49,8 @@ namespace Tomoe.Commands.Public
 			_ = Program.SendMessage(context, $"Tag \"{tagTitle.Trim().ToLowerInvariant()}\" successfully deleted.", ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
 		}
 
-		[Command("alias"), Description("Creates an alias for a tag."), RequireGuild, Aliases("create_alias"), TagCheck(false, TagType.Any, TagState.Missing)]
-		public async Task CreateAlias(CommandContext context, string newName, string oldName)
+		[Command("alias"), Description("Creates an alias for a tag."), RequireGuild, TagCheck(false, TagType.Any, TagState.Missing)]
+		public async Task Alias(CommandContext context, string newName, string oldName)
 		{
 			if (!Program.Database.Tags.Exist(context.Guild.Id, oldName.ToLowerInvariant()))
 			{
@@ -99,7 +97,7 @@ namespace Tomoe.Commands.Public
 		[Command("is_alias"), Description("Tests if a tag is an alias."), RequireGuild, TagCheck(false, TagType.Any, TagState.Exists)]
 		public async Task IsAlias(CommandContext context, string tagTitle) => Program.SendMessage(context, $"Tag \"{tagTitle.Trim().ToLowerInvariant()}\" is {(Program.Database.Tags.IsAlias(context.Guild.Id, tagTitle.Trim().ToLowerInvariant()).Value ? null : "not")} an alias.", ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
 
-		[Command("get_author"), Description("Gets the author of a tag."), RequireGuild, Aliases("author"), TagCheck(false, TagType.Any, TagState.Exists)]
+		[Command("get_author"), Description("Gets the author of a tag."), RequireGuild, Aliases("getauthor", "author"), TagCheck(false, TagType.Any, TagState.Exists)]
 		public async Task GetAuthor(CommandContext context, string tagTitle)
 		{
 			ulong tagAuthor = Program.Database.Tags.GetAuthor(context.Guild.Id, tagTitle.Trim().ToLowerInvariant()).Value;
@@ -187,7 +185,7 @@ namespace Tomoe.Commands.Public
 			}
 		}
 
-		[Command("get_aliases"), Description("Gets all aliases of a tag."), RequireGuild, TagCheck(false, TagType.Tag, TagState.Exists)]
+		[Command("get_aliases"), Description("Gets all aliases of a tag."), RequireGuild, TagCheck(false, TagType.Tag, TagState.Exists), Aliases("getaliases")]
 		public async Task AllAliases(CommandContext context, string tagTitle)
 		{
 			string[] userTags = Program.Database.Tags.GetAliases(context.Guild.Id, tagTitle.Trim().ToLowerInvariant()) ?? Array.Empty<string>();
@@ -250,7 +248,7 @@ namespace Tomoe.Commands.Public
 			await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, interactivity.GeneratePagesInEmbed(string.Join(", ", allTags), SplitType.Character, embedBuilder), timeoutoverride: TimeSpan.FromMinutes(2));
 		}
 
-		[Command("realname"), Description("Gets the original tag using an alias."), RequireGuild, TagCheck(false, TagType.Alias, TagState.Exists)]
+		[Command("realname"), Description("Gets the original tag using an alias."), Aliases("real_name"), RequireGuild, TagCheck(false, TagType.Alias, TagState.Exists)]
 		public async Task RealName(CommandContext context, string tagTitle)
 		{
 			tagTitle = tagTitle.Trim().ToLowerInvariant();

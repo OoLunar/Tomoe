@@ -15,10 +15,7 @@ namespace Tomoe.Commands.Public
 			DiscordEmbedBuilder embedBuilder = new();
 			embedBuilder.Title = context.Guild.Name;
 			embedBuilder.Url = context.Guild.IconUrl;
-			embedBuilder.Footer = new()
-			{
-				IconUrl = context.Guild.BannerUrl
-			};
+			embedBuilder.Footer = new() { IconUrl = context.Guild.BannerUrl };
 			string guildInfo = string.Empty;
 			guildInfo += $"AFK Channel: {context.Guild.AfkChannel?.Mention ?? "Not set"}\n";
 			guildInfo += $"AFK Timeout: {TimeSpan.FromSeconds(context.Guild.AfkTimeout).TotalMinutes} minutes\n";

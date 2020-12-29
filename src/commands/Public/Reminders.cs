@@ -14,12 +14,10 @@ using Tomoe.Database.Interfaces;
 
 namespace Tomoe.Commands.Public
 {
-	[Group("remind")]
-	[Aliases("reminders")]
-	[Description("Creates a reminder to go off at the specified time.")]
+	[Group("remind"), Aliases("reminders"), Description("Creates a reminder to go off at the specified time.")]
 	public class Reminders : BaseCommandModule
 	{
-		private static readonly Logger Logger = new Logger("Commands/Public/Tasks");
+		private static readonly Logger Logger = new Logger("Commands.Public.Tasks");
 
 		[GroupCommand]
 		public async Task Create(CommandContext context, TimeSpan setOff, [RemainingText] string content)
@@ -63,8 +61,7 @@ namespace Tomoe.Commands.Public
 			await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, interactivity.GeneratePagesInEmbed(string.Join("\n", reminders.ToArray()), SplitType.Character, embedBuilder), timeoutoverride: TimeSpan.FromMinutes(2));
 		}
 
-		[Command("remove")]
-		[Description("Removes a reminder.")]
+		[Command("remove"), Description("Removes a reminder.")]
 		public async Task Remove(CommandContext context, int taskId)
 		{
 			Logger.Trace("Executing remove");

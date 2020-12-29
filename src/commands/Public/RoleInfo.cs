@@ -17,7 +17,7 @@ namespace Tomoe.Commands.Public
 	{
 		private static Logger Logger = new Logger("Commands.Public.RoleInfo");
 
-		[Command("role_info"), Description("Gets information about a server role."), Aliases(new[] { "roleinfo", "ri" }), Priority(1)]
+		[Command("roleinfo"), Description("Gets information about a server role."), Aliases(new[] { "role_info", "ri" }), Priority(1)]
 		public async Task ByName(CommandContext context, [Description("The role's name."), RemainingText] string roleName)
 		{
 			roleName = roleName.ToLower();

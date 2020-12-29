@@ -12,7 +12,7 @@ namespace Tomoe.Commands.Moderation
 {
 	public class Temban : BaseCommandModule
 	{
-		[Command("tempban"), Description("Temporarily bans someone from the server."), RequireGuild, RequireBotPermissions(Permissions.BanMembers), RequireUserPermissions(Permissions.BanMembers)]
+		[Command("tempban"), Description("Temporarily bans someone from the server."), RequireGuild, RequireBotPermissions(Permissions.BanMembers), RequireUserPermissions(Permissions.BanMembers), Aliases("temp_ban")]
 		public async Task BanUser(CommandContext context, DiscordUser victim, ExpandedTimeSpan banTime, int pruneDays = 7, [RemainingText] string banReason = Program.MissingReason)
 		{
 			if (victim == context.Client.CurrentUser)
