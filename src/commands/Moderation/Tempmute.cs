@@ -12,7 +12,7 @@ namespace Tomoe.Commands.Moderation
 {
 	public class TempMute : BaseCommandModule
 	{
-		[Command("tempmute"), Description("Mutes a person temporarily."), RequireBotPermissions(Permissions.ManageRoles), RequireUserPermissions(Permissions.ManageMessages)]
+		[Command("tempmute"), Description("Mutes a person temporarily."), RequireBotPermissions(Permissions.ManageRoles), RequireUserPermissions(Permissions.ManageMessages), Aliases("tempsilence")]
 		public async Task Temp(CommandContext context, DiscordUser victim, ExpandedTimeSpan muteTime, [RemainingText] string muteReason = Program.MissingReason)
 		{
 			if (victim == context.Client.CurrentUser)

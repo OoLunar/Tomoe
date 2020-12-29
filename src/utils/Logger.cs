@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.IO;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Npgsql.Logging;
 
@@ -19,7 +18,7 @@ namespace Tomoe.Utils
 		private readonly LogLevel BranchLogLevel;
 
 		/// <summary>The log file.</summary>
-		private static readonly FileStream LogFile = new FileStream(Path.Join(FileSystem.ProjectRoot, $"log/{GetTime()}.log"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
+		private static readonly FileStream LogFile = Config.Logging.SaveToFile ? new FileStream(Path.Join(FileSystem.ProjectRoot, $"log/{GetTime()}.log"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite) : null;
 
 		private readonly string ThreadId;
 
@@ -134,7 +133,7 @@ namespace Tomoe.Utils
 		/// </example>
 		/// <remarks>[Trace] has a blue font color.</remarks>
 		/// <param name="value">What to be logged.</param>
-		public async Task Trace(string value)
+		public void Trace(string value)
 		{
 			if (Config.Logging.Tomoe > LogLevel.Trace || BranchLogLevel > LogLevel.Trace) return;
 			string currentTime = GetTime();
@@ -153,8 +152,8 @@ namespace Tomoe.Utils
 			Console.WriteLine($": {value}");
 			if (Config.Logging.SaveToFile && LogFile != null)
 			{
-				await LogFile.WriteAsync(Encoding.UTF8.GetBytes($"[{currentTime}] [Trace] {Branchname}: {value}{Environment.NewLine}"));
-				await LogFile.FlushAsync();
+				LogFile.Write(Encoding.UTF8.GetBytes($"[{currentTime}] [Trace] {Branchname}: {value}{Environment.NewLine}"));
+				LogFile.Flush();
 			}
 		}
 
@@ -170,7 +169,7 @@ namespace Tomoe.Utils
 		/// </example>
 		/// <remarks>[Debug] has a dark grey font color.</remarks>
 		/// <param name="value">What to be logged.</param>
-		public async Task Debug(string value)
+		public void Debug(string value)
 		{
 			if (Config.Logging.Tomoe > LogLevel.Debug || BranchLogLevel > LogLevel.Debug) return;
 			string currentTime = GetTime();
@@ -189,8 +188,8 @@ namespace Tomoe.Utils
 			Console.WriteLine($": {value}");
 			if (Config.Logging.SaveToFile && LogFile != null)
 			{
-				await LogFile.WriteAsync(Encoding.UTF8.GetBytes($"[{currentTime}] [Debug] {Branchname}: {value}{Environment.NewLine}"));
-				await LogFile.FlushAsync();
+				LogFile.Write(Encoding.UTF8.GetBytes($"[{currentTime}] [Debug] {Branchname}: {value}{Environment.NewLine}"));
+				LogFile.Flush();
 			}
 		}
 
@@ -207,7 +206,7 @@ namespace Tomoe.Utils
 		/// <remarks>[Info] has a green font color.</remarks>
 		/// <param name="value">What to be logged.</param>
 		/// <param name="exit">Determines if the program exits. Defaults to false.</param>
-		public async Task Info(string value, bool exit = false)
+		public void Info(string value, bool exit = false)
 		{
 			if (Config.Logging.Tomoe > LogLevel.Information || BranchLogLevel > LogLevel.Information) return;
 			string currentTime = GetTime();
@@ -226,8 +225,8 @@ namespace Tomoe.Utils
 			Console.WriteLine($": {value}");
 			if (Config.Logging.SaveToFile && LogFile != null)
 			{
-				await LogFile.WriteAsync(Encoding.UTF8.GetBytes($"[{currentTime}] [Info]  {Branchname}: {value}{Environment.NewLine}"));
-				await LogFile.FlushAsync();
+				LogFile.Write(Encoding.UTF8.GetBytes($"[{currentTime}] [Info]  {Branchname}: {value}{Environment.NewLine}"));
+				LogFile.Flush();
 			}
 			if (exit)
 			{
@@ -250,7 +249,7 @@ namespace Tomoe.Utils
 		/// <remarks>[Warn] has a yellow font color.</remarks>
 		/// <param name="value">What to be logged.</param>
 		/// <param name="exit">Determines if the program exits. Defaults to false.</param>
-		public async Task Warn(string value, bool exit = false)
+		public void Warn(string value, bool exit = false)
 		{
 			if (Config.Logging.Tomoe > LogLevel.Warning || BranchLogLevel > LogLevel.Warning) return;
 			string currentTime = GetTime();
@@ -269,8 +268,8 @@ namespace Tomoe.Utils
 			Console.WriteLine($": {value}");
 			if (Config.Logging.SaveToFile && LogFile != null)
 			{
-				await LogFile.WriteAsync(Encoding.UTF8.GetBytes($"[{currentTime}] [Warn]  {Branchname}: {value}{Environment.NewLine}"));
-				await LogFile.FlushAsync();
+				LogFile.Write(Encoding.UTF8.GetBytes($"[{currentTime}] [Warn]  {Branchname}: {value}{Environment.NewLine}"));
+				LogFile.Flush();
 			}
 			if (exit)
 			{
@@ -293,7 +292,7 @@ namespace Tomoe.Utils
 		/// <remarks>[Error] has a red font color.</remarks>
 		/// <param name="value">What to be logged.</param>
 		/// <param name="exit">Determines if the program exits. Defaults to false.</param>
-		public async Task Error(string value, bool exit = false)
+		public void Error(string value, bool exit = false)
 		{
 			if (Config.Logging.Tomoe > LogLevel.Error || BranchLogLevel > LogLevel.Error) return;
 			string currentTime = GetTime();
@@ -312,8 +311,8 @@ namespace Tomoe.Utils
 			Console.WriteLine($": {value}");
 			if (Config.Logging.SaveToFile && LogFile != null)
 			{
-				await LogFile.WriteAsync(Encoding.UTF8.GetBytes($"[{currentTime}] [Error] {Branchname}: {value}{Environment.NewLine}"));
-				await LogFile.FlushAsync();
+				LogFile.Write(Encoding.UTF8.GetBytes($"[{currentTime}] [Error] {Branchname}: {value}{Environment.NewLine}"));
+				LogFile.Flush();
 			}
 			if (exit)
 			{
@@ -336,7 +335,7 @@ namespace Tomoe.Utils
 		/// <remarks>[Critical] has a red font color and white background.</remarks>
 		/// <param name="value">What to be logged.</param>
 		/// <param name="exit">Determines if the program exits. Defaults to true.</param>
-		public async Task Critical(string value, bool exit = true)
+		public void Critical(string value, bool exit = true)
 		{
 			string currentTime = GetTime();
 			Console.ResetColor();
@@ -356,8 +355,8 @@ namespace Tomoe.Utils
 			Console.WriteLine($": {value}");
 			if (Config.Logging.SaveToFile && LogFile != null)
 			{
-				await LogFile.WriteAsync(Encoding.UTF8.GetBytes($"[{currentTime}] [Crit]  {Branchname}: {value}{Environment.NewLine}"));
-				await LogFile.FlushAsync();
+				LogFile.Write(Encoding.UTF8.GetBytes($"[{currentTime}] [Crit]  {Branchname}: {value}{Environment.NewLine}"));
+				LogFile.Flush();
 			}
 			if (exit)
 			{

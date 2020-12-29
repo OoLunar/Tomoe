@@ -9,7 +9,7 @@ using Tomoe.Database.Interfaces;
 
 namespace Tomoe.Commands.Moderation
 {
-	[Group("strike"), Description("Gives a strike/warning to the specified victim."), RequireUserPermissions(Permissions.KickMembers)]
+	[Group("strike"), Description("Gives a strike/warning to the specified victim."), RequireUserPermissions(Permissions.KickMembers), Aliases("warn")]
 	public class Strikes : BaseCommandModule
 	{
 		[GroupCommand]

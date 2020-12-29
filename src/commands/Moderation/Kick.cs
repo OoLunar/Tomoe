@@ -11,15 +11,8 @@ namespace Tomoe.Commands.Moderation
 {
 	public class Kick : BaseCommandModule
 	{
-		private const string _COMMAND_NAME = "kick";
-		private const string _COMMAND_DESC = "Kicks people from the guild, sending them off with a private message.";
-		private const string _SINGLE_VICTIM_DESC = "The person to be kicked.";
-		private const string _SINGLE_KICK_REASON = "(Optional) The reason why the person is being kicked.";
-		private const string _MASS_VICTIM_DESC = "The people to be kicked.";
-		private const string _MASS_KICK_REASON = "(Optional) The reason why people are being kicked.";
-
-		[Command(_COMMAND_NAME), Description(_COMMAND_DESC), RequireGuild, RequireUserPermissions(Permissions.BanMembers), RequireBotPermissions(Permissions.BanMembers)]
-		public async Task KickUser(CommandContext context, [Description(_SINGLE_VICTIM_DESC)] DiscordUser victim, [Description(_SINGLE_KICK_REASON)][RemainingText] string kickReason)
+		[Command("kick"), Description("Kicks people from the guild, sending them off with a private message."), RequireGuild, RequireUserPermissions(Permissions.BanMembers), RequireBotPermissions(Permissions.BanMembers)]
+		public async Task KickUser(CommandContext context, [Description("The person to be kicked.")] DiscordUser victim, [Description("(Optional) The reason why the person is being kicked.")][RemainingText] string kickReason)
 		{
 			if (victim == context.Client.CurrentUser)
 			{
@@ -43,7 +36,7 @@ namespace Tomoe.Commands.Moderation
 					}
 				}
 				catch (UnauthorizedException) { }
-				guildVictim.RemoveAsync(kickReason);
+				await guildVictim.RemoveAsync(kickReason);
 			}
 			catch (NotFoundException)
 			{
@@ -53,17 +46,17 @@ namespace Tomoe.Commands.Moderation
 			_ = Program.SendMessage(context, $"{victim.Mention} has been kicked. Reason: ```\n{kickReason.Filter() ?? Program.MissingReason}\n```", ExtensionMethods.FilteringAction.CodeBlocksIgnore, new List<IMention>() { new UserMention(victim.Id) });
 		}
 
-		[Command(_COMMAND_NAME), RequireGuild]
-		public async Task KickUser(CommandContext context, [Description(_SINGLE_VICTIM_DESC)] DiscordUser victim) => KickUser(context, victim, null);
+		[Command("kick"), RequireGuild]
+		public async Task KickUser(CommandContext context, [Description("The person to be kicked.")] DiscordUser victim) => KickUser(context, victim, null);
 
-		[Command(_COMMAND_NAME), RequireGuild]
-		public async Task KickUsers(CommandContext context, [Description(_MASS_KICK_REASON)] string kickReason = Program.MissingReason, [Description(_MASS_VICTIM_DESC)] params DiscordUser[] victims)
+		[Command("kick"), RequireGuild]
+		public async Task KickUsers(CommandContext context, [Description("(Optional) The reason why people are being kicked.")] string kickReason = Program.MissingReason, [Description("The people to be kicked.")] params DiscordUser[] victims)
 		{
 			foreach (DiscordUser victim in victims) _ = KickUser(context, victim, kickReason);
 			_ = Program.SendMessage(context, $"Successfully masskicked {string.Join<DiscordUser>(", ", victims)}. Reason: ```\n{kickReason.Filter()}\n```", ExtensionMethods.FilteringAction.CodeBlocksIgnore, victims.Select(user => new UserMention(user.Id) as IMention).ToList());
 		}
 
-		[Command(_COMMAND_NAME), RequireGuild]
-		public async Task KickUsers(CommandContext context, [Description(_MASS_VICTIM_DESC)] params DiscordUser[] victims) => KickUsers(context, default, victims);
+		[Command("kick"), RequireGuild]
+		public async Task KickUsers(CommandContext context, [Description("The people to be kicked.")] params DiscordUser[] victims) => KickUsers(context, default, victims);
 	}
 }

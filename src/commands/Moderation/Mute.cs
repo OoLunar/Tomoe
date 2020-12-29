@@ -10,7 +10,7 @@ namespace Tomoe.Commands.Moderation
 {
 	public class Mute : BaseCommandModule
 	{
-		[Command("mute"), Description("Mutes a person permanently."), RequireBotPermissions(Permissions.ManageRoles), RequireUserPermissions(Permissions.ManageMessages)]
+		[Command("mute"), Description("Mutes a person permanently."), RequireBotPermissions(Permissions.ManageRoles), RequireUserPermissions(Permissions.ManageMessages), Aliases("silence")]
 		public async Task Permanently(CommandContext context, DiscordUser victim, [RemainingText] string muteReason = Program.MissingReason)
 		{
 			if (victim == context.Client.CurrentUser)

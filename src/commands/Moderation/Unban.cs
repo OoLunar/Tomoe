@@ -12,14 +12,10 @@ namespace Tomoe.Commands.Moderation
 {
 	public class Unban : BaseCommandModule
 	{
-		private const string _COMMAND_NAME = "unban";
-		private const string _COMMAND_DESC = "Unbans people from the guild.";
-		private const string _VICTIM_DESC = "The person to be unbanned.";
-		private const string _UNBAN_REASON = "(Optional) The reason why the person is being unbanned.";
 		private static readonly Logger Logger = new("Commands.Moderation.Unban");
 
-		[Command(_COMMAND_NAME), Description(_COMMAND_DESC), RequireUserPermissions(Permissions.BanMembers), RequireBotPermissions(Permissions.BanMembers)]
-		public async Task UnbanUser(CommandContext context, [Description(_VICTIM_DESC)] DiscordUser victim, [Description(_UNBAN_REASON), RemainingText] string unbanReason = Program.MissingReason)
+		[Command("unban"), Description("Unbans people from the guild."), RequireUserPermissions(Permissions.BanMembers), RequireBotPermissions(Permissions.BanMembers)]
+		public async Task UnbanUser(CommandContext context, [Description("The person to be unbanned.")] DiscordUser victim, [Description("(Optional) The reason why the person is being unbanned."), RemainingText] string unbanReason = Program.MissingReason)
 		{
 			IReadOnlyList<DiscordBan> guildBans = await context.Guild.GetBansAsync();
 			if (guildBans.Count == 0 || guildBans.Any(discordBan => discordBan.User != victim))
@@ -53,7 +49,7 @@ namespace Tomoe.Commands.Moderation
 			IReadOnlyList<DiscordBan> guildBans = await context.Guild.GetBansAsync();
 			if (guildBans.Count == 0 || !guildBans.Any(discordBan => discordBan.User.Id == victim.Id))
 			{
-				await Logger.Debug($"No bans found, skipping unbanning of {victim.Id}");
+				Logger.Debug($"No bans found, skipping unbanning of {victim.Id}");
 				return;
 			}
 

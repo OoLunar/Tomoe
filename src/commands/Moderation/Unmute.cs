@@ -9,7 +9,7 @@ namespace Tomoe.Commands.Moderation
 {
 	public class Unmute : BaseCommandModule
 	{
-		[Command("unmute"), Description("Unmutes an individual.")]
+		[Command("unmute"), Description("Unmutes an individual."), Aliases("unsilence")]
 		public async Task Individual(CommandContext context, DiscordUser victim, [RemainingText] string unmuteReason = Program.MissingReason)
 		{
 			if (victim == context.Client.CurrentUser)

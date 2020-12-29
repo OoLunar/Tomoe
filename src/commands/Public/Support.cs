@@ -9,7 +9,7 @@ namespace Tomoe.Commands.Public
 		private const string _COMMAND_NAME = "support";
 		private const string _COMMAND_DESC = "Sends the support Discord invite.";
 
-		[Command(_COMMAND_NAME), Description(_COMMAND_DESC), Aliases(new string[] { "discord", "guild" })]
+		[Command(_COMMAND_NAME), Description(_COMMAND_DESC), Aliases(new[] { "discord", "guild" })]
 		public async Task Get(CommandContext context) => Program.SendMessage(context, "https://discord.gg/Y6JmYTNcGg");
 	}
 }

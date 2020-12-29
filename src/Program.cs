@@ -29,7 +29,7 @@ namespace Tomoe
 
 		public static async Task MainAsync()
 		{
-			Config.Init();
+			await Config.Init();
 			LoggerProvider loggerProvider = new();
 			DiscordConfiguration discordConfiguration = new DiscordConfiguration
 			{

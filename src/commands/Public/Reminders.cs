@@ -20,6 +20,7 @@ namespace Tomoe.Commands.Public
 	public class Reminders : BaseCommandModule
 	{
 		private static readonly Logger Logger = new Logger("Commands/Public/Tasks");
+
 		[GroupCommand]
 		public async Task Create(CommandContext context, TimeSpan setOff, [RemainingText] string content)
 		{

@@ -6,11 +6,8 @@ namespace Tomoe.Commands.Public
 {
 	public class Repo : BaseCommandModule
 	{
-		private const string _COMMAND_NAME = "repo";
-		private const string _COMMAND_DESC = "Sends the source code for Tomoe.";
-
-		[Command(_COMMAND_NAME), Description(_COMMAND_DESC)]
-		[Aliases(new string[] { "github", "gh", "gitlab", "repository" })]
+		[Command("repo"), Description("Sends the source code for Tomoe.")]
+		[Aliases(new[] { "github", "gh", "gitlab", "repository", "source" })]
 		public async Task Get(CommandContext context) => Program.SendMessage(context, Utils.Config.RepositoryLink);
 	}
 }
