@@ -31,6 +31,7 @@ namespace Tomoe.Utils
 					foreach (CommandsNextExtension commands in commandsCollection.Values)
 					{
 						commands.RegisterConverter(new ImageFormatConverter());
+						commands.RegisterConverter(new ExpandedTimeSpanConverter());
 						commands.RegisterCommands(Assembly.GetEntryAssembly());
 						commands.CommandErrored += CommandErrored;
 					}

@@ -39,7 +39,6 @@ namespace Tomoe.Commands.Public
 			guildInfo += $"Preferred Locale: {context.Guild.PreferredLocale}\n";
 			guildInfo += $"Premium Subscription Count: {context.Guild.PremiumSubscriptionCount}\n";
 			guildInfo += $"Premium Tier: {context.Guild.PremiumTier}\n";
-			guildInfo += $"Public Updates Channel: {context.Guild.PublicUpdatesChannel?.Mention ?? "Not set"}\n";
 			guildInfo += $"Role Count: {context.Guild.Roles.Count}\n";
 			guildInfo += $"Rules Channel: {context.Guild.RulesChannel?.Mention ?? "Not set"}\n";
 			guildInfo += $"Splash Url: {context.Guild.SplashUrl ?? "Not set"}\n";

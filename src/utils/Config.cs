@@ -49,7 +49,7 @@ namespace Tomoe.Utils
 				{
 					Logger.Critical($"Error resolving config option on \"{TokenFile}\" Make sure all the config options are valid. Error: {typeException.Message}");
 				}
-				Thread.Sleep(50);
+				await Task.Delay(50);
 				if (Logging.SaveToFile && !Directory.Exists(Path.Join(FileSystem.ProjectRoot, "log/")))
 				{
 					FileSystem.CreateDirectory(Path.Join(FileSystem.ProjectRoot, "log/"));

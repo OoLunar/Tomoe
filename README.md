@@ -88,8 +88,8 @@ As mentioned previously, Tomoe aims to be the #1 bot choice for Discord Moderati
 | strike | :heavy_check_mark: |
 | strike history | :heavy_check_mark: |
 | pardon| :heavy_check_mark: |
-| temp_ban | :x: |
-| temp_mute | :x: |
+| temp_ban | :heavy_check_mark: |
+| temp_mute | :heavy_check_mark: |
 | temp_meme_ban | :x: |
 | temp_vc_ban | :x: |
 | unban | :heavy_check_mark: |

@@ -9,6 +9,7 @@ using DSharpPlus.Interactivity.Extensions;
 using DSharpPlus.EventArgs;
 using Tomoe.Database;
 using Tomoe.Utils;
+using DSharpPlus.CommandsNext;
 
 namespace Tomoe
 {
@@ -63,7 +64,7 @@ namespace Tomoe
 			await Task.Delay(-1);
 		}
 
-		public static DiscordMessage SendMessage(dynamic context, string content, ExtensionMethods.FilteringAction filteringAction = ExtensionMethods.FilteringAction.CodeBlocksEscape, List<IMention> mentionList = null)
+		public static DiscordMessage SendMessage(CommandContext context, string content, ExtensionMethods.FilteringAction filteringAction = ExtensionMethods.FilteringAction.CodeBlocksEscape, List<IMention> mentionList = null)
 		{
 			if (mentionList == null)
 			{
@@ -81,7 +82,7 @@ namespace Tomoe
 			}
 		}
 
-		public static DiscordMessage SendMessage(dynamic context, DiscordEmbed embed, List<IMention> mentionList = null)
+		public static DiscordMessage SendMessage(CommandContext context, DiscordEmbed embed, List<IMention> mentionList = null)
 		{
 			if (mentionList == null)
 			{

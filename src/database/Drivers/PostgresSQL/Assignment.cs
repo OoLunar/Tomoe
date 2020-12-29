@@ -9,7 +9,7 @@ using System.Net.Sockets;
 
 namespace Tomoe.Database.Drivers.PostgresSQL
 {
-	public class PostgresAssignment : IAssignment
+	public class PostgresAssignments : IAssignment
 	{
 		private static readonly Logger Logger = new Logger("Database.PostgresSQL.Assignment");
 		private readonly NpgsqlConnection Connection;
@@ -102,7 +102,7 @@ namespace Tomoe.Database.Drivers.PostgresSQL
 		/// <param name="parameter">One <see cref="NpgsqlParameter">NpgsqlParameter</see>, which gets converted into a <see cref="List{T}">List&lt;NpgsqlParameter&gt;</see>.</param>
 		private Dictionary<int, List<dynamic>> ExecuteQuery(StatementType command, NpgsqlParameter parameter, bool needsResult = false) => ExecuteQuery(command, new List<NpgsqlParameter> { parameter }, needsResult);
 
-		public PostgresAssignment(string host, int port, string username, string password, string databaseName, SslMode sslMode)
+		public PostgresAssignments(string host, int port, string username, string password, string databaseName, SslMode sslMode)
 		{
 			Connection = new NpgsqlConnection($"Host={host};Port={port};Username={username};Password={password};Database={databaseName};SSL Mode={sslMode}");
 			NpgsqlConnection selectRoutineConnection = new NpgsqlConnection($"Host={host};Port={port};Username={username};Password={password};Database={databaseName};SSL Mode={sslMode}");

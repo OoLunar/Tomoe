@@ -15,7 +15,7 @@ namespace Tomoe.Database
 
 		public Interfaces.IGuild Guild;
 		public Interfaces.ITags Tags;
-		public Interfaces.IAssignment Tasks;
+		public Interfaces.IAssignment Assignments;
 		public Interfaces.IUser User;
 		public Interfaces.IStrikes Strikes;
 
@@ -74,7 +74,7 @@ namespace Tomoe.Database
 							Logger.Trace($"({classType.FullName}) Checking if the required properties are set...");
 							PropertyInfo? guildProperty = classType.GetProperty("Guild");
 							PropertyInfo? tagProperty = classType.GetProperty("Tags");
-							PropertyInfo? tasksProperty = classType.GetProperty("Tasks");
+							PropertyInfo? tasksProperty = classType.GetProperty("Assignments");
 							PropertyInfo? userProperty = classType.GetProperty("User");
 							PropertyInfo? strikesProperty = classType.GetProperty("Strikes");
 							if (guildProperty != null && tagProperty != null && tasksProperty != null && userProperty != null && strikesProperty != null)
@@ -83,7 +83,7 @@ namespace Tomoe.Database
 								Interfaces.IDatabase database = constructor.Invoke(new object[] { Host, Port, Username, Password, DatabaseName, SslMode }) as Interfaces.IDatabase;
 								Guild = database.Guild;
 								Tags = database.Tags;
-								Tasks = database.Tasks;
+								Assignments = database.Assignments;
 								User = database.User;
 								Strikes = database.Strikes;
 								foundDriver = true;

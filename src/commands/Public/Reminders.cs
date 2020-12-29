@@ -10,6 +10,7 @@ using DSharpPlus.Interactivity.Extensions;
 using Npgsql;
 using Tomoe.Utils;
 using DSharpPlus.Interactivity;
+using Tomoe.Database.Interfaces;
 
 namespace Tomoe.Commands.Public
 {
@@ -22,7 +23,7 @@ namespace Tomoe.Commands.Public
 		[GroupCommand]
 		public async Task Create(CommandContext context, TimeSpan setOff, [RemainingText] string content)
 		{
-			Program.Database.Tasks.Create(Database.Interfaces.AssignmentType.Reminder, context.Guild.Id, context.Channel.Id, context.Message.Id, context.User.Id, DateTime.Now + setOff, DateTime.Now, content);
+			Program.Database.Assignments.Create(AssignmentType.Reminder, context.Guild.Id, context.Channel.Id, context.Message.Id, context.User.Id, DateTime.Now + setOff, DateTime.Now, content);
 			_ = Program.SendMessage(context, $"Set off at {DateTime.Now.Add(setOff).ToString("MMM dd', 'HHH':'mm':'ss")}: ```\n{content}```", ExtensionMethods.FilteringAction.CodeBlocksIgnore);
 		}
 
@@ -33,7 +34,7 @@ namespace Tomoe.Commands.Public
 		[Description("Lists what reminders are set.")]
 		public async Task List(CommandContext context)
 		{
-			Database.Interfaces.Assignment[] tasks = Program.Database.Tasks.SelectAllReminders(context.User.Id);
+			Assignment[] tasks = Program.Database.Assignments.SelectAllReminders(context.User.Id);
 			List<string> reminders = new List<string>();
 			if (tasks == null)
 			{
@@ -42,7 +43,7 @@ namespace Tomoe.Commands.Public
 			else
 			{
 				Logger.Trace(tasks.Length.ToString());
-				foreach (Tomoe.Database.Interfaces.Assignment task in tasks)
+				foreach (Assignment task in tasks)
 				{
 					Logger.Trace($"Id #{task.TaskId}, Set off at {task.SetOff.ToString("MMM dd', 'HHH':'mm':'ss")}: {task.Content}");
 					reminders.Add($"Id #{task.TaskId}, Set off at {task.SetOff.ToString("MMM dd', 'HHH':'mm':'ss")}: {task.Content}");
@@ -66,14 +67,14 @@ namespace Tomoe.Commands.Public
 		public async Task Remove(CommandContext context, int taskId)
 		{
 			Logger.Trace("Executing remove");
-			Database.Interfaces.Assignment? task = Program.Database.Tasks.Select(context.User.Id, Database.Interfaces.AssignmentType.Reminder, taskId);
+			Assignment? task = Program.Database.Assignments.Select(context.User.Id, AssignmentType.Reminder, taskId);
 			if (!task.HasValue)
 			{
 				_ = Program.SendMessage(context, $"Reminder #{taskId} does not exist!");
 			}
 			else
 			{
-				Program.Database.Tasks.Remove(taskId);
+				Program.Database.Assignments.Remove(taskId);
 				_ = Program.SendMessage(context, $"Reminder #{taskId} was removed!");
 			}
 		}
@@ -97,10 +98,10 @@ namespace Tomoe.Commands.Public
 			timer.Interval = 1000;
 			timer.Elapsed += async (object sender, ElapsedEventArgs e) =>
 			{
-				Database.Interfaces.Assignment[] tasks;
+				Assignment[] tasks;
 				try
 				{
-					tasks = Program.Database.Tasks.SelectAllAssignments();
+					tasks = Program.Database.Assignments.SelectAllAssignments();
 				}
 				catch (NpgsqlOperationInProgressException)
 				{
@@ -110,16 +111,27 @@ namespace Tomoe.Commands.Public
 				{
 					return;
 				}
-				foreach (Database.Interfaces.Assignment task in tasks)
+				foreach (Assignment task in tasks)
 				{
 					if (task.SetOff.CompareTo(DateTime.Now) < 0)
 					{
-						MakeShiftContext context = new MakeShiftContext(task.GuildId, task.ChannelId, task.MessageId, task.UserId);
+						CommandsNextExtension commandsNext = (await Program.Client.GetCommandsNextAsync())[0];
+						DiscordGuild guild = await Program.Client.ShardClients[0].GetGuildAsync(task.GuildId);
+						DiscordChannel channel = guild.GetChannel(task.ChannelId);
+						CommandContext context = commandsNext.CreateContext(await channel.GetMessageAsync(task.MessageId), Utils.Config.Prefix, commandsNext.RegisteredCommands["remind"], null);
 						switch (task.TaskType)
 						{
-							case Database.Interfaces.AssignmentType.Reminder:
+							case AssignmentType.Reminder:
 								_ = Program.SendMessage(context, $"Set at {task.SetAt.ToString("MMM dd', 'HHH':'mm")}: {task.Content}", ExtensionMethods.FilteringAction.CodeBlocksIgnore);
-								Program.Database.Tasks.Remove(task.TaskId);
+								Program.Database.Assignments.Remove(task.TaskId);
+								break;
+							case AssignmentType.TempBan:
+								await Moderation.Unban.ByAssignment(context, await context.Client.GetUserAsync(task.UserId));
+								Program.Database.Assignments.Remove(task.TaskId);
+								break;
+							case AssignmentType.TempMute:
+								await Moderation.Unmute.ByAssignment(context, await context.Client.GetUserAsync(task.UserId));
+								Program.Database.Assignments.Remove(task.TaskId);
 								break;
 						}
 					}
