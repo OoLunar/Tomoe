@@ -1,12 +1,21 @@
 using System.Threading.Tasks;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
+using Tomoe.Utils;
 
 namespace Tomoe.Commands.Public
 {
 	public class Invite : BaseCommandModule
 	{
-		[Command("invite"), Description("Sends the link to add Tomoe to a guild."), Aliases("link")]
-		public async Task Mention(CommandContext context) => Program.SendMessage(context, "<https://discord.com/oauth2/authorize?client_id=481314095723839508&permissions=8&scope=bot>");
+		private static readonly Logger Logger = new Logger("Commands.Public.Invite");
+
+		[Command("invite"), Description("Sends the link to add Tomoe to a guild without an embed."), Aliases("link")]
+		public async Task Mention(CommandContext context)
+		{
+			Logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");
+			Logger.Trace($"Invite link: {Utils.Config.InviteLink}");
+			_ = Program.SendMessage(context, $"<{Utils.Config.InviteLink}>");
+			Logger.Trace("Message sent!");
+		}
 	}
 }

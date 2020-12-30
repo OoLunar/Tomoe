@@ -14,18 +14,25 @@ namespace Tomoe.Commands.Public
 		[Command("botinfo"), Description("Gets general info about the bot."), Aliases("bot_info")]
 		public async Task Get(CommandContext context)
 		{
+			Logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");
 			Logger.Trace("Creating embed...");
 			DiscordEmbedBuilder embedBuilder = new();
+			Logger.Trace("Setting title...");
 			embedBuilder.Title = "General Bot Info";
+			Logger.Trace("Filling out description...");
 			embedBuilder.Description += $"Currently in {context.Client.Guilds.Count} guilds\n";
 			embedBuilder.Description += $"Handling around {context.Client.Presences.Count} people\n";
 			embedBuilder.Description += $"General Ping: {context.Client.Ping}ms\n";
 			embedBuilder.Description += $"Total shards: {Program.Client.ShardClients.Count}\n";
+			Logger.Trace("Getting resource usage...");
 			Process currentProcess = Process.GetCurrentProcess();
 			embedBuilder.Description += $"Total memory used: {currentProcess.PrivateMemorySize64 / 1024 / 1024}mb\n";
 			embedBuilder.Description += $"Total threads open: {currentProcess.Threads.Count}";
 			currentProcess.Dispose();
+			Logger.Trace("Disposing of Process.GetCurrentProcess()...");
+			Logger.Trace("Sending embed...");
 			_ = Program.SendMessage(context, embedBuilder.Build());
+			Logger.Trace("Embed sent!");
 		}
 	}
 }

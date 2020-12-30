@@ -25,6 +25,9 @@ namespace Tomoe.Utils
 		[JsonProperty("repository_link")]
 		public static string RepositoryLink = "https://github.com/OoLunar/Tomoe.git";
 
+		[JsonProperty("invite_link")]
+		public static string InviteLink = "https://discord.com/oauth2/authorize?client_id=481314095723839508&permissions=8&scope=bot";
+
 		[JsonProperty("auto_update")]
 		public static bool AutoUpdate = true;
 

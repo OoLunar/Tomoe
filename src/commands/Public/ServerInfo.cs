@@ -4,15 +4,21 @@ using System.Threading.Tasks;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using Tomoe.Utils;
 
 namespace Tomoe.Commands.Public
 {
 	public class ServerInfo : BaseCommandModule
 	{
+		private static readonly Logger Logger = new Logger("Commands.Public.ServerInfo");
+
 		[Command("serverinfo"), Description("Gets general info about the server."), Aliases("server_info")]
 		public async Task Get(CommandContext context)
 		{
+			Logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");
+			Logger.Trace("Creating embed...");
 			DiscordEmbedBuilder embedBuilder = new();
+			Logger.Trace("Filling out description...");
 			embedBuilder.Title = context.Guild.Name;
 			embedBuilder.Url = context.Guild.IconUrl;
 			embedBuilder.Footer = new() { IconUrl = context.Guild.BannerUrl };
@@ -42,9 +48,10 @@ namespace Tomoe.Commands.Public
 			guildInfo += $"Vanity Url: {context.Guild.VanityUrlCode ?? "Not set"}\n";
 			guildInfo += $"Verification Level: {context.Guild.VerificationLevel}\n";
 			guildInfo += $"Voice Region: {context.Guild.VoiceRegion.Name}\n";
-
 			embedBuilder.Description = guildInfo;
+			Logger.Trace("Sending embed...");
 			_ = Program.SendMessage(context, embedBuilder.Build());
+			Logger.Trace("Embed sent!");
 		}
 	}
 }

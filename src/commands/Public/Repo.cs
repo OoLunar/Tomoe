@@ -1,12 +1,20 @@
 using System.Threading.Tasks;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
+using Microsoft.Extensions.Logging;
+using Tomoe.Utils;
 
 namespace Tomoe.Commands.Public
 {
-	public class Repo : BaseCommandModule
+	public class Repository : BaseCommandModule
 	{
-		[Command("repo"), Description("Sends the source code for Tomoe."), Aliases(new[] { "github", "gh", "gitlab", "repository", "source" })]
-		public async Task Get(CommandContext context) => Program.SendMessage(context, Utils.Config.RepositoryLink);
+		private static readonly Logger Logger = new Logger("Commands.Public.Repository");
+		[Command("repository"), Description("Sends the source code for Tomoe."), Aliases(new[] { "github", "gh", "gitlab", "repo", "source" })]
+		public async Task Get(CommandContext context)
+		{
+			Logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");
+			_ = Program.SendMessage(context, Utils.Config.RepositoryLink);
+			Logger.Trace("Message sent!");
+		}
 	}
 }
