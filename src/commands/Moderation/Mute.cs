@@ -22,14 +22,14 @@ namespace Tomoe.Commands.Moderation
 			ulong? muteRoleId = Program.Database.Guild.MuteRole(context.Guild.Id);
 			if (!muteRoleId.HasValue)
 			{
-				_ = Program.SendMessage(context, Program.MissingMuteRole);
+				_ = Program.SendMessage(context, Program.MissingRole);
 				return;
 			}
 
 			DiscordRole muteRole = context.Guild.GetRole(muteRoleId.Value);
 			if (muteRole == null)
 			{
-				_ = Program.SendMessage(context, Program.MissingMuteRole);
+				_ = Program.SendMessage(context, Program.MissingRole);
 				return;
 			}
 
@@ -45,7 +45,7 @@ namespace Tomoe.Commands.Moderation
 						_ = Program.SendMessage(context, Program.Hierarchy);
 						return;
 					}
-					else if (guildVictim.IsBot)
+					else if (!guildVictim.IsBot)
 					{
 						_ = await guildVictim.SendMessageAsync($"You've been muted by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: ```\n{muteReason.Filter()}\n```");
 					}

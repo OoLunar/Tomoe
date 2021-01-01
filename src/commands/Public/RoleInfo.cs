@@ -21,7 +21,7 @@ namespace Tomoe.Commands.Public
 		public async Task ByName(CommandContext context, [Description("The role's name."), RemainingText] string roleName)
 		{
 			Logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");
-			roleName = roleName.ToLower();
+			roleName = roleName.Trim().ToLowerInvariant();
 			List<DiscordRole> rolesInQuestion = new();
 			// Check if it's the @everyone or @here roles.
 			if (roleName == "everyone" || roleName == "@here")
@@ -34,7 +34,7 @@ namespace Tomoe.Commands.Public
 			{
 				foreach (DiscordRole role in context.Guild.Roles.Values)
 				{
-					if (role.Name.ToLower() == roleName)
+					if (role.Name.ToLower() == roleName || role.Name.Contains(roleName))
 					{
 						Logger.Trace($"Found role {role.Id}...");
 						rolesInQuestion.Add(role);

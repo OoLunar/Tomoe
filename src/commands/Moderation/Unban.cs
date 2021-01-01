@@ -18,7 +18,7 @@ namespace Tomoe.Commands.Moderation
 		public async Task UnbanUser(CommandContext context, [Description("The person to be unbanned.")] DiscordUser victim, [Description("(Optional) The reason why the person is being unbanned."), RemainingText] string unbanReason = Program.MissingReason)
 		{
 			IReadOnlyList<DiscordBan> guildBans = await context.Guild.GetBansAsync();
-			if (guildBans.Count == 0 || guildBans.Any(discordBan => discordBan.User != victim))
+			if (guildBans.Count == 0 || guildBans.All(discordBan => discordBan.User != victim))
 			{
 				_ = Program.SendMessage(context, $"{victim.Mention} isn't banned!");
 				return;
@@ -30,7 +30,7 @@ namespace Tomoe.Commands.Moderation
 			{
 				await context.Guild.UnbanMemberAsync(victim, unbanReason ?? Program.MissingReason);
 				DiscordMember guildVictim = await context.Guild.GetMemberAsync(victim.Id);
-				_ = await guildVictim.SendMessageAsync($"You've been unbanned by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: ```\n{unbanReason.Filter() ?? Program.MissingReason}\n```");
+				if (!victim.IsBot) _ = await guildVictim.SendMessageAsync($"You've been unbanned by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: ```\n{unbanReason.Filter() ?? Program.MissingReason}\n```");
 			}
 			catch (NotFoundException)
 			{

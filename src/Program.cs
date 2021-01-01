@@ -20,7 +20,7 @@ namespace Tomoe
 		public const string NotAGuild = "**[Denied: Guild command.]**";
 		public const string SelfAction = "**[Denied: Cannot execute on myself.]**";
 		public const string Hierarchy = "**[Denied: Prevented by hierarchy.]**";
-		public const string MissingMuteRole = "**[Error: No mute role has been set!]**";
+		public const string MissingRole = "**[Error: No role has been set!]**";
 		public static DatabaseLoader Database = new DatabaseLoader();
 		public static DiscordShardedClient Client;
 		private static readonly Logger _logger = new Logger("Main");
@@ -54,6 +54,8 @@ namespace Tomoe
 
 			Client.MessageReactionAdded += (DiscordClient client, MessageReactionAddEventArgs eventArgs) => Task.Run(async () => Commands.Listeners.ReactionAdded.Handler(client, eventArgs));
 			Client.GuildCreated += (DiscordClient client, GuildCreateEventArgs eventArgs) => Task.Run(async () => Commands.Listeners.GuildCreated.Handler(client, eventArgs));
+			Client.GuildAvailable += (DiscordClient client, GuildCreateEventArgs eventArgs) => Task.Run(async () => Commands.Listeners.GuildAvailable.Handler(client, eventArgs));
+			//Client.MessageCreated += (DiscordClient client, MessageCreateEventArgs eventArgs) => Task.Run(async () => Commands.Listeners.MessageRecieved.Handler(client, eventArgs));
 			Client.Ready += (DiscordClient client, ReadyEventArgs eventArgs) => Task.Run(async () => Events.OnReady(client, eventArgs));
 			await CommandService.Launch(Client);
 

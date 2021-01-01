@@ -7,10 +7,10 @@ using DSharpPlus.Exceptions;
 
 namespace Tomoe.Commands.Moderation
 {
-	public class Unmute : BaseCommandModule
+	public class UnmemeBan : BaseCommandModule
 	{
-		[Command("unmute"), Description("Unmutes an individual."), Aliases("unsilence")]
-		public async Task Individual(CommandContext context, DiscordUser victim, [RemainingText] string unmuteReason = Program.MissingReason)
+		[Command("unmemeban"), Description("Unmutes an individual."), Aliases(new[] { "unmeme_ban", "promeme", "pro_meme" })]
+		public async Task Individual(CommandContext context, DiscordUser victim, [RemainingText] string unmemeBanReason = Program.MissingReason)
 		{
 			if (victim == context.Client.CurrentUser)
 			{
@@ -18,15 +18,15 @@ namespace Tomoe.Commands.Moderation
 				return;
 			}
 
-			ulong? muteRoleId = Program.Database.Guild.MuteRole(context.Guild.Id);
-			if (!muteRoleId.HasValue)
+			ulong? noMemeRoleId = Program.Database.Guild.NoMemeRole(context.Guild.Id);
+			if (!noMemeRoleId.HasValue)
 			{
 				_ = Program.SendMessage(context, Program.MissingRole);
 				return;
 			}
 
-			DiscordRole muteRole = context.Guild.GetRole(muteRoleId.Value);
-			if (muteRole == null)
+			DiscordRole noMemeRole = context.Guild.GetRole(noMemeRoleId.Value);
+			if (noMemeRole == null)
 			{
 				_ = Program.SendMessage(context, Program.MissingRole);
 				return;
@@ -46,21 +46,21 @@ namespace Tomoe.Commands.Moderation
 					}
 					else if (!guildVictim.IsBot)
 					{
-						_ = await guildVictim.SendMessageAsync($"You've been unmuted by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: ```\n{unmuteReason.Filter()}\n```");
+						_ = await guildVictim.SendMessageAsync($"You've been unmeme banned by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: ```\n{unmemeBanReason.Filter()}\n```");
 					}
 				}
 				catch (UnauthorizedException)
 				{
 					sentDm = false;
 				}
-				await guildVictim.RevokeRoleAsync(muteRole, unmuteReason);
+				await guildVictim.RevokeRoleAsync(noMemeRole, unmemeBanReason);
 			}
 			catch (NotFoundException)
 			{
 				sentDm = false;
 			}
-			Program.Database.User.IsMuted(context.Guild.Id, victim.Id, false);
-			_ = Program.SendMessage(context, $"{victim.Mention} has been unmuted{(sentDm ? '.' : " (Failed to DM).")} Reason: ```\n{unmuteReason.Filter()}\n```", ExtensionMethods.FilteringAction.CodeBlocksIgnore, new List<IMention>() { new UserMention(victim.Id) });
+			Program.Database.User.IsNoMemed(context.Guild.Id, victim.Id, false);
+			_ = Program.SendMessage(context, $"{victim.Mention} has been unmeme banned{(sentDm ? '.' : " (Failed to DM).")} Reason: ```\n{unmemeBanReason.Filter()}\n```", ExtensionMethods.FilteringAction.CodeBlocksIgnore, new List<IMention>() { new UserMention(victim.Id) });
 		}
 
 		public static async Task ByAssignment(CommandContext context, DiscordUser victim)

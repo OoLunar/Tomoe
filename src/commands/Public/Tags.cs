@@ -427,7 +427,7 @@ namespace Tomoe.Commands.Public
 				_ = Program.SendMessage(context, $"**[Error: \"{tagTitle}\" already exists!]**", ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
 				return false;
 			}
-			else if (RequireOwner && Program.Database.Tags.GetAuthor(context.Guild.Id, tagTitle) != context.User.Id || context.Member.Roles.Any(role => role.Permissions.HasFlag(Permissions.Administrator) || role.Permissions.HasFlag(Permissions.ManageMessages)))
+			else if (RequireOwner && (Program.Database.Tags.GetAuthor(context.Guild.Id, tagTitle) != context.User.Id || context.Member.Roles.Any(role => role.Permissions.HasFlag(Permissions.Administrator) || role.Permissions.HasFlag(Permissions.ManageMessages))))
 			{
 				_ = Program.SendMessage(context, "**[Denied: You aren't the tag owner!]**", ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
 				return false;

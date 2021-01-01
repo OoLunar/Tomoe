@@ -44,30 +44,30 @@ namespace Tomoe.Utils
 			}
 		}
 
-		private static async Task CommandErrored(CommandsNextExtension _client, CommandErrorEventArgs e)
+		private static async Task CommandErrored(CommandsNextExtension _client, CommandErrorEventArgs args)
 		{
 			// No need to log when a command isn't found
-			if (!(e.Exception is CommandNotFoundException) && !e.Handled)
+			if (!(args.Exception is CommandNotFoundException) && !args.Handled)
 			{
-				if (e.Exception is ChecksFailedException)
+				if (args.Exception is ChecksFailedException)
 				{
-					ChecksFailedException error = e.Exception as ChecksFailedException;
+					ChecksFailedException error = args.Exception as ChecksFailedException;
 					if (error.Context.Channel.IsPrivate)
 					{
-						_ = Program.SendMessage(e.Context, Program.NotAGuild, ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
+						_ = Program.SendMessage(args.Context, Program.NotAGuild, ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
 					}
-					else if (error.FailedChecks.OfType<RequireUserPermissionsAttribute>() != null && e.Command.Module.ModuleType != typeof(Commands.Public.Tags))
+					else if (error.FailedChecks.OfType<RequireUserPermissionsAttribute>() != null && args.Command.Module.ModuleType != typeof(Commands.Public.Tags))
 					{
-						_ = Program.SendMessage(e.Context, Program.MissingPermissions, ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
+						_ = Program.SendMessage(args.Context, Program.MissingPermissions, ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
 					}
 				}
-				else if (e.Exception is NotImplementedException)
+				else if (args.Exception is NotImplementedException)
 				{
-					_ = Program.SendMessage(e.Context, $"{e.Command.Name} hasn't been implemented yet!", ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
+					_ = Program.SendMessage(args.Context, $"{args.Command.Name} hasn't been implemented yet!", ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
 				}
 				else
 				{
-					Logger.Error($"'{e.Command?.QualifiedName ?? "<unknown command>"}' errored: {e.Exception.GetType()}, {e.Exception.Message ?? "<no message>"}\n{e.Exception.StackTrace}");
+					Logger.Error($"'{args.Command?.QualifiedName ?? "<unknown command>"}' errored: {args.Exception.GetType()}, {args.Exception.Message ?? "<no message>"}\n{args.Exception.StackTrace}");
 				}
 			}
 		}

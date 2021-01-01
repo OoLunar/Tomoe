@@ -21,11 +21,11 @@ namespace Tomoe.Commands.Public
 		public async Task Mention(CommandContext context, [Description("(Optional) The user's pfp to be shown. Defaults to the requestor.")] DiscordUser user, [Description("(Optional) What size the image should be. Must be a power of two.")] ushort imageSize, [Description("(Optional) What format the image should be. See [image formats](https://discord.com/developers/docs/reference#image-formatting-image-formats).")] ImageFormat imageFormat = ImageFormat.Png)
 		{
 			Logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");
-			bool userExists = user == null;
+			bool userExists = user != null;
 			Logger.Trace($"User exist: {userExists}");
 			if (userExists)
 			{
-				Logger.Trace($"Getting {user.Username}'s profile picture in {imageFormat.ToString()} form and {imageSize}x{imageSize} resolution.");
+				Logger.Trace($"Getting {user.Username}'s profile picture in {imageFormat} form and {imageSize}x{imageSize} resolution.");
 				string userAvatarUrl = user.GetAvatarUrl(imageFormat, imageSize);
 				Logger.Trace($"{user.Username}'s profile picture: {userAvatarUrl}");
 				_ = Program.SendMessage(context, userAvatarUrl);

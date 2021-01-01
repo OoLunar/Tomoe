@@ -4,6 +4,7 @@ using System.IO;
 using Npgsql;
 using NpgsqlTypes;
 using Tomoe.Database.Interfaces;
+using System.Linq;
 using Tomoe.Utils;
 using System.Net.Sockets;
 
@@ -35,60 +36,34 @@ namespace Tomoe.Database.Drivers.PostgresSQL
 		/// <returns><see cref="List{T}">List&lt;dynamic&gt;</see> if <paramref name="needsResult">needsResult</paramref> is true, otherwise returns null.</returns>
 		private Dictionary<int, List<dynamic>> ExecuteQuery(StatementType command, List<NpgsqlParameter> parameters, bool needsResult = false)
 		{
-			List<string> keyValue = new List<string>();
-			foreach (NpgsqlParameter param in parameters)
-			{
-				keyValue.Add($"\"{param.ParameterName}: {param.Value}\"");
-			}
-			Logger.Trace($"Executing prepared statement \"{command}\" with parameters: {string.Join(", ", keyValue.ToArray())}");
-
 			NpgsqlCommand statement = PreparedStatements[command];
-			Dictionary<string, NpgsqlParameter> sortedParameters = new Dictionary<string, NpgsqlParameter>();
-			foreach (NpgsqlParameter param in parameters)
-			{
-				sortedParameters.Add(param.ParameterName, param);
-			}
-
-			foreach (NpgsqlParameter temp in statement.Parameters)
-			{
-				temp.Value = sortedParameters[temp.ParameterName].Value;
-			}
+			if (statement.Parameters.Count != parameters.Count) throw new NpgsqlException("Prepared parameters count do not line up with given parameters count.");
+			Dictionary<string, NpgsqlParameter> sortedParameters = new();
+			foreach (NpgsqlParameter parameter in parameters) sortedParameters.Add(parameter.ParameterName, parameter);
+			foreach (NpgsqlParameter parameter in statement.Parameters) parameter.Value = sortedParameters[parameter.ParameterName].Value;
+			Logger.Trace($"Executing prepared statement \"{command}\" with parameters: {string.Join(", ", statement.Parameters.Select(param => param.Value).ToArray())}");
 
 			if (needsResult)
 			{
-				NpgsqlDataReader reader = statement.ExecuteReaderAsync().ConfigureAwait(false).GetAwaiter().GetResult();
-				Dictionary<int, List<dynamic>> values = new Dictionary<int, List<dynamic>>();
+				NpgsqlDataReader reader = statement.ExecuteReader();
+				Dictionary<int, List<dynamic>> values = new();
 				int indexCount = 0;
 				while (reader.Read())
 				{
-					List<dynamic> list = new List<dynamic>();
+					List<dynamic> list = new();
 					for (int i = 0; i < reader.FieldCount; i++)
 					{
-						if (reader[i].GetType() == typeof(DBNull))
-						{
-							list.Add(null);
-						}
-						else
-						{
-							list.Add(reader[i]);
-						}
+						if (reader[i] == DBNull.Value) list.Add(null);
+						else list.Add(reader[i]);
 						Logger.Trace($"Recieved values: {reader[i] ?? "null"} on iteration {i}");
 					}
-					if (list.Count == 1 && list[0] == null)
-					{
-						values.Add(indexCount, null);
-					}
-					else
-					{
-						values.Add(indexCount, list);
-					}
+
+					if (list.Count == 1 && list[0] == null) values.Add(indexCount, null);
+					else values.Add(indexCount, list);
 					indexCount++;
 				}
-				reader.DisposeAsync().ConfigureAwait(false).GetAwaiter();
-				if (values.Count == 0)
-				{
-					values = null;
-				}
+				reader.DisposeAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+				if (values.Count == 0 || (values.Count == 1 && values[0] == null)) values = null;
 				return values;
 			}
 			else
@@ -111,7 +86,7 @@ namespace Tomoe.Database.Drivers.PostgresSQL
 			{
 				Connection.Open();
 				selectRoutineConnection.Open();
-				NpgsqlCommand createTagsTable = new NpgsqlCommand(File.ReadAllText(Path.Join(FileSystem.ProjectRoot, "res/sql/assignments_table.sql")), Connection);
+				NpgsqlCommand createTagsTable = new NpgsqlCommand(File.ReadAllText(Path.Join(FileSystem.ProjectRoot, "res/sql/drivers/postgresql/assignments_table.sql")), Connection);
 				_ = createTagsTable.ExecuteNonQuery();
 				createTagsTable.Dispose();
 			}

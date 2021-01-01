@@ -17,7 +17,7 @@ namespace Tomoe.Commands.Listeners
 					DiscordRole muteRole = eventArgs.Guild.GetRole(muteRoleId.Value);
 					if (muteRole != null)
 					{
-						await Config.Mute.FixMuteRolePermissions(eventArgs.Guild, muteRole);
+						//await Config.Mute.FixMuteRolePermissions(eventArgs.Guild, muteRole);
 					}
 				}
 			}
