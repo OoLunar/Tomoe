@@ -47,7 +47,7 @@ namespace Tomoe.Commands.Moderation
 		public static async Task ByAssignment(CommandContext context, DiscordUser victim)
 		{
 			IReadOnlyList<DiscordBan> guildBans = await context.Guild.GetBansAsync();
-			if (guildBans.Count == 0 || !guildBans.Any(discordBan => discordBan.User.Id == victim.Id))
+			if (guildBans.Count == 0 || guildBans.All(discordBan => discordBan.User != victim))
 			{
 				Logger.Debug($"No bans found, skipping unbanning of {victim.Id}");
 				return;

@@ -19,8 +19,8 @@ namespace Tomoe.Database.Interfaces
 		bool IsMuted(ulong guildId, ulong userId);
 		void IsMuted(ulong guildId, ulong userId, bool isMuted);
 
-		bool IsNoMemed(ulong guildId, ulong userId);
-		void IsNoMemed(ulong guildId, ulong userId, bool isNoMemed);
+		bool IsAntiMemed(ulong guildId, ulong userId);
+		void IsAntiMemed(ulong guildId, ulong userId, bool isNoMemed);
 
 		bool IsNoVC(ulong guildId, ulong userId);
 		void IsNoVC(ulong guildId, ulong userId, bool isNoVC);

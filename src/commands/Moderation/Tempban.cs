@@ -20,11 +20,7 @@ namespace Tomoe.Commands.Moderation
 				_ = Program.SendMessage(context, Program.SelfAction);
 				return;
 			}
-
-			if (pruneDays < 7)
-			{
-				pruneDays = 7;
-			}
+			if (pruneDays < 7) pruneDays = 7;
 			bool sentDm = true;
 			try
 			{
@@ -34,10 +30,7 @@ namespace Tomoe.Commands.Moderation
 					_ = Program.SendMessage(context, Program.Hierarchy);
 					return;
 				}
-				else if (!guildVictim.IsBot)
-				{
-					_ = await guildVictim.SendMessageAsync($"You've been tempbanned by **{context.User.Mention}** from **{context.Guild.Name}** for **{banTime.ToString()}. Reason: ```\n{banReason.Filter() ?? Program.MissingReason}\n```");
-				}
+				else if (!guildVictim.IsBot) _ = await guildVictim.SendMessageAsync($"You've been tempbanned by **{context.User.Mention}** from **{context.Guild.Name}** for **{banTime.ToString()}. Reason: ```\n{banReason.Filter() ?? Program.MissingReason}\n```");
 			}
 			catch (NotFoundException)
 			{

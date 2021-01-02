@@ -45,10 +45,7 @@ namespace Tomoe.Commands.Moderation
 						_ = Program.SendMessage(context, Program.Hierarchy);
 						return;
 					}
-					else if (!guildVictim.IsBot)
-					{
-						_ = await guildVictim.SendMessageAsync($"You've been muted by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: ```\n{muteReason.Filter()}\n```");
-					}
+					else if (!guildVictim.IsBot) _ = await guildVictim.SendMessageAsync($"You've been muted by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: ```\n{muteReason.Filter()}\n```");
 				}
 				catch (UnauthorizedException)
 				{

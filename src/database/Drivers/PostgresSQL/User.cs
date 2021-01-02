@@ -15,7 +15,7 @@ namespace Tomoe.Database.Drivers.PostgresSQL
 		private readonly static Logger Logger = new("Database.PostgresSQL.User");
 		private readonly NpgsqlConnection Connection;
 		private readonly Dictionary<StatementType, NpgsqlCommand> PreparedStatements = new();
-		private int retryCount = 0;
+		private int retryCount;
 		private enum StatementType
 		{
 			InsertUser,
@@ -29,8 +29,8 @@ namespace Tomoe.Database.Drivers.PostgresSQL
 			SetStrikeCount,
 			GetIsMuted,
 			SetIsMuted,
-			GetIsNoMemed,
-			SetIsNoMemed,
+			GetIsAntiMemed,
+			SetIsAntiMemed,
 			GetIsNoVC,
 			SetIsNoVC
 		}
@@ -169,20 +169,20 @@ namespace Tomoe.Database.Drivers.PostgresSQL
 			setIsMuted.Prepare();
 			PreparedStatements.Add(StatementType.SetIsMuted, setIsMuted);
 
-			Logger.Debug($"Preparing {StatementType.GetIsNoMemed}...");
+			Logger.Debug($"Preparing {StatementType.GetIsAntiMemed}...");
 			NpgsqlCommand getIsNoMemed = new("SELECT no_memed FROM guild_cache WHERE user_id=@userId AND guild_id=@guildId", Connection);
 			_ = getIsNoMemed.Parameters.Add(new("userId", NpgsqlDbType.Bigint));
 			_ = getIsNoMemed.Parameters.Add(new("guildId", NpgsqlDbType.Bigint));
 			getIsNoMemed.Prepare();
-			PreparedStatements.Add(StatementType.GetIsNoMemed, getIsNoMemed);
+			PreparedStatements.Add(StatementType.GetIsAntiMemed, getIsNoMemed);
 
-			Logger.Debug($"Preparing {StatementType.SetIsNoMemed}...");
+			Logger.Debug($"Preparing {StatementType.SetIsAntiMemed}...");
 			NpgsqlCommand setIsNoMemed = new("UPDATE guild_cache SET no_memed=@isNoMemed WHERE user_id=@userId AND guild_id=@guildId", Connection);
 			_ = setIsNoMemed.Parameters.Add(new("isNoMemed", NpgsqlDbType.Boolean));
 			_ = setIsNoMemed.Parameters.Add(new("userId", NpgsqlDbType.Bigint));
 			_ = setIsNoMemed.Parameters.Add(new("guildId", NpgsqlDbType.Bigint));
 			setIsNoMemed.Prepare();
-			PreparedStatements.Add(StatementType.SetIsNoMemed, setIsNoMemed);
+			PreparedStatements.Add(StatementType.SetIsAntiMemed, setIsNoMemed);
 
 			Logger.Debug($"Preparing {StatementType.GetIsNoVC}...");
 			NpgsqlCommand getIsNoVC = new("SELECT no_voicechat FROM guild_cache WHERE user_id=@userId AND guild_id=@guildId", Connection);
@@ -223,8 +223,8 @@ namespace Tomoe.Database.Drivers.PostgresSQL
 		public bool IsMuted(ulong guildId, ulong userId) => ExecuteQuery(StatementType.GetIsMuted, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("userId", (long)userId) }, true)?[0][0];
 		public void IsMuted(ulong guildId, ulong userId, bool isMuted) => ExecuteQuery(StatementType.SetIsMuted, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("userId", (long)userId), new NpgsqlParameter("isMuted", isMuted) });
 
-		public bool IsNoMemed(ulong guildId, ulong userId) => ExecuteQuery(StatementType.GetIsNoMemed, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("userId", (long)userId) }, true)?[0][0];
-		public void IsNoMemed(ulong guildId, ulong userId, bool isNoMemed) => ExecuteQuery(StatementType.SetIsNoMemed, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("userId", (long)userId), new NpgsqlParameter("isNoMemed", isNoMemed) });
+		public bool IsAntiMemed(ulong guildId, ulong userId) => ExecuteQuery(StatementType.GetIsAntiMemed, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("userId", (long)userId) }, true)?[0][0];
+		public void IsAntiMemed(ulong guildId, ulong userId, bool isNoMemed) => ExecuteQuery(StatementType.SetIsAntiMemed, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("userId", (long)userId), new NpgsqlParameter("isNoMemed", isNoMemed) });
 
 		public bool IsNoVC(ulong guildId, ulong userId) => ExecuteQuery(StatementType.GetIsNoVC, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("userId", (long)userId) }, true)?[0][0];
 		public void IsNoVC(ulong guildId, ulong userId, bool isNoVC) => ExecuteQuery(StatementType.SetIsNoVC, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("userId", (long)userId), new NpgsqlParameter("isNoVC", isNoVC) });

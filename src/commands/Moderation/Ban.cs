@@ -19,10 +19,7 @@ namespace Tomoe.Commands.Moderation
 				return;
 			}
 
-			if (pruneDays < 7)
-			{
-				pruneDays = 7;
-			}
+			if (pruneDays < 7) pruneDays = 7;
 			bool sentDm = true;
 			try
 			{
@@ -32,10 +29,7 @@ namespace Tomoe.Commands.Moderation
 					_ = Program.SendMessage(context, Program.Hierarchy);
 					return;
 				}
-				else if (!guildVictim.IsBot)
-				{
-					_ = await guildVictim.SendMessageAsync($"You've been banned by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: ```\n{banReason.Filter() ?? Program.MissingReason}\n```");
-				}
+				else if (!guildVictim.IsBot) _ = await guildVictim.SendMessageAsync($"You've been banned by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: ```\n{banReason.Filter() ?? Program.MissingReason}\n```");
 			}
 			catch (NotFoundException)
 			{
@@ -62,11 +56,8 @@ namespace Tomoe.Commands.Moderation
 		[Command("ban"), RequireGuild]
 		public async Task BanUsers(CommandContext context, [Description("(Optional) Removed the victim's messages from the pass `x` days.")] int pruneDays = 7, [Description("(Optional) The reason why the people are being banned.")] string banReason = Program.MissingReason, [Description("The people to be banned.")] params DiscordUser[] victims)
 		{
-			if (pruneDays < 7)
-			{
-				pruneDays = 7;
-			}
-			List<IMention> mentions = new List<IMention>();
+			if (pruneDays < 7) pruneDays = 7;
+			List<IMention> mentions = new();
 			foreach (DiscordUser victim in victims)
 			{
 				if (victim == context.Client.CurrentUser)
@@ -83,8 +74,7 @@ namespace Tomoe.Commands.Moderation
 						_ = Program.SendMessage(context, Program.Hierarchy);
 						return;
 					}
-
-					_ = await guildVictim.SendMessageAsync($"You've been banned by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: ```\n{banReason.Filter() ?? Program.MissingReason}\n```");
+					else if (!victim.IsBot) _ = await guildVictim.SendMessageAsync($"You've been banned by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: ```\n{banReason.Filter() ?? Program.MissingReason}\n```");
 				}
 				catch (NotFoundException) { }
 				catch (BadRequestException) { }

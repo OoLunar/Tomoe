@@ -20,7 +20,6 @@ namespace Tomoe.Commands.Moderation
 			{
 				DiscordMember guildVictim = await context.Guild.GetMemberAsync(droppedStrike.VictimId);
 				if (!guildVictim.IsBot) _ = await guildVictim.SendMessageAsync($"Strike #{droppedStrike.StrikeCount} has been dropped by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: ```\n{pardonReason.Filter() ?? Program.MissingReason}\n```\nContext: {droppedStrike.JumpLink}");
-
 			}
 			catch (NotFoundException)
 			{

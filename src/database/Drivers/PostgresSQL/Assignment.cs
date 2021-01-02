@@ -15,7 +15,7 @@ namespace Tomoe.Database.Drivers.PostgresSQL
 		private static readonly Logger Logger = new("Database.PostgresSQL.Assignment");
 		private readonly NpgsqlConnection Connection;
 		private readonly Dictionary<StatementType, NpgsqlCommand> PreparedStatements = new();
-		private int retryCount = 0;
+		private int retryCount;
 		private enum StatementType
 		{
 			Create,

@@ -43,8 +43,8 @@ namespace Tomoe.Database.Interfaces
 		ulong? MuteRole(ulong guildId);
 		void MuteRole(ulong guildId, ulong roleId);
 
-		ulong? NoMemeRole(ulong guildId);
-		void NoMemeRole(ulong guildId, ulong roleId);
+		ulong? AntiMemeRole(ulong guildId);
+		void AntiMemeRole(ulong guildId, ulong roleId);
 
 		ulong? NoVCRole(ulong guildId);
 		void NoVCRole(ulong guildId, ulong roleId);

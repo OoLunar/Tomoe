@@ -138,7 +138,7 @@ namespace Tomoe.Commands.Config
 		[Command("antimeme"), Description("Sets up or assigns the antimeme role."), RequireUserPermissions(Permissions.ManageGuild), RequireGuild, Aliases(new[] { "anti_meme", "nomeme", "no_meme", "memeban", "meme_ban" })]
 		public async Task AntiMeme(CommandContext context, DiscordRole antiMemeRole)
 		{
-			ulong? previousAntiMemeRoleId = Program.Database.Guild.NoMemeRole(context.Guild.Id);
+			ulong? previousAntiMemeRoleId = Program.Database.Guild.AntiMemeRole(context.Guild.Id);
 			if (previousAntiMemeRoleId.HasValue && previousAntiMemeRoleId.Value != antiMemeRole.Id)
 			{
 				DiscordRole previousAntiMemeRole = context.Guild.GetRole(previousAntiMemeRoleId.Value);
@@ -153,7 +153,7 @@ namespace Tomoe.Commands.Config
 					{
 						if (emoji == thumbsUp)
 						{
-							Program.Database.Guild.NoMemeRole(context.Guild.Id, antiMemeRole.Id);
+							Program.Database.Guild.AntiMemeRole(context.Guild.Id, antiMemeRole.Id);
 							NoMemeLogger.Trace($"Set {antiMemeRole.Name} ({antiMemeRole.Id}) as the antimeme role for {context.Guild.Name} ({context.Guild.Id})!");
 							await FixAntiMemeRolePermissions(context.Guild, antiMemeRole);
 							_ = Program.SendMessage(context, $"{antiMemeRole.Mention} is now set as the antimeme role.");
@@ -173,7 +173,7 @@ namespace Tomoe.Commands.Config
 					return;
 				}
 			}
-			Program.Database.Guild.NoMemeRole(context.Guild.Id, antiMemeRole.Id);
+			Program.Database.Guild.AntiMemeRole(context.Guild.Id, antiMemeRole.Id);
 			NoMemeLogger.Trace($"Set {antiMemeRole.Name} ({antiMemeRole.Id}) as the antimeme role for {context.Guild.Name} ({context.Guild.Id})!");
 			await FixAntiMemeRolePermissions(context.Guild, antiMemeRole);
 			_ = Program.SendMessage(context, $"{antiMemeRole.Mention} is now set as the antimeme role.");
@@ -182,7 +182,7 @@ namespace Tomoe.Commands.Config
 		[Command("antimeme"), RequireUserPermissions(Permissions.ManageGuild), RequireBotPermissions(Permissions.ManageRoles), RequireGuild]
 		public async Task AntiMeme(CommandContext context)
 		{
-			ulong? previousAntiMemeRoleId = Program.Database.Guild.NoMemeRole(context.Guild.Id);
+			ulong? previousAntiMemeRoleId = Program.Database.Guild.AntiMemeRole(context.Guild.Id);
 			if (previousAntiMemeRoleId.HasValue)
 			{
 				DiscordRole previousAntiMemeRole = context.Guild.GetRole(previousAntiMemeRoleId.Value);
@@ -223,7 +223,7 @@ namespace Tomoe.Commands.Config
 			DiscordMessage message = Program.SendMessage(context, "Creating antimeme role...");
 			DiscordRole muteRole = await context.Guild.CreateRoleAsync("Antimeme", Permissions.None, DiscordColor.Gray, false, false, "Allows users to be no memed.");
 			NoMemeLogger.Trace($"Created antimeme role \"{muteRole.Name}\" ({muteRole.Id}) for {context.Guild.Name} ({context.Guild.Id})!");
-			Program.Database.Guild.NoMemeRole(context.Guild.Id, muteRole.Id);
+			Program.Database.Guild.AntiMemeRole(context.Guild.Id, muteRole.Id);
 			_ = message.ModifyAsync($"{context.User.Mention}: Overriding channel permissions...", null, new List<IMention>() { new UserMention(context.User.Id) });
 			await FixAntiMemeRolePermissions(context.Guild, muteRole);
 			_ = await message.ModifyAsync($"{context.User.Mention}: Done! Antimeme role is now {muteRole.Mention}", null, new List<IMention>() { new UserMention(context.User.Id) });

@@ -5,6 +5,7 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
+using SQLitePCL;
 using Tomoe.Database.Interfaces;
 
 namespace Tomoe.Commands.Moderation
@@ -56,17 +57,10 @@ namespace Tomoe.Commands.Moderation
 			DiscordEmbedBuilder embedBuilder = new();
 			embedBuilder.Title = $"{victim.Username}'s Past History";
 			Strike[] pastStrikes = Program.Database.Strikes.GetVictim(context.Guild.Id, victim.Id);
-			if (pastStrikes == null)
-			{
-				embedBuilder.Description = "No strikes have been found!";
-			}
+			if (pastStrikes == null) _ = Program.SendMessage(context, "No previous strikes have been found!");
 			else
 			{
-				foreach (Strike strike in Program.Database.Strikes.GetVictim(context.Guild.Id, victim.Id))
-				{
-					embedBuilder.Description += $"Case #{strike.Id} [on {strike.CreatedAt.ToString("MMM' 'dd', 'yyyy' 'HH':'mm':'ss")}, Issued by {(await context.Client.GetUserAsync(strike.IssuerId)).Mention}]({strike.JumpLink}) {(strike.Dropped ? "(Dropped)" : null)}\n";
-				}
-
+				foreach (Strike strike in Program.Database.Strikes.GetVictim(context.Guild.Id, victim.Id)) embedBuilder.Description += $"Case #{strike.Id} [on {strike.CreatedAt.ToString("MMM' 'dd', 'yyyy' 'HH':'mm':'ss")}, Issued by {(await context.Client.GetUserAsync(strike.IssuerId)).Mention}]({strike.JumpLink}) {(strike.Dropped ? "(Dropped)" : null)}\n";
 				_ = Program.SendMessage(context, embedBuilder.Build());
 			}
 		}

@@ -9,7 +9,7 @@ namespace Tomoe.Commands.Moderation
 {
 	public class UnmemeBan : BaseCommandModule
 	{
-		[Command("unmemeban"), Description("Unmutes an individual."), Aliases(new[] { "unmeme_ban", "promeme", "pro_meme" })]
+		[Command("promeme"), Description("Unmutes an individual."), Aliases(new[] { "pro_meme", "unmemeban", "unmeme_ban", "unmemeban", "un_memeban", "unmeme_ban", "tempnomeme", "temp_no_meme", "temp_nomeme", "tempno_meme" })]
 		public async Task Individual(CommandContext context, DiscordUser victim, [RemainingText] string unmemeBanReason = Program.MissingReason)
 		{
 			if (victim == context.Client.CurrentUser)
@@ -18,7 +18,7 @@ namespace Tomoe.Commands.Moderation
 				return;
 			}
 
-			ulong? noMemeRoleId = Program.Database.Guild.NoMemeRole(context.Guild.Id);
+			ulong? noMemeRoleId = Program.Database.Guild.AntiMemeRole(context.Guild.Id);
 			if (!noMemeRoleId.HasValue)
 			{
 				_ = Program.SendMessage(context, Program.MissingRole);
@@ -44,10 +44,7 @@ namespace Tomoe.Commands.Moderation
 						_ = Program.SendMessage(context, Program.Hierarchy);
 						return;
 					}
-					else if (!guildVictim.IsBot)
-					{
-						_ = await guildVictim.SendMessageAsync($"You've been unmeme banned by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: ```\n{unmemeBanReason.Filter()}\n```");
-					}
+					else if (!guildVictim.IsBot) _ = await guildVictim.SendMessageAsync($"You've been unmeme banned by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: ```\n{unmemeBanReason.Filter()}\n```");
 				}
 				catch (UnauthorizedException)
 				{
@@ -59,7 +56,7 @@ namespace Tomoe.Commands.Moderation
 			{
 				sentDm = false;
 			}
-			Program.Database.User.IsNoMemed(context.Guild.Id, victim.Id, false);
+			Program.Database.User.IsAntiMemed(context.Guild.Id, victim.Id, false);
 			_ = Program.SendMessage(context, $"{victim.Mention} has been unmeme banned{(sentDm ? '.' : " (Failed to DM).")} Reason: ```\n{unmemeBanReason.Filter()}\n```", ExtensionMethods.FilteringAction.CodeBlocksIgnore, new List<IMention>() { new UserMention(victim.Id) });
 		}
 
@@ -67,26 +64,15 @@ namespace Tomoe.Commands.Moderation
 		{
 			Program.Database.User.IsMuted(context.Guild.Id, victim.Id, false);
 			ulong? muteRoleId = Program.Database.Guild.MuteRole(context.Guild.Id);
-			if (!muteRoleId.HasValue)
-			{
-				return;
-			}
-
+			if (!muteRoleId.HasValue) return;
 			DiscordRole muteRole = context.Guild.GetRole(muteRoleId.Value);
-			if (muteRole == null)
-			{
-				return;
-			}
-
+			if (muteRole == null) return;
 			try
 			{
 				DiscordMember guildVictim = await context.Guild.GetMemberAsync(victim.Id);
 				try
 				{
-					if (!guildVictim.IsBot)
-					{
-						_ = await guildVictim.SendMessageAsync($"You've been unmuted by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: ```\nTempmute complete!\n```");
-					}
+					if (!guildVictim.IsBot) _ = await guildVictim.SendMessageAsync($"You've been unmuted by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: ```\nTempmute complete!\n```");
 				}
 				catch (UnauthorizedException) { }
 				await guildVictim.RevokeRoleAsync(muteRole, "Tempmute complete!");

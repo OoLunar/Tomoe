@@ -15,6 +15,7 @@ namespace Tomoe.Database.Drivers.PostgresSQL
 		private static readonly Logger Logger = new("Database.PostgresSQL.Tags");
 		private readonly NpgsqlConnection Connection;
 		private readonly Dictionary<StatementType, NpgsqlCommand> PreparedStatements = new();
+		private int retryCount;
 		private enum StatementType
 		{
 			Get,
@@ -53,33 +54,45 @@ namespace Tomoe.Database.Drivers.PostgresSQL
 			foreach (NpgsqlParameter parameter in statement.Parameters) parameter.Value = sortedParameters[parameter.ParameterName].Value;
 			Logger.Trace($"Executing prepared statement \"{command}\" with parameters: {string.Join(", ", statement.Parameters.Select(param => param.Value).ToArray())}");
 
-			if (needsResult)
+			try
 			{
-				NpgsqlDataReader reader = statement.ExecuteReader();
-				Dictionary<int, List<dynamic>> values = new();
-				int indexCount = 0;
-				while (reader.Read())
+				if (needsResult)
 				{
-					List<dynamic> list = new();
-					for (int i = 0; i < reader.FieldCount; i++)
+					NpgsqlDataReader reader = statement.ExecuteReader();
+					Dictionary<int, List<dynamic>> values = new();
+					int indexCount = 0;
+					while (reader.Read())
 					{
-						if (reader[i] == DBNull.Value) list.Add(null);
-						else list.Add(reader[i]);
-						Logger.Trace($"Recieved values: {reader[i] ?? "null"} on iteration {i}");
-					}
+						List<dynamic> list = new();
+						for (int i = 0; i < reader.FieldCount; i++)
+						{
+							if (reader[i] == DBNull.Value) list.Add(null);
+							else list.Add(reader[i]);
+							Logger.Trace($"Recieved values: {reader[i] ?? "null"} on iteration {i}");
+						}
 
-					if (list.Count == 1 && list[0] == null) values.Add(indexCount, null);
-					else values.Add(indexCount, list);
-					indexCount++;
+						if (list.Count == 1 && list[0] == null) values.Add(indexCount, null);
+						else values.Add(indexCount, list);
+						indexCount++;
+					}
+					reader.DisposeAsync().GetAwaiter().GetResult();
+					retryCount = 0;
+					if (values.Count == 0 || (values.Count == 1 && values[0] == null)) values = null;
+					return values;
 				}
-				reader.DisposeAsync().GetAwaiter().GetResult();
-				if (values.Count == 0 || (values.Count == 1 && values[0] == null)) values = null;
-				return values;
+				else
+				{
+					_ = statement.ExecuteNonQuery();
+					retryCount = 0;
+					return null;
+				}
 			}
-			else
+			catch (SocketException error)
 			{
-				_ = statement.ExecuteNonQuery();
-				return null;
+				if (retryCount > DatabaseLoader.MaxRetryCount) Logger.Critical($"Failed to execute query \"{command}\" after {retryCount} times. Check your internet connection.");
+				else retryCount++;
+				Logger.Error($"Socket exception occured, retrying... Details: {error.Message}\n{error.StackTrace}");
+				return ExecuteQuery(command, parameters, needsResult);
 			}
 		}
 

@@ -12,7 +12,7 @@ namespace Tomoe.Commands.Moderation
 {
 	public class TempmemeBan : BaseCommandModule
 	{
-		[Command("tempmemeban"), Description("Mutes a person temporarily."), RequireBotPermissions(Permissions.ManageRoles), RequireUserPermissions(Permissions.ManageMessages), Aliases(new[] { "temp_meme_ban", "temp_memeban", "tempmeme_ban", "temp_antimeme", "temp_anti_meme", "temp_no_meme", "tempnomeme", "temp_nomeme" })]
+		[Command("tempantimeme"), Description("Temporarily antimemes the victim."), RequireBotPermissions(Permissions.ManageRoles), RequireUserPermissions(Permissions.ManageMessages), Aliases(new[] { "temp_antimeme", "tempanti_meme", "temp_anti_meme", "tempmemeban", "temp_memeban", "temp_meme_ban", "tempmeme_ban", })]
 		public async Task Temp(CommandContext context, DiscordUser victim, ExpandedTimeSpan muteTime, [RemainingText] string memeBanReason = Program.MissingReason)
 		{
 			if (victim == context.Client.CurrentUser)
@@ -21,7 +21,7 @@ namespace Tomoe.Commands.Moderation
 				return;
 			}
 
-			ulong? noMemeRoleId = Program.Database.Guild.NoMemeRole(context.Guild.Id);
+			ulong? noMemeRoleId = Program.Database.Guild.AntiMemeRole(context.Guild.Id);
 			if (!noMemeRoleId.HasValue)
 			{
 				_ = Program.SendMessage(context, Program.MissingRole);
@@ -47,10 +47,7 @@ namespace Tomoe.Commands.Moderation
 						_ = Program.SendMessage(context, Program.Hierarchy);
 						return;
 					}
-					else if (!guildVictim.IsBot)
-					{
-						_ = await guildVictim.SendMessageAsync($"You've been temporarily meme banned by **{context.User.Mention}** from **{context.Guild.Name}** for {muteTime.TimeSpan}. This means you cannot link embeds, send files or react. All you can do is send and read messages. Reason: ```\n{memeBanReason.Filter()}\n```");
-					}
+					else if (!guildVictim.IsBot) _ = await guildVictim.SendMessageAsync($"You've been temporarily meme banned by **{context.User.Mention}** from **{context.Guild.Name}** for {muteTime.TimeSpan}. This means you cannot link embeds, send files or react. All you can do is send and read messages. Reason: ```\n{memeBanReason.Filter()}\n```");
 				}
 				catch (UnauthorizedException)
 				{
@@ -62,8 +59,7 @@ namespace Tomoe.Commands.Moderation
 			{
 				sentDm = false;
 			}
-
-			Program.Database.User.IsMuted(context.Guild.Id, victim.Id, true);
+			Program.Database.User.IsAntiMemed(context.Guild.Id, victim.Id, true);
 			Program.Database.Assignments.Create(AssignmentType.TempMute, context.Guild.Id, context.Channel.Id, context.Message.Id, victim.Id, DateTime.Now + muteTime.TimeSpan, DateTime.Now, $"{victim.Id} tempmuted in {context.Guild.Id}");
 			_ = Program.SendMessage(context, $"{victim.Mention} has been muted{(sentDm ? '.' : " (Failed to DM).")} Reason: ```\n{memeBanReason.Filter()}\n```", ExtensionMethods.FilteringAction.CodeBlocksIgnore, new List<IMention>() { new UserMention(victim.Id) });
 		}
