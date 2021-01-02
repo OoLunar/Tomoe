@@ -8,8 +8,8 @@ namespace Tomoe.Commands.Public
 {
 	public class Flip : BaseCommandModule
 	{
-		private static readonly Logger Logger = new Logger("Commands.Public.Flip");
-		private static readonly Random Random = new Random();
+		private static readonly Logger Logger = new("Commands.Public.Flip");
+		private static readonly Random Random = new();
 
 		[Command("flip"), Description("A simple heads or tails command."), Aliases(new[] { "choose", "pick" })]
 		public async Task Choose(CommandContext context)

@@ -7,7 +7,7 @@ namespace Tomoe.Commands.Public
 {
 	public class Support : BaseCommandModule
 	{
-		private static readonly Logger Logger = new Logger("Commands.Public.Support");
+		private static readonly Logger Logger = new("Commands.Public.Support");
 
 		[Command("support"), Description("Sends the support Discord invite."), Aliases(new[] { "discord", "guild" })]
 		public async Task Get(CommandContext context)

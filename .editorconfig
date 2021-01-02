@@ -13,3 +13,4 @@ insert_final_newline = true
 dotnet_code_quality.ca1051.exclude_structs = true:silent
 csharp_style_expression_bodied_methods = when_on_single_line:silent
 csharp_prefer_braces = false
+csharp_style_expression_bodied_constructors = when_on_single_line:silent

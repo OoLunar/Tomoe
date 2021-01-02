@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
@@ -10,7 +9,7 @@ namespace Tomoe.Commands.Public
 {
 	public class ProfilePicture : BaseCommandModule
 	{
-		private static readonly Logger Logger = new Logger("Commands.Public.ProfilePicture");
+		private static readonly Logger Logger = new("Commands.Public.ProfilePicture");
 		[Command("profilepicture"), Description("Gets the profile picture of the requested user. Defaults to the requestor when no user is specified."), Aliases(new[] { "profile_picture", "pfp", "avatar" })]
 		public async Task Mention(CommandContext context) => Mention(context, context.User, 1024, ImageFormat.Png);
 

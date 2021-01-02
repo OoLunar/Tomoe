@@ -9,7 +9,7 @@ namespace Tomoe.Commands.Public
 {
 	public class BotInfo : BaseCommandModule
 	{
-		private static readonly Logger Logger = new Logger("Commands.Public.BotInfo");
+		private static readonly Logger Logger = new("Commands.Public.BotInfo");
 
 		[Command("botinfo"), Description("Gets general info about the bot."), Aliases("bot_info")]
 		public async Task Get(CommandContext context)

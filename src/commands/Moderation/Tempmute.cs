@@ -47,7 +47,7 @@ namespace Tomoe.Commands.Moderation
 						_ = Program.SendMessage(context, Program.Hierarchy);
 						return;
 					}
-					else if (!guildVictim.IsBot) _ = await guildVictim.SendMessageAsync($"You've been tempmuted by **{context.User.Mention}** from **{context.Guild.Name}** for {muteTime.TimeSpan.ToString()}. Reason: ```\n{muteReason.Filter()}\n```");
+					else if (!guildVictim.IsBot) _ = await guildVictim.SendMessageAsync($"You've been tempmuted by **{context.User.Mention}** from **{context.Guild.Name}** for {muteTime.TimeSpan}. Reason: ```\n{muteReason.Filter()}\n```");
 				}
 				catch (UnauthorizedException)
 				{

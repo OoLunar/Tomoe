@@ -9,7 +9,7 @@ namespace Tomoe.Commands.Moderation
 {
 	public class UnmemeBan : BaseCommandModule
 	{
-		[Command("promeme"), Description("Unmutes an individual."), Aliases(new[] { "pro_meme", "unmemeban", "unmeme_ban", "unmemeban", "un_memeban", "unmeme_ban", "tempnomeme", "temp_no_meme", "temp_nomeme", "tempno_meme" })]
+		[Command("promeme"), Description("Unmutes an individual."), Aliases(new[] { "pro_meme", "unmemeban", "unmeme_ban", "un_memeban", "un_meme_ban", "tempnomeme", "temp_no_meme", "temp_nomeme", "tempno_meme" })]
 		public async Task Individual(CommandContext context, DiscordUser victim, [RemainingText] string unmemeBanReason = Program.MissingReason)
 		{
 			if (victim == context.Client.CurrentUser)

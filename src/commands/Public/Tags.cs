@@ -16,7 +16,7 @@ namespace Tomoe.Commands.Public
 	[Group("tag"), Description("Gets a tag's content."), RequireGuild]
 	public class Tags : BaseCommandModule
 	{
-		private static readonly Logger Logger = new Logger("Commands.Public.Tags");
+		private static readonly Logger Logger = new("Commands.Public.Tags");
 
 		[GroupCommand]
 		public async Task Get(CommandContext context, [RemainingText] string tagTitle)

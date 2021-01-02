@@ -8,7 +8,7 @@ namespace Tomoe.Commands.Public
 {
 	public class Repeat : BaseCommandModule
 	{
-		private static readonly Logger Logger = new Logger("Commands.Public.Repeat");
+		private static readonly Logger Logger = new("Commands.Public.Repeat");
 
 		[Command("repeat"), Description("Repeats the command multiple times with the arguments provided. Waits 5 seconds before repeating the command.")]
 		public async Task Execute(CommandContext context, int repeatCount, string command, [RemainingText] string arguments)

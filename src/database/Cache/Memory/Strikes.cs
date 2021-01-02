@@ -17,13 +17,13 @@ namespace Tomoe.Database.Cache.Memory
 			Edit
 		}
 
-		private static SqliteConnection connection = new SqliteConnection(":memory:"); // Creates an in-memory database.
-		private static Dictionary<StatementType, SqliteCommand> preparedStatements = new();
+		private static readonly SqliteConnection connection = new(":memory:"); // Creates an in-memory database.
+		private static readonly Dictionary<StatementType, SqliteCommand> preparedStatements = new();
 
 		public Strikes()
 		{
 			connection.Open();
-			SqliteCommand retrieve = new SqliteCommand("", connection);
+			SqliteCommand retrieve = new("", connection);
 		}
 
 	}

@@ -7,7 +7,7 @@ namespace Tomoe.Commands.Public
 {
 	public class Invite : BaseCommandModule
 	{
-		private static readonly Logger Logger = new Logger("Commands.Public.Invite");
+		private static readonly Logger Logger = new("Commands.Public.Invite");
 
 		[Command("invite"), Description("Sends the link to add Tomoe to a guild without an embed."), Aliases("link")]
 		public async Task Mention(CommandContext context)

@@ -56,7 +56,7 @@ namespace Tomoe
 				if (string.IsNullOrWhiteSpace(groupCapture)) continue;
 
 				char gpt = groupCapture[^1];
-				_ = int.TryParse(groupCapture.Substring(0, groupCapture.Length - 1), NumberStyles.Integer, CultureInfo.InvariantCulture, out int val);
+				_ = int.TryParse(groupCapture[..groupCapture.Length], NumberStyles.Integer, CultureInfo.InvariantCulture, out int val);
 				switch (gpt)
 				{
 					case 'y':

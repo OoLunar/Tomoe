@@ -373,29 +373,28 @@ namespace Tomoe.Utils
 
 	public class LoggerProvider : ILoggerFactory
 	{
-		private readonly ConcurrentDictionary<string, Logger> _loggers = new ConcurrentDictionary<string, Logger>();
-		public ILogger CreateLogger(string branchName)
+		private readonly ConcurrentDictionary<string, Logger> _loggers = new();
+		public ILogger CreateLogger(string categoryName)
 		{
-			if (branchName.ToLower().StartsWith("dsharpplus")) return _loggers.GetOrAdd(branchName, name => new Logger(name, Config.Logging.Discord));
-			else return _loggers.GetOrAdd(branchName, name => new Logger(name));
+			if (categoryName.ToLower().StartsWith("dsharpplus")) return _loggers.GetOrAdd(categoryName, name => new Logger(name, Config.Logging.Discord));
+			else return _loggers.GetOrAdd(categoryName, name => new Logger(name));
 		}
 
 		public void Dispose() => GC.SuppressFinalize(this);
 		public void AddProvider(ILoggerProvider provider) { }
 	}
 
-	class NLogLoggingProvider : INpgsqlLoggingProvider
+	public class NLogLoggingProvider : INpgsqlLoggingProvider
 	{
 		public NpgsqlLogger CreateLogger(string name) => new NpgsqlToLogger(name);
 	}
 
-	class NpgsqlToLogger : NpgsqlLogger
+	public class NpgsqlToLogger : NpgsqlLogger
 	{
 		private static Logger logger;
 		internal NpgsqlToLogger(string name) => logger = new Logger(name, Config.Logging.Npgsql);
 		public override bool IsEnabled(NpgsqlLogLevel level) => logger.IsEnabled(ToLogLevel(level));
 		public override void Log(NpgsqlLogLevel level, int connectorId, string msg, Exception? exception) => logger.Log(ToLogLevel(level), $"{msg}{(exception == null ? null : '\n' + exception.ToString())}");
-
 
 		static LogLevel ToLogLevel(NpgsqlLogLevel level)
 		{

@@ -11,8 +11,8 @@ namespace Tomoe.Commands.Listeners
 {
 	public class ReactionAdded
 	{
-		private static readonly Logger Logger = new Logger("Listeners/ReactionAdded");
-		public static readonly List<Queue> QueueList = new List<Queue>();
+		private static readonly Logger Logger = new("Listeners/ReactionAdded");
+		public static readonly List<Queue> QueueList = new();
 		public delegate Task ReactionHandler(DiscordEmoji emoji);
 
 		public struct Queue

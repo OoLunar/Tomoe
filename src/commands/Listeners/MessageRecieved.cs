@@ -12,7 +12,7 @@ namespace Tomoe.Commands.Listeners
 		private static readonly Logger Logger = new("Commands.Listeners.GuildAvailable");
 		private static readonly Regex Regex = new(@"(discord((app\.com|.com)\/invite|\.gg)\/[A-z]+)", RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.IgnoreCase);
 
-		public static async Task Handler(DiscordClient client, MessageCreateEventArgs eventArgs)
+		public static async Task Handler(DiscordClient _client, MessageCreateEventArgs eventArgs)
 		{
 			Logger.Trace($"Recieved message in {eventArgs.Channel.Id} on {eventArgs.Guild.Id}");
 			if (eventArgs.Channel.IsPrivate || Program.Database.Guild.IsIgnoredChannel(eventArgs.Guild.Id, eventArgs.Channel.Id) || (await eventArgs.Guild.GetMemberAsync(eventArgs.Author.Id)).Roles.Any(role => Program.Database.Guild.IsAdminRole(eventArgs.Guild.Id, role.Id))) return;

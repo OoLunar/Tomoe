@@ -7,7 +7,7 @@ namespace Tomoe.Commands.Public
 {
 	public class Ping : BaseCommandModule
 	{
-		private static Logger Logger = new Logger("Commands.Public.Ping");
+		private static readonly Logger Logger = new("Commands.Public.Ping");
 
 		[Command("ping"), Description("Checks the latency between the bot and the Discord API Websocket. Best used to see if the bot is lagging.")]
 		public async Task Pong(CommandContext context)

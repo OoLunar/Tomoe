@@ -7,7 +7,7 @@ namespace Tomoe.Commands.Public
 {
 	public class GuildIcon : BaseCommandModule
 	{
-		private static readonly Logger Logger = new Logger("Commands.Public.GuildIcon");
+		private static readonly Logger Logger = new("Commands.Public.GuildIcon");
 
 		[Command("guildicon"), Description("Gets the guild's icon."), Aliases(new[] { "guild_icon", "guildpfp", "guild_pfp" })]
 		public async Task Get(CommandContext context)

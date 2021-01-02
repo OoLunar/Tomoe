@@ -11,7 +11,7 @@ namespace Tomoe.Commands.Public
 {
 	public class ServerInfo : BaseCommandModule
 	{
-		private static readonly Logger Logger = new Logger("Commands.Public.ServerInfo");
+		private static readonly Logger Logger = new("Commands.Public.ServerInfo");
 
 		[Command("serverinfo"), Description("Gets general info about the server."), Aliases("server_info")]
 		public async Task Get(CommandContext context)

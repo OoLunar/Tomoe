@@ -18,7 +18,7 @@ namespace Tomoe.Commands.Public
 	[Group("remind"), Aliases("reminders"), Description("Creates a reminder to go off at the specified time.")]
 	public class Reminders : BaseCommandModule
 	{
-		private static readonly Logger Logger = new Logger("Commands.Public.Tasks");
+		private static readonly Logger Logger = new("Commands.Public.Tasks");
 
 		[GroupCommand]
 		public async Task Create(CommandContext context, TimeSpan setOff, [RemainingText] string content)
