@@ -11,19 +11,17 @@ namespace Tomoe
 	public class ExpandedTimeSpan
 	{
 		public TimeSpan TimeSpan;
-
 		public override string ToString() => TimeSpan.ToString();
-
 	}
 
 	public class ExpandedTimeSpanConverter : IArgumentConverter<ExpandedTimeSpan>
 	{
 
-		private static readonly Regex TimeSpanRegex = new Regex(@"^(?<years>\d{1,2}y\s*)?(?<months>\d{1,2}M\s*)?(?<weeks>\d{1,2}w\s*)?(?<days>\d+d\s*)?(?<hours>\d{1,2}h\s*)?(?<minutes>\d{1,2}m\s*)?(?<seconds>\d{1,2}s\s*)?$", RegexOptions.ECMAScript | RegexOptions.Compiled);
+		private static readonly Regex TimeSpanRegex = new(@"^(?<years>\d{1,2}y\s*)?(?<months>\d{1,2}M\s*)?(?<weeks>\d{1,2}w\s*)?(?<days>\d+d\s*)?(?<hours>\d{1,2}h\s*)?(?<minutes>\d{1,2}m\s*)?(?<seconds>\d{1,2}s\s*)?$", RegexOptions.ECMAScript | RegexOptions.Compiled);
 
 		public Task<Optional<ExpandedTimeSpan>> ConvertAsync(string value, CommandContext ctx)
 		{
-			ExpandedTimeSpan expandedTimeSpan = new ExpandedTimeSpan();
+			ExpandedTimeSpan expandedTimeSpan = new();
 			if (value == "0")
 			{
 				expandedTimeSpan.TimeSpan = TimeSpan.Zero;
@@ -41,9 +39,9 @@ namespace Tomoe
 				return Task.FromResult(Optional.FromValue(expandedTimeSpan));
 			}
 
-			string[] gps = new string[] { "years", "months", "weeks", "days", "hours", "minutes", "seconds" };
-			Match mtc = TimeSpanRegex.Match(value);
-			if (!mtc.Success)
+			string[] groups = new string[] { "years", "months", "weeks", "days", "hours", "minutes", "seconds" };
+			Match match = TimeSpanRegex.Match(value);
+			if (!match.Success)
 			{
 				return Task.FromResult(Optional.FromNoValue<ExpandedTimeSpan>());
 			}
@@ -52,16 +50,13 @@ namespace Tomoe
 			int h = 0;
 			int m = 0;
 			int s = 0;
-			foreach (var gp in gps)
+			foreach (string group in groups)
 			{
-				string gpc = mtc.Groups[gp].Value;
-				if (string.IsNullOrWhiteSpace(gpc))
-				{
-					continue;
-				}
+				string groupCapture = match.Groups[group].Value;
+				if (string.IsNullOrWhiteSpace(groupCapture)) continue;
 
-				char gpt = gpc[^1];
-				int.TryParse(gpc.Substring(0, gpc.Length - 1), NumberStyles.Integer, CultureInfo.InvariantCulture, out int val);
+				char gpt = groupCapture[^1];
+				_ = int.TryParse(groupCapture.Substring(0, groupCapture.Length - 1), NumberStyles.Integer, CultureInfo.InvariantCulture, out int val);
 				switch (gpt)
 				{
 					case 'y':

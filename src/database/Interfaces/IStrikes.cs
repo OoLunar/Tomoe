@@ -21,8 +21,8 @@ namespace Tomoe.Database.Interfaces
 		Strike? Retrieve(int strikeId);
 		Strike[] GetVictim(ulong guildId, ulong victimId);
 		Strike[] GetIssued(ulong guildId, ulong issuerId);
-		Strike Add(ulong guildId, ulong victimId, ulong issuerId, string reason, string jumpLink, bool victimMessaged);
-		Strike Drop(int strikeId, string reason);
+		Strike? Add(ulong guildId, ulong victimId, ulong issuerId, string reason, string jumpLink, bool victimMessaged);
+		Strike? Drop(int strikeId, string reason);
 		void Edit(int strikeId, string reason);
 	}
 }

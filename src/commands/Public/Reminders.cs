@@ -52,8 +52,8 @@ namespace Tomoe.Commands.Public
 				Logger.Trace($"Found a total of {tasks.Length} tasks...");
 				foreach (Assignment task in tasks)
 				{
-					Logger.Trace($"Id #{task.TaskId}, Set off at {task.SetOff}");
-					reminders.Add($"Id #{task.TaskId}, Set off at {task.SetOff.ToString("MMM dd', 'HHH':'mm':'ss")}: {task.Content}");
+					Logger.Trace($"Id #{task.AssignmentId}, Set off at {task.SetOff}");
+					reminders.Add($"Id #{task.AssignmentId}, Set off at {task.SetOff.ToString("MMM dd', 'HHH':'mm':'ss")}: {task.Content}");
 				}
 			}
 
@@ -77,7 +77,7 @@ namespace Tomoe.Commands.Public
 		{
 			Logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");
 			Logger.Trace($"Selecting reminder #{taskId}...");
-			Assignment? task = Program.Database.Assignments.Select(context.User.Id, AssignmentType.Reminder, taskId);
+			Assignment? task = Program.Database.Assignments.Retrieve(context.User.Id, AssignmentType.Reminder, taskId);
 			if (!task.HasValue)
 			{
 				Logger.Trace($"Reminder #{taskId} doesn't exist!");
@@ -134,36 +134,36 @@ namespace Tomoe.Commands.Public
 				{
 					if (task.SetOff.CompareTo(DateTime.Now) < 0)
 					{
-						Logger.Trace($"Reminder #{task.TaskId} is due to go off!");
+						Logger.Trace($"Reminder #{task.AssignmentId} is due to go off!");
 						DiscordClient client = Program.Client.ShardClients[0];
 						CommandsNextExtension commandsNext = client.GetCommandsNext();
-						Logger.Trace($"Getting #{task.TaskId}'s guild...");
+						Logger.Trace($"Getting #{task.AssignmentId}'s guild...");
 						DiscordGuild guild = await client.GetGuildAsync(task.GuildId);
-						Logger.Trace($"Getting #{task.TaskId}'s channel...");
+						Logger.Trace($"Getting #{task.AssignmentId}'s channel...");
 						DiscordChannel channel = guild.GetChannel(task.ChannelId);
 						CommandContext context;
-						switch (task.TaskType)
+						switch (task.AssignmentType)
 						{
 							case AssignmentType.Reminder:
-								Logger.Trace($"Creating reminder context for #{task.TaskId}...");
+								Logger.Trace($"Creating reminder context for #{task.AssignmentId}...");
 								context = commandsNext.CreateContext(await channel.GetMessageAsync(task.MessageId), Utils.Config.Prefix, commandsNext.RegisteredCommands["remind"], null);
 								_ = Program.SendMessage(context, $"Set at {task.SetAt.ToString("MMM dd', 'HHH':'mm")}: {task.Content}", ExtensionMethods.FilteringAction.CodeBlocksIgnore);
 								Logger.Trace("Message sent!");
-								Program.Database.Assignments.Remove(task.TaskId);
+								Program.Database.Assignments.Remove(task.AssignmentId);
 								Logger.Trace("Reminder removed!");
 								break;
 							case AssignmentType.TempBan:
-								Logger.Trace($"Creating tempban context for #{task.TaskId}...");
+								Logger.Trace($"Creating tempban context for #{task.AssignmentId}...");
 								context = commandsNext.CreateContext(await channel.GetMessageAsync(task.MessageId), Utils.Config.Prefix, commandsNext.RegisteredCommands["tempban"], null);
 								await Moderation.Unban.ByAssignment(context, await context.Client.GetUserAsync(task.UserId));
-								Program.Database.Assignments.Remove(task.TaskId);
+								Program.Database.Assignments.Remove(task.AssignmentId);
 								Logger.Trace("Unban removed!");
 								break;
 							case AssignmentType.TempMute:
-								Logger.Trace($"Creating reminder context for #{task.TaskId}...");
+								Logger.Trace($"Creating reminder context for #{task.AssignmentId}...");
 								context = commandsNext.CreateContext(await channel.GetMessageAsync(task.MessageId), Utils.Config.Prefix, commandsNext.RegisteredCommands["tempmute"], null);
 								await Moderation.Unmute.ByAssignment(context, await context.Client.GetUserAsync(task.UserId));
-								Program.Database.Assignments.Remove(task.TaskId);
+								Program.Database.Assignments.Remove(task.AssignmentId);
 								Logger.Trace("Unmute removed!");
 								break;
 						}

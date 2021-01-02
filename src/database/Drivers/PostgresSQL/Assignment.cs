@@ -12,15 +12,16 @@ namespace Tomoe.Database.Drivers.PostgresSQL
 {
 	public class PostgresAssignments : IAssignment
 	{
-		private static readonly Logger Logger = new Logger("Database.PostgresSQL.Assignment");
+		private static readonly Logger Logger = new("Database.PostgresSQL.Assignment");
 		private readonly NpgsqlConnection Connection;
-		private readonly Dictionary<StatementType, NpgsqlCommand> PreparedStatements = new Dictionary<StatementType, NpgsqlCommand>();
+		private readonly Dictionary<StatementType, NpgsqlCommand> PreparedStatements = new();
+		private int retryCount = 0;
 		private enum StatementType
 		{
 			Create,
 			Remove,
-			SelectTask,
-			SelectTaskById,
+			SelectAssignment,
+			SelectAssignmentById,
 			SelectAllReminders,
 			SelectAllAssignments
 		}
@@ -43,33 +44,45 @@ namespace Tomoe.Database.Drivers.PostgresSQL
 			foreach (NpgsqlParameter parameter in statement.Parameters) parameter.Value = sortedParameters[parameter.ParameterName].Value;
 			Logger.Trace($"Executing prepared statement \"{command}\" with parameters: {string.Join(", ", statement.Parameters.Select(param => param.Value).ToArray())}");
 
-			if (needsResult)
+			try
 			{
-				NpgsqlDataReader reader = statement.ExecuteReader();
-				Dictionary<int, List<dynamic>> values = new();
-				int indexCount = 0;
-				while (reader.Read())
+				if (needsResult)
 				{
-					List<dynamic> list = new();
-					for (int i = 0; i < reader.FieldCount; i++)
+					NpgsqlDataReader reader = statement.ExecuteReader();
+					Dictionary<int, List<dynamic>> values = new();
+					int indexCount = 0;
+					while (reader.Read())
 					{
-						if (reader[i] == DBNull.Value) list.Add(null);
-						else list.Add(reader[i]);
-						Logger.Trace($"Recieved values: {reader[i] ?? "null"} on iteration {i}");
-					}
+						List<dynamic> list = new();
+						for (int i = 0; i < reader.FieldCount; i++)
+						{
+							if (reader[i] == DBNull.Value) list.Add(null);
+							else list.Add(reader[i]);
+							Logger.Trace($"Recieved values: {reader[i] ?? "null"} on iteration {i}");
+						}
 
-					if (list.Count == 1 && list[0] == null) values.Add(indexCount, null);
-					else values.Add(indexCount, list);
-					indexCount++;
+						if (list.Count == 1 && list[0] == null) values.Add(indexCount, null);
+						else values.Add(indexCount, list);
+						indexCount++;
+					}
+					reader.DisposeAsync().GetAwaiter().GetResult();
+					retryCount = 0;
+					if (values.Count == 0 || (values.Count == 1 && values[0] == null)) values = null;
+					return values;
 				}
-				reader.DisposeAsync().ConfigureAwait(false).GetAwaiter().GetResult();
-				if (values.Count == 0 || (values.Count == 1 && values[0] == null)) values = null;
-				return values;
+				else
+				{
+					_ = statement.ExecuteNonQuery();
+					retryCount = 0;
+					return null;
+				}
 			}
-			else
+			catch (SocketException error)
 			{
-				_ = statement.ExecuteNonQuery();
-				return null;
+				if (retryCount > DatabaseLoader.MaxRetryCount) Logger.Critical($"Failed to execute query \"{command}\" after {retryCount} times. Check your internet connection.");
+				else retryCount++;
+				Logger.Error($"Socket exception occured, retrying... Details: {error.Message}\n{error.StackTrace}");
+				return ExecuteQuery(command, parameters, needsResult);
 			}
 		}
 
@@ -80,13 +93,14 @@ namespace Tomoe.Database.Drivers.PostgresSQL
 		public PostgresAssignments(string host, int port, string username, string password, string databaseName, SslMode sslMode)
 		{
 			Connection = new NpgsqlConnection($"Host={host};Port={port};Username={username};Password={password};Database={databaseName};SSL Mode={sslMode}");
-			NpgsqlConnection selectRoutineConnection = new NpgsqlConnection($"Host={host};Port={port};Username={username};Password={password};Database={databaseName};SSL Mode={sslMode}");
+			NpgsqlConnection selectRoutineConnection = new($"Host={host};Port={port};Username={username};Password={password};Database={databaseName};SSL Mode={sslMode}");
 			Logger.Info("Opening connection to database...");
 			try
 			{
 				Connection.Open();
 				selectRoutineConnection.Open();
-				NpgsqlCommand createTagsTable = new NpgsqlCommand(File.ReadAllText(Path.Join(FileSystem.ProjectRoot, "res/sql/drivers/postgresql/assignments_table.sql")), Connection);
+				Logger.Debug("Creating assignments table if it doesn't exist...");
+				NpgsqlCommand createTagsTable = new(File.ReadAllText(Path.Join(FileSystem.ProjectRoot, "res/sql/drivers/postgresql/assignments_table.sql")), Connection);
 				_ = createTagsTable.ExecuteNonQuery();
 				createTagsTable.Dispose();
 			}
@@ -96,64 +110,61 @@ namespace Tomoe.Database.Drivers.PostgresSQL
 			}
 			Logger.Info("Preparing SQL commands...");
 			Logger.Debug($"Preparing {StatementType.Create}...");
-			NpgsqlCommand createTask = new NpgsqlCommand("INSERT INTO assignments(task_type, guild_id, channel_id, message_id, user_id, set_off, set_at, content) VALUES(@taskType, @guildId, @channelId, @messageId, @userId, @setOff, @setAt, @content)", Connection);
-			_ = createTask.Parameters.Add(new NpgsqlParameter("taskType", NpgsqlDbType.Smallint));
-			_ = createTask.Parameters.Add(new NpgsqlParameter("guildId", NpgsqlDbType.Bigint));
-			_ = createTask.Parameters.Add(new NpgsqlParameter("channelId", NpgsqlDbType.Bigint));
-			_ = createTask.Parameters.Add(new NpgsqlParameter("messageId", NpgsqlDbType.Bigint));
-			_ = createTask.Parameters.Add(new NpgsqlParameter("userId", NpgsqlDbType.Bigint));
-			_ = createTask.Parameters.Add(new NpgsqlParameter("setOff", NpgsqlDbType.Timestamp));
-			_ = createTask.Parameters.Add(new NpgsqlParameter("setAt", NpgsqlDbType.Timestamp));
-			_ = createTask.Parameters.Add(new NpgsqlParameter("content", NpgsqlDbType.Varchar));
-			createTask.Prepare();
-			PreparedStatements.Add(StatementType.Create, createTask);
+			NpgsqlCommand createAssignment = new("INSERT INTO assignments(task_type, guild_id, channel_id, message_id, user_id, set_off, set_at, content) VALUES(@taskType, @guildId, @channelId, @messageId, @userId, @setOff, @setAt, @content)", Connection);
+			_ = createAssignment.Parameters.Add(new("taskType", NpgsqlDbType.Smallint));
+			_ = createAssignment.Parameters.Add(new("guildId", NpgsqlDbType.Bigint));
+			_ = createAssignment.Parameters.Add(new("channelId", NpgsqlDbType.Bigint));
+			_ = createAssignment.Parameters.Add(new("messageId", NpgsqlDbType.Bigint));
+			_ = createAssignment.Parameters.Add(new("userId", NpgsqlDbType.Bigint));
+			_ = createAssignment.Parameters.Add(new("setOff", NpgsqlDbType.Timestamp));
+			_ = createAssignment.Parameters.Add(new("setAt", NpgsqlDbType.Timestamp));
+			_ = createAssignment.Parameters.Add(new("content", NpgsqlDbType.Varchar));
+			createAssignment.Prepare();
+			PreparedStatements.Add(StatementType.Create, createAssignment);
 
 			Logger.Debug($"Preparing {StatementType.Remove}...");
-			NpgsqlCommand removeTask = new NpgsqlCommand("DELETE FROM assignments WHERE id=@taskId", Connection);
-			_ = removeTask.Parameters.Add(new NpgsqlParameter("taskId", NpgsqlDbType.Integer));
-			removeTask.Prepare();
-			PreparedStatements.Add(StatementType.Remove, removeTask);
+			NpgsqlCommand removeAssignment = new("DELETE FROM assignments WHERE id=@taskId", Connection);
+			_ = removeAssignment.Parameters.Add(new("taskId", NpgsqlDbType.Integer));
+			removeAssignment.Prepare();
+			PreparedStatements.Add(StatementType.Remove, removeAssignment);
 
-			Logger.Debug($"Preparing {StatementType.SelectTask}...");
-			NpgsqlCommand selectTask = new NpgsqlCommand("SELECT task_type, guild_id, channel_id, message_id, user_id, set_off, set_at, content, id FROM assignments WHERE user_id=@userId AND task_type=@taskType", Connection);
-			_ = selectTask.Parameters.Add(new NpgsqlParameter("userId", NpgsqlDbType.Bigint));
-			_ = selectTask.Parameters.Add(new NpgsqlParameter("taskType", NpgsqlDbType.Smallint));
-			selectTask.Prepare();
-			PreparedStatements.Add(StatementType.SelectTask, selectTask);
+			Logger.Debug($"Preparing {StatementType.SelectAssignment}...");
+			NpgsqlCommand selectAssignment = new("SELECT task_type, guild_id, channel_id, message_id, user_id, set_off, set_at, content, id FROM assignments WHERE user_id=@userId AND task_type=@taskType", Connection);
+			_ = selectAssignment.Parameters.Add(new("userId", NpgsqlDbType.Bigint));
+			_ = selectAssignment.Parameters.Add(new("taskType", NpgsqlDbType.Smallint));
+			selectAssignment.Prepare();
+			PreparedStatements.Add(StatementType.SelectAssignment, selectAssignment);
 
-			Logger.Debug($"Preparing {StatementType.SelectTaskById}...");
-			NpgsqlCommand selectTaskById = new NpgsqlCommand("SELECT task_type, guild_id, channel_id, message_id, user_id, set_off, set_at, content, id FROM assignments WHERE user_id=@userId AND task_type=@taskType AND id=@taskId", Connection);
-			_ = selectTaskById.Parameters.Add(new NpgsqlParameter("userId", NpgsqlDbType.Bigint));
-			_ = selectTaskById.Parameters.Add(new NpgsqlParameter("taskType", NpgsqlDbType.Smallint));
-			_ = selectTaskById.Parameters.Add(new NpgsqlParameter("taskId", NpgsqlDbType.Integer));
-			selectTaskById.Prepare();
-			PreparedStatements.Add(StatementType.SelectTaskById, selectTaskById);
+			Logger.Debug($"Preparing {StatementType.SelectAssignmentById}...");
+			NpgsqlCommand selectAssignmentById = new("SELECT task_type, guild_id, channel_id, message_id, user_id, set_off, set_at, content, id FROM assignments WHERE user_id=@userId AND task_type=@taskType AND id=@taskId", Connection);
+			_ = selectAssignmentById.Parameters.Add(new("userId", NpgsqlDbType.Bigint));
+			_ = selectAssignmentById.Parameters.Add(new("taskType", NpgsqlDbType.Smallint));
+			_ = selectAssignmentById.Parameters.Add(new("taskId", NpgsqlDbType.Integer));
+			selectAssignmentById.Prepare();
+			PreparedStatements.Add(StatementType.SelectAssignmentById, selectAssignmentById);
 
 			Logger.Debug($"Preparing {StatementType.SelectAllAssignments}...");
-			NpgsqlCommand selectAllAssignments = new NpgsqlCommand("SELECT * FROM assignments", selectRoutineConnection);
+			NpgsqlCommand selectAllAssignments = new("SELECT * FROM assignments", selectRoutineConnection);
 			selectAllAssignments.Prepare();
 			PreparedStatements.Add(StatementType.SelectAllAssignments, selectAllAssignments);
 
 			Logger.Debug($"Preparing {StatementType.SelectAllReminders}...");
-			NpgsqlCommand selectAllReminders = new NpgsqlCommand("SELECT * FROM assignments WHERE user_id=@userId", Connection);
-			_ = selectAllReminders.Parameters.Add(new NpgsqlParameter("userId", NpgsqlDbType.Bigint));
+			NpgsqlCommand selectAllReminders = new("SELECT * FROM assignments WHERE user_id=@userId", Connection);
+			_ = selectAllReminders.Parameters.Add(new("userId", NpgsqlDbType.Bigint));
 			selectAllReminders.Prepare();
 			PreparedStatements.Add(StatementType.SelectAllReminders, selectAllReminders);
 		}
-		public void Create(AssignmentType taskType, ulong guildId, ulong channelId, ulong messageId, ulong userId, DateTime setOff, DateTime setAt, string content) => ExecuteQuery(StatementType.Create, new List<NpgsqlParameter>() { new NpgsqlParameter("taskType", (int)taskType), new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("channelId", (long)channelId), new NpgsqlParameter("messageId", (long)messageId), new NpgsqlParameter("userId", (long)userId), new NpgsqlParameter("setOff", setOff), new NpgsqlParameter("setAt", setAt), new NpgsqlParameter("content", content) });
+		public void Create(AssignmentType taskType, ulong guildId, ulong channelId, ulong messageId, ulong userId, DateTime setOff, DateTime setAt, string content) => ExecuteQuery(StatementType.Create, new List<NpgsqlParameter>() { new("taskType", (int)taskType), new("guildId", (long)guildId), new("channelId", (long)channelId), new("messageId", (long)messageId), new("userId", (long)userId), new("setOff", setOff), new("setAt", setAt), new("content", content) });
 		public void Remove(int taskId) => ExecuteQuery(StatementType.Remove, new NpgsqlParameter("taskId", taskId));
-		public Assignment[] Select(ulong userId, AssignmentType taskType)
+		public Assignment[] Retrieve(ulong userId, AssignmentType taskType)
 		{
-			Dictionary<int, List<dynamic>> queryResults = ExecuteQuery(StatementType.SelectTask, new List<NpgsqlParameter>() { new NpgsqlParameter("userId", (long)userId), new NpgsqlParameter("taskType", (int)taskType) }, true);
-			if (queryResults == null)
-			{
-				return null;
-			}
-			List<Assignment> assignments = new List<Assignment>();
+			Dictionary<int, List<dynamic>> queryResults = ExecuteQuery(StatementType.SelectAssignment, new List<NpgsqlParameter>() { new("userId", (long)userId), new("taskType", (int)taskType) }, true);
+			if (queryResults == null) return null;
+			List<Assignment> assignments = new();
 			foreach (int i in queryResults.Keys)
 			{ // Order can be determined from the SQL query and how it was selected.
 				Assignment assignment = new();
-				assignment.TaskType = (AssignmentType)queryResults[i][0];
+				assignment.AssignmentType = (AssignmentType)queryResults[i][0];
 				assignment.GuildId = (ulong)queryResults[i][1];
 				assignment.ChannelId = (ulong)queryResults[i][2];
 				assignment.MessageId = (ulong)queryResults[i][3];
@@ -161,23 +172,20 @@ namespace Tomoe.Database.Drivers.PostgresSQL
 				assignment.SetOff = (DateTime)queryResults[i][5];
 				assignment.SetAt = (DateTime)queryResults[i][6];
 				assignment.Content = queryResults[i][7].ToString();
-				assignment.TaskId = (int)queryResults[i][8];
+				assignment.AssignmentId = (int)queryResults[i][8];
 				assignments.Add(assignment);
 			}
 			return assignments.ToArray();
 		}
 
-		public Assignment? Select(ulong userId, AssignmentType taskType, int taskId)
+		public Assignment? Retrieve(ulong userId, AssignmentType taskType, int taskId)
 		{
-			Dictionary<int, List<dynamic>> queryResults = ExecuteQuery(StatementType.SelectTask, new List<NpgsqlParameter>() { new NpgsqlParameter("userId", (long)userId), new NpgsqlParameter("taskType", (int)taskType), new NpgsqlParameter("taskId", taskId) }, true);
-			if (queryResults == null)
-			{
-				return null;
-			}
-			Assignment assignment = new Assignment();
+			Dictionary<int, List<dynamic>> queryResults = ExecuteQuery(StatementType.SelectAssignment, new List<NpgsqlParameter>() { new("userId", (long)userId), new("taskType", (int)taskType), new("taskId", taskId) }, true);
+			if (queryResults == null) return null;
+			Assignment assignment = new();
 			foreach (int key in queryResults.Keys)
 			{
-				assignment.TaskType = (AssignmentType)queryResults[key][0];
+				assignment.AssignmentType = (AssignmentType)queryResults[key][0];
 				assignment.GuildId = (ulong)queryResults[key][1];
 				assignment.ChannelId = (ulong)queryResults[key][2];
 				assignment.MessageId = (ulong)queryResults[key][3];
@@ -185,7 +193,7 @@ namespace Tomoe.Database.Drivers.PostgresSQL
 				assignment.SetOff = (DateTime)queryResults[key][5];
 				assignment.SetAt = (DateTime)queryResults[key][6];
 				assignment.Content = queryResults[key][7].ToString();
-				assignment.TaskId = (int)queryResults[key][8];
+				assignment.AssignmentId = (int)queryResults[key][8];
 			}
 			return assignment;
 		}
@@ -193,15 +201,12 @@ namespace Tomoe.Database.Drivers.PostgresSQL
 		public Assignment[] SelectAllAssignments()
 		{
 			Dictionary<int, List<dynamic>> queryResults = ExecuteQuery(StatementType.SelectAllAssignments, new List<NpgsqlParameter>(), true);
-			if (queryResults == null)
-			{
-				return null;
-			}
-			List<Assignment> assignments = new List<Assignment>();
+			if (queryResults == null) return null;
+			List<Assignment> assignments = new();
 			foreach (int i in queryResults.Keys)
 			{ // Order can be determined from the SQL query and how it was selected.
 				Assignment assignment = new();
-				assignment.TaskType = (AssignmentType)queryResults[i][0];
+				assignment.AssignmentType = (AssignmentType)queryResults[i][0];
 				assignment.GuildId = (ulong)queryResults[i][1];
 				assignment.ChannelId = (ulong)queryResults[i][2];
 				assignment.MessageId = (ulong)queryResults[i][3];
@@ -209,7 +214,7 @@ namespace Tomoe.Database.Drivers.PostgresSQL
 				assignment.SetOff = (DateTime)queryResults[i][5];
 				assignment.SetAt = (DateTime)queryResults[i][6];
 				assignment.Content = queryResults[i][7].ToString();
-				assignment.TaskId = (int)queryResults[i][8];
+				assignment.AssignmentId = (int)queryResults[i][8];
 				assignments.Add(assignment);
 			}
 			return assignments.ToArray();
@@ -218,15 +223,12 @@ namespace Tomoe.Database.Drivers.PostgresSQL
 		public Assignment[] SelectAllReminders(ulong userId)
 		{
 			Dictionary<int, List<dynamic>> queryResults = ExecuteQuery(StatementType.SelectAllReminders, new NpgsqlParameter("userId", (long)userId), true);
-			if (queryResults == null)
-			{
-				return null;
-			}
-			List<Assignment> assignments = new List<Assignment>();
+			if (queryResults == null) return null;
+			List<Assignment> assignments = new();
 			foreach (int i in queryResults.Keys)
 			{ // Order can be determined from the SQL query and how it was selected.
 				Assignment assignment = new();
-				assignment.TaskType = (AssignmentType)queryResults[i][0];
+				assignment.AssignmentType = (AssignmentType)queryResults[i][0];
 				assignment.GuildId = (ulong)queryResults[i][1];
 				assignment.ChannelId = (ulong)queryResults[i][2];
 				assignment.MessageId = (ulong)queryResults[i][3];
@@ -234,7 +236,7 @@ namespace Tomoe.Database.Drivers.PostgresSQL
 				assignment.SetOff = (DateTime)queryResults[i][5];
 				assignment.SetAt = (DateTime)queryResults[i][6];
 				assignment.Content = queryResults[i][7].ToString();
-				assignment.TaskId = (int)queryResults[i][8];
+				assignment.AssignmentId = (int)queryResults[i][8];
 				assignments.Add(assignment);
 			}
 			return assignments.ToArray();

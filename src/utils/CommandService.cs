@@ -14,7 +14,7 @@ namespace Tomoe.Utils
 {
 	internal class CommandService
 	{
-		private static readonly Logger Logger = new Logger("CommandService");
+		private static readonly Logger Logger = new("CommandService");
 		internal static async Task Launch(DiscordShardedClient discordClient)
 		{
 			while (true)

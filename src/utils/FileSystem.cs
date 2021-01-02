@@ -13,15 +13,11 @@ namespace Tomoe.Utils
         // Places the log directory right next to the executable.
         public static string ProjectRoot = Path.GetDirectoryName(Path.GetFullPath(System.AppContext.BaseDirectory));
 #endif
-		private static readonly Logger Logger = new Logger("Filesystem");
+		private static readonly Logger Logger = new("Filesystem");
 
 		public static bool CreateFile(string file, bool retry = false)
 		{
-			if (File.Exists(file))
-			{
-				return true;
-			}
-
+			if (File.Exists(file)) return true;
 			try
 			{
 				if (CreateDirectory(Directory.GetParent(file).FullName) == false)
@@ -30,10 +26,7 @@ namespace Tomoe.Utils
 					return false;
 				}
 				File.Create(file).Close();
-				if (retry == true)
-				{
-					Logger.Info($"Was able to successfully recover from IO Interruption. \"{file}\" was created.");
-				}
+				if (retry) Logger.Info($"Was able to successfully recover from IO Interruption. \"{file}\" was created.");
 				return true;
 			}
 			catch (UnauthorizedAccessException)
@@ -48,7 +41,7 @@ namespace Tomoe.Utils
 			}
 			catch (IOException)
 			{
-				if (retry == false)
+				if (!retry)
 				{
 					Logger.Warn($"Can't create \"{file}\" due to an IO Interruption. Retrying one more time...");
 					return CreateFile(file, true);
@@ -63,14 +56,10 @@ namespace Tomoe.Utils
 
 		public static bool CreateDirectory(string directory)
 		{
-			if (Directory.Exists(directory))
-			{
-				return true;
-			}
-
+			if (Directory.Exists(directory)) return true;
 			try
 			{
-				Directory.CreateDirectory(directory);
+				_ = Directory.CreateDirectory(directory);
 				return true;
 			}
 			catch (UnauthorizedAccessException)

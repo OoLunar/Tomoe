@@ -21,9 +21,9 @@ namespace Tomoe
 		public const string SelfAction = "**[Denied: Cannot execute on myself.]**";
 		public const string Hierarchy = "**[Denied: Prevented by hierarchy.]**";
 		public const string MissingRole = "**[Error: No role has been set!]**";
-		public static DatabaseLoader Database = new DatabaseLoader();
 		public static DiscordShardedClient Client;
-		private static readonly Logger _logger = new Logger("Main");
+		public static DatabaseLoader Database = new();
+		private static readonly Logger logger = new("Main");
 
 		public static void Main() => MainAsync().ConfigureAwait(false).GetAwaiter().GetResult();
 
@@ -31,7 +31,7 @@ namespace Tomoe
 		{
 			await Config.Init();
 			LoggerProvider loggerProvider = new();
-			DiscordConfiguration discordConfiguration = new DiscordConfiguration
+			DiscordConfiguration discordConfiguration = new()
 			{
 				AutoReconnect = true,
 				Token = Config.Token,
@@ -42,7 +42,7 @@ namespace Tomoe
 				LoggerFactory = loggerProvider,
 			};
 
-			Client = new DiscordShardedClient(discordConfiguration);
+			Client = new(discordConfiguration);
 
 			_ = Client.UseInteractivityAsync(new InteractivityConfiguration
 			{
@@ -60,19 +60,15 @@ namespace Tomoe
 			await CommandService.Launch(Client);
 
 			await Client.StartAsync();
-			_logger.Info("Starting routines...");
+			logger.Info("Starting routines...");
 			Commands.Public.Reminders.StartRoutine();
-			_logger.Info("Started.");
+			logger.Info("Started.");
 			await Task.Delay(-1);
 		}
 
 		public static DiscordMessage SendMessage(CommandContext context, string content, ExtensionMethods.FilteringAction filteringAction = ExtensionMethods.FilteringAction.CodeBlocksEscape, List<IMention> mentionList = null)
 		{
-			if (mentionList == null)
-			{
-				mentionList = new List<IMention>();
-			}
-
+			if (mentionList == null) mentionList = new List<IMention>();
 			mentionList.Add(new UserMention(context.User.Id));
 			try
 			{
@@ -86,11 +82,7 @@ namespace Tomoe
 
 		public static DiscordMessage SendMessage(CommandContext context, DiscordEmbed embed, List<IMention> mentionList = null)
 		{
-			if (mentionList == null)
-			{
-				mentionList = new List<IMention>();
-			}
-
+			if (mentionList == null) mentionList = new List<IMention>();
 			mentionList.Add(new UserMention(context.User.Id));
 			try
 			{

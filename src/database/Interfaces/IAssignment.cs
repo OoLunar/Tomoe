@@ -6,8 +6,8 @@ namespace Tomoe.Database.Interfaces
 	{
 		void Create(AssignmentType taskType, ulong guildId, ulong channelId, ulong messageId, ulong userId, DateTime setOff, DateTime setAt, string content);
 		void Remove(int taskId);
-		Assignment[] Select(ulong userId, AssignmentType taskType);
-		Assignment? Select(ulong userId, AssignmentType taskType, int taskId);
+		Assignment[] Retrieve(ulong userId, AssignmentType taskType);
+		Assignment? Retrieve(ulong userId, AssignmentType taskType, int taskId);
 		Assignment[] SelectAllAssignments();
 		Assignment[] SelectAllReminders(ulong userId);
 	}
@@ -23,7 +23,7 @@ namespace Tomoe.Database.Interfaces
 
 	public struct Assignment
 	{
-		public AssignmentType TaskType;
+		public AssignmentType AssignmentType;
 		public ulong GuildId;
 		public ulong ChannelId;
 		public ulong MessageId;
@@ -31,6 +31,6 @@ namespace Tomoe.Database.Interfaces
 		public DateTime SetOff;
 		public DateTime SetAt;
 		public string Content;
-		public int TaskId;
+		public int AssignmentId;
 	}
 }

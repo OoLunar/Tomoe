@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Text.Json;
+using Microsoft.CSharp.RuntimeBinder;
 using Newtonsoft.Json;
 using Npgsql;
 using Tomoe.Utils;
@@ -10,7 +11,7 @@ namespace Tomoe.Database
 {
 	public class DatabaseLoader
 	{
-		private static readonly Logger Logger = new Logger("Database.Driver.Setup");
+		private static readonly Logger Logger = new("Database.Driver.Setup");
 		private delegate void DelegateConstructor(string host, int port, string username, string password, string databaseName, SslMode sslMode);
 
 		public Interfaces.IGuild Guild;
@@ -39,6 +40,9 @@ namespace Tomoe.Database
 
 		[JsonProperty("ssl_mode")]
 		private static SslMode SslMode { get; set; }
+
+		[JsonProperty("max_retry_count")]
+		internal static int MaxRetryCount { get; set; }
 
 		[JsonConstructor]
 		public DatabaseLoader(string selectedDriver, string host, int port, string username, string password, string databaseName, SslMode sslMode)

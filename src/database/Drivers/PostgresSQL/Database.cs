@@ -7,27 +7,27 @@ namespace Tomoe.Database.Drivers.PostgresSQL
 {
 	public class PostgresSQL : IDatabase
 	{
-		internal IUser _postgresUser { get; private set; }
-		internal IGuild _postgresGuild { get; private set; }
-		internal ITags _postgresTags { get; private set; }
-		internal IAssignment _postgresAssignments { get; private set; }
-		internal IStrikes _postgresStrikes { get; private set; }
+		internal IUser PostgresUser { get; private set; }
+		internal IGuild PostgresGuild { get; private set; }
+		internal ITags PostgresTags { get; private set; }
+		internal IAssignment PostgresAssignments { get; private set; }
+		internal IStrikes PostgresStrikes { get; private set; }
 
-		public IUser User => _postgresUser;
-		public IGuild Guild => _postgresGuild;
-		public ITags Tags => _postgresTags;
-		public IAssignment Assignments => _postgresAssignments;
-		public IStrikes Strikes => _postgresStrikes;
+		public IUser User => PostgresUser;
+		public IGuild Guild => PostgresGuild;
+		public ITags Tags => PostgresTags;
+		public IAssignment Assignments => PostgresAssignments;
+		public IStrikes Strikes => PostgresStrikes;
 
 		public PostgresSQL(string host, int port, string username, string password, string database_name, SslMode sslMode)
 		{
 			NpgsqlLogManager.Provider = new NLogLoggingProvider();
 			NpgsqlLogManager.IsParameterLoggingEnabled = true;
-			_postgresUser = new PostgresUser(host, port, username, password, database_name, sslMode);
-			_postgresGuild = new PostgresGuild(host, port, username, password, database_name, sslMode);
-			_postgresTags = new PostgresTags(host, port, username, password, database_name, sslMode);
-			_postgresAssignments = new PostgresAssignments(host, port, username, password, database_name, sslMode);
-			_postgresStrikes = new PostgresStrikes(host, port, username, password, database_name, sslMode);
+			PostgresUser = new PostgresUser(host, port, username, password, database_name, sslMode);
+			PostgresGuild = new PostgresGuild(host, port, username, password, database_name, sslMode);
+			PostgresTags = new PostgresTags(host, port, username, password, database_name, sslMode);
+			PostgresAssignments = new PostgresAssignments(host, port, username, password, database_name, sslMode);
+			PostgresStrikes = new PostgresStrikes(host, port, username, password, database_name, sslMode);
 		}
 	}
 }

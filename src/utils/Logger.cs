@@ -111,14 +111,14 @@ namespace Tomoe.Utils
 		{
 			Branchname = branchName;
 			BranchLogLevel = Config.Logging.Tomoe;
-			ThreadId = Thread.CurrentThread.Name;
+			ThreadId = Thread.CurrentThread.ManagedThreadId.ToString();
 		}
 
 		public Logger(string branchName, LogLevel branchLogLevel)
 		{
 			Branchname = branchName;
 			BranchLogLevel = branchLogLevel;
-			ThreadId = Thread.CurrentThread.Name;
+			ThreadId = Thread.CurrentThread.ManagedThreadId.ToString();
 		}
 
 		/// <summary>
@@ -368,7 +368,7 @@ namespace Tomoe.Utils
 
 		/// <summary>Gets the time in <code>yyyy-MM-dd HH:mm:ss</code> following rfc3339 format, slightly tweaked (see removed 'T'). See https://tools.ietf.org/html/rfc3339#section-5.6.</summary>
 		/// <returns>string</returns>
-		public static string GetTime() => DateTime.Now.ToLocalTime().ToString("yyyy'-'MM'-'dd' 'HH':'mm':'ss");
+		public static string GetTime() => DateTime.Now.ToLocalTime().ToString("yyyy'-'MM'-'dd' 'HH':'mm':'ss'.'ffff");
 	}
 
 	public class LoggerProvider : ILoggerFactory
@@ -391,13 +391,11 @@ namespace Tomoe.Utils
 
 	class NpgsqlToLogger : NpgsqlLogger
 	{
-		private static Logger _logger;
-		internal NpgsqlToLogger(string name) => _logger = new Logger(name, Config.Logging.Npgsql);
-		public override bool IsEnabled(NpgsqlLogLevel level) => _logger.IsEnabled(ToLogLevel(level));
-		public override void Log(NpgsqlLogLevel level, int connectorId, string msg, Exception? exception)
-		{
-			_logger.Log(ToLogLevel(level), $"{msg}{(exception == null ? null : '\n' + exception.ToString())}");
-		}
+		private static Logger logger;
+		internal NpgsqlToLogger(string name) => logger = new Logger(name, Config.Logging.Npgsql);
+		public override bool IsEnabled(NpgsqlLogLevel level) => logger.IsEnabled(ToLogLevel(level));
+		public override void Log(NpgsqlLogLevel level, int connectorId, string msg, Exception? exception) => logger.Log(ToLogLevel(level), $"{msg}{(exception == null ? null : '\n' + exception.ToString())}");
+
 
 		static LogLevel ToLogLevel(NpgsqlLogLevel level)
 		{

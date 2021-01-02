@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Tomoe.Database;
 
@@ -17,7 +16,7 @@ namespace Tomoe.Utils
 		public static string Prefix = ">>";
 
 		[JsonProperty("logging")]
-		public static Logging Logging = new Logging();
+		public static Logging Logging = new();
 
 		[JsonProperty("database")]
 		public static DatabaseLoader Database;
