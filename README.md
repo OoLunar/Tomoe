@@ -4,7 +4,7 @@ If you wish to host Tomoe yourself, skip on down to prerequisites. If you just w
 
 ## Prerequisites
 
-Tomoe uses dotnet 5.0. You can get it from [Microsoft](https://dotnet.microsoft.com/download/dotnet/5.0). I am currently developing Tomoe Visual Studio Code and [Windows Terminal](https://www.microsoft.com/en-us/p/windows-terminal/9n0dx20hk701). Tomoe works on Windows 10 Home and Ubuntu 20.04/20.10. Hopefully I can test on mac soon. While everything should theoretically work, there are no promises. If anything isn't working correctly, please open an issue and let me know. Mono is not supported due to DSharpPlus choosing not to support it.
+Tomoe uses dotnet 5.0. You can get it from [Microsoft](https://dotnet.microsoft.com/download/dotnet/5.0). On Windows, I develop Tomoe using Visual Studio Code and [Windows Terminal](https://www.microsoft.com/en-us/p/windows-terminal/9n0dx20hk701). On Ubuntu, I use Visual Studio Code and Gnome Terminal. Tomoe works on Windows 10 Home and Ubuntu 20.04/20.10. Hopefully I can test on mac soon. While everything should theoretically work, there are no promises. If anything isn't working correctly, please open an issue and let me know. Mono is not supported due to DSharpPlus choosing not to support it.
 
 ## Setup
 
@@ -26,18 +26,15 @@ dotnet run # First run might take a minute since it has to download dependencies
 1. Edit the config file `res/config.jsonc` to suit your needs
 2. Run the actual bot (how you do this is up to you but make sure that you have a volume from `./res` to `/Tomoe/res` inside the container)
 
-**The Docker image is `ghcr.io/oolunar/tomoe` **
+**The Docker image is `ghcr.io/oolunar/tomoe`**
 
 # Tomoe, The Discord Moderation Bot
-
-Tomoe is all about moderation for big time servers and aims to be Vortex, Zeppelin and Carl all in one.
 
 ## What is Tomoe written in?
 
 C#. However once Tomoe is finished 100%, I plan on creating a separate branch and rewriting Tomoe in Rust for efficency. Please keep in mind that plans may change.
 
 ## Anything notable about Tomoe?
-
 Tomoe aims to be the best moderation and quality of life bot, and nothing more. It supports PostgresSQL for it's database, however drivers can be added. See https://github.com/OoLunar/Tomoe/pull/1 for more info about the drivers.
 
 ## What features does Tomoe have?
