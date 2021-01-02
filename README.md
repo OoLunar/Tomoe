@@ -101,7 +101,7 @@ As mentioned previously, Tomoe aims to be the #1 bot choice for Discord Moderati
 If you host Tomoe, it can also offer features such as:
 
 | Feature | Implemented |
-| : - : | :-: |
+| :-: | :-: |
 | Cache | ❌ |
 | Extensive Logging | ✅ |
 | Update System | ❌ |
