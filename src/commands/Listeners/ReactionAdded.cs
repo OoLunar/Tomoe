@@ -1,41 +1,49 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using DSharpPlus;
-using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
+using Tomoe.Types;
 using Tomoe.Utils;
 
 namespace Tomoe.Commands.Listeners
 {
 	public class ReactionAdded
 	{
-		private static readonly Logger Logger = new("Listeners/ReactionAdded");
-		public static readonly List<Queue> QueueList = new();
-		public delegate Task ReactionHandler(DiscordEmoji emoji);
+		private static readonly Logger Logger = new("Commands.Listeners.ReactionAdded");
+		internal static readonly List<Queue> QueueList = new();
 
-		public struct Queue
-		{
-			public ulong MessageId { get; set; }
-			public DiscordUser User { get; set; }
-			public DiscordEmoji[] Emojis { get; set; }
-			public ReactionHandler Action { get; set; }
-		}
-
-		public static async Task Handler(DiscordClient _, MessageReactionAddEventArgs eventArgs)
+		public static async Task Handler(DiscordClient _client, MessageReactionAddEventArgs eventArgs)
 		{
 			Logger.Trace($"Reaction recieved: {eventArgs.Emoji}");
 			foreach (Queue queue in QueueList)
 			{
-				if (queue.User == eventArgs.User && queue.Emojis.Contains(eventArgs.Emoji) && eventArgs.Message.Id == queue.MessageId)
+				if (eventArgs.User.Id == Program.Client.CurrentUser.Id) continue;
+				else if (queue.User.Id != eventArgs.User.Id) await eventArgs.Message.DeleteReactionAsync(eventArgs.Emoji, eventArgs.User, "Not the correct user.");
+				else // if it is the requested user
 				{
-					Logger.Debug($"Executing action for {queue.MessageId}");
-					await queue.Action(eventArgs.Emoji);
-					QueueList.Remove(queue);
+					if (queue.Type == Queue.ReactionType.Confirmation)
+					{
+						if (eventArgs.Emoji == Queue.ThumbsUp || eventArgs.Emoji == Queue.ThumbsDown)
+						{
+							await queue.Action.Invoke(eventArgs);
+							_ = QueueList.Remove(queue);
+							queue.Dispose();
+						}
+						else await eventArgs.Message.DeleteReactionAsync(eventArgs.Emoji, eventArgs.User, "Not the correct emoji.");
+					}
+					else if (queue.Type == Queue.ReactionType.Custom)
+					{
+						if (!queue.Emojis.Contains(eventArgs.Emoji)) await eventArgs.Message.DeleteReactionAsync(eventArgs.Emoji, eventArgs.User, "Not the correct emoji.");
+						else
+						{
+							await queue.Action.Invoke(eventArgs);
+							_ = QueueList.Remove(queue);
+							queue.Dispose();
+						}
+					}
 				}
 			}
-			return;
 		}
 	}
 }

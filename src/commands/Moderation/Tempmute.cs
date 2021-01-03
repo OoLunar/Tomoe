@@ -42,7 +42,7 @@ namespace Tomoe.Commands.Moderation
 				DiscordMember guildVictim = await context.Guild.GetMemberAsync(victim.Id);
 				try
 				{
-					if (guildVictim.Hierarchy > context.Guild.CurrentMember.Hierarchy)
+					if (guildVictim.Hierarchy > (await context.Guild.GetMemberAsync(context.Client.CurrentUser.Id)).Hierarchy || guildVictim.Hierarchy >= context.Member.Hierarchy)
 					{
 						_ = Program.SendMessage(context, Program.Hierarchy);
 						return;

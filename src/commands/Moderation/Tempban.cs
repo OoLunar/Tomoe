@@ -25,7 +25,7 @@ namespace Tomoe.Commands.Moderation
 			try
 			{
 				DiscordMember guildVictim = await context.Guild.GetMemberAsync(victim.Id);
-				if (guildVictim.Hierarchy > context.Guild.CurrentMember.Hierarchy)
+				if (guildVictim.Hierarchy > (await context.Guild.GetMemberAsync(context.Client.CurrentUser.Id)).Hierarchy || guildVictim.Hierarchy >= context.Member.Hierarchy)
 				{
 					_ = Program.SendMessage(context, Program.Hierarchy);
 					return;

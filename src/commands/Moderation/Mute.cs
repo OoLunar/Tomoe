@@ -5,17 +5,28 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
+using Tomoe.Types;
 
 namespace Tomoe.Commands.Moderation
 {
 	public class Mute : BaseCommandModule
 	{
 		[Command("mute"), Description("Mutes a person permanently."), RequireBotPermissions(Permissions.ManageRoles), RequireUserPermissions(Permissions.ManageMessages), Aliases("silence")]
-		public async Task Permanently(CommandContext context, DiscordUser victim, [RemainingText] string muteReason = Program.MissingReason)
+		public async Task Permanently(CommandContext context, DiscordUser victim, [Description("(Optional) Should prompt to confirm with the self mute")] bool confirmed = false, [RemainingText] string muteReason = Program.MissingReason)
 		{
 			if (victim == context.Client.CurrentUser)
 			{
 				_ = Program.SendMessage(context, Program.SelfAction);
+				return;
+			}
+			else if (victim == context.User && !confirmed)
+			{
+				DiscordMessage discordMessage = Program.SendMessage(context, "**[Notice: You're about to kick yourself. Are you sure about this?]**");
+				_ = new Queue(discordMessage, context.User, new(async eventArgs =>
+				{
+					if (eventArgs.Emoji == Queue.ThumbsUp) await Permanently(context, context.User, true, muteReason);
+					else if (eventArgs.Emoji == Queue.ThumbsDown) _ = Program.SendMessage(context, "Aborting...");
+				}));
 				return;
 			}
 
@@ -41,6 +52,11 @@ namespace Tomoe.Commands.Moderation
 				try
 				{
 					if (guildVictim.Hierarchy > context.Guild.CurrentMember.Hierarchy)
+					{
+						_ = Program.SendMessage(context, Program.Hierarchy);
+						return;
+					}
+					else if (guildVictim.Hierarchy >= context.Member.Hierarchy)
 					{
 						_ = Program.SendMessage(context, Program.Hierarchy);
 						return;

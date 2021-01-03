@@ -17,7 +17,7 @@ namespace Tomoe.Commands.Public
 	{
 		private static readonly Logger Logger = new("Commands.Public.RoleInfo");
 
-		[Command("roleinfo"), Description("Gets information about a server role."), Aliases(new[] { "role_info", "ri" }), Priority(1)]
+		[Command("roleinfo"), Description("Gets information about a server role."), Aliases(new[] { "role_info", "ri" }), Priority(0)]
 		public async Task ByName(CommandContext context, [Description("The role's name."), RemainingText] string roleName)
 		{
 			Logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");
@@ -106,7 +106,7 @@ namespace Tomoe.Commands.Public
 			}
 		}
 
-		[Command("roleinfo"), Priority(0)]
+		[Command("roleinfo"), Priority(1)]
 		public async Task ByPing(CommandContext context, [Description("The role id or pinged. Please refrain from pinging the roles.")] DiscordRole role)
 		{
 			Logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");

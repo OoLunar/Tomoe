@@ -6,17 +6,28 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
+using Tomoe.Types;
 
 namespace Tomoe.Commands.Moderation
 {
 	public class Kick : BaseCommandModule
 	{
 		[Command("kick"), Description("Kicks people from the guild, sending them off with a private message."), RequireGuild, RequireUserPermissions(Permissions.BanMembers), RequireBotPermissions(Permissions.BanMembers)]
-		public async Task KickUser(CommandContext context, [Description("The person to be kicked.")] DiscordUser victim, [Description("(Optional) The reason why the person is being kicked.")][RemainingText] string kickReason)
+		public async Task KickUser(CommandContext context, [Description("The person to be kicked.")] DiscordUser victim, [Description("(Optional) Should prompt to confirm with the self kick")] bool confirmed = false, [Description("(Optional) The reason why the person is being kicked.")][RemainingText] string kickReason = Program.MissingReason)
 		{
 			if (victim == context.Client.CurrentUser)
 			{
 				_ = Program.SendMessage(context, Program.SelfAction);
+				return;
+			}
+			else if (victim == context.User && !confirmed)
+			{
+				DiscordMessage discordMessage = Program.SendMessage(context, "**[Notice: You're about to kick yourself. Are you sure about this?]**");
+				_ = new Queue(discordMessage, context.User, new(async eventArgs =>
+				{
+					if (eventArgs.Emoji == Queue.ThumbsUp) await context.Member.RemoveAsync(kickReason);
+					else if (eventArgs.Emoji == Queue.ThumbsDown) _ = Program.SendMessage(context, "Aborting...");
+				}));
 				return;
 			}
 
@@ -25,7 +36,7 @@ namespace Tomoe.Commands.Moderation
 				DiscordMember guildVictim = await context.Guild.GetMemberAsync(victim.Id);
 				try
 				{
-					if (guildVictim.Hierarchy > context.Guild.CurrentMember.Hierarchy)
+					if (guildVictim.Hierarchy > (await context.Guild.GetMemberAsync(context.Client.CurrentUser.Id)).Hierarchy || guildVictim.Hierarchy >= context.Member.Hierarchy)
 					{
 						_ = Program.SendMessage(context, Program.Hierarchy);
 						return;
@@ -44,7 +55,7 @@ namespace Tomoe.Commands.Moderation
 		}
 
 		[Command("kick"), RequireGuild]
-		public async Task KickUser(CommandContext context, [Description("The person to be kicked.")] DiscordUser victim) => KickUser(context, victim, null);
+		public async Task KickUser(CommandContext context, [Description("The person to be kicked.")] DiscordUser victim) => KickUser(context, victim, default, default);
 
 		[Command("kick"), RequireGuild]
 		public async Task KickUsers(CommandContext context, [Description("(Optional) The reason why people are being kicked.")] string kickReason = Program.MissingReason, [Description("The people to be kicked.")] params DiscordMember[] victims)
@@ -57,11 +68,21 @@ namespace Tomoe.Commands.Moderation
 					_ = Program.SendMessage(context, Program.SelfAction);
 					return;
 				}
+				else if (victim == context.User)
+				{
+					DiscordMessage discordMessage = Program.SendMessage(context, "**[Notice: You're about to kick yourself. Are you sure about this?]**");
+					_ = new Queue(discordMessage, context.User, new(async eventArgs =>
+					{
+						if (eventArgs.Emoji == Queue.ThumbsUp) await context.Member.RemoveAsync(kickReason);
+						else if (eventArgs.Emoji == Queue.ThumbsDown) _ = Program.SendMessage(context, "Aborting...");
+					}));
+					return;
+				}
 
 				try
 				{
 					DiscordMember guildVictim = await context.Guild.GetMemberAsync(victim.Id);
-					if (guildVictim.Hierarchy > (await context.Guild.GetMemberAsync(context.Client.CurrentUser.Id)).Hierarchy)
+					if (guildVictim.Hierarchy > (await context.Guild.GetMemberAsync(context.Client.CurrentUser.Id)).Hierarchy || guildVictim.Hierarchy >= context.Member.Hierarchy)
 					{
 						_ = Program.SendMessage(context, Program.Hierarchy);
 						return;

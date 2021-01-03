@@ -4,7 +4,7 @@ using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
-using Tomoe.Commands.Listeners;
+using Tomoe.Types;
 using Tomoe.Utils;
 
 namespace Tomoe.Commands.Config
@@ -24,32 +24,23 @@ namespace Tomoe.Commands.Config
 				DiscordRole previousMuteRole = context.Guild.GetRole(previousMuteRoleId.Value);
 				if (previousMuteRole != null)
 				{
-					DiscordEmoji thumbsUp = DiscordEmoji.FromUnicode(context.Client, "👍");
-					DiscordEmoji thumbsDown = DiscordEmoji.FromUnicode(context.Client, "👎");
-					ReactionAdded.Queue createNewRole = new();
-					createNewRole.User = context.User;
-					createNewRole.Emojis = new DiscordEmoji[] { thumbsUp, thumbsDown };
-					createNewRole.Action = new ReactionAdded.ReactionHandler(async emoji =>
+					DiscordMessage discordMessage = Program.SendMessage(context, $"Previous mute role was <@&{previousMuteRoleId.Value}>. Do you want to overwrite it with {muteRole.Mention}?");
+					_ = new Queue(discordMessage, context.User, new(async eventArgs =>
 					{
-						if (emoji == thumbsUp)
+						if (eventArgs.Emoji == Queue.ThumbsUp)
 						{
 							Program.Database.Guild.MuteRole(context.Guild.Id, muteRole.Id);
 							MuteLogger.Trace($"Set {muteRole.Name} ({muteRole.Id}) as mute role for {context.Guild.Name} ({context.Guild.Id})!");
 							await FixMuteRolePermissions(context.Guild, muteRole);
 							_ = Program.SendMessage(context, $"{muteRole.Mention} is now set as the mute role.");
 						}
-						else if (emoji == thumbsDown)
+						else if (eventArgs.Emoji == Queue.ThumbsDown)
 						{
 							MuteLogger.Trace($"Fixed permissions for the mute role {previousMuteRole.Name} ({previousMuteRole.Id}) on {context.Guild.Name} ({context.Guild.Id})!");
 							await FixMuteRolePermissions(context.Guild, previousMuteRole);
 							_ = Program.SendMessage(context, $"Roles were left untouched.");
 						}
-					});
-					DiscordMessage discordMessage = Program.SendMessage(context, $"Previous mute role was <@&{previousMuteRoleId.Value}>. Do you want to overwrite it with {muteRole.Mention}?");
-					await discordMessage.CreateReactionAsync(thumbsUp);
-					await discordMessage.CreateReactionAsync(thumbsDown);
-					createNewRole.MessageId = discordMessage.Id;
-					ReactionAdded.QueueList.Add(createNewRole);
+					}));
 					return;
 				}
 			}
@@ -68,29 +59,17 @@ namespace Tomoe.Commands.Config
 				DiscordRole previousMuteRole = context.Guild.GetRole(previousMuteRoleId.Value);
 				if (previousMuteRole != null)
 				{
-					DiscordEmoji thumbsUp = DiscordEmoji.FromUnicode(context.Client, "👍");
-					DiscordEmoji thumbsDown = DiscordEmoji.FromUnicode(context.Client, "👎");
-					ReactionAdded.Queue createNewRole = new();
-					createNewRole.User = context.User;
-					createNewRole.Emojis = new DiscordEmoji[] { thumbsUp, thumbsDown };
-					createNewRole.Action = new ReactionAdded.ReactionHandler(async emoji =>
+					DiscordMessage discordMessage = Program.SendMessage(context, $"Previous mute role was {previousMuteRole.Mention}. Do you want to overwrite it?");
+					_ = new Queue(discordMessage, context.User, new(async eventArgs =>
 					{
-						if (emoji == thumbsUp)
-						{
-							await CreateMuteRole(context);
-						}
-						else if (emoji == thumbsDown)
+						if (eventArgs.Emoji == Queue.ThumbsUp) await CreateMuteRole(context);
+						else if (eventArgs.Emoji == Queue.ThumbsDown)
 						{
 							MuteLogger.Trace($"Fixed permissions for the mute role {previousMuteRole.Name} ({previousMuteRole.Id}) on {context.Guild.Name} ({context.Guild.Id})!");
 							await FixMuteRolePermissions(context.Guild, previousMuteRole);
 							_ = Program.SendMessage(context, $"Roles were left untouched.");
 						}
-					});
-					DiscordMessage discordMessage = Program.SendMessage(context, $"Previous mute role was {previousMuteRole.Mention}. Do you want to overwrite it?");
-					createNewRole.MessageId = discordMessage.Id;
-					await discordMessage.CreateReactionAsync(thumbsUp);
-					await discordMessage.CreateReactionAsync(thumbsDown);
-					ReactionAdded.QueueList.Add(createNewRole);
+					}));
 					return;
 				}
 			}
@@ -108,6 +87,8 @@ namespace Tomoe.Commands.Config
 			await FixMuteRolePermissions(context.Guild, muteRole);
 			_ = await message.ModifyAsync($"{context.User.Mention}: Done! Mute role is now {muteRole.Mention}", null, new List<IMention>() { new UserMention(context.User.Id) });
 		}
+
+
 
 		public static async Task FixMuteRolePermissions(DiscordGuild guild, DiscordRole muteRole)
 		{
@@ -144,32 +125,23 @@ namespace Tomoe.Commands.Config
 				DiscordRole previousAntiMemeRole = context.Guild.GetRole(previousAntiMemeRoleId.Value);
 				if (previousAntiMemeRole != null)
 				{
-					DiscordEmoji thumbsUp = DiscordEmoji.FromUnicode(context.Client, "👍");
-					DiscordEmoji thumbsDown = DiscordEmoji.FromUnicode(context.Client, "👎");
-					ReactionAdded.Queue createNewRole = new();
-					createNewRole.User = context.User;
-					createNewRole.Emojis = new DiscordEmoji[] { thumbsUp, thumbsDown };
-					createNewRole.Action = new ReactionAdded.ReactionHandler(async emoji =>
+					DiscordMessage discordMessage = Program.SendMessage(context, $"Previous antimeme role was {previousAntiMemeRole.Mention}. Do you want to overwrite it with {antiMemeRole.Mention}?");
+					_ = new Queue(discordMessage, context.User, new(async eventArgs =>
 					{
-						if (emoji == thumbsUp)
+						if (eventArgs.Emoji == Queue.ThumbsUp)
 						{
 							Program.Database.Guild.AntiMemeRole(context.Guild.Id, antiMemeRole.Id);
 							NoMemeLogger.Trace($"Set {antiMemeRole.Name} ({antiMemeRole.Id}) as the antimeme role for {context.Guild.Name} ({context.Guild.Id})!");
 							await FixAntiMemeRolePermissions(context.Guild, antiMemeRole);
 							_ = Program.SendMessage(context, $"{antiMemeRole.Mention} is now set as the antimeme role.");
 						}
-						else if (emoji == thumbsDown)
+						else if (eventArgs.Emoji == Queue.ThumbsDown)
 						{
 							NoMemeLogger.Trace($"Fixed permissions for the antimeme role {previousAntiMemeRole.Name} ({previousAntiMemeRole.Id}) on {context.Guild.Name} ({context.Guild.Id})!");
 							await FixAntiMemeRolePermissions(context.Guild, previousAntiMemeRole);
 							_ = Program.SendMessage(context, $"Roles were left untouched.");
 						}
-					});
-					DiscordMessage discordMessage = Program.SendMessage(context, $"Previous antimeme role was {previousAntiMemeRole.Mention}. Do you want to overwrite it with {antiMemeRole.Mention}?");
-					await discordMessage.CreateReactionAsync(thumbsUp);
-					await discordMessage.CreateReactionAsync(thumbsDown);
-					createNewRole.MessageId = discordMessage.Id;
-					ReactionAdded.QueueList.Add(createNewRole);
+					}));
 					return;
 				}
 			}
@@ -188,29 +160,20 @@ namespace Tomoe.Commands.Config
 				DiscordRole previousAntiMemeRole = context.Guild.GetRole(previousAntiMemeRoleId.Value);
 				if (previousAntiMemeRole != null)
 				{
-					DiscordEmoji thumbsUp = DiscordEmoji.FromUnicode(context.Client, "👍");
-					DiscordEmoji thumbsDown = DiscordEmoji.FromUnicode(context.Client, "👎");
-					ReactionAdded.Queue createNewRole = new();
-					createNewRole.User = context.User;
-					createNewRole.Emojis = new DiscordEmoji[] { thumbsUp, thumbsDown };
-					createNewRole.Action = new ReactionAdded.ReactionHandler(async emoji =>
+					DiscordMessage discordMessage = Program.SendMessage(context, $"Previous antimeme role was {previousAntiMemeRole.Mention}. Do you want to overwrite it?");
+					_ = new Queue(discordMessage, context.User, new(async eventArgs =>
 					{
-						if (emoji == thumbsUp)
+						if (eventArgs.Emoji == Queue.ThumbsUp)
 						{
 							await CreateAntiMemeRole(context);
 						}
-						else if (emoji == thumbsDown)
+						else if (eventArgs.Emoji == Queue.ThumbsDown)
 						{
 							NoMemeLogger.Trace($"Fixed permissions for the antimeme role {previousAntiMemeRole.Name} ({previousAntiMemeRole.Id}) on {context.Guild.Name} ({context.Guild.Id})!");
 							await FixAntiMemeRolePermissions(context.Guild, previousAntiMemeRole);
 							_ = Program.SendMessage(context, $"Roles were left untouched.");
 						}
-					});
-					DiscordMessage discordMessage = Program.SendMessage(context, $"Previous antimeme role was {previousAntiMemeRole.Mention}. Do you want to overwrite it?");
-					createNewRole.MessageId = discordMessage.Id;
-					await discordMessage.CreateReactionAsync(thumbsUp);
-					await discordMessage.CreateReactionAsync(thumbsDown);
-					ReactionAdded.QueueList.Add(createNewRole);
+					}));
 					return;
 				}
 			}

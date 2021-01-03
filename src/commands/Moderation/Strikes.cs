@@ -5,8 +5,8 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
-using SQLitePCL;
 using Tomoe.Database.Interfaces;
+using Tomoe.Types;
 
 namespace Tomoe.Commands.Moderation
 {
@@ -14,11 +14,21 @@ namespace Tomoe.Commands.Moderation
 	public class Strikes : BaseCommandModule
 	{
 		[GroupCommand]
-		public async Task Add(CommandContext context, DiscordUser victim, [RemainingText] string strikeReason = Program.MissingReason)
+		public async Task Add(CommandContext context, DiscordUser victim, [Description("(Optional) Should prompt to confirm with the self strike")] bool confirmed = false, [RemainingText] string strikeReason = Program.MissingReason)
 		{
 			if (victim == context.Guild.CurrentMember)
 			{
 				_ = Program.SendMessage(context, Program.SelfAction);
+				return;
+			}
+			else if (victim == context.User && !confirmed)
+			{
+				DiscordMessage discordMessage = Program.SendMessage(context, "**[Notice: You're about to kick yourself. Are you sure about this?]**");
+				_ = new Queue(discordMessage, context.User, new(async eventArgs =>
+				{
+					if (eventArgs.Emoji == Queue.ThumbsUp) await Add(context, context.User, true, strikeReason);
+					else if (eventArgs.Emoji == Queue.ThumbsDown) _ = Program.SendMessage(context, "Aborting...");
+				}));
 				return;
 			}
 
@@ -27,7 +37,7 @@ namespace Tomoe.Commands.Moderation
 			try
 			{
 				DiscordMember guildVictim = await context.Guild.GetMemberAsync(victim.Id);
-				if (guildVictim.Hierarchy > (await context.Guild.GetMemberAsync(context.Client.CurrentUser.Id)).Hierarchy)
+				if (guildVictim.Hierarchy > (await context.Guild.GetMemberAsync(context.Client.CurrentUser.Id)).Hierarchy || guildVictim.Hierarchy >= context.Member.Hierarchy)
 				{
 					_ = Program.SendMessage(context, Program.Hierarchy);
 					return;
