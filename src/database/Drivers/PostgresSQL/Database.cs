@@ -1,3 +1,4 @@
+using System.Dynamic;
 using Npgsql;
 using Npgsql.Logging;
 using Tomoe.Database.Interfaces;
@@ -7,17 +8,17 @@ namespace Tomoe.Database.Drivers.PostgresSQL
 {
 	public class PostgresSQL : IDatabase
 	{
-		internal IUser PostgresUser { get; private set; }
-		internal IGuild PostgresGuild { get; private set; }
-		internal ITags PostgresTags { get; private set; }
-		internal IAssignment PostgresAssignments { get; private set; }
-		internal IStrikes PostgresStrikes { get; private set; }
+		private readonly IUser PostgresUser;
+		private readonly IGuild PostgresGuild;
+		private readonly ITags PostgresTags;
+		private readonly IAssignment PostgresAssignments;
+		private readonly IStrikes PostgresStrikes;
 
-		public IUser User => PostgresUser;
-		public IGuild Guild => PostgresGuild;
-		public ITags Tags => PostgresTags;
-		public IAssignment Assignments => PostgresAssignments;
-		public IStrikes Strikes => PostgresStrikes;
+		public IUser User { get => PostgresUser; }
+		public IGuild Guild { get => PostgresGuild; }
+		public ITags Tags { get => PostgresTags; }
+		public IAssignment Assignments { get => PostgresAssignments; }
+		public IStrikes Strikes { get => PostgresStrikes; }
 
 		public PostgresSQL(string host, int port, string username, string password, string database_name, SslMode sslMode)
 		{

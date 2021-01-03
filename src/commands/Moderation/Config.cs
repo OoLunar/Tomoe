@@ -7,13 +7,13 @@ using DSharpPlus.Entities;
 using Tomoe.Types;
 using Tomoe.Utils;
 
-namespace Tomoe.Commands.Config
+namespace Tomoe.Commands
 {
 	[Group("config")]
 	public class Config : BaseCommandModule
 	{
-		private static readonly Logger MuteLogger = new("Commands.Config.Mute");
-		private static readonly Logger NoMemeLogger = new("Commands.Config.NoMeme");
+		private static readonly Logger _muteLogger = new("Commands.Config.Mute");
+		private static readonly Logger _noMemeLogger = new("Commands.Config.NoMeme");
 
 		[Command("mute"), Description("Sets up or assigns the mute role."), RequireUserPermissions(Permissions.ManageGuild), RequireGuild]
 		public async Task Mute(CommandContext context, DiscordRole muteRole)
@@ -30,13 +30,13 @@ namespace Tomoe.Commands.Config
 						if (eventArgs.Emoji == Queue.ThumbsUp)
 						{
 							Program.Database.Guild.MuteRole(context.Guild.Id, muteRole.Id);
-							MuteLogger.Trace($"Set {muteRole.Name} ({muteRole.Id}) as mute role for {context.Guild.Name} ({context.Guild.Id})!");
+							_muteLogger.Trace($"Set {muteRole.Name} ({muteRole.Id}) as mute role for {context.Guild.Name} ({context.Guild.Id})!");
 							await FixMuteRolePermissions(context.Guild, muteRole);
 							_ = Program.SendMessage(context, $"{muteRole.Mention} is now set as the mute role.");
 						}
 						else if (eventArgs.Emoji == Queue.ThumbsDown)
 						{
-							MuteLogger.Trace($"Fixed permissions for the mute role {previousMuteRole.Name} ({previousMuteRole.Id}) on {context.Guild.Name} ({context.Guild.Id})!");
+							_muteLogger.Trace($"Fixed permissions for the mute role {previousMuteRole.Name} ({previousMuteRole.Id}) on {context.Guild.Name} ({context.Guild.Id})!");
 							await FixMuteRolePermissions(context.Guild, previousMuteRole);
 							_ = Program.SendMessage(context, $"Roles were left untouched.");
 						}
@@ -45,7 +45,7 @@ namespace Tomoe.Commands.Config
 				}
 			}
 			Program.Database.Guild.MuteRole(context.Guild.Id, muteRole.Id);
-			MuteLogger.Trace($"Set {muteRole.Name} ({muteRole.Id}) as mute role for {context.Guild.Name} ({context.Guild.Id})!");
+			_muteLogger.Trace($"Set {muteRole.Name} ({muteRole.Id}) as mute role for {context.Guild.Name} ({context.Guild.Id})!");
 			await FixMuteRolePermissions(context.Guild, muteRole);
 			_ = Program.SendMessage(context, $"{muteRole.Mention} is now set as the mute role.");
 		}
@@ -65,7 +65,7 @@ namespace Tomoe.Commands.Config
 						if (eventArgs.Emoji == Queue.ThumbsUp) await CreateMuteRole(context);
 						else if (eventArgs.Emoji == Queue.ThumbsDown)
 						{
-							MuteLogger.Trace($"Fixed permissions for the mute role {previousMuteRole.Name} ({previousMuteRole.Id}) on {context.Guild.Name} ({context.Guild.Id})!");
+							_muteLogger.Trace($"Fixed permissions for the mute role {previousMuteRole.Name} ({previousMuteRole.Id}) on {context.Guild.Name} ({context.Guild.Id})!");
 							await FixMuteRolePermissions(context.Guild, previousMuteRole);
 							_ = Program.SendMessage(context, $"Roles were left untouched.");
 						}
@@ -81,7 +81,7 @@ namespace Tomoe.Commands.Config
 		{
 			DiscordMessage message = Program.SendMessage(context, "Creating mute role...");
 			DiscordRole muteRole = await context.Guild.CreateRoleAsync("Muted", Permissions.None, DiscordColor.Gray, false, false, "Allows users to be muted.");
-			MuteLogger.Trace($"Created mute role \"{muteRole.Name}\" ({muteRole.Id}) for {context.Guild.Name} ({context.Guild.Id})!");
+			_muteLogger.Trace($"Created mute role \"{muteRole.Name}\" ({muteRole.Id}) for {context.Guild.Name} ({context.Guild.Id})!");
 			Program.Database.Guild.MuteRole(context.Guild.Id, muteRole.Id);
 			_ = message.ModifyAsync($"{context.User.Mention}: Overriding channel permissions...", null, new List<IMention>() { new UserMention(context.User.Id) });
 			await FixMuteRolePermissions(context.Guild, muteRole);
@@ -97,17 +97,17 @@ namespace Tomoe.Commands.Config
 				switch (channel.Type)
 				{
 					case ChannelType.Text:
-						MuteLogger.Trace($"Overwriting permission {Permissions.SendMessages} and {Permissions.AddReactions} for mute role {muteRole.Name} ({muteRole.Id}) on {channel.Type} channel {channel.Name} ({channel.Id}) for {guild.Name} ({guild.Id})...");
+						_muteLogger.Trace($"Overwriting permission {Permissions.SendMessages} and {Permissions.AddReactions} for mute role {muteRole.Name} ({muteRole.Id}) on {channel.Type} channel {channel.Name} ({channel.Id}) for {guild.Name} ({guild.Id})...");
 						await channel.AddOverwriteAsync(muteRole, Permissions.None, Permissions.SendMessages | Permissions.AddReactions, "Disallows users to send messages/communicate through reactions.");
 						await Task.Delay(50);
 						break;
 					case ChannelType.Voice:
-						MuteLogger.Trace($"Overwriting permission {Permissions.Speak} and {Permissions.Stream} for mute role {muteRole.Name} ({muteRole.Id}) on {channel.Type} channel {channel.Name} ({channel.Id}) for {guild.Name} ({guild.Id})...");
+						_muteLogger.Trace($"Overwriting permission {Permissions.Speak} and {Permissions.Stream} for mute role {muteRole.Name} ({muteRole.Id}) on {channel.Type} channel {channel.Name} ({channel.Id}) for {guild.Name} ({guild.Id})...");
 						await channel.AddOverwriteAsync(muteRole, Permissions.None, Permissions.Speak | Permissions.Stream, "Disallows users to communicate in voice channels and through streams.");
 						await Task.Delay(50);
 						break;
 					case ChannelType.Category:
-						MuteLogger.Trace($"Overwriting permission {Permissions.SendMessages}, {Permissions.AddReactions}, {Permissions.Speak} and {Permissions.Stream} for mute role {muteRole.Name} ({muteRole.Id}) on {channel.Type} channel {channel.Name} ({channel.Id}) for {guild.Name} ({guild.Id})...");
+						_muteLogger.Trace($"Overwriting permission {Permissions.SendMessages}, {Permissions.AddReactions}, {Permissions.Speak} and {Permissions.Stream} for mute role {muteRole.Name} ({muteRole.Id}) on {channel.Type} channel {channel.Name} ({channel.Id}) for {guild.Name} ({guild.Id})...");
 						await channel.AddOverwriteAsync(muteRole, Permissions.None, Permissions.SendMessages | Permissions.AddReactions | Permissions.Speak | Permissions.Stream, "Disallows users to send messages/communicate through reactions/voice channels and through streams.");
 						await Task.Delay(50);
 						break;
@@ -131,13 +131,13 @@ namespace Tomoe.Commands.Config
 						if (eventArgs.Emoji == Queue.ThumbsUp)
 						{
 							Program.Database.Guild.AntiMemeRole(context.Guild.Id, antiMemeRole.Id);
-							NoMemeLogger.Trace($"Set {antiMemeRole.Name} ({antiMemeRole.Id}) as the antimeme role for {context.Guild.Name} ({context.Guild.Id})!");
+							_noMemeLogger.Trace($"Set {antiMemeRole.Name} ({antiMemeRole.Id}) as the antimeme role for {context.Guild.Name} ({context.Guild.Id})!");
 							await FixAntiMemeRolePermissions(context.Guild, antiMemeRole);
 							_ = Program.SendMessage(context, $"{antiMemeRole.Mention} is now set as the antimeme role.");
 						}
 						else if (eventArgs.Emoji == Queue.ThumbsDown)
 						{
-							NoMemeLogger.Trace($"Fixed permissions for the antimeme role {previousAntiMemeRole.Name} ({previousAntiMemeRole.Id}) on {context.Guild.Name} ({context.Guild.Id})!");
+							_noMemeLogger.Trace($"Fixed permissions for the antimeme role {previousAntiMemeRole.Name} ({previousAntiMemeRole.Id}) on {context.Guild.Name} ({context.Guild.Id})!");
 							await FixAntiMemeRolePermissions(context.Guild, previousAntiMemeRole);
 							_ = Program.SendMessage(context, $"Roles were left untouched.");
 						}
@@ -146,7 +146,7 @@ namespace Tomoe.Commands.Config
 				}
 			}
 			Program.Database.Guild.AntiMemeRole(context.Guild.Id, antiMemeRole.Id);
-			NoMemeLogger.Trace($"Set {antiMemeRole.Name} ({antiMemeRole.Id}) as the antimeme role for {context.Guild.Name} ({context.Guild.Id})!");
+			_noMemeLogger.Trace($"Set {antiMemeRole.Name} ({antiMemeRole.Id}) as the antimeme role for {context.Guild.Name} ({context.Guild.Id})!");
 			await FixAntiMemeRolePermissions(context.Guild, antiMemeRole);
 			_ = Program.SendMessage(context, $"{antiMemeRole.Mention} is now set as the antimeme role.");
 		}
@@ -169,7 +169,7 @@ namespace Tomoe.Commands.Config
 						}
 						else if (eventArgs.Emoji == Queue.ThumbsDown)
 						{
-							NoMemeLogger.Trace($"Fixed permissions for the antimeme role {previousAntiMemeRole.Name} ({previousAntiMemeRole.Id}) on {context.Guild.Name} ({context.Guild.Id})!");
+							_noMemeLogger.Trace($"Fixed permissions for the antimeme role {previousAntiMemeRole.Name} ({previousAntiMemeRole.Id}) on {context.Guild.Name} ({context.Guild.Id})!");
 							await FixAntiMemeRolePermissions(context.Guild, previousAntiMemeRole);
 							_ = Program.SendMessage(context, $"Roles were left untouched.");
 						}
@@ -185,7 +185,7 @@ namespace Tomoe.Commands.Config
 		{
 			DiscordMessage message = Program.SendMessage(context, "Creating antimeme role...");
 			DiscordRole muteRole = await context.Guild.CreateRoleAsync("Antimeme", Permissions.None, DiscordColor.Gray, false, false, "Allows users to be no memed.");
-			NoMemeLogger.Trace($"Created antimeme role \"{muteRole.Name}\" ({muteRole.Id}) for {context.Guild.Name} ({context.Guild.Id})!");
+			_noMemeLogger.Trace($"Created antimeme role \"{muteRole.Name}\" ({muteRole.Id}) for {context.Guild.Name} ({context.Guild.Id})!");
 			Program.Database.Guild.AntiMemeRole(context.Guild.Id, muteRole.Id);
 			_ = message.ModifyAsync($"{context.User.Mention}: Overriding channel permissions...", null, new List<IMention>() { new UserMention(context.User.Id) });
 			await FixAntiMemeRolePermissions(context.Guild, muteRole);
@@ -199,17 +199,17 @@ namespace Tomoe.Commands.Config
 				switch (channel.Type)
 				{
 					case ChannelType.Text:
-						NoMemeLogger.Trace($"Overwriting permission {Permissions.SendMessages} and {Permissions.AddReactions} for antimeme role {muteRole.Name} ({muteRole.Id}) on {channel.Type} channel {channel.Name} ({channel.Id}) for {guild.Name} ({guild.Id})...");
+						_noMemeLogger.Trace($"Overwriting permission {Permissions.SendMessages} and {Permissions.AddReactions} for antimeme role {muteRole.Name} ({muteRole.Id}) on {channel.Type} channel {channel.Name} ({channel.Id}) for {guild.Name} ({guild.Id})...");
 						await channel.AddOverwriteAsync(muteRole, Permissions.None, Permissions.AttachFiles | Permissions.AddReactions | Permissions.EmbedLinks | Permissions.UseExternalEmojis, "Stops members with the role from spamming chat with reactions, images or links.");
 						await Task.Delay(50);
 						break;
 					case ChannelType.Voice:
-						NoMemeLogger.Trace($"Overwriting permission {Permissions.Speak} and {Permissions.Stream} for antimeme role {muteRole.Name} ({muteRole.Id}) on {channel.Type} channel {channel.Name} ({channel.Id}) for {guild.Name} ({guild.Id})...");
+						_noMemeLogger.Trace($"Overwriting permission {Permissions.Speak} and {Permissions.Stream} for antimeme role {muteRole.Name} ({muteRole.Id}) on {channel.Type} channel {channel.Name} ({channel.Id}) for {guild.Name} ({guild.Id})...");
 						await channel.AddOverwriteAsync(muteRole, Permissions.None, Permissions.Stream | Permissions.UseVoiceDetection, "Disallows users to spam starting and stopping streams. Must push to talk.");
 						await Task.Delay(50);
 						break;
 					case ChannelType.Category:
-						NoMemeLogger.Trace($"Overwriting permission {Permissions.SendMessages}, {Permissions.AddReactions}, {Permissions.Speak} and {Permissions.Stream} for antimeme role {muteRole.Name} ({muteRole.Id}) on {channel.Type} channel {channel.Name} ({channel.Id}) for {guild.Name} ({guild.Id})...");
+						_noMemeLogger.Trace($"Overwriting permission {Permissions.SendMessages}, {Permissions.AddReactions}, {Permissions.Speak} and {Permissions.Stream} for antimeme role {muteRole.Name} ({muteRole.Id}) on {channel.Type} channel {channel.Name} ({channel.Id}) for {guild.Name} ({guild.Id})...");
 						await channel.AddOverwriteAsync(muteRole, Permissions.None, Permissions.AttachFiles | Permissions.AddReactions | Permissions.EmbedLinks | Permissions.UseExternalEmojis | Permissions.Stream | Permissions.UseVoiceDetection, "Stops members with the role from spamming chat with reactions, images or links/voice channels and through streams. Disallows users to spam starting and stopping streams. Must push to talk.");
 						await Task.Delay(50);
 						break;

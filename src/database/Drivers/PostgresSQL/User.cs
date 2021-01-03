@@ -12,8 +12,8 @@ namespace Tomoe.Database.Drivers.PostgresSQL
 {
 	public class PostgresUser : IUser
 	{
-		private readonly static Logger Logger = new("Database.PostgresSQL.User");
-		private readonly NpgsqlConnection Connection;
+		private static readonly Logger _logger = new("Database.PostgresSQL.User");
+		private readonly NpgsqlConnection _connection;
 		private readonly Dictionary<StatementType, NpgsqlCommand> PreparedStatements = new();
 		private int retryCount;
 		private enum StatementType
@@ -51,7 +51,7 @@ namespace Tomoe.Database.Drivers.PostgresSQL
 			Dictionary<string, NpgsqlParameter> sortedParameters = new();
 			foreach (NpgsqlParameter parameter in parameters) sortedParameters.Add(parameter.ParameterName, parameter);
 			foreach (NpgsqlParameter parameter in statement.Parameters) parameter.Value = sortedParameters[parameter.ParameterName].Value;
-			Logger.Trace($"Executing prepared statement \"{command}\" with parameters: {string.Join(", ", statement.Parameters.Select(param => param.Value).ToArray())}");
+			_logger.Trace($"Executing prepared statement \"{command}\" with parameters: {string.Join(", ", statement.Parameters.Select(param => param.Value).ToArray())}");
 
 			try
 			{
@@ -67,7 +67,7 @@ namespace Tomoe.Database.Drivers.PostgresSQL
 						{
 							if (reader[i] == DBNull.Value) list.Add(null);
 							else list.Add(reader[i]);
-							Logger.Trace($"Recieved values: {reader[i] ?? "null"} on iteration {i}");
+							_logger.Trace($"Recieved values: {reader[i] ?? "null"} on iteration {i}");
 						}
 
 						if (list.Count == 1 && list[0] == null) values.Add(indexCount, null);
@@ -88,9 +88,9 @@ namespace Tomoe.Database.Drivers.PostgresSQL
 			}
 			catch (SocketException error)
 			{
-				if (retryCount > DatabaseLoader.MaxRetryCount) Logger.Critical($"Failed to execute query \"{command}\" after {retryCount} times. Check your internet connection.");
+				if (retryCount > DatabaseLoader.MaxRetryCount) _logger.Critical($"Failed to execute query \"{command}\" after {retryCount} times. Check your internet connection.");
 				else retryCount++;
-				Logger.Error($"Socket exception occured, retrying... Details: {error.Message}\n{error.StackTrace}");
+				_logger.Error($"Socket exception occured, retrying... Details: {error.Message}\n{error.StackTrace}");
 				return ExecuteQuery(command, parameters, needsResult);
 			}
 		}
@@ -101,111 +101,111 @@ namespace Tomoe.Database.Drivers.PostgresSQL
 
 		public PostgresUser(string host, int port, string username, string password, string database_name, SslMode sslMode)
 		{
-			Connection = new($"Host={host};Port={port};Username={username};Password={password};Database={database_name};SSL Mode={sslMode}");
-			Logger.Info("Opening connection to database...");
+			_connection = new($"Host={host};Port={port};Username={username};Password={password};Database={database_name};SSL Mode={sslMode}");
+			_logger.Info("Opening connection to database...");
 			try
 			{
-				Connection.Open();
-				Logger.Debug("Creating guild_cache table if it doesn't exist...");
-				NpgsqlCommand createGuildCacheTable = new(File.ReadAllText(Path.Join(FileSystem.ProjectRoot, "res/sql/drivers/postgresql/guild_cache_table.sql")), Connection);
+				_connection.Open();
+				_logger.Debug("Creating guild_cache table if it doesn't exist...");
+				NpgsqlCommand createGuildCacheTable = new(File.ReadAllText(Path.Join(FileSystem.ProjectRoot, "res/sql/drivers/postgresql/guild_cache_table.sql")), _connection);
 				_ = createGuildCacheTable.ExecuteNonQuery();
 				createGuildCacheTable.Dispose();
 			}
 			catch (SocketException error)
 			{
-				Logger.Critical($"Failed to connect to database. {error.Message}", true);
+				_logger.Critical($"Failed to connect to database. {error.Message}", true);
 			}
-			Logger.Info("Preparing SQL commands...");
-			Logger.Debug($"Preparing {StatementType.InsertUser}...");
-			NpgsqlCommand insertUser = new("INSERT INTO guild_cache(guild_id, user_id) VALUES(@guildId, @userId)", Connection);
+			_logger.Info("Preparing SQL commands...");
+			_logger.Debug($"Preparing {StatementType.InsertUser}...");
+			NpgsqlCommand insertUser = new("INSERT INTO guild_cache(guild_id, user_id) VALUES(@guildId, @userId)", _connection);
 			_ = insertUser.Parameters.Add(new("guildId", NpgsqlDbType.Bigint));
 			_ = insertUser.Parameters.Add(new("userId", NpgsqlDbType.Bigint));
 			insertUser.Prepare();
 			PreparedStatements.Add(StatementType.InsertUser, insertUser);
 
-			Logger.Debug($"Preparing {StatementType.GetRoles}...");
-			NpgsqlCommand getRoles = new("SELECT role_ids FROM guild_cache WHERE user_id=@userId AND guild_id=@guildId", Connection);
+			_logger.Debug($"Preparing {StatementType.GetRoles}...");
+			NpgsqlCommand getRoles = new("SELECT role_ids FROM guild_cache WHERE user_id=@userId AND guild_id=@guildId", _connection);
 			_ = getRoles.Parameters.Add(new("userId", NpgsqlDbType.Bigint));
 			_ = getRoles.Parameters.Add(new("guildId", NpgsqlDbType.Bigint));
 			getRoles.Prepare();
 			PreparedStatements.Add(StatementType.GetRoles, getRoles);
 
-			Logger.Debug($"Preparing {StatementType.AddRole}...");
-			NpgsqlCommand addRole = new("UPDATE guild_cache SET role_ids=array_append(role_ids, @roleId) WHERE user_id=@userId AND guild_id=@guildId", Connection);
+			_logger.Debug($"Preparing {StatementType.AddRole}...");
+			NpgsqlCommand addRole = new("UPDATE guild_cache SET role_ids=array_append(role_ids, @roleId) WHERE user_id=@userId AND guild_id=@guildId", _connection);
 			_ = addRole.Parameters.Add(new("roleId", NpgsqlDbType.Bigint));
 			_ = addRole.Parameters.Add(new("userId", NpgsqlDbType.Bigint));
 			_ = addRole.Parameters.Add(new("guildId", NpgsqlDbType.Bigint));
 			addRole.Prepare();
 			PreparedStatements.Add(StatementType.AddRole, addRole);
 
-			Logger.Debug($"Preparing {StatementType.RemoveRole}...");
-			NpgsqlCommand removeRole = new("UPDATE guild_cache SET role_ids=array_remove(role_ids, @roleId) WHERE user_id=@userId AND guild_id=@guildId", Connection);
+			_logger.Debug($"Preparing {StatementType.RemoveRole}...");
+			NpgsqlCommand removeRole = new("UPDATE guild_cache SET role_ids=array_remove(role_ids, @roleId) WHERE user_id=@userId AND guild_id=@guildId", _connection);
 			_ = removeRole.Parameters.Add(new("roleId", NpgsqlDbType.Bigint));
 			_ = removeRole.Parameters.Add(new("userId", NpgsqlDbType.Bigint));
 			_ = removeRole.Parameters.Add(new("guildId", NpgsqlDbType.Bigint));
 			removeRole.Prepare();
 			PreparedStatements.Add(StatementType.RemoveRole, removeRole);
 
-			Logger.Debug($"Preparing {StatementType.SetRoles}...");
-			NpgsqlCommand setRoles = new("UPDATE guild_cache SET role_ids=@roleIds WHERE user_id=@userId AND guild_id=@guildId", Connection);
+			_logger.Debug($"Preparing {StatementType.SetRoles}...");
+			NpgsqlCommand setRoles = new("UPDATE guild_cache SET role_ids=@roleIds WHERE user_id=@userId AND guild_id=@guildId", _connection);
 			_ = setRoles.Parameters.Add(new("roleIds", NpgsqlDbType.Array | NpgsqlDbType.Bigint));
 			_ = setRoles.Parameters.Add(new("userId", NpgsqlDbType.Bigint));
 			_ = setRoles.Parameters.Add(new("guildId", NpgsqlDbType.Bigint));
 			setRoles.Prepare();
 			PreparedStatements.Add(StatementType.SetRoles, setRoles);
 
-			Logger.Debug($"Preparing {StatementType.GetIsMuted}...");
-			NpgsqlCommand getIsMuted = new("SELECT muted FROM guild_cache WHERE user_id=@userId AND guild_id=@guildId", Connection);
+			_logger.Debug($"Preparing {StatementType.GetIsMuted}...");
+			NpgsqlCommand getIsMuted = new("SELECT muted FROM guild_cache WHERE user_id=@userId AND guild_id=@guildId", _connection);
 			_ = getIsMuted.Parameters.Add(new("userId", NpgsqlDbType.Bigint));
 			_ = getIsMuted.Parameters.Add(new("guildId", NpgsqlDbType.Bigint));
 			getIsMuted.Prepare();
 			PreparedStatements.Add(StatementType.GetIsMuted, getIsMuted);
 
-			Logger.Debug($"Preparing {StatementType.SetIsMuted}...");
-			NpgsqlCommand setIsMuted = new("UPDATE guild_cache SET muted=@isMuted WHERE user_id=@userId AND guild_id=@guildId", Connection);
+			_logger.Debug($"Preparing {StatementType.SetIsMuted}...");
+			NpgsqlCommand setIsMuted = new("UPDATE guild_cache SET muted=@isMuted WHERE user_id=@userId AND guild_id=@guildId", _connection);
 			_ = setIsMuted.Parameters.Add(new("isMuted", NpgsqlDbType.Boolean));
 			_ = setIsMuted.Parameters.Add(new("userId", NpgsqlDbType.Bigint));
 			_ = setIsMuted.Parameters.Add(new("guildId", NpgsqlDbType.Bigint));
 			setIsMuted.Prepare();
 			PreparedStatements.Add(StatementType.SetIsMuted, setIsMuted);
 
-			Logger.Debug($"Preparing {StatementType.GetIsAntiMemed}...");
-			NpgsqlCommand getIsNoMemed = new("SELECT no_memed FROM guild_cache WHERE user_id=@userId AND guild_id=@guildId", Connection);
+			_logger.Debug($"Preparing {StatementType.GetIsAntiMemed}...");
+			NpgsqlCommand getIsNoMemed = new("SELECT no_memed FROM guild_cache WHERE user_id=@userId AND guild_id=@guildId", _connection);
 			_ = getIsNoMemed.Parameters.Add(new("userId", NpgsqlDbType.Bigint));
 			_ = getIsNoMemed.Parameters.Add(new("guildId", NpgsqlDbType.Bigint));
 			getIsNoMemed.Prepare();
 			PreparedStatements.Add(StatementType.GetIsAntiMemed, getIsNoMemed);
 
-			Logger.Debug($"Preparing {StatementType.SetIsAntiMemed}...");
-			NpgsqlCommand setIsNoMemed = new("UPDATE guild_cache SET no_memed=@isNoMemed WHERE user_id=@userId AND guild_id=@guildId", Connection);
+			_logger.Debug($"Preparing {StatementType.SetIsAntiMemed}...");
+			NpgsqlCommand setIsNoMemed = new("UPDATE guild_cache SET no_memed=@isNoMemed WHERE user_id=@userId AND guild_id=@guildId", _connection);
 			_ = setIsNoMemed.Parameters.Add(new("isNoMemed", NpgsqlDbType.Boolean));
 			_ = setIsNoMemed.Parameters.Add(new("userId", NpgsqlDbType.Bigint));
 			_ = setIsNoMemed.Parameters.Add(new("guildId", NpgsqlDbType.Bigint));
 			setIsNoMemed.Prepare();
 			PreparedStatements.Add(StatementType.SetIsAntiMemed, setIsNoMemed);
 
-			Logger.Debug($"Preparing {StatementType.GetIsNoVC}...");
-			NpgsqlCommand getIsNoVC = new("SELECT no_voicechat FROM guild_cache WHERE user_id=@userId AND guild_id=@guildId", Connection);
+			_logger.Debug($"Preparing {StatementType.GetIsNoVC}...");
+			NpgsqlCommand getIsNoVC = new("SELECT no_voicechat FROM guild_cache WHERE user_id=@userId AND guild_id=@guildId", _connection);
 			_ = getIsNoVC.Parameters.Add(new("userId", NpgsqlDbType.Bigint));
 			_ = getIsNoVC.Parameters.Add(new("guildId", NpgsqlDbType.Bigint));
 			getIsNoVC.Prepare();
 			PreparedStatements.Add(StatementType.GetIsNoVC, getIsNoVC);
 
-			Logger.Debug($"Preparing {StatementType.SetIsNoVC}...");
-			NpgsqlCommand setIsNoVC = new("UPDATE guild_cache SET no_voicechat=@isNoVC WHERE user_id=@userId AND guild_id=@guildId", Connection);
+			_logger.Debug($"Preparing {StatementType.SetIsNoVC}...");
+			NpgsqlCommand setIsNoVC = new("UPDATE guild_cache SET no_voicechat=@isNoVC WHERE user_id=@userId AND guild_id=@guildId", _connection);
 			_ = setIsNoVC.Parameters.Add(new("isNoVC", NpgsqlDbType.Boolean));
 			_ = setIsNoVC.Parameters.Add(new("userId", NpgsqlDbType.Bigint));
 			_ = setIsNoVC.Parameters.Add(new("guildId", NpgsqlDbType.Bigint));
 			setIsNoVC.Prepare();
 			PreparedStatements.Add(StatementType.SetIsNoVC, setIsNoVC);
-			Logger.Debug("Done preparing commands!");
+			_logger.Debug("Done preparing commands!");
 		}
 
 		public void Dispose()
 		{
 			PreparedStatements.Clear();
-			Connection.Close();
-			Connection.Dispose();
+			_connection.Close();
+			_connection.Dispose();
 			GC.SuppressFinalize(this);
 		}
 

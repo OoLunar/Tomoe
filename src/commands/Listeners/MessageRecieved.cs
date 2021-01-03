@@ -9,12 +9,12 @@ namespace Tomoe.Commands.Listeners
 {
 	public class MessageRecieved
 	{
-		private static readonly Logger Logger = new("Commands.Listeners.GuildAvailable");
-		private static readonly Regex Regex = new(@"(discord((app\.com|.com)\/invite|\.gg)\/[A-z]+)", RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.IgnoreCase);
+		private static readonly Logger _logger = new("Commands.Listeners.GuildAvailable");
+		private static readonly Regex _regex = new(@"(discord((app\.com|.com)\/invite|\.gg)\/[A-z]+)", RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.IgnoreCase);
 
-		public static async Task Handler(DiscordClient _client, MessageCreateEventArgs eventArgs)
+		public static async Task Handler(DiscordClient client, MessageCreateEventArgs eventArgs)
 		{
-			Logger.Trace($"Recieved message in {eventArgs.Channel.Id} on {eventArgs.Guild.Id}");
+			_logger.Trace($"Recieved message in {eventArgs.Channel.Id} on {eventArgs.Guild.Id}");
 			if (eventArgs.Channel.IsPrivate || Program.Database.Guild.IsIgnoredChannel(eventArgs.Guild.Id, eventArgs.Channel.Id) || (await eventArgs.Guild.GetMemberAsync(eventArgs.Author.Id)).Roles.Any(role => Program.Database.Guild.IsAdminRole(eventArgs.Guild.Id, role.Id))) return;
 			int maxMentions = Program.Database.Guild.MaxMentions(eventArgs.Guild.Id);
 			int maxLines = Program.Database.Guild.MaxLines(eventArgs.Guild.Id);
@@ -33,7 +33,7 @@ namespace Tomoe.Commands.Listeners
 
 			if (eventArgs.Message.Content.Contains("discord.gg") || eventArgs.Message.Content.Contains("discord.com/invite"))
 			{
-				CaptureCollection invites = Regex.Match(eventArgs.Message.Content).Captures;
+				CaptureCollection invites = _regex.Match(eventArgs.Message.Content).Captures;
 				foreach (Capture capture in invites)
 				{
 					if (Program.Database.Guild.AntiInvite(eventArgs.Guild.Id) && !Program.Database.Guild.IsAllowedInvite(eventArgs.Guild.Id, capture.Value.Trim().ToLowerInvariant()))
@@ -44,7 +44,7 @@ namespace Tomoe.Commands.Listeners
 				}
 			}
 
-			Logger.Info($"\"{eventArgs.Guild.Name}\" ({eventArgs.Guild.Id}) is ready! Handling {eventArgs.Guild.MemberCount} members.");
+			_logger.Info($"\"{eventArgs.Guild.Name}\" ({eventArgs.Guild.Id}) is ready! Handling {eventArgs.Guild.MemberCount} members.");
 		}
 	}
 }

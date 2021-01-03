@@ -7,19 +7,19 @@ namespace Tomoe.Utils
 	internal class Logging
 	{
 		[JsonProperty("tomoe")]
-		public LogLevel Tomoe;
+		public readonly LogLevel Tomoe;
 
 		[JsonProperty("discord")]
-		public LogLevel Discord;
+		public readonly LogLevel Discord;
 
 		[JsonProperty("npgsql")]
-		public LogLevel Npgsql;
+		public readonly LogLevel Npgsql;
 
 		[JsonProperty("show_id")]
-		public bool ShowId;
+		public readonly bool ShowId;
 
 		[JsonProperty("save_to_file")]
-		public bool SaveToFile;
+		public readonly bool SaveToFile;
 
 		[JsonConstructor]
 		public Logging(LogLevel tomoe = LogLevel.Information, LogLevel discord = LogLevel.Information, LogLevel npgsql = LogLevel.Information, bool showId = false, bool saveToFile = true)

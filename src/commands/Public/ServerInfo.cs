@@ -11,15 +11,15 @@ namespace Tomoe.Commands.Public
 {
 	public class ServerInfo : BaseCommandModule
 	{
-		private static readonly Logger Logger = new("Commands.Public.ServerInfo");
+		private static readonly Logger _logger = new("Commands.Public.ServerInfo");
 
 		[Command("serverinfo"), Description("Gets general info about the server."), Aliases("server_info")]
 		public async Task Get(CommandContext context)
 		{
-			Logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");
-			Logger.Trace("Creating embed...");
+			_logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");
+			_logger.Trace("Creating embed...");
 			DiscordEmbedBuilder embedBuilder = new();
-			Logger.Trace("Filling out description...");
+			_logger.Trace("Filling out description...");
 			embedBuilder.Title = context.Guild.Name;
 			embedBuilder.Url = context.Guild.IconUrl;
 			embedBuilder.Footer = new() { IconUrl = context.Guild.BannerUrl };
@@ -56,9 +56,9 @@ namespace Tomoe.Commands.Public
 				Url = context.Guild.IconUrl.Replace(".jpg", ".png?&size=1024")
 			};
 
-			Logger.Trace("Sending embed...");
+			_logger.Trace("Sending embed...");
 			_ = Program.SendMessage(context, embedBuilder.Build());
-			Logger.Trace("Embed sent!");
+			_logger.Trace("Embed sent!");
 		}
 	}
 }

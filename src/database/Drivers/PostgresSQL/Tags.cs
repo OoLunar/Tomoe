@@ -12,9 +12,9 @@ namespace Tomoe.Database.Drivers.PostgresSQL
 {
 	public class PostgresTags : ITags
 	{
-		private static readonly Logger Logger = new("Database.PostgresSQL.Tags");
-		private readonly NpgsqlConnection Connection;
-		private readonly Dictionary<StatementType, NpgsqlCommand> PreparedStatements = new();
+		private static readonly Logger _logger = new("Database.PostgresSQL.Tags");
+		private readonly NpgsqlConnection _connection;
+		private readonly Dictionary<StatementType, NpgsqlCommand> _preparedStatements = new();
 		private int retryCount;
 		private enum StatementType
 		{
@@ -37,7 +37,7 @@ namespace Tomoe.Database.Drivers.PostgresSQL
 		}
 
 		/// <summary>
-		/// Executes an SQL query from <see cref="PreparedStatements">_preparedStatements</see>, using <seealso cref="StatementType">statementType</seealso> as a key.
+		/// Executes an SQL query from <see cref="_preparedStatements">_preparedStatements</see>, using <seealso cref="StatementType">statementType</seealso> as a key.
 		///
 		/// Returns a list of results if <paramref name="needsResult">needsResult</paramref> is true, otherwise returns null.
 		/// </summary>
@@ -47,12 +47,12 @@ namespace Tomoe.Database.Drivers.PostgresSQL
 		/// <returns><see cref="List{T}">List&lt;dynamic&gt;</see> if <paramref name="needsResult">needsResult</paramref> is true, otherwise returns null.</returns>
 		private Dictionary<int, List<dynamic>> ExecuteQuery(StatementType command, List<NpgsqlParameter> parameters, bool needsResult = false)
 		{
-			NpgsqlCommand statement = PreparedStatements[command];
+			NpgsqlCommand statement = _preparedStatements[command];
 			if (statement.Parameters.Count != parameters.Count) throw new NpgsqlException("Prepared parameters count do not line up with given parameters count.");
 			Dictionary<string, NpgsqlParameter> sortedParameters = new();
 			foreach (NpgsqlParameter parameter in parameters) sortedParameters.Add(parameter.ParameterName, parameter);
 			foreach (NpgsqlParameter parameter in statement.Parameters) parameter.Value = sortedParameters[parameter.ParameterName].Value;
-			Logger.Trace($"Executing prepared statement \"{command}\" with parameters: {string.Join(", ", statement.Parameters.Select(param => param.Value).ToArray())}");
+			_logger.Trace($"Executing prepared statement \"{command}\" with parameters: {string.Join(", ", statement.Parameters.Select(param => param.Value).ToArray())}");
 
 			try
 			{
@@ -68,7 +68,7 @@ namespace Tomoe.Database.Drivers.PostgresSQL
 						{
 							if (reader[i] == DBNull.Value) list.Add(null);
 							else list.Add(reader[i]);
-							Logger.Trace($"Recieved values: {reader[i] ?? "null"} on iteration {i}");
+							_logger.Trace($"Recieved values: {reader[i] ?? "null"} on iteration {i}");
 						}
 
 						if (list.Count == 1 && list[0] == null) values.Add(indexCount, null);
@@ -89,9 +89,9 @@ namespace Tomoe.Database.Drivers.PostgresSQL
 			}
 			catch (SocketException error)
 			{
-				if (retryCount > DatabaseLoader.MaxRetryCount) Logger.Critical($"Failed to execute query \"{command}\" after {retryCount} times. Check your internet connection.");
+				if (retryCount > DatabaseLoader.MaxRetryCount) _logger.Critical($"Failed to execute query \"{command}\" after {retryCount} times. Check your internet connection.");
 				else retryCount++;
-				Logger.Error($"Socket exception occured, retrying... Details: {error.Message}\n{error.StackTrace}");
+				_logger.Error($"Socket exception occured, retrying... Details: {error.Message}\n{error.StackTrace}");
 				return ExecuteQuery(command, parameters, needsResult);
 			}
 		}
@@ -102,156 +102,156 @@ namespace Tomoe.Database.Drivers.PostgresSQL
 
 		public PostgresTags(string host, int port, string username, string password, string database_name, SslMode sslMode)
 		{
-			Connection = new($"Host={host};Port={port};Username={username};Password={password};Database={database_name};SSL Mode={sslMode}");
-			Logger.Info("Opening connection to database...");
+			_connection = new($"Host={host};Port={port};Username={username};Password={password};Database={database_name};SSL Mode={sslMode}");
+			_logger.Info("Opening connection to database...");
 			try
 			{
-				Connection.Open();
-				Logger.Debug("Creating tags table if it doesn't exist...");
-				NpgsqlCommand createTagsTable = new(File.ReadAllText(Path.Join(FileSystem.ProjectRoot, "res/sql/drivers/postgresql/tags_table.sql")), Connection);
+				_connection.Open();
+				_logger.Debug("Creating tags table if it doesn't exist...");
+				NpgsqlCommand createTagsTable = new(File.ReadAllText(Path.Join(FileSystem.ProjectRoot, "res/sql/drivers/postgresql/tags_table.sql")), _connection);
 				_ = createTagsTable.ExecuteNonQuery();
 				createTagsTable.Dispose();
 
-				Logger.Debug("Creating tag_aliases table if it doesn't exist...");
-				NpgsqlCommand createAliasTable = new(File.ReadAllText(Path.Join(FileSystem.ProjectRoot, "res/sql/drivers/postgresql/tag_aliases_table.sql")), Connection);
+				_logger.Debug("Creating tag_aliases table if it doesn't exist...");
+				NpgsqlCommand createAliasTable = new(File.ReadAllText(Path.Join(FileSystem.ProjectRoot, "res/sql/drivers/postgresql/tag_aliases_table.sql")), _connection);
 				_ = createAliasTable.ExecuteNonQuery();
 				createAliasTable.Dispose();
 
-				Logger.Debug("Creating tag functions if they don't exist...");
-				NpgsqlCommand createFunctions = new(File.ReadAllText(Path.Join(FileSystem.ProjectRoot, "res/sql/drivers/postgresql/tag_functions.sql")), Connection);
+				_logger.Debug("Creating tag functions if they don't exist...");
+				NpgsqlCommand createFunctions = new(File.ReadAllText(Path.Join(FileSystem.ProjectRoot, "res/sql/drivers/postgresql/tag_functions.sql")), _connection);
 				_ = createFunctions.ExecuteNonQuery();
 				createFunctions.Dispose();
 			}
 			catch (SocketException error)
 			{
-				Logger.Critical($"Failed to connect to database. {error.Message}", true);
+				_logger.Critical($"Failed to connect to database. {error.Message}", true);
 			}
-			Logger.Info("Preparing SQL commands...");
-			Logger.Debug($"Preparing {StatementType.Create}...");
-			NpgsqlCommand create = new("INSERT INTO tags VALUES(@tagTitle, @guildId, @userId, DEFAULT, DEFAULT, @content)", Connection);
+			_logger.Info("Preparing SQL commands...");
+			_logger.Debug($"Preparing {StatementType.Create}...");
+			NpgsqlCommand create = new("INSERT INTO tags VALUES(@tagTitle, @guildId, @userId, DEFAULT, DEFAULT, @content)", _connection);
 			_ = create.Parameters.Add(new("guildId", NpgsqlDbType.Bigint));
 			_ = create.Parameters.Add(new("userId", NpgsqlDbType.Bigint));
 			_ = create.Parameters.Add(new("tagTitle", NpgsqlDbType.Varchar));
 			_ = create.Parameters.Add(new("content", NpgsqlDbType.Varchar));
 			create.Prepare();
-			PreparedStatements.Add(StatementType.Create, create);
+			_preparedStatements.Add(StatementType.Create, create);
 
-			Logger.Debug($"Preparing {StatementType.CreateAlias}...");
-			NpgsqlCommand createAlias = new("INSERT INTO tag_aliases VALUES(@tagTitle, @guildId, @userId, (SELECT id FROM tags WHERE guild_id=@guildId AND title=@oldTagTitle))", Connection);
+			_logger.Debug($"Preparing {StatementType.CreateAlias}...");
+			NpgsqlCommand createAlias = new("INSERT INTO tag_aliases VALUES(@tagTitle, @guildId, @userId, (SELECT id FROM tags WHERE guild_id=@guildId AND title=@oldTagTitle))", _connection);
 			_ = createAlias.Parameters.Add(new("userId", NpgsqlDbType.Bigint));
 			_ = createAlias.Parameters.Add(new("guildId", NpgsqlDbType.Bigint));
 			_ = createAlias.Parameters.Add(new("tagTitle", NpgsqlDbType.Varchar));
 			_ = createAlias.Parameters.Add(new("oldTagTitle", NpgsqlDbType.Varchar));
 			createAlias.Prepare();
-			PreparedStatements.Add(StatementType.CreateAlias, createAlias);
+			_preparedStatements.Add(StatementType.CreateAlias, createAlias);
 
-			Logger.Debug($"Preparing {StatementType.Delete}...");
-			NpgsqlCommand delete = new("DELETE FROM tags CASCADE WHERE guild_id=@guildId AND title=@tagTitle", Connection);
+			_logger.Debug($"Preparing {StatementType.Delete}...");
+			NpgsqlCommand delete = new("DELETE FROM tags CASCADE WHERE guild_id=@guildId AND title=@tagTitle", _connection);
 			_ = delete.Parameters.Add(new("guildId", NpgsqlDbType.Bigint));
 			_ = delete.Parameters.Add(new("tagTitle", NpgsqlDbType.Varchar));
 			delete.Prepare();
-			PreparedStatements.Add(StatementType.Delete, delete);
+			_preparedStatements.Add(StatementType.Delete, delete);
 
-			Logger.Debug($"Preparing {StatementType.DeleteAlias}...");
-			NpgsqlCommand deleteAlias = new("DELETE FROM tag_aliases WHERE guild_id=@guildId AND title=@tagTitle", Connection);
+			_logger.Debug($"Preparing {StatementType.DeleteAlias}...");
+			NpgsqlCommand deleteAlias = new("DELETE FROM tag_aliases WHERE guild_id=@guildId AND title=@tagTitle", _connection);
 			_ = deleteAlias.Parameters.Add(new("guildId", NpgsqlDbType.Bigint));
 			_ = deleteAlias.Parameters.Add(new("tagTitle", NpgsqlDbType.Varchar));
 			deleteAlias.Prepare();
-			PreparedStatements.Add(StatementType.DeleteAlias, deleteAlias);
+			_preparedStatements.Add(StatementType.DeleteAlias, deleteAlias);
 
-			Logger.Debug($"Preparing {StatementType.DeleteAllAliases}...");
-			NpgsqlCommand deleteAllAliases = new("DELETE FROM tag_aliases WHERE id=(SELECT id FROM tags WHERE guild_id=@guildId AND title=@tagTitle)", Connection);
+			_logger.Debug($"Preparing {StatementType.DeleteAllAliases}...");
+			NpgsqlCommand deleteAllAliases = new("DELETE FROM tag_aliases WHERE id=(SELECT id FROM tags WHERE guild_id=@guildId AND title=@tagTitle)", _connection);
 			_ = deleteAllAliases.Parameters.Add(new("guildId", NpgsqlDbType.Bigint));
 			_ = deleteAllAliases.Parameters.Add(new("tagTitle", NpgsqlDbType.Varchar));
 			deleteAllAliases.Prepare();
-			PreparedStatements.Add(StatementType.DeleteAllAliases, deleteAllAliases);
+			_preparedStatements.Add(StatementType.DeleteAllAliases, deleteAllAliases);
 
-			Logger.Debug($"Preparing {StatementType.Edit}...");
-			NpgsqlCommand edit = new("UPDATE tags SET content=@content WHERE guild_id=@guildId AND title=@tagTitle", Connection);
+			_logger.Debug($"Preparing {StatementType.Edit}...");
+			NpgsqlCommand edit = new("UPDATE tags SET content=@content WHERE guild_id=@guildId AND title=@tagTitle", _connection);
 			_ = edit.Parameters.Add(new("content", NpgsqlDbType.Varchar));
 			_ = edit.Parameters.Add(new("guildId", NpgsqlDbType.Bigint));
 			_ = edit.Parameters.Add(new("tagTitle", NpgsqlDbType.Varchar));
 			edit.Prepare();
-			PreparedStatements.Add(StatementType.Edit, edit);
+			_preparedStatements.Add(StatementType.Edit, edit);
 
-			Logger.Debug($"Preparing {StatementType.Get}...");
-			NpgsqlCommand get = new("SELECT get_tag_value(@guildId, @tagTitle)", Connection);
+			_logger.Debug($"Preparing {StatementType.Get}...");
+			NpgsqlCommand get = new("SELECT get_tag_value(@guildId, @tagTitle)", _connection);
 			_ = get.Parameters.Add(new("guildId", NpgsqlDbType.Bigint));
 			_ = get.Parameters.Add(new("tagTitle", NpgsqlDbType.Varchar));
 			get.Prepare();
-			PreparedStatements.Add(StatementType.Get, get);
+			_preparedStatements.Add(StatementType.Get, get);
 
-			Logger.Debug($"Preparing {StatementType.GetAliases}...");
-			NpgsqlCommand getAliases = new("SELECT title FROM tag_aliases WHERE id=(SELECT id FROM tags WHERE guild_id=@guildId AND title=@tagTitle)", Connection);
+			_logger.Debug($"Preparing {StatementType.GetAliases}...");
+			NpgsqlCommand getAliases = new("SELECT title FROM tag_aliases WHERE id=(SELECT id FROM tags WHERE guild_id=@guildId AND title=@tagTitle)", _connection);
 			_ = getAliases.Parameters.Add(new("guildId", NpgsqlDbType.Bigint));
 			_ = getAliases.Parameters.Add(new("tagTitle", NpgsqlDbType.Varchar));
 			getAliases.Prepare();
-			PreparedStatements.Add(StatementType.GetAliases, getAliases);
+			_preparedStatements.Add(StatementType.GetAliases, getAliases);
 
-			Logger.Debug($"Preparing {StatementType.GetGuild}...");
-			NpgsqlCommand getGuild = new("SELECT title FROM tags WHERE guild_id=@guildId UNION ALL SELECT title || '*' FROM tag_aliases WHERE guild_id=@guildId", Connection);
+			_logger.Debug($"Preparing {StatementType.GetGuild}...");
+			NpgsqlCommand getGuild = new("SELECT title FROM tags WHERE guild_id=@guildId UNION ALL SELECT title || '*' FROM tag_aliases WHERE guild_id=@guildId", _connection);
 			_ = getGuild.Parameters.Add(new("guildId", NpgsqlDbType.Bigint));
 			getGuild.Prepare();
-			PreparedStatements.Add(StatementType.GetGuild, getGuild);
+			_preparedStatements.Add(StatementType.GetGuild, getGuild);
 
-			Logger.Debug($"Preparing {StatementType.GetUserGuild}...");
-			NpgsqlCommand getUserGuild = new("SELECT title FROM tags WHERE guild_id=@guildId AND user_id=@userId UNION ALL SELECT title || '*' FROM tag_aliases WHERE guild_id=@guildId AND user_id=@userId", Connection);
+			_logger.Debug($"Preparing {StatementType.GetUserGuild}...");
+			NpgsqlCommand getUserGuild = new("SELECT title FROM tags WHERE guild_id=@guildId AND user_id=@userId UNION ALL SELECT title || '*' FROM tag_aliases WHERE guild_id=@guildId AND user_id=@userId", _connection);
 			_ = getUserGuild.Parameters.Add(new("userId", NpgsqlDbType.Bigint));
 			_ = getUserGuild.Parameters.Add(new("guildId", NpgsqlDbType.Bigint));
 			getUserGuild.Prepare();
 
-			PreparedStatements.Add(StatementType.GetUserGuild, getUserGuild);
+			_preparedStatements.Add(StatementType.GetUserGuild, getUserGuild);
 
-			Logger.Debug($"Preparing {StatementType.GetUserOverall}...");
-			NpgsqlCommand getUserOverall = new("SELECT title FROM tags WHERE user_id=@userId UNION ALL SELECT title || '*' FROM tag_aliases WHERE user_id=@userId", Connection);
+			_logger.Debug($"Preparing {StatementType.GetUserOverall}...");
+			NpgsqlCommand getUserOverall = new("SELECT title FROM tags WHERE user_id=@userId UNION ALL SELECT title || '*' FROM tag_aliases WHERE user_id=@userId", _connection);
 			_ = getUserOverall.Parameters.Add(new("userId", NpgsqlDbType.Bigint));
 			getUserOverall.Prepare();
-			PreparedStatements.Add(StatementType.GetUserOverall, getUserOverall);
+			_preparedStatements.Add(StatementType.GetUserOverall, getUserOverall);
 
-			Logger.Debug($"Preparing {StatementType.GetAuthor}...");
-			NpgsqlCommand getAuthor = new("SELECT get_tag_author(@guildId, @tagTitle)", Connection);
+			_logger.Debug($"Preparing {StatementType.GetAuthor}...");
+			NpgsqlCommand getAuthor = new("SELECT get_tag_author(@guildId, @tagTitle)", _connection);
 			_ = getAuthor.Parameters.Add(new("guildId", NpgsqlDbType.Bigint));
 			_ = getAuthor.Parameters.Add(new("tagTitle", NpgsqlDbType.Varchar));
 			getAuthor.Prepare();
-			PreparedStatements.Add(StatementType.GetAuthor, getAuthor);
+			_preparedStatements.Add(StatementType.GetAuthor, getAuthor);
 
-			Logger.Debug($"Preparing {StatementType.IsAlias}...");
-			NpgsqlCommand isAlias = new("SELECT NOT EXISTS(SELECT 1 FROM tags WHERE guild_id=@guildId AND title=@tagTitle)", Connection);
+			_logger.Debug($"Preparing {StatementType.IsAlias}...");
+			NpgsqlCommand isAlias = new("SELECT NOT EXISTS(SELECT 1 FROM tags WHERE guild_id=@guildId AND title=@tagTitle)", _connection);
 			_ = isAlias.Parameters.Add(new("guildId", NpgsqlDbType.Bigint));
 			_ = isAlias.Parameters.Add(new("tagTitle", NpgsqlDbType.Varchar));
 			isAlias.Prepare();
-			PreparedStatements.Add(StatementType.IsAlias, isAlias);
+			_preparedStatements.Add(StatementType.IsAlias, isAlias);
 
-			Logger.Debug($"Preparing {StatementType.Exist}...");
-			NpgsqlCommand exist = new("SELECT tag_exists(@guildId, @tagTitle)", Connection);
+			_logger.Debug($"Preparing {StatementType.Exist}...");
+			NpgsqlCommand exist = new("SELECT tag_exists(@guildId, @tagTitle)", _connection);
 			_ = exist.Parameters.Add(new("guildId", NpgsqlDbType.Bigint));
 			_ = exist.Parameters.Add(new("tagTitle", NpgsqlDbType.Varchar));
 			exist.Prepare();
-			PreparedStatements.Add(StatementType.Exist, exist);
+			_preparedStatements.Add(StatementType.Exist, exist);
 
-			Logger.Debug($"Preparing {StatementType.Claim}...");
-			NpgsqlCommand claim = new("SELECT tag_claim(@guildId, @userId, @tagTitle)", Connection);
+			_logger.Debug($"Preparing {StatementType.Claim}...");
+			NpgsqlCommand claim = new("SELECT tag_claim(@guildId, @userId, @tagTitle)", _connection);
 			_ = claim.Parameters.Add(new("guildId", NpgsqlDbType.Bigint));
 			_ = claim.Parameters.Add(new("userId", NpgsqlDbType.Bigint));
 			_ = claim.Parameters.Add(new("tagTitle", NpgsqlDbType.Varchar));
 			claim.Prepare();
-			PreparedStatements.Add(StatementType.Claim, claim);
+			_preparedStatements.Add(StatementType.Claim, claim);
 
-			Logger.Debug($"Preparing {StatementType.RealName}...");
-			NpgsqlCommand realName = new("SELECT title FROM tags WHERE id=(SELECT id FROM tag_aliases WHERE guild_id=@guildId AND title=@tagTitle)", Connection);
+			_logger.Debug($"Preparing {StatementType.RealName}...");
+			NpgsqlCommand realName = new("SELECT title FROM tags WHERE id=(SELECT id FROM tag_aliases WHERE guild_id=@guildId AND title=@tagTitle)", _connection);
 			_ = realName.Parameters.Add(new("guildId", NpgsqlDbType.Bigint));
 			_ = realName.Parameters.Add(new("tagTitle", NpgsqlDbType.Varchar));
 			realName.Prepare();
-			PreparedStatements.Add(StatementType.RealName, realName);
+			_preparedStatements.Add(StatementType.RealName, realName);
 
-			Logger.Debug("Done preparing commands!");
+			_logger.Debug("Done preparing commands!");
 		}
 
 		public void Dispose()
 		{
-			PreparedStatements.Clear();
-			Connection.Close();
-			Connection.Dispose();
+			_preparedStatements.Clear();
+			_connection.Close();
+			_connection.Dispose();
 			GC.SuppressFinalize(this);
 		}
 

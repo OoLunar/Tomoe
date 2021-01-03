@@ -9,30 +9,30 @@ namespace Tomoe.Commands.Public
 {
 	public class BotInfo : BaseCommandModule
 	{
-		private static readonly Logger Logger = new("Commands.Public.BotInfo");
+		private static readonly Logger _logger = new("Commands.Public.BotInfo");
 
 		[Command("botinfo"), Description("Gets general info about the bot."), Aliases("bot_info")]
 		public async Task Get(CommandContext context)
 		{
-			Logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");
-			Logger.Trace("Creating embed...");
+			_logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");
+			_logger.Trace("Creating embed...");
 			DiscordEmbedBuilder embedBuilder = new();
-			Logger.Trace("Setting title...");
+			_logger.Trace("Setting title...");
 			embedBuilder.Title = "General Bot Info";
-			Logger.Trace("Filling out description...");
+			_logger.Trace("Filling out description...");
 			embedBuilder.Description += $"Currently in {context.Client.Guilds.Count} guilds\n";
 			embedBuilder.Description += $"Handling around {context.Client.Presences.Count} people\n";
 			embedBuilder.Description += $"General Ping: {context.Client.Ping}ms\n";
 			embedBuilder.Description += $"Total shards: {Program.Client.ShardClients.Count}\n";
-			Logger.Trace("Getting resource usage...");
+			_logger.Trace("Getting resource usage...");
 			Process currentProcess = Process.GetCurrentProcess();
 			embedBuilder.Description += $"Total memory used: {currentProcess.PrivateMemorySize64 / 1024 / 1024}mb\n";
 			embedBuilder.Description += $"Total threads open: {currentProcess.Threads.Count}";
 			currentProcess.Dispose();
-			Logger.Trace("Disposing of Process.GetCurrentProcess()...");
-			Logger.Trace("Sending embed...");
+			_logger.Trace("Disposing of Process.GetCurrentProcess()...");
+			_logger.Trace("Sending embed...");
 			_ = Program.SendMessage(context, embedBuilder.Build());
-			Logger.Trace("Embed sent!");
+			_logger.Trace("Embed sent!");
 		}
 	}
 }

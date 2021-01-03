@@ -12,9 +12,9 @@ namespace Tomoe.Database.Drivers.PostgresSQL
 {
 	public class PostgresStrikes : IStrikes
 	{
-		private static readonly Logger Logger = new("Database.PostgresSQL.Strike");
-		private readonly NpgsqlConnection Connection;
-		private readonly Dictionary<StatementType, NpgsqlCommand> PreparedStatements = new();
+		private static readonly Logger _logger = new("Database.PostgresSQL.Strike");
+		private readonly NpgsqlConnection _connection;
+		private readonly Dictionary<StatementType, NpgsqlCommand> _preparedStatements = new();
 		private int retryCount;
 		private enum StatementType
 		{
@@ -27,7 +27,7 @@ namespace Tomoe.Database.Drivers.PostgresSQL
 		}
 
 		/// <summary>
-		/// Executes an SQL query from <see cref="PreparedStatements">_preparedStatements</see>, using <seealso cref="StatementType">statementType</seealso> as a key.
+		/// Executes an SQL query from <see cref="_preparedStatements">_preparedStatements</see>, using <seealso cref="StatementType">statementType</seealso> as a key.
 		///
 		/// Returns a list of results if <paramref name="needsResult">needsResult</paramref> is true, otherwise returns null.
 		/// </summary>
@@ -37,12 +37,12 @@ namespace Tomoe.Database.Drivers.PostgresSQL
 		/// <returns><see cref="List{T}">List&lt;dynamic&gt;</see> if <paramref name="needsResult">needsResult</paramref> is true, otherwise returns null.</returns>
 		private Dictionary<int, List<dynamic>> ExecuteQuery(StatementType command, List<NpgsqlParameter> parameters, bool needsResult = false)
 		{
-			NpgsqlCommand statement = PreparedStatements[command];
+			NpgsqlCommand statement = _preparedStatements[command];
 			if (statement.Parameters.Count != parameters.Count) throw new NpgsqlException("Prepared parameters count do not line up with given parameters count.");
 			Dictionary<string, NpgsqlParameter> sortedParameters = new();
 			foreach (NpgsqlParameter parameter in parameters) sortedParameters.Add(parameter.ParameterName, parameter);
 			foreach (NpgsqlParameter parameter in statement.Parameters) parameter.Value = sortedParameters[parameter.ParameterName].Value;
-			Logger.Trace($"Executing prepared statement \"{command}\" with parameters: {string.Join(", ", statement.Parameters.Select(param => param.Value).ToArray())}");
+			_logger.Trace($"Executing prepared statement \"{command}\" with parameters: {string.Join(", ", statement.Parameters.Select(param => param.Value).ToArray())}");
 
 			try
 			{
@@ -58,7 +58,7 @@ namespace Tomoe.Database.Drivers.PostgresSQL
 						{
 							if (reader[i] == DBNull.Value) list.Add(null);
 							else list.Add(reader[i]);
-							Logger.Trace($"Recieved values: {reader[i] ?? "null"} on iteration {i}");
+							_logger.Trace($"Recieved values: {reader[i] ?? "null"} on iteration {i}");
 						}
 
 						if (list.Count == 1 && list[0] == null) values.Add(indexCount, null);
@@ -79,9 +79,9 @@ namespace Tomoe.Database.Drivers.PostgresSQL
 			}
 			catch (SocketException error)
 			{
-				if (retryCount > DatabaseLoader.MaxRetryCount) Logger.Critical($"Failed to execute query \"{command}\" after {retryCount} times. Check your internet connection.");
+				if (retryCount > DatabaseLoader.MaxRetryCount) _logger.Critical($"Failed to execute query \"{command}\" after {retryCount} times. Check your internet connection.");
 				else retryCount++;
-				Logger.Error($"Socket exception occured, retrying... Details: {error.Message}\n{error.StackTrace}");
+				_logger.Error($"Socket exception occured, retrying... Details: {error.Message}\n{error.StackTrace}");
 				return ExecuteQuery(command, parameters, needsResult);
 			}
 		}
@@ -92,23 +92,23 @@ namespace Tomoe.Database.Drivers.PostgresSQL
 
 		public PostgresStrikes(string host, int port, string username, string password, string databaseName, SslMode sslMode)
 		{
-			Connection = new NpgsqlConnection($"Host={host};Port={port};Username={username};Password={password};Database={databaseName};SSL Mode={sslMode}");
-			Logger.Info("Opening connection to database...");
+			_connection = new NpgsqlConnection($"Host={host};Port={port};Username={username};Password={password};Database={databaseName};SSL Mode={sslMode}");
+			_logger.Info("Opening connection to database...");
 			try
 			{
-				Connection.Open();
-				Logger.Debug("Creating strikes table if it doesn't exist...");
-				NpgsqlCommand createTagsTable = new(File.ReadAllText(Path.Join(FileSystem.ProjectRoot, "res/sql/drivers/postgresql/strike_table.sql")), Connection);
+				_connection.Open();
+				_logger.Debug("Creating strikes table if it doesn't exist...");
+				NpgsqlCommand createTagsTable = new(File.ReadAllText(Path.Join(FileSystem.ProjectRoot, "res/sql/drivers/postgresql/strike_table.sql")), _connection);
 				_ = createTagsTable.ExecuteNonQuery();
 				createTagsTable.Dispose();
 			}
 			catch (SocketException error)
 			{
-				Logger.Critical($"Failed to connect to database. {error.Message}", true);
+				_logger.Critical($"Failed to connect to database. {error.Message}", true);
 			}
-			Logger.Info("Preparing SQL commands...");
-			Logger.Debug($"Preparing {StatementType.Add}...");
-			NpgsqlCommand add = new("INSERT INTO strikes VALUES(@guildId, @victimId, @issuerId, ARRAY[@reason], @jumpLink, @victimMessaged, DEFAULT, DEFAULT, DEFAULT, calc_strike_count(@guildId, @victimId)) RETURNING dropped, created_at, id, strike_count", Connection);
+			_logger.Info("Preparing SQL commands...");
+			_logger.Debug($"Preparing {StatementType.Add}...");
+			NpgsqlCommand add = new("INSERT INTO strikes VALUES(@guildId, @victimId, @issuerId, ARRAY[@reason], @jumpLink, @victimMessaged, DEFAULT, DEFAULT, DEFAULT, calc_strike_count(@guildId, @victimId)) RETURNING dropped, created_at, id, strike_count", _connection);
 			_ = add.Parameters.Add(new("guildId", NpgsqlDbType.Bigint));
 			_ = add.Parameters.Add(new("victimId", NpgsqlDbType.Bigint));
 			_ = add.Parameters.Add(new("issuerId", NpgsqlDbType.Bigint));
@@ -116,48 +116,48 @@ namespace Tomoe.Database.Drivers.PostgresSQL
 			_ = add.Parameters.Add(new("jumpLink", NpgsqlDbType.Varchar));
 			_ = add.Parameters.Add(new("victimMessaged", NpgsqlDbType.Boolean));
 			add.Prepare();
-			PreparedStatements.Add(StatementType.Add, add);
+			_preparedStatements.Add(StatementType.Add, add);
 
-			Logger.Debug($"Preparing {StatementType.Drop}...");
-			NpgsqlCommand drop = new("UPDATE strikes SET dropped=true, reason=array_append(reason, @reason) WHERE id=@strikeId RETURNING guild_id, victim_id, issuer_id, reason, victim_messaged, created_at, strike_count", Connection);
+			_logger.Debug($"Preparing {StatementType.Drop}...");
+			NpgsqlCommand drop = new("UPDATE strikes SET dropped=true, reason=array_append(reason, @reason) WHERE id=@strikeId RETURNING guild_id, victim_id, issuer_id, reason, victim_messaged, created_at, strike_count", _connection);
 			_ = drop.Parameters.Add(new("strikeId", NpgsqlDbType.Bigint));
 			_ = drop.Parameters.Add(new("reason", NpgsqlDbType.Varchar));
 			drop.Prepare();
-			PreparedStatements.Add(StatementType.Drop, drop);
+			_preparedStatements.Add(StatementType.Drop, drop);
 
-			Logger.Debug($"Preparing {StatementType.Edit}...");
-			NpgsqlCommand edit = new("UPDATE strikes SET reason=array_append(reason, @reason) WHERE id=@strikeId", Connection);
+			_logger.Debug($"Preparing {StatementType.Edit}...");
+			NpgsqlCommand edit = new("UPDATE strikes SET reason=array_append(reason, @reason) WHERE id=@strikeId", _connection);
 			_ = edit.Parameters.Add(new("reason", NpgsqlDbType.Varchar));
 			_ = edit.Parameters.Add(new("strikeId", NpgsqlDbType.Integer));
 			edit.Prepare();
-			PreparedStatements.Add(StatementType.Edit, edit);
+			_preparedStatements.Add(StatementType.Edit, edit);
 
-			Logger.Debug($"Preparing {StatementType.GetIssued}...");
-			NpgsqlCommand getIssued = new("SELECT guild_id, victim_id, issuer_id, reason, jumplink, victim_messaged, dropped, created_at, id, strike_count FROM strikes WHERE guild_id=@guildId AND issuer_id=@issuerId", Connection);
+			_logger.Debug($"Preparing {StatementType.GetIssued}...");
+			NpgsqlCommand getIssued = new("SELECT guild_id, victim_id, issuer_id, reason, jumplink, victim_messaged, dropped, created_at, id, strike_count FROM strikes WHERE guild_id=@guildId AND issuer_id=@issuerId", _connection);
 			_ = getIssued.Parameters.Add(new("guildId", NpgsqlDbType.Bigint));
 			_ = getIssued.Parameters.Add(new("issuerId", NpgsqlDbType.Bigint));
 			getIssued.Prepare();
-			PreparedStatements.Add(StatementType.GetIssued, getIssued);
+			_preparedStatements.Add(StatementType.GetIssued, getIssued);
 
-			Logger.Debug($"Preparing {StatementType.GetStrike}...");
-			NpgsqlCommand getStrike = new("SELECT * FROM strikes WHERE id=@strikeId", Connection);
+			_logger.Debug($"Preparing {StatementType.GetStrike}...");
+			NpgsqlCommand getStrike = new("SELECT * FROM strikes WHERE id=@strikeId", _connection);
 			_ = getStrike.Parameters.Add(new("strikeId", NpgsqlDbType.Integer));
 			getStrike.Prepare();
-			PreparedStatements.Add(StatementType.GetStrike, getStrike);
+			_preparedStatements.Add(StatementType.GetStrike, getStrike);
 
-			Logger.Debug($"Preparing {StatementType.GetVictim}...");
-			NpgsqlCommand getStrikes = new("SELECT * FROM strikes WHERE guild_id=@guildId AND victim_id=@victimId", Connection);
+			_logger.Debug($"Preparing {StatementType.GetVictim}...");
+			NpgsqlCommand getStrikes = new("SELECT * FROM strikes WHERE guild_id=@guildId AND victim_id=@victimId", _connection);
 			_ = getStrikes.Parameters.Add(new("guildId", NpgsqlDbType.Bigint));
 			_ = getStrikes.Parameters.Add(new("victimId", NpgsqlDbType.Bigint));
 			getStrikes.Prepare();
-			PreparedStatements.Add(StatementType.GetVictim, getStrikes);
+			_preparedStatements.Add(StatementType.GetVictim, getStrikes);
 		}
 
 		public void Dispose()
 		{
-			PreparedStatements.Clear();
-			Connection.Close();
-			Connection.Dispose();
+			_preparedStatements.Clear();
+			_connection.Close();
+			_connection.Dispose();
 			GC.SuppressFinalize(this);
 		}
 

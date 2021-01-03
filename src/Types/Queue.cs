@@ -18,11 +18,11 @@ namespace Tomoe.Types
 		public static readonly DiscordEmoji ThumbsUp = DiscordEmoji.FromUnicode(Program.Client.ShardClients[0], "👍");
 		public static readonly DiscordEmoji ThumbsDown = DiscordEmoji.FromUnicode(Program.Client.ShardClients[0], "👎");
 
-		public DiscordMessage Message { get; set; }
-		public DiscordUser User { get; set; }
-		public DiscordEmoji[] Emojis { get; set; }
-		public ReactionHandler Action { get; set; }
-		public ReactionType Type { get; set; }
+		public DiscordMessage Message { get; private set; }
+		public DiscordUser User { get; private set; }
+		public DiscordEmoji[] Emojis { get; private set; }
+		public ReactionHandler Action { get; private set; }
+		public ReactionType Type { get; private set; }
 
 		public Queue(DiscordMessage message, DiscordUser user, ReactionHandler action)
 		{
@@ -33,7 +33,7 @@ namespace Tomoe.Types
 			message.DeleteAllReactionsAsync("Adding confirmation emoji's.").GetAwaiter().GetResult();
 			message.CreateReactionAsync(ThumbsUp).GetAwaiter().GetResult();
 			message.CreateReactionAsync(ThumbsDown).GetAwaiter().GetResult();
-			ReactionAdded.QueueList.Add(this);
+			ReactionAdded._queueList.Add(this);
 		}
 
 		public Queue(DiscordMessage message, DiscordUser user, DiscordEmoji[] emojis, ReactionHandler action)
@@ -45,7 +45,7 @@ namespace Tomoe.Types
 			Type = ReactionType.Custom;
 			message.DeleteAllReactionsAsync().GetAwaiter().GetResult();
 			for (int i = 0; i < emojis.Length; i++) message.CreateReactionAsync(emojis[i]).GetAwaiter().GetResult();
-			ReactionAdded.QueueList.Add(this);
+			ReactionAdded._queueList.Add(this);
 		}
 
 		public void Dispose()

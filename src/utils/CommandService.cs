@@ -14,7 +14,7 @@ namespace Tomoe.Utils
 {
 	internal class CommandService
 	{
-		private static readonly Logger Logger = new("CommandService");
+		private static readonly Logger _logger = new("CommandService");
 		internal static async Task Launch(DiscordShardedClient discordClient)
 		{
 			while (true)
@@ -39,7 +39,7 @@ namespace Tomoe.Utils
 				}
 				catch (InvalidOperationException)
 				{
-					Logger.Error("Failed to initalize shards on CommandsNext. Trying again...");
+					_logger.Error("Failed to initalize shards on CommandsNext. Trying again...");
 				}
 			}
 		}
@@ -67,7 +67,7 @@ namespace Tomoe.Utils
 				}
 				else
 				{
-					Logger.Error($"'{args.Command?.QualifiedName ?? "<unknown command>"}' errored: {args.Exception.GetType()}, {args.Exception.Message ?? "<no message>"}\n{args.Exception.StackTrace}");
+					_logger.Error($"'{args.Command?.QualifiedName ?? "<unknown command>"}' errored: {args.Exception.GetType()}, {args.Exception.Message ?? "<no message>"}\n{args.Exception.StackTrace}");
 				}
 			}
 		}

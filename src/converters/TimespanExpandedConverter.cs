@@ -17,7 +17,7 @@ namespace Tomoe
 	public class ExpandedTimeSpanConverter : IArgumentConverter<ExpandedTimeSpan>
 	{
 
-		private static readonly Regex TimeSpanRegex = new(@"^(?<years>\d{1,2}y\s*)?(?<months>\d{1,2}M\s*)?(?<weeks>\d{1,2}w\s*)?(?<days>\d+d\s*)?(?<hours>\d{1,2}h\s*)?(?<minutes>\d{1,2}m\s*)?(?<seconds>\d{1,2}s\s*)?$", RegexOptions.ECMAScript | RegexOptions.Compiled);
+		private static readonly Regex _timeSpanRegex = new(@"^(?<years>\d{1,2}y\s*)?(?<months>\d{1,2}M\s*)?(?<weeks>\d{1,2}w\s*)?(?<days>\d+d\s*)?(?<hours>\d{1,2}h\s*)?(?<minutes>\d{1,2}m\s*)?(?<seconds>\d{1,2}s\s*)?$", RegexOptions.ECMAScript | RegexOptions.Compiled);
 
 		public Task<Optional<ExpandedTimeSpan>> ConvertAsync(string value, CommandContext ctx)
 		{
@@ -40,7 +40,7 @@ namespace Tomoe
 			}
 
 			string[] groups = new string[] { "years", "months", "weeks", "days", "hours", "minutes", "seconds" };
-			Match match = TimeSpanRegex.Match(value);
+			Match match = _timeSpanRegex.Match(value);
 			if (!match.Success)
 			{
 				return Task.FromResult(Optional.FromNoValue<ExpandedTimeSpan>());

@@ -9,7 +9,7 @@ namespace Tomoe.Commands.Public
 {
 	public class ProfilePicture : BaseCommandModule
 	{
-		private static readonly Logger Logger = new("Commands.Public.ProfilePicture");
+		private static readonly Logger _logger = new("Commands.Public.ProfilePicture");
 		[Command("profilepicture"), Description("Gets the profile picture of the requested user. Defaults to the requestor when no user is specified."), Aliases(new[] { "profile_picture", "pfp", "avatar" })]
 		public async Task Mention(CommandContext context) => Mention(context, context.User, 1024, ImageFormat.Png);
 
@@ -19,21 +19,21 @@ namespace Tomoe.Commands.Public
 		[Command("profilepicture")]
 		public async Task Mention(CommandContext context, [Description("(Optional) The user's pfp to be shown. Defaults to the requestor.")] DiscordUser user, [Description("(Optional) What size the image should be. Must be a power of two.")] ushort imageSize, [Description("(Optional) What format the image should be. See [image formats](https://discord.com/developers/docs/reference#image-formatting-image-formats).")] ImageFormat imageFormat = ImageFormat.Png)
 		{
-			Logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");
+			_logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");
 			bool userExists = user != null;
-			Logger.Trace($"User exist: {userExists}");
+			_logger.Trace($"User exist: {userExists}");
 			if (userExists)
 			{
-				Logger.Trace($"Getting {user.Username}'s profile picture in {imageFormat} form and {imageSize}x{imageSize} resolution.");
+				_logger.Trace($"Getting {user.Username}'s profile picture in {imageFormat} form and {imageSize}x{imageSize} resolution.");
 				string userAvatarUrl = user.GetAvatarUrl(imageFormat, imageSize);
-				Logger.Trace($"{user.Username}'s profile picture: {userAvatarUrl}");
+				_logger.Trace($"{user.Username}'s profile picture: {userAvatarUrl}");
 				_ = Program.SendMessage(context, userAvatarUrl);
-				Logger.Trace("Message sent!");
+				_logger.Trace("Message sent!");
 			}
 			else
 			{
 				_ = Program.SendMessage(context, "**[Error: User not found.]**");
-				Logger.Trace("Message sent!");
+				_logger.Trace("Message sent!");
 			}
 		}
 	}

@@ -12,7 +12,7 @@ namespace Tomoe.Commands.Moderation
 {
 	public class Unban : BaseCommandModule
 	{
-		private static readonly Logger Logger = new("Commands.Moderation.Unban");
+		private static readonly Logger _logger = new("Commands.Moderation.Unban");
 
 		[Command("unban"), Description("Unbans people from the guild."), RequireUserPermissions(Permissions.BanMembers), RequireBotPermissions(Permissions.BanMembers)]
 		public async Task UnbanUser(CommandContext context, [Description("The person to be unbanned.")] DiscordUser victim, [Description("(Optional) The reason why the person is being unbanned."), RemainingText] string unbanReason = Program.MissingReason)
@@ -49,7 +49,7 @@ namespace Tomoe.Commands.Moderation
 			IReadOnlyList<DiscordBan> guildBans = await context.Guild.GetBansAsync();
 			if (guildBans.Count == 0 || guildBans.All(discordBan => discordBan.User != victim))
 			{
-				Logger.Debug($"No bans found, skipping unbanning of {victim.Id}");
+				_logger.Debug($"No bans found, skipping unbanning of {victim.Id}");
 				return;
 			}
 
