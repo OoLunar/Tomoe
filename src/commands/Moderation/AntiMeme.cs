@@ -60,7 +60,7 @@ namespace Tomoe.Commands.Moderation
 			}
 
 			Program.Database.User.IsAntiMemed(context.Guild.Id, victim.Id, true);
-			_ = Program.SendMessage(context, $"{victim.Mention} has been antimemed{(sentDm ? '.' : " (Failed to DM).")} Reason: ```\n{antiMemeReason.Filter()}\n```", ExtensionMethods.FilteringAction.CodeBlocksIgnore, new List<IMention>() { new UserMention(victim.Id) });
+			_ = Program.SendMessage(context, $"{victim.Mention} has been antimemed{(sentDm ? '.' : " (Failed to DM).")} Reason: ```\n{antiMemeReason.Filter()}\n```", null, new UserMention(victim.Id));
 		}
 	}
 }

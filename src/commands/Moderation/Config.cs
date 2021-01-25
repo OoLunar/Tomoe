@@ -83,9 +83,9 @@ namespace Tomoe.Commands
 			DiscordRole muteRole = await context.Guild.CreateRoleAsync("Muted", Permissions.None, DiscordColor.Gray, false, false, "Allows users to be muted.");
 			_muteLogger.Trace($"Created mute role \"{muteRole.Name}\" ({muteRole.Id}) for {context.Guild.Name} ({context.Guild.Id})!");
 			Program.Database.Guild.MuteRole(context.Guild.Id, muteRole.Id);
-			_ = message.ModifyAsync($"{context.User.Mention}: Overriding channel permissions...", null, new List<IMention>() { new UserMention(context.User.Id) });
+			_ = await message.ModifyAsync($"Overriding channel permissions...");
 			await FixMuteRolePermissions(context.Guild, muteRole);
-			_ = await message.ModifyAsync($"{context.User.Mention}: Done! Mute role is now {muteRole.Mention}", null, new List<IMention>() { new UserMention(context.User.Id) });
+			_ = await message.ModifyAsync($"Done! Mute role is now {muteRole.Mention}");
 		}
 
 
@@ -187,9 +187,9 @@ namespace Tomoe.Commands
 			DiscordRole muteRole = await context.Guild.CreateRoleAsync("Antimeme", Permissions.None, DiscordColor.Gray, false, false, "Allows users to be no memed.");
 			_noMemeLogger.Trace($"Created antimeme role \"{muteRole.Name}\" ({muteRole.Id}) for {context.Guild.Name} ({context.Guild.Id})!");
 			Program.Database.Guild.AntiMemeRole(context.Guild.Id, muteRole.Id);
-			_ = message.ModifyAsync($"{context.User.Mention}: Overriding channel permissions...", null, new List<IMention>() { new UserMention(context.User.Id) });
+			_ = await message.ModifyAsync($"Overriding channel permissions...");
 			await FixAntiMemeRolePermissions(context.Guild, muteRole);
-			_ = await message.ModifyAsync($"{context.User.Mention}: Done! Antimeme role is now {muteRole.Mention}", null, new List<IMention>() { new UserMention(context.User.Id) });
+			_ = await message.ModifyAsync($"Done! Antimeme role is now {muteRole.Mention}");
 		}
 
 		public static async Task FixAntiMemeRolePermissions(DiscordGuild guild, DiscordRole muteRole)

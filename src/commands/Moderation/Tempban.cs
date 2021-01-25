@@ -46,7 +46,7 @@ namespace Tomoe.Commands.Moderation
 			}
 			await context.Guild.BanMemberAsync(victim.Id, pruneDays, banReason ?? Program.MissingReason);
 			Program.Database.Assignments.Create(AssignmentType.TempBan, context.Guild.Id, context.Channel.Id, context.Message.Id, victim.Id, DateTime.Now + banTime.TimeSpan, DateTime.Now, $"{victim.Id} tempbanned in {context.Guild.Id}");
-			_ = Program.SendMessage(context, $"{victim.Mention} has been temporarily banned{(sentDm ? '.' : " (Failed to DM).")} Reason: ```\n{banReason.Filter(ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace) ?? Program.MissingReason}```\n", ExtensionMethods.FilteringAction.CodeBlocksIgnore, new List<IMention>() { new UserMention(victim.Id) });
+			_ = Program.SendMessage(context, $"{victim.Mention} has been temporarily banned{(sentDm ? '.' : " (Failed to DM).")} Reason: ```\n{banReason.Filter(ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace) ?? Program.MissingReason}```\n", null, new UserMention(victim.Id));
 		}
 	}
 }

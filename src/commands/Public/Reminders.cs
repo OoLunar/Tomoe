@@ -27,7 +27,7 @@ namespace Tomoe.Commands.Public
 			_logger.Trace($"Creating reminder for {context.User.Username}");
 			Program.Database.Assignments.Create(AssignmentType.Reminder, context.Guild.Id, context.Channel.Id, context.Message.Id, context.User.Id, DateTime.Now + setOff, DateTime.Now, content);
 			_logger.Trace("Reminder created!");
-			_ = Program.SendMessage(context, $"Set off at {DateTime.Now.Add(setOff).ToString("MMM dd', 'HHH':'mm':'ss")}: ```\n{content}```", ExtensionMethods.FilteringAction.CodeBlocksIgnore);
+			_ = Program.SendMessage(context, $"Set off at {DateTime.Now.Add(setOff).ToString("MMM dd', 'HHH':'mm':'ss")}: ```\n{content}```");
 			_logger.Trace("Message sent!");
 		}
 
@@ -147,7 +147,7 @@ namespace Tomoe.Commands.Public
 							case AssignmentType.Reminder:
 								_logger.Trace($"Creating reminder context for #{task.AssignmentId}...");
 								context = commandsNext.CreateContext(await channel.GetMessageAsync(task.MessageId), Utils.Config.Prefix, commandsNext.RegisteredCommands["remind"], null);
-								_ = Program.SendMessage(context, $"Set at {task.SetAt.ToString("MMM dd', 'HHH':'mm")}: {task.Content}", ExtensionMethods.FilteringAction.CodeBlocksIgnore);
+								_ = Program.SendMessage(context, $"Set at {task.SetAt.ToString("MMM dd', 'HHH':'mm")}: {task.Content}");
 								_logger.Trace("Message sent!");
 								Program.Database.Assignments.Remove(task.AssignmentId);
 								_logger.Trace("Reminder removed!");

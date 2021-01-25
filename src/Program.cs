@@ -10,6 +10,7 @@ using DSharpPlus.EventArgs;
 using Tomoe.Database;
 using Tomoe.Utils;
 using DSharpPlus.CommandsNext;
+using DSharpPlus.Exceptions;
 
 namespace Tomoe
 {
@@ -66,31 +67,25 @@ namespace Tomoe
 			await Task.Delay(-1);
 		}
 
-		public static DiscordMessage SendMessage(CommandContext context, string content, ExtensionMethods.FilteringAction filteringAction = ExtensionMethods.FilteringAction.CodeBlocksEscape, List<IMention> mentionList = null)
+		public static DiscordMessage SendMessage(CommandContext context, string content = null, DiscordEmbed embed = null, params IMention[] mentions)
 		{
-			if (mentionList == null) mentionList = new List<IMention>();
+			List<IMention> mentionList = new List<IMention>();
+			mentionList.AddRange(mentions);
 			mentionList.Add(new UserMention(context.User.Id));
+			DiscordMessageBuilder messageBuilder = new();
+			messageBuilder.WithReply(context.Message.Id, true);
+			messageBuilder.WithAllowedMentions(mentionList);
+			messageBuilder.HasTTS(false);
+			if (content == null && embed == null) throw new ArgumentNullException("Either content or embed needs to hold a value.");
+			if (content != null) messageBuilder.Content = content;
+			if (embed == null) messageBuilder.Embed = embed;
 			try
 			{
-				return context.RespondAsync($"{context.User.Mention}: {content.Filter(filteringAction)}", false, null, mentionList as IEnumerable<IMention>).ConfigureAwait(false).GetAwaiter().GetResult();
+				return messageBuilder.SendAsync(context.Channel).GetAwaiter().GetResult();
 			}
-			catch (DSharpPlus.Exceptions.UnauthorizedException)
+			catch (UnauthorizedException)
 			{
-				return context.Member.SendMessageAsync($"Responding to <{context.Message.JumpLink}>: {content.Filter(filteringAction)}").ConfigureAwait(false).GetAwaiter().GetResult();
-			}
-		}
-
-		public static DiscordMessage SendMessage(CommandContext context, DiscordEmbed embed, List<IMention> mentionList = null)
-		{
-			if (mentionList == null) mentionList = new List<IMention>();
-			mentionList.Add(new UserMention(context.User.Id));
-			try
-			{
-				return context.RespondAsync($"{context.User.Mention}: ", false, embed, mentionList as IEnumerable<IMention>).ConfigureAwait(false).GetAwaiter().GetResult();
-			}
-			catch (DSharpPlus.Exceptions.UnauthorizedException)
-			{
-				return context.Member.SendMessageAsync($"Responding to <{context.Message.JumpLink}>: ", false, embed).ConfigureAwait(false).GetAwaiter().GetResult();
+				return context.Member.SendMessageAsync(messageBuilder).GetAwaiter().GetResult();
 			}
 		}
 	}

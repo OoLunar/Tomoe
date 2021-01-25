@@ -75,7 +75,7 @@ namespace Tomoe.Commands.Moderation
 			}
 
 			Program.Database.User.IsMuted(context.Guild.Id, victim.Id, true);
-			_ = Program.SendMessage(context, $"{victim.Mention} has been muted{(sentDm ? '.' : " (Failed to DM).")} Reason: ```\n{muteReason.Filter()}\n```", ExtensionMethods.FilteringAction.CodeBlocksIgnore, new List<IMention>() { new UserMention(victim.Id) });
+			_ = Program.SendMessage(context, $"{victim.Mention} has been muted{(sentDm ? '.' : " (Failed to DM).")} Reason: ```\n{muteReason.Filter()}\n```", null, new UserMention(victim.Id));
 		}
 	}
 }

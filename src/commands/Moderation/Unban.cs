@@ -40,7 +40,7 @@ namespace Tomoe.Commands.Moderation
 			{
 				sentDm = false;
 			}
-			_ = Program.SendMessage(context, $"{victim.Mention} has been unbanned{(sentDm ? '.' : " (Failed to DM).")} Reason: ```\n{unbanReason.Filter() ?? Program.MissingReason}\n```", ExtensionMethods.FilteringAction.CodeBlocksIgnore, new List<IMention>() { new UserMention(victim.Id) });
+			_ = Program.SendMessage(context, $"{victim.Mention} has been unbanned{(sentDm ? '.' : " (Failed to DM).")} Reason: ```\n{unbanReason.Filter() ?? Program.MissingReason}\n```", null, new UserMention(victim.Id));
 		}
 
 

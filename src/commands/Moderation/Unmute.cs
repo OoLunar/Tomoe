@@ -57,7 +57,7 @@ namespace Tomoe.Commands.Moderation
 				sentDm = false;
 			}
 			Program.Database.User.IsMuted(context.Guild.Id, victim.Id, false);
-			_ = Program.SendMessage(context, $"{victim.Mention} has been unmuted{(sentDm ? '.' : " (Failed to DM).")} Reason: ```\n{unmuteReason.Filter()}\n```", ExtensionMethods.FilteringAction.CodeBlocksIgnore, new List<IMention>() { new UserMention(victim.Id) });
+			_ = Program.SendMessage(context, $"{victim.Mention} has been unmuted{(sentDm ? '.' : " (Failed to DM).")} Reason: ```\n{unmuteReason.Filter()}\n```", null, new UserMention(victim.Id));
 		}
 
 		public static async Task ByAssignment(CommandContext context, DiscordUser victim)

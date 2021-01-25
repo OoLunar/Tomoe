@@ -55,7 +55,7 @@ namespace Tomoe.Commands.Moderation
 				sentDm = false;
 			}
 			await context.Guild.BanMemberAsync(victim.Id, pruneDays, banReason ?? Program.MissingReason);
-			_ = Program.SendMessage(context, $"{victim.Mention} has been permanently banned{(sentDm ? '.' : " (Failed to DM).")} Reason: ```\n{banReason.Filter(ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace) ?? Program.MissingReason}```\n", ExtensionMethods.FilteringAction.CodeBlocksIgnore, new List<IMention>() { new UserMention(victim.Id) });
+			_ = Program.SendMessage(context, $"{victim.Mention} has been permanently banned{(sentDm ? '.' : " (Failed to DM).")} Reason: ```\n{banReason.Filter(ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace) ?? Program.MissingReason}```\n", null, new UserMention(victim.Id));
 		}
 
 		[Command("ban"), RequireGuild]
@@ -93,7 +93,7 @@ namespace Tomoe.Commands.Moderation
 				await context.Guild.BanMemberAsync(victim.Id, pruneDays, banReason ?? Program.MissingReason);
 				mentions.Add(new UserMention(victim.Id));
 			}
-			_ = Program.SendMessage(context, $"Successfully massbanned {string.Join<DiscordUser>(", ", victims)}. Reason: ```\n{banReason.Filter()}\n```", ExtensionMethods.FilteringAction.CodeBlocksIgnore, mentions);
+			_ = Program.SendMessage(context, $"Successfully massbanned {string.Join<DiscordUser>(", ", victims)}. Reason: ```\n{banReason.Filter()}\n```", null, mentions.ToArray());
 		}
 
 		[Command("ban"), RequireGuild]

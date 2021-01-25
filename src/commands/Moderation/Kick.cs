@@ -48,10 +48,10 @@ namespace Tomoe.Commands.Moderation
 			}
 			catch (NotFoundException)
 			{
-				_ = Program.SendMessage(context, $"Failed to kick {victim.Mention} since they aren't in the guild. Kick Reason:\n```{kickReason.Filter() ?? Program.MissingReason}```", ExtensionMethods.FilteringAction.CodeBlocksIgnore, new List<IMention>() { new UserMention(victim.Id) });
+				_ = Program.SendMessage(context, $"Failed to kick {victim.Mention} since they aren't in the guild. Kick Reason:\n```{kickReason.Filter() ?? Program.MissingReason}```", null, new UserMention(victim.Id));
 				return;
 			}
-			_ = Program.SendMessage(context, $"{victim.Mention} has been kicked. Reason: ```\n{kickReason.Filter() ?? Program.MissingReason}\n```", ExtensionMethods.FilteringAction.CodeBlocksIgnore, new List<IMention>() { new UserMention(victim.Id) });
+			_ = Program.SendMessage(context, $"{victim.Mention} has been kicked. Reason: ```\n{kickReason.Filter() ?? Program.MissingReason}\n```", null, new UserMention(victim.Id));
 		}
 
 		[Command("kick"), RequireGuild]
@@ -95,7 +95,7 @@ namespace Tomoe.Commands.Moderation
 				await victim.RemoveAsync(kickReason);
 				mentions.Add(new UserMention(victim.Id));
 			}
-			_ = Program.SendMessage(context, $"Successfully masskicked {string.Join<DiscordMember>(", ", victims)}. Reason: ```\n{kickReason.Filter()}\n```", ExtensionMethods.FilteringAction.CodeBlocksIgnore, victims.Select(user => new UserMention(user.Id) as IMention).ToList());
+			_ = Program.SendMessage(context, $"Successfully masskicked {string.Join<DiscordMember>(", ", victims)}. Reason: ```\n{kickReason.Filter()}\n```", null, victims.Select(user => new UserMention(user.Id) as IMention).ToArray());
 		}
 
 		[Command("kick"), RequireGuild]

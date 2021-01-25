@@ -26,13 +26,13 @@ namespace Tomoe.Commands.Public
 			if (tagTitle.Length > 32)
 			{
 				_logger.Trace("Tag title was too long!");
-				_ = Program.SendMessage(context, "**[Error: Tag title too long.]**", ExtensionMethods.FilteringAction.CodeBlocksIgnore);
+				_ = Program.SendMessage(context, "**[Error: Tag title too long.]**");
 				_logger.Trace("Message sent!");
 			}
 			else
 			{
 				_logger.Trace($"Retrieving tag \"{tagTitle}\"...");
-				_ = Program.SendMessage(context, Program.Database.Tags.Retrieve(context.Guild.Id, tagTitle) ?? $"**[Error: \"{tagTitle}\" doesn't exist!]**", ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
+				_ = Program.SendMessage(context, Program.Database.Tags.Retrieve(context.Guild.Id, tagTitle) ?? $"**[Error: \"{tagTitle}\" doesn't exist!]**");
 				_logger.Trace("Message sent!");
 			}
 		}
@@ -43,7 +43,7 @@ namespace Tomoe.Commands.Public
 			_logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");
 			tagTitle = tagTitle.Trim().ToLowerInvariant();
 			Program.Database.Tags.Create(context.Guild.Id, context.User.Id, tagTitle, content.Filter(ExtensionMethods.FilteringAction.CodeBlocksIgnore));
-			_ = Program.SendMessage(context, $"Tag \"{tagTitle}\" has been created!", ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
+			_ = Program.SendMessage(context, $"Tag \"{tagTitle}\" has been created!");
 		}
 
 		[Command("edit"), Description("Edits a tag."), RequireGuild, TagCheck(true, TagType.Tag, TagState.Exists)]
@@ -52,8 +52,8 @@ namespace Tomoe.Commands.Public
 			_logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");
 			tagTitle = tagTitle.Trim().ToLowerInvariant();
 			_logger.Trace($"Editing tag \"{tagTitle}\"...");
-			Program.Database.Tags.Edit(context.Guild.Id, tagTitle, ExtensionMethods.Filter(content, ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace));
-			_ = Program.SendMessage(context, $"Tag \"{tagTitle}\" successfully edited.", ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
+			Program.Database.Tags.Edit(context.Guild.Id, tagTitle, ExtensionMethods.Filter(content));
+			_ = Program.SendMessage(context, $"Tag \"{tagTitle}\" successfully edited.");
 			_logger.Trace("Message sent!");
 		}
 
@@ -64,7 +64,7 @@ namespace Tomoe.Commands.Public
 			tagTitle = tagTitle.Trim().ToLowerInvariant();
 			_logger.Trace($"Tag \"{tagTitle}\" is being deleted...");
 			Program.Database.Tags.Delete(context.Guild.Id, tagTitle);
-			_ = Program.SendMessage(context, $"Tag \"{tagTitle}\" successfully deleted.", ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
+			_ = Program.SendMessage(context, $"Tag \"{tagTitle}\" successfully deleted.");
 			_logger.Trace("Message sent!");
 		}
 
@@ -79,20 +79,20 @@ namespace Tomoe.Commands.Public
 			if (!Program.Database.Tags.Exist(context.Guild.Id, oldName))
 			{
 				_logger.Trace($"Tag \"{oldName}\" does not exist...");
-				_ = Program.SendMessage(context, $"Tag \"{oldName}\" does not exist!", ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
+				_ = Program.SendMessage(context, $"Tag \"{oldName}\" does not exist!");
 				_logger.Trace("Message sent!");
 			}
 			else if (Program.Database.Tags.IsAlias(context.Guild.Id, oldName).Value)
 			{
 				_logger.Trace($"Tag \"{oldName}\" is an alias...");
-				_ = Program.SendMessage(context, $"**[Denied: Creating aliases of aliases aren't allowed. Use `>>tag create_alias {Program.Database.Tags.RealName(context.Guild.Id, oldName)}` to create the alias.]**", ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
+				_ = Program.SendMessage(context, $"**[Denied: Creating aliases of aliases aren't allowed. Use `>>tag create_alias {Program.Database.Tags.RealName(context.Guild.Id, oldName)}` to create the alias.]**");
 				_logger.Trace("Message sent!");
 			}
 			else
 			{
 				_logger.Trace($"Creating new alias \"{newName}\"...");
 				Program.Database.Tags.CreateAlias(context.Guild.Id, context.User.Id, newName, oldName);
-				_ = Program.SendMessage(context, $"Tag \"{newName.ToLowerInvariant()}\" has been created!", ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
+				_ = Program.SendMessage(context, $"Tag \"{newName.ToLowerInvariant()}\" has been created!");
 				_logger.Trace("Message sent!");
 			}
 		}
@@ -104,7 +104,7 @@ namespace Tomoe.Commands.Public
 			tagTitle = tagTitle.Trim().ToLowerInvariant();
 			_logger.Trace($"Deleting alias \"{tagTitle}\"...");
 			Program.Database.Tags.DeleteAlias(context.Guild.Id, tagTitle);
-			_ = Program.SendMessage(context, $"Tag alias \"{tagTitle.Trim().ToLowerInvariant()}\" successfully deleted.", ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
+			_ = Program.SendMessage(context, $"Tag alias \"{tagTitle.Trim().ToLowerInvariant()}\" successfully deleted.");
 			_logger.Trace("Message sent!");
 		}
 
@@ -115,7 +115,7 @@ namespace Tomoe.Commands.Public
 			tagTitle = tagTitle.Trim().ToLowerInvariant();
 			_logger.Trace($"Deleting all aliases for tag \"{tagTitle}\"...");
 			Program.Database.Tags.DeleteAllAliases(context.Guild.Id, tagTitle);
-			_ = Program.SendMessage(context, $"All aliases for \"{tagTitle.Trim().ToLowerInvariant()}\" have been removed!", ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
+			_ = Program.SendMessage(context, $"All aliases for \"{tagTitle.Trim().ToLowerInvariant()}\" have been removed!");
 			_logger.Trace("Message sent!");
 		}
 
@@ -128,13 +128,13 @@ namespace Tomoe.Commands.Public
 			if (!Program.Database.Tags.Exist(context.Guild.Id, tagTitle))
 			{
 				_logger.Trace($"Tag \"{tagTitle}\" doesn't exist...");
-				_ = Program.SendMessage(context, $"\"{tagTitle}\" doesn't exist!", ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
+				_ = Program.SendMessage(context, $"\"{tagTitle}\" doesn't exist!");
 				_logger.Trace("Message sent!");
 			}
 			else
 			{
 				_logger.Trace($"Tag \"{tagTitle}\" does exist!");
-				_ = Program.SendMessage(context, $"Tag \"{tagTitle}\" does exist!", ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
+				_ = Program.SendMessage(context, $"Tag \"{tagTitle}\" does exist!");
 				_logger.Trace("Message sent!");
 			}
 		}
@@ -145,7 +145,7 @@ namespace Tomoe.Commands.Public
 			_logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");
 			tagTitle = tagTitle.Trim().ToLowerInvariant();
 			_logger.Trace($"Testing if tag \"{tagTitle}\" exists...");
-			_ = Program.SendMessage(context, $"Tag \"{tagTitle}\" is {(Program.Database.Tags.IsAlias(context.Guild.Id, tagTitle).Value ? null : "not")} an alias.", ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
+			_ = Program.SendMessage(context, $"Tag \"{tagTitle}\" is {(Program.Database.Tags.IsAlias(context.Guild.Id, tagTitle).Value ? null : "not")} an alias.");
 			_logger.Trace("Message sent!");
 		}
 
@@ -194,7 +194,7 @@ namespace Tomoe.Commands.Public
 				embedBuilder.Description = $"Tag \"{tagTitle}\" is owned by <@{tagAuthor}> ({tagAuthor}), however they are not currently present in the guild. This means you can claim the tag. See `>>help tag claim` for more information.";
 			}
 			_logger.Trace("Sending embed...");
-			_ = Program.SendMessage(context, embedBuilder.Build());
+			_ = Program.SendMessage(context, null, embedBuilder.Build());
 			_logger.Trace("Embed sent!");
 		}
 
@@ -207,7 +207,7 @@ namespace Tomoe.Commands.Public
 			{
 				_logger.Trace($"Changing ownership of tag \"{tagTitle}\"...");
 				Program.Database.Tags.Claim(context.Guild.Id, tagTitle, context.User.Id);
-				_ = Program.SendMessage(context, $"{context.User.Mention} has forcefully claimed tag \"{tagTitle}\" using their admin powers.", ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
+				_ = Program.SendMessage(context, $"{context.User.Mention} has forcefully claimed tag \"{tagTitle}\" using their admin powers.");
 				_logger.Trace("Message sent!");
 			}
 			else
@@ -225,7 +225,7 @@ namespace Tomoe.Commands.Public
 				{
 					_logger.Trace($"The owner of tag \"{tagTitle}\" is no longer in the guild \"{context.Guild.Id}\", changing ownership...");
 					Program.Database.Tags.Claim(context.Guild.Id, tagTitle, context.User.Id);
-					_ = Program.SendMessage(context, $"Due to the old tag author <@{tagAuthor}> ({tagAuthor}), leaving, the tag \"{tagTitle}\" has been transferred to {context.User.Mention}", ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
+					_ = Program.SendMessage(context, $"Due to the old tag author <@{tagAuthor}> ({tagAuthor}), leaving, the tag \"{tagTitle}\" has been transferred to {context.User.Mention}");
 					_logger.Trace("Message sent!");
 				}
 			}
@@ -241,7 +241,7 @@ namespace Tomoe.Commands.Public
 			{
 				_logger.Trace($"User is indeed staff. Changing ownership of tag \"{tagTitle}\"...");
 				Program.Database.Tags.Claim(context.Guild.Id, tagTitle, newAuthor.Id);
-				_ = Program.SendMessage(context, $"{context.User.Mention} forcefully transferred tag \"{tagTitle}\" to {newAuthor.Mention} using their admin powers.", ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
+				_ = Program.SendMessage(context, $"{context.User.Mention} forcefully transferred tag \"{tagTitle}\" to {newAuthor.Mention} using their admin powers.");
 				_logger.Trace("Message sent!");
 			}
 			else
@@ -251,14 +251,14 @@ namespace Tomoe.Commands.Public
 				if (newAuthorMember == null)
 				{
 					_logger.Trace("The new owner is not in the guild...");
-					_ = Program.SendMessage(context, $"**[Denied: {newAuthor} isn't in the guild.]**", ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
+					_ = Program.SendMessage(context, $"**[Denied: {newAuthor} isn't in the guild.]**");
 					_logger.Trace("Message sent!");
 				}
 				else
 				{
 					_logger.Trace("The new owner is in the guild. Transfer tag over...");
 					Program.Database.Tags.Claim(context.Guild.Id, tagTitle, newAuthor.Id);
-					_ = Program.SendMessage(context, $"Due to the old tag author, {context.User.Mention}, willing letting go of tag \"{tagTitle}\", ownership has now been transferred to {newAuthor.Mention}", ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
+					_ = Program.SendMessage(context, $"Due to the old tag author, {context.User.Mention}, willing letting go of tag \"{tagTitle}\", ownership has now been transferred to {newAuthor.Mention}");
 					_logger.Trace("Message sent!");
 				}
 			}
@@ -365,13 +365,13 @@ namespace Tomoe.Commands.Public
 			if (!Program.Database.Tags.IsAlias(context.User.Id, tagTitle).Value)
 			{
 				_logger.Trace($"Tag \"{tagTitle}\" is a tag...");
-				_ = Program.SendMessage(context, $"\"{tagTitle}\" is the original tag!", ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
+				_ = Program.SendMessage(context, $"\"{tagTitle}\" is the original tag!");
 				_logger.Trace("Message sent!");
 			}
 			else
 			{
 				_logger.Trace($"Tag \"{tagTitle}\" is an alias...");
-				_ = Program.SendMessage(context, $"The original tag for the alias \"{tagTitle}\" is `>>tag {Program.Database.Tags.RealName(context.Guild.Id, tagTitle)}`", ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
+				_ = Program.SendMessage(context, $"The original tag for the alias \"{tagTitle}\" is `>>tag {Program.Database.Tags.RealName(context.Guild.Id, tagTitle)}`");
 				_logger.Trace("Message sent!");
 			}
 		}
@@ -414,32 +414,32 @@ namespace Tomoe.Commands.Public
 			string tagTitle = context.RawArgumentString.Split(' ')[0].Trim().ToLowerInvariant();
 			if (tagTitle.Length > 32)
 			{
-				_ = Program.SendMessage(context, "**[Error: Tag title too long.]**", ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
+				_ = Program.SendMessage(context, "**[Error: Tag title too long.]**");
 				return false;
 			}
 			else if (MustExist == TagState.Exists && !Program.Database.Tags.Exist(context.Guild.Id, tagTitle))
 			{
-				_ = Program.SendMessage(context, $"**[Error: \"{tagTitle}\" doesn't exist!]**", ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
+				_ = Program.SendMessage(context, $"**[Error: \"{tagTitle}\" doesn't exist!]**");
 				return false;
 			}
 			else if (MustExist == TagState.Missing && Program.Database.Tags.Exist(context.Guild.Id, tagTitle))
 			{
-				_ = Program.SendMessage(context, $"**[Error: \"{tagTitle}\" already exists!]**", ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
+				_ = Program.SendMessage(context, $"**[Error: \"{tagTitle}\" already exists!]**");
 				return false;
 			}
 			else if (RequireOwner && (Program.Database.Tags.GetAuthor(context.Guild.Id, tagTitle) != context.User.Id || context.Member.Roles.Any(role => role.Permissions.HasFlag(Permissions.Administrator) || role.Permissions.HasFlag(Permissions.ManageMessages))))
 			{
-				_ = Program.SendMessage(context, "**[Denied: You aren't the tag owner!]**", ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
+				_ = Program.SendMessage(context, "**[Denied: You aren't the tag owner!]**");
 				return false;
 			}
 			else if (RequireTagType == TagType.Tag && Program.Database.Tags.IsAlias(context.Guild.Id, tagTitle).Value)
 			{
-				_ = Program.SendMessage(context, "**[Denied: Tag isn't a tag.]**", ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
+				_ = Program.SendMessage(context, "**[Denied: Tag isn't a tag.]**");
 				return false;
 			}
 			else if (RequireTagType == TagType.Alias && !Program.Database.Tags.IsAlias(context.Guild.Id, tagTitle).Value)
 			{
-				_ = Program.SendMessage(context, "**[Denied: Tag isn't an alias.]**", ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
+				_ = Program.SendMessage(context, "**[Denied: Tag isn't an alias.]**");
 				return false;
 			}
 			else

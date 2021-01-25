@@ -54,16 +54,16 @@ namespace Tomoe.Utils
 					ChecksFailedException error = args.Exception as ChecksFailedException;
 					if (error.Context.Channel.IsPrivate)
 					{
-						_ = Program.SendMessage(args.Context, Program.NotAGuild, ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
+						_ = Program.SendMessage(args.Context, Program.NotAGuild);
 					}
 					else if (error.FailedChecks.OfType<RequireUserPermissionsAttribute>() != null && args.Command.Module.ModuleType != typeof(Commands.Public.Tags))
 					{
-						_ = Program.SendMessage(args.Context, Program.MissingPermissions, ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
+						_ = Program.SendMessage(args.Context, Program.MissingPermissions);
 					}
 				}
 				else if (args.Exception is NotImplementedException)
 				{
-					_ = Program.SendMessage(args.Context, $"{args.Command.Name} hasn't been implemented yet!", ExtensionMethods.FilteringAction.CodeBlocksZeroWidthSpace);
+					_ = Program.SendMessage(args.Context, $"{args.Command.Name} hasn't been implemented yet!");
 				}
 				else
 				{

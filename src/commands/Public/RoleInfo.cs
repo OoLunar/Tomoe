@@ -139,7 +139,7 @@ namespace Tomoe.Commands.Public
 			_logger.Trace("Filling out description...");
 			embed.Description = $"Id: **{role.Id}**\nName: **{role.Name}**\nCreation: **{role.CreationTimestamp}**\nPosition: **{role.Position}**\nColor: **{role.Color}**\nMentionable: **{role.IsMentionable}**\nHoisted: **{role.IsHoisted}**\nManaged: **{role.IsManaged}**\nPermissions: **{role.Permissions.ToPermissionString()}**\nMembers: **{roleMemberCount}**";
 			_logger.Trace("Sending embed...");
-			_ = Program.SendMessage(context, embed.Build());
+			_ = Program.SendMessage(context, null, embed.Build());
 			_logger.Trace("Embed sent!");
 		}
 	}
