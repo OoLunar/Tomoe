@@ -79,7 +79,7 @@ namespace Tomoe.Database.Drivers.PostgresSQL
 			}
 			catch (SocketException error)
 			{
-				if (retryCount > DatabaseLoader.MaxRetryCount) _logger.Critical($"Failed to execute query \"{command}\" after {retryCount} times. Check your internet connection.");
+				if (retryCount > DatabaseLoader.RetryCount) _logger.Critical($"Failed to execute query \"{command}\" after {retryCount} times. Check your internet connection.");
 				else retryCount++;
 				_logger.Error($"Socket exception occured, retrying... Details: {error.Message}\n{error.StackTrace}");
 				return ExecuteQuery(command, parameters, needsResult);
@@ -106,7 +106,11 @@ namespace Tomoe.Database.Drivers.PostgresSQL
 			}
 			catch (SocketException error)
 			{
-				_logger.Critical($"Failed to connect to database. {error.Message}", true);
+				_logger.Critical($"Failed to connect to database. {error.Message}");
+			}
+			catch (PostgresException error) when (error.SqlState == "28P01")
+			{
+				_logger.Critical($"Failed to connect to database. Check your password.");
 			}
 			_logger.Info("Preparing SQL commands...");
 			_logger.Debug($"Preparing {StatementType.Create}...");

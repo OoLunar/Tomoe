@@ -18,7 +18,7 @@ namespace Tomoe.Utils
 		private readonly LogLevel _branchLogLevel;
 
 		/// <summary>The log file.</summary>
-		private static readonly FileStream _logFile = Config.Logging.SaveToFile ? new FileStream(Path.Join(FileSystem.ProjectRoot, $"log/{GetTime()}.log"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite) : null;
+		private static FileStream _logFile = Config.Logging.SaveToFile ? new FileStream(Path.Join(FileSystem.ProjectRoot, $"log/{GetTime()}.log"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite) : null;
 
 		private readonly string _threadId;
 
@@ -230,7 +230,11 @@ namespace Tomoe.Utils
 			}
 			if (exit)
 			{
-				_logFile.Dispose();
+				if (_logFile != null)
+				{
+					_logFile.Dispose();
+					_logFile = null;
+				}
 				Console.WriteLine("Exiting...");
 				Environment.Exit(1);
 			}
@@ -273,7 +277,11 @@ namespace Tomoe.Utils
 			}
 			if (exit)
 			{
-				_logFile.Dispose();
+				if (_logFile != null)
+				{
+					_logFile.Dispose();
+					_logFile = null;
+				}
 				Console.WriteLine("Exiting...");
 				Environment.Exit(1);
 			}
@@ -316,7 +324,11 @@ namespace Tomoe.Utils
 			}
 			if (exit)
 			{
-				_logFile.Dispose();
+				if (_logFile != null)
+				{
+					_logFile.Dispose();
+					_logFile = null;
+				}
 				Console.WriteLine("Exiting...");
 				Environment.Exit(1);
 			}
@@ -360,7 +372,11 @@ namespace Tomoe.Utils
 			}
 			if (exit)
 			{
-				_logFile.Dispose();
+				if (_logFile != null)
+				{
+					_logFile.Dispose();
+					_logFile = null;
+				}
 				Console.WriteLine("Exiting...");
 				Environment.Exit(1);
 			}

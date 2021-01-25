@@ -1,11 +1,11 @@
 CREATE TABLE IF NOT EXISTS assignments(
-    task_type smallint NOT NULL,
-    guild_id bigint NOT NULL,
-    channel_id bigint NOT NULL,
-    message_id bigint NOT NULL,
-    user_id bigint NOT NULL,
-    set_off timestamp without time zone NOT NULL,
-    set_at timestamp without time zone NOT NULL,
-    content varchar(2000) NOT NULL,
+    task_type SMALLINT NOT NULL,
+    guild_id BIGINT NOT NULL,
+    channel_id BIGINT NOT NULL,
+    message_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    set_off TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    set_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    content VARCHAR(2000) NOT NULL,
     id SERIAL NOT NULL
 );

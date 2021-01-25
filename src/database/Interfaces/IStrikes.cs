@@ -4,16 +4,16 @@ namespace Tomoe.Database.Interfaces
 {
 	public struct Strike
 	{
-		public ulong GuildId { get; private set; }
-		public ulong VictimId { get; private set; }
-		public ulong IssuerId { get; private set; }
-		public string[] Reason { get; private set; }
-		public string JumpLink { get; private set; }
-		public bool VictimMessaged { get; private set; }
-		public bool Dropped { get; private set; }
-		public DateTime CreatedAt { get; private set; }
-		public int Id { get; private set; }
-		public int StrikeCount { get; private set; }
+		public ulong GuildId { get; internal set; }
+		public ulong VictimId { get; internal set; }
+		public ulong IssuerId { get; internal set; }
+		public string[] Reason { get; internal set; }
+		public string JumpLink { get; internal set; }
+		public bool VictimMessaged { get; internal set; }
+		public bool Dropped { get; internal set; }
+		public DateTime CreatedAt { get; internal set; }
+		public int Id { get; internal set; }
+		public int StrikeCount { get; internal set; }
 	}
 
 	public interface IStrikes : IDisposable

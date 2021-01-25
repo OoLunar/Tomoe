@@ -46,8 +46,8 @@ namespace Tomoe.Database.Interfaces
 		ulong? AntiMemeRole(ulong guildId);
 		void AntiMemeRole(ulong guildId, ulong roleId);
 
-		ulong? NoVCRole(ulong guildId);
-		void NoVCRole(ulong guildId, ulong roleId);
+		ulong? VoiceBanRole(ulong guildId);
+		void VoiceBanRole(ulong guildId, ulong roleId);
 
 		bool AntiRaid(ulong guildId);
 		void AntiRaid(ulong guildId, bool isEnabled);

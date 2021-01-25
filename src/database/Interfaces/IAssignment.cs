@@ -23,14 +23,14 @@ namespace Tomoe.Database.Interfaces
 
 	public struct Assignment
 	{
-		public AssignmentType AssignmentType { get; private set; }
-		public ulong GuildId { get; private set; }
-		public ulong ChannelId { get; private set; }
-		public ulong MessageId { get; private set; }
-		public ulong UserId { get; private set; }
-		public DateTime SetOff { get; private set; }
-		public DateTime SetAt { get; private set; }
-		public string Content { get; private set; }
-		public int AssignmentId { get; private set; }
+		public AssignmentType AssignmentType { get; internal set; }
+		public ulong GuildId { get; internal set; }
+		public ulong ChannelId { get; internal set; }
+		public ulong MessageId { get; internal set; }
+		public ulong UserId { get; internal set; }
+		public DateTime SetOff { get; internal set; }
+		public DateTime SetAt { get; internal set; }
+		public string Content { get; internal set; }
+		public int AssignmentId { get; internal set; }
 	}
 }

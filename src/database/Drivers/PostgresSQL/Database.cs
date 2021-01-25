@@ -1,4 +1,5 @@
-using System.Dynamic;
+using System;
+using System.Collections.Generic;
 using Npgsql;
 using Npgsql.Logging;
 using Tomoe.Database.Interfaces;
@@ -20,10 +21,14 @@ namespace Tomoe.Database.Drivers.PostgresSQL
 		public IAssignment Assignments { get => PostgresAssignments; }
 		public IStrikes Strikes { get => PostgresStrikes; }
 
-		public PostgresSQL(string host, int port, string username, string password, string database_name, SslMode sslMode)
+		public PostgresSQL(string password, string database_name, Dictionary<string, string> parameters)
 		{
 			NpgsqlLogManager.Provider = new NLogLoggingProvider();
 			NpgsqlLogManager.IsParameterLoggingEnabled = true;
+			string host = parameters["host"];
+			int port = int.Parse(parameters["port"]);
+			string username = parameters["username"];
+			SslMode sslMode = Enum.Parse<SslMode>(parameters["ssl_mode"]);
 			PostgresUser = new PostgresUser(host, port, username, password, database_name, sslMode);
 			PostgresGuild = new PostgresGuild(host, port, username, password, database_name, sslMode);
 			PostgresTags = new PostgresTags(host, port, username, password, database_name, sslMode);
