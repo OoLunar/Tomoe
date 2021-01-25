@@ -42,7 +42,7 @@ namespace Tomoe.Commands.Public
 		{
 			_logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");
 			tagTitle = tagTitle.Trim().ToLowerInvariant();
-			Program.Database.Tags.Create(context.Guild.Id, context.User.Id, tagTitle, content.Filter(ExtensionMethods.FilteringAction.CodeBlocksIgnore));
+			Program.Database.Tags.Create(context.Guild.Id, context.User.Id, tagTitle, content);
 			_ = Program.SendMessage(context, $"Tag \"{tagTitle}\" has been created!");
 		}
 
@@ -52,7 +52,7 @@ namespace Tomoe.Commands.Public
 			_logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");
 			tagTitle = tagTitle.Trim().ToLowerInvariant();
 			_logger.Trace($"Editing tag \"{tagTitle}\"...");
-			Program.Database.Tags.Edit(context.Guild.Id, tagTitle, ExtensionMethods.Filter(content));
+			Program.Database.Tags.Edit(context.Guild.Id, tagTitle, content);
 			_ = Program.SendMessage(context, $"Tag \"{tagTitle}\" successfully edited.");
 			_logger.Trace("Message sent!");
 		}

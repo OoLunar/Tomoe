@@ -48,6 +48,11 @@ namespace Tomoe.Types
 			ReactionAdded._queueList.Add(this);
 		}
 
+		public async Task WaitForReaction()
+		{
+			while (ReactionAdded._queueList.Contains(this)) Task.Delay(500);
+		}
+
 		public void Dispose()
 		{
 			Message = null;

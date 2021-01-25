@@ -6,76 +6,37 @@ using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
 using Tomoe.Types;
+using Tomoe.Commands.Moderation.Attributes;
 
 namespace Tomoe.Commands.Moderation
 {
 	public class Mute : BaseCommandModule
 	{
-		[Command("mute"), Description("Mutes a person permanently."), RequireBotPermissions(Permissions.ManageRoles), RequireUserPermissions(Permissions.ManageMessages), Aliases("silence")]
+		[Command("mute"), Description("Mutes a person permanently."), RequireBotPermissions(Permissions.ManageRoles), RequireUserPermissions(Permissions.ManageMessages), Aliases("silence"), Punishment(true)]
 		public async Task Permanently(CommandContext context, DiscordUser victim, [Description("(Optional) Should prompt to confirm with the self mute")] bool confirmed = false, [RemainingText] string muteReason = Program.MissingReason)
 		{
-			if (victim == context.Client.CurrentUser)
-			{
-				_ = Program.SendMessage(context, Program.SelfAction);
-				return;
-			}
-			else if (victim == context.User && !confirmed)
-			{
-				DiscordMessage discordMessage = Program.SendMessage(context, "**[Notice: You're about to kick yourself. Are you sure about this?]**");
-				_ = new Queue(discordMessage, context.User, new(async eventArgs =>
-				{
-					if (eventArgs.Emoji == Queue.ThumbsUp) await Permanently(context, context.User, true, muteReason);
-					else if (eventArgs.Emoji == Queue.ThumbsDown) _ = Program.SendMessage(context, "Aborting...");
-				}));
-				return;
-			}
-
-			ulong? muteRoleId = Program.Database.Guild.MuteRole(context.Guild.Id);
-			if (!muteRoleId.HasValue)
-			{
-				_ = Program.SendMessage(context, Program.MissingRole);
-				return;
-			}
-
-			DiscordRole muteRole = context.Guild.GetRole(muteRoleId.Value);
+			DiscordRole muteRole = Program.Database.Guild.MuteRole(context.Guild.Id).GetRole(context.Guild);
 			if (muteRole == null)
 			{
 				_ = Program.SendMessage(context, Program.MissingRole);
 				return;
 			}
 
-			bool sentDm = true;
+			DiscordMember guildVictim = await context.Guild.GetMemberAsync(victim.Id);
+			bool sentDm = false;
 
-			try
+			if (guildVictim != null)
 			{
-				DiscordMember guildVictim = await context.Guild.GetMemberAsync(victim.Id);
 				try
 				{
-					if (guildVictim.Hierarchy > context.Guild.CurrentMember.Hierarchy)
-					{
-						_ = Program.SendMessage(context, Program.Hierarchy);
-						return;
-					}
-					else if (guildVictim.Hierarchy >= context.Member.Hierarchy)
-					{
-						_ = Program.SendMessage(context, Program.Hierarchy);
-						return;
-					}
-					else if (!guildVictim.IsBot) _ = await guildVictim.SendMessageAsync($"You've been muted by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: ```\n{muteReason.Filter()}\n```");
+					if (!guildVictim.IsBot) await guildVictim.SendMessageAsync($"You've been muted by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: ```\n{muteReason}\n```");
+					sentDm = true;
 				}
-				catch (UnauthorizedException)
-				{
-					sentDm = false;
-				}
+				catch (UnauthorizedException) { }
 				await guildVictim.GrantRoleAsync(muteRole, muteReason);
 			}
-			catch (NotFoundException)
-			{
-				sentDm = false;
-			}
-
 			Program.Database.User.IsMuted(context.Guild.Id, victim.Id, true);
-			_ = Program.SendMessage(context, $"{victim.Mention} has been muted{(sentDm ? '.' : " (Failed to DM).")} Reason: ```\n{muteReason.Filter()}\n```", null, new UserMention(victim.Id));
+			_ = Program.SendMessage(context, $"{victim.Mention} has been muted{(sentDm ? '.' : " (Failed to DM).")} Reason: ```\n{muteReason}\n```", null, new UserMention(victim.Id));
 		}
 	}
 }

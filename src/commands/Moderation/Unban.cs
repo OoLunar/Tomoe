@@ -7,6 +7,7 @@ using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
 using Tomoe.Utils;
+using Tomoe.Commands.Moderation.Attributes;
 
 namespace Tomoe.Commands.Moderation
 {
@@ -14,7 +15,7 @@ namespace Tomoe.Commands.Moderation
 	{
 		private static readonly Logger _logger = new("Commands.Moderation.Unban");
 
-		[Command("unban"), Description("Unbans people from the guild."), RequireUserPermissions(Permissions.BanMembers), RequireBotPermissions(Permissions.BanMembers)]
+		[Command("unban"), Description("Unbans people from the guild."), RequireUserPermissions(Permissions.BanMembers), RequireBotPermissions(Permissions.BanMembers), Punishment(true)]
 		public async Task UnbanUser(CommandContext context, [Description("The person to be unbanned.")] DiscordUser victim, [Description("(Optional) The reason why the person is being unbanned."), RemainingText] string unbanReason = Program.MissingReason)
 		{
 			IReadOnlyList<DiscordBan> guildBans = await context.Guild.GetBansAsync();
@@ -23,24 +24,17 @@ namespace Tomoe.Commands.Moderation
 				_ = Program.SendMessage(context, $"{victim.Mention} isn't banned!");
 				return;
 			}
+			await context.Guild.UnbanMemberAsync(victim, unbanReason ?? Program.MissingReason);
 
 			bool sentDm = true;
+			DiscordMember guildVictim = await context.Guild.GetMemberAsync(victim.Id);
 
-			try
-			{
-				await context.Guild.UnbanMemberAsync(victim, unbanReason ?? Program.MissingReason);
-				DiscordMember guildVictim = await context.Guild.GetMemberAsync(victim.Id);
-				if (!victim.IsBot) _ = await guildVictim.SendMessageAsync($"You've been unbanned by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: ```\n{unbanReason.Filter() ?? Program.MissingReason}\n```");
-			}
-			catch (NotFoundException)
-			{
-				sentDm = false;
-			}
-			catch (UnauthorizedException)
-			{
-				sentDm = false;
-			}
-			_ = Program.SendMessage(context, $"{victim.Mention} has been unbanned{(sentDm ? '.' : " (Failed to DM).")} Reason: ```\n{unbanReason.Filter() ?? Program.MissingReason}\n```", null, new UserMention(victim.Id));
+			if (guildVictim != null && !guildVictim.IsBot) try
+				{
+					await guildVictim.SendMessageAsync($"You've been unbanned by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: ```\n{unbanReason ?? Program.MissingReason}\n```");
+				}
+				catch (UnauthorizedException) { }
+			_ = Program.SendMessage(context, $"{victim.Mention} has been unbanned{(sentDm ? '.' : " (Failed to DM).")} Reason: ```\n{unbanReason ?? Program.MissingReason}\n```", null, new UserMention(victim.Id));
 		}
 
 

@@ -10,7 +10,7 @@ namespace Tomoe.Commands.Public
 	public class Raw : BaseCommandModule
 	{
 		private static readonly Logger _logger = new("Commands.Public.Raw");
-		[Command("raw"), Description("Gets the raw version of the message provided.")]
+		[Command("raw"), Description("Gets the raw version of the message provided."), Aliases("source")]
 		public async Task Message(CommandContext context, [Description("The message id or jumplink to the message.")] DiscordMessage message)
 		{
 			_logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");

@@ -8,7 +8,7 @@ namespace Tomoe.Commands.Public
 	public class Repository : BaseCommandModule
 	{
 		private static readonly Logger _logger = new("Commands.Public.Repository");
-		[Command("repository"), Description("Sends the source code for Tomoe."), Aliases(new[] { "github", "gh", "gitlab", "repo", "source" })]
+		[Command("repository"), Description("Sends the source code for Tomoe."), Aliases(new[] { "github", "gh", "gitlab", "repo" })]
 		public async Task Get(CommandContext context)
 		{
 			_logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");
