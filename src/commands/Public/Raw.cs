@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
@@ -21,9 +22,9 @@ namespace Tomoe.Commands.Public
 			else
 			{
 				_logger.Trace($"Escaping characters...");
-				string escapedContent = message.Content.Replace("\\", "\\\\").Replace("`", "\\`").Replace("_", "\\_").Replace("~", "\\~").Replace("<", "\\<").Replace(">", "\\>");
 				_logger.Trace("Escaped characters!");
-				_ = await context.RespondAsync($"{escapedContent}\n\n{context.User.Mention}{(message.Embeds.Count < 0 ? ": **[Notice: Cannot get the raw version of an embed!]**" : null)}");
+				string escapedContent = Formatter.Sanitize(message.Content);
+				_ = Program.SendMessage(context, $"{escapedContent}\n{(message.Embeds.Count < 0 ? ": **[Notice: Cannot get the raw version of an embed!]**" : null)}");
 				_logger.Trace("Message sent!");
 			}
 		}
