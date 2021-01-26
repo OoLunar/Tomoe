@@ -1,22 +1,26 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+
 using DSharpPlus;
+using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
+using DSharpPlus.EventArgs;
+using DSharpPlus.Exceptions;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Enums;
 using DSharpPlus.Interactivity.Extensions;
-using DSharpPlus.EventArgs;
+
 using Tomoe.Database;
 using Tomoe.Utils;
-using DSharpPlus.CommandsNext;
-using DSharpPlus.Exceptions;
+
+using Microsoft.Extensions.Logging;
 
 namespace Tomoe
 {
 	internal class Program
 	{
-		public const string MissingReason = "**[No reason was provided.]**";
+		public const string MissingReason = "**[Notice: No reason was provided.]**";
 		public const string MissingPermissions = "**[Denied: Missing permissions.]**";
 		public const string NotAGuild = "**[Denied: Guild command.]**";
 		public const string SelfAction = "**[Denied: Cannot execute on myself.]**";
@@ -37,7 +41,7 @@ namespace Tomoe
 				AutoReconnect = true,
 				Token = Config.Token,
 				TokenType = TokenType.Bot,
-				MinimumLogLevel = Microsoft.Extensions.Logging.LogLevel.Information,
+				MinimumLogLevel = LogLevel.Information,
 				UseRelativeRatelimit = true,
 				MessageCacheSize = 512,
 				LoggerFactory = loggerProvider,
@@ -50,7 +54,9 @@ namespace Tomoe
 				// default pagination behaviour to just ignore the reactions
 				PaginationBehaviour = PaginationBehaviour.WrapAround,
 				// default timeout for other actions to 2 minutes
-				Timeout = TimeSpan.FromMinutes(2)
+				Timeout = TimeSpan.FromMinutes(2),
+				PaginationDeletion = PaginationDeletion.DeleteEmojis,
+				PollBehaviour = PollBehaviour.DeleteEmojis
 			});
 
 			Client.MessageReactionAdded += (DiscordClient client, MessageReactionAddEventArgs eventArgs) => Task.Run(async () => Commands.Listeners.ReactionAdded.Handler(client, eventArgs));
