@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -142,12 +143,16 @@ namespace Tomoe.Utils
 			Console.ResetColor();
 			Console.Write($"[{currentTime}] ");
 			Console.ForegroundColor = ConsoleColor.Blue;
-			Console.Write($"[Trace] ");
+			Console.Write("[Trace]");
 			if (Config.Logging.ShowId)
 			{
+				Console.ResetColor();
+				Console.Write(' ');
 				Console.ForegroundColor = ConsoleColor.DarkMagenta;
-				Console.Write($"[{_threadId}] ");
+				Console.Write($"[{_threadId}]");
 			}
+			Console.ResetColor();
+			Console.Write(' ');
 			Console.ForegroundColor = ConsoleColor.Cyan;
 			Console.Write(_branchname);
 			Console.ResetColor();
@@ -178,12 +183,16 @@ namespace Tomoe.Utils
 			Console.ResetColor();
 			Console.Write($"[{currentTime}] ");
 			Console.ForegroundColor = ConsoleColor.DarkGray;
-			Console.Write($"[Debug] ");
+			Console.Write("[Debug]");
 			if (Config.Logging.ShowId)
 			{
+				Console.ResetColor();
+				Console.Write(' ');
 				Console.ForegroundColor = ConsoleColor.DarkMagenta;
 				Console.Write($"[{_threadId}] ");
 			}
+			Console.ResetColor();
+			Console.Write(' ');
 			Console.ForegroundColor = ConsoleColor.Cyan;
 			Console.Write(_branchname);
 			Console.ResetColor();
@@ -215,11 +224,15 @@ namespace Tomoe.Utils
 			Console.ResetColor();
 			Console.Write($"[{currentTime}] ");
 			Console.ForegroundColor = ConsoleColor.Green;
-			Console.Write($"[Info]  ");
+			Console.Write($"[Info]");
+			Console.ResetColor();
+			Console.Write("  ");
 			if (Config.Logging.ShowId)
 			{
 				Console.ForegroundColor = ConsoleColor.DarkMagenta;
-				Console.Write($"[{_threadId}] ");
+				Console.Write($"[{_threadId}]");
+				Console.ResetColor();
+				Console.Write(' ');
 			}
 			Console.ForegroundColor = ConsoleColor.Cyan;
 			Console.Write(_branchname);
@@ -262,11 +275,15 @@ namespace Tomoe.Utils
 			Console.ResetColor();
 			Console.Write($"[{currentTime}] ");
 			Console.ForegroundColor = ConsoleColor.Yellow;
-			Console.Write($"[Warn]  ");
+			Console.Write($"[Warn]");
+			Console.ResetColor();
+			Console.Write("  ");
 			if (Config.Logging.ShowId)
 			{
 				Console.ForegroundColor = ConsoleColor.DarkMagenta;
-				Console.Write($"[{_threadId}] ");
+				Console.Write($"[{_threadId}]");
+				Console.ResetColor();
+				Console.Write(' ');
 			}
 			Console.ForegroundColor = ConsoleColor.Cyan;
 			Console.Write(_branchname);
@@ -309,11 +326,14 @@ namespace Tomoe.Utils
 			Console.ResetColor();
 			Console.Write($"[{currentTime}] ");
 			Console.ForegroundColor = ConsoleColor.Red;
-			Console.Write($"[Error] ");
+			Console.Write($"[Error]");
+			Console.ResetColor();
+			Console.Write(' ');
 			if (Config.Logging.ShowId)
 			{
 				Console.ForegroundColor = ConsoleColor.DarkMagenta;
-				Console.Write($"[{_threadId}] ");
+				Console.Write($"[{_threadId}]");
+				Console.Write(' ');
 			}
 			Console.ForegroundColor = ConsoleColor.Cyan;
 			Console.Write(_branchname);
@@ -356,12 +376,16 @@ namespace Tomoe.Utils
 			Console.Write($"[{currentTime}] ");
 			Console.ForegroundColor = ConsoleColor.White;
 			Console.BackgroundColor = ConsoleColor.Red;
-			Console.Write($"[Crit]  ");
+			Console.Write($"[Crit]");
+			Console.ResetColor();
+			Console.Write("  ");
 			Console.ResetColor();
 			if (Config.Logging.ShowId)
 			{
 				Console.ForegroundColor = ConsoleColor.DarkMagenta;
-				Console.Write($"[{_threadId}] ");
+				Console.Write($"[{_threadId}]");
+				Console.ResetColor();
+				Console.Write(' ');
 			}
 			Console.ForegroundColor = ConsoleColor.Cyan;
 			Console.Write(_branchname);
@@ -392,12 +416,7 @@ namespace Tomoe.Utils
 	public class LoggerProvider : ILoggerFactory
 	{
 		private readonly ConcurrentDictionary<string, Logger> _loggers = new();
-		public ILogger CreateLogger(string categoryName)
-		{
-			if (categoryName.ToLower().StartsWith("dsharpplus")) return _loggers.GetOrAdd(categoryName, name => new Logger(name, Config.Logging.Discord));
-			else return _loggers.GetOrAdd(categoryName, name => new Logger(name));
-		}
-
+		public ILogger CreateLogger(string categoryName) => categoryName.StartsWith("dsharpplus", true, CultureInfo.InvariantCulture) ? _loggers.GetOrAdd(categoryName, name => new Logger(name, Config.Logging.Discord)) : _loggers.GetOrAdd(categoryName, name => new Logger(name));
 		public void Dispose() => GC.SuppressFinalize(this);
 		public void AddProvider(ILoggerProvider provider) { }
 	}
@@ -413,26 +432,15 @@ namespace Tomoe.Utils
 		internal NpgsqlToLogger(string name) => logger = new Logger(name, Config.Logging.Npgsql);
 		public override bool IsEnabled(NpgsqlLogLevel level) => logger.IsEnabled(ToLogLevel(level));
 		public override void Log(NpgsqlLogLevel level, int connectorId, string msg, Exception? exception) => logger.Log(ToLogLevel(level), $"{msg}{(exception == null ? null : '\n' + exception.ToString())}");
-
-		static LogLevel ToLogLevel(NpgsqlLogLevel level)
+		public static LogLevel ToLogLevel(NpgsqlLogLevel level) => level switch
 		{
-			switch (level)
-			{
-				case NpgsqlLogLevel.Trace:
-					return LogLevel.Trace;
-				case NpgsqlLogLevel.Debug:
-					return LogLevel.Debug;
-				case NpgsqlLogLevel.Info:
-					return LogLevel.Information;
-				case NpgsqlLogLevel.Warn:
-					return LogLevel.Warning;
-				case NpgsqlLogLevel.Error:
-					return LogLevel.Error;
-				case NpgsqlLogLevel.Fatal:
-					return LogLevel.Critical;
-				default:
-					return LogLevel.Debug;
-			}
-		}
+			NpgsqlLogLevel.Trace => LogLevel.Trace,
+			NpgsqlLogLevel.Debug => LogLevel.Debug,
+			NpgsqlLogLevel.Info => LogLevel.Information,
+			NpgsqlLogLevel.Warn => LogLevel.Warning,
+			NpgsqlLogLevel.Error => LogLevel.Error,
+			NpgsqlLogLevel.Fatal => LogLevel.Critical,
+			_ => LogLevel.Debug
+		};
 	}
 }

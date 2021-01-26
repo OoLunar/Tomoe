@@ -22,7 +22,7 @@ namespace Tomoe.Commands.Moderation
 			DiscordMember guildVictim = (await context.Client.GetUserAsync(droppedStrike.VictimId)).GetMember(context.Guild);
 			if (guildVictim != null && !guildVictim.IsBot) try
 				{
-					await guildVictim.SendMessageAsync($"Strike #{droppedStrike.StrikeCount} has been dropped by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: {Formatter.BlockCode(Formatter.Strip(pardonReason))}\nContext: {droppedStrike.JumpLink}");
+					_ = await guildVictim.SendMessageAsync($"Strike #{droppedStrike.StrikeCount} has been dropped by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: {Formatter.BlockCode(Formatter.Strip(pardonReason))}\nContext: {droppedStrike.JumpLink}");
 					sentDm = true;
 				}
 				catch (UnauthorizedException) { }

@@ -13,7 +13,7 @@ namespace Tomoe.Commands.Public
 		private static readonly Logger _logger = new("Commands.Public.Flip");
 		private static readonly Random _random = new();
 
-		[Command("flip"), Description("A simple heads or tails command."), Aliases(new[] { "choose", "pick" })]
+		[Command("flip"), Description("A simple heads or tails command."), Aliases("choose", "pick")]
 		public async Task Choose(CommandContext context)
 		{
 			_logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");

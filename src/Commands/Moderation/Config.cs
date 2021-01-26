@@ -14,7 +14,7 @@ namespace Tomoe.Commands
 	public class Config : BaseCommandModule
 	{
 		private static readonly Logger _muteLogger = new("Commands.Config.Mute");
-		private static readonly Logger _noMemeLogger = new("Commands.Config.NoMeme");
+		private static readonly Logger _noMemeLogger = new("Commands.Config.Antimeme");
 
 		[Command("mute"), Description("Sets up or assigns the mute role."), RequireUserPermissions(Permissions.ManageGuild), RequireGuild]
 		public async Task Mute(CommandContext context, DiscordRole muteRole)
@@ -118,23 +118,23 @@ namespace Tomoe.Commands
 		}
 
 		[Command("antimeme"), Description("Sets up or assigns the antimeme role."), RequireUserPermissions(Permissions.ManageGuild), RequireGuild, Aliases(new[] { "anti_meme", "nomeme", "no_meme", "memeban", "meme_ban" })]
-		public async Task AntiMeme(CommandContext context, DiscordRole antiMemeRole)
+		public async Task Antimeme(CommandContext context, DiscordRole antimemeRole)
 		{
 			ulong? previousAntiMemeRoleId = Program.Database.Guild.AntimemeRole(context.Guild.Id);
-			if (previousAntiMemeRoleId.HasValue && previousAntiMemeRoleId.Value != antiMemeRole.Id)
+			if (previousAntiMemeRoleId.HasValue && previousAntiMemeRoleId.Value != antimemeRole.Id)
 			{
 				DiscordRole previousAntiMemeRole = context.Guild.GetRole(previousAntiMemeRoleId.Value);
 				if (previousAntiMemeRole != null)
 				{
-					DiscordMessage discordMessage = Program.SendMessage(context, $"Previous antimeme role was {previousAntiMemeRole.Mention}. Do you want to overwrite it with {antiMemeRole.Mention}?");
+					DiscordMessage discordMessage = Program.SendMessage(context, $"Previous antimeme role was {previousAntiMemeRole.Mention}. Do you want to overwrite it with {antimemeRole.Mention}?");
 					_ = new Queue(discordMessage, context.User, new(async eventArgs =>
 					{
 						if (eventArgs.Emoji == Queue.ThumbsUp)
 						{
-							Program.Database.Guild.AntiMemeRole(context.Guild.Id, antiMemeRole.Id);
-							_noMemeLogger.Trace($"Set {antiMemeRole.Name} ({antiMemeRole.Id}) as the antimeme role for {context.Guild.Name} ({context.Guild.Id})!");
-							await FixAntiMemeRolePermissions(context.Guild, antiMemeRole);
-							_ = Program.SendMessage(context, $"{antiMemeRole.Mention} is now set as the antimeme role.");
+							Program.Database.Guild.AntiMemeRole(context.Guild.Id, antimemeRole.Id);
+							_noMemeLogger.Trace($"Set {antimemeRole.Name} ({antimemeRole.Id}) as the antimeme role for {context.Guild.Name} ({context.Guild.Id})!");
+							await FixAntiMemeRolePermissions(context.Guild, antimemeRole);
+							_ = Program.SendMessage(context, $"{antimemeRole.Mention} is now set as the antimeme role.");
 						}
 						else if (eventArgs.Emoji == Queue.ThumbsDown)
 						{
@@ -146,22 +146,22 @@ namespace Tomoe.Commands
 					return;
 				}
 			}
-			Program.Database.Guild.AntiMemeRole(context.Guild.Id, antiMemeRole.Id);
-			_noMemeLogger.Trace($"Set {antiMemeRole.Name} ({antiMemeRole.Id}) as the antimeme role for {context.Guild.Name} ({context.Guild.Id})!");
-			await FixAntiMemeRolePermissions(context.Guild, antiMemeRole);
-			_ = Program.SendMessage(context, $"{antiMemeRole.Mention} is now set as the antimeme role.");
+			Program.Database.Guild.AntiMemeRole(context.Guild.Id, antimemeRole.Id);
+			_noMemeLogger.Trace($"Set {antimemeRole.Name} ({antimemeRole.Id}) as the antimeme role for {context.Guild.Name} ({context.Guild.Id})!");
+			await FixAntiMemeRolePermissions(context.Guild, antimemeRole);
+			_ = Program.SendMessage(context, $"{antimemeRole.Mention} is now set as the antimeme role.");
 		}
 
 		[Command("antimeme"), RequireUserPermissions(Permissions.ManageGuild), RequireBotPermissions(Permissions.ManageRoles), RequireGuild]
-		public async Task AntiMeme(CommandContext context)
+		public async Task Antimeme(CommandContext context)
 		{
-			ulong? previousAntiMemeRoleId = Program.Database.Guild.AntimemeRole(context.Guild.Id);
-			if (previousAntiMemeRoleId.HasValue)
+			ulong? previousAntimemeRoleId = Program.Database.Guild.AntimemeRole(context.Guild.Id);
+			if (previousAntimemeRoleId.HasValue)
 			{
-				DiscordRole previousAntiMemeRole = context.Guild.GetRole(previousAntiMemeRoleId.Value);
-				if (previousAntiMemeRole != null)
+				DiscordRole previousAntimemeRole = context.Guild.GetRole(previousAntimemeRoleId.Value);
+				if (previousAntimemeRole != null)
 				{
-					DiscordMessage discordMessage = Program.SendMessage(context, $"Previous antimeme role was {previousAntiMemeRole.Mention}. Do you want to overwrite it?");
+					DiscordMessage discordMessage = Program.SendMessage(context, $"Previous antimeme role was {previousAntimemeRole.Mention}. Do you want to overwrite it?");
 					_ = new Queue(discordMessage, context.User, new(async eventArgs =>
 					{
 						if (eventArgs.Emoji == Queue.ThumbsUp)
@@ -170,8 +170,8 @@ namespace Tomoe.Commands
 						}
 						else if (eventArgs.Emoji == Queue.ThumbsDown)
 						{
-							_noMemeLogger.Trace($"Fixed permissions for the antimeme role {previousAntiMemeRole.Name} ({previousAntiMemeRole.Id}) on {context.Guild.Name} ({context.Guild.Id})!");
-							await FixAntiMemeRolePermissions(context.Guild, previousAntiMemeRole);
+							_noMemeLogger.Trace($"Fixed permissions for the antimeme role {previousAntimemeRole.Name} ({previousAntimemeRole.Id}) on {context.Guild.Name} ({context.Guild.Id})!");
+							await FixAntiMemeRolePermissions(context.Guild, previousAntimemeRole);
 							_ = Program.SendMessage(context, $"Roles were left untouched.");
 						}
 					}));

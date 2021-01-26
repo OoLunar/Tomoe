@@ -30,7 +30,7 @@ namespace Tomoe.Commands.Moderation
 			{
 				try
 				{
-					if (!guildVictim.IsBot) await guildVictim.SendMessageAsync($"You've been temporarily meme banned by **{context.User.Mention}** from **{context.Guild.Name}** for {muteTime.TimeSpan}. This means you cannot link embeds, send files or react. All you can do is send and read messages. Reason: {Formatter.BlockCode(Formatter.Sanitize(antimemeReason))}");
+					if (!guildVictim.IsBot) _ = await guildVictim.SendMessageAsync($"You've been temporarily meme banned by **{context.User.Mention}** from **{context.Guild.Name}** for {muteTime.TimeSpan}. This means you cannot link embeds, send files or react. All you can do is send and read messages. Reason: {Formatter.BlockCode(Formatter.Sanitize(antimemeReason))}");
 					sentDm = true;
 				}
 				catch (UnauthorizedException) { }

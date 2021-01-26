@@ -16,16 +16,17 @@ namespace Tomoe.Commands.Public
 		public async Task Execute(CommandContext context, int repeatCount, string command, [RemainingText] string arguments)
 		{
 			_logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");
-			_logger.Trace($"Creating context for \"{command.ToLower()}\"...");
-			CommandContext newContext = context.CommandsNext.CreateContext(context.Message, context.Prefix, context.CommandsNext.RegisteredCommands[command.ToLowerInvariant()], arguments);
+			string commandName = command.ToLowerInvariant();
+			_logger.Trace($"Creating context for \"{commandName}\"...");
+			CommandContext newContext = context.CommandsNext.CreateContext(context.Message, context.Prefix, context.CommandsNext.RegisteredCommands[commandName], arguments);
 			for (int i = 0; i < repeatCount; i++)
 			{
-				_logger.Trace($"#{i}, executing {command.ToLower()}...");
-				await Task.Run(async () => context.CommandsNext.ExecuteCommandAsync(newContext));
+				_logger.Trace($"#{i}, executing {commandName}...");
+				_ = await Task.Run(async () => context.CommandsNext.ExecuteCommandAsync(newContext));
 				_logger.Trace("Sleep for 2 seconds to avoid breaking rate limits...");
 				await Task.Delay(TimeSpan.FromSeconds(2));
 			}
-			_logger.Trace($"Successfully executed {command.ToLower()} {repeatCount} times!");
+			_logger.Trace($"Successfully executed {commandName} {repeatCount} times!");
 		}
 	}
 }

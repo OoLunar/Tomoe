@@ -32,7 +32,7 @@ namespace Tomoe.Commands.Moderation
 			DiscordMember guildVictim = victim.GetMember(context.Guild);
 			if (guildVictim != null && !guildVictim.IsBot) try
 				{
-					await guildVictim.SendMessageAsync($"You've been unbanned by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: {Formatter.BlockCode(Formatter.Strip(unbanReason))}");
+					_ = await guildVictim.SendMessageAsync($"You've been unbanned by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: {Formatter.BlockCode(Formatter.Strip(unbanReason))}");
 				}
 				catch (UnauthorizedException) { }
 			_ = Program.SendMessage(context, $"{victim.Mention} has been unbanned{(sentDm ? '.' : " (Failed to DM).")} Reason: {Formatter.BlockCode(Formatter.Strip(unbanReason))}", null, new UserMention(victim.Id));

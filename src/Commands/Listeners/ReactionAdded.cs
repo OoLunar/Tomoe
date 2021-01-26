@@ -15,7 +15,7 @@ namespace Tomoe.Commands.Listeners
 		private static readonly Logger _logger = new("Commands.Listeners.ReactionAdded");
 		internal static readonly List<Queue> _queueList = new();
 
-		public static async Task Handler(DiscordClient client, MessageReactionAddEventArgs eventArgs)
+		public static async Task Handler(DiscordClient _client, MessageReactionAddEventArgs eventArgs)
 		{
 			_logger.Trace($"Reaction recieved: {eventArgs.Emoji}");
 			foreach (Queue queue in _queueList)

@@ -12,7 +12,7 @@ namespace Tomoe.Commands.Public
 	public class ProfilePicture : BaseCommandModule
 	{
 		private static readonly Logger _logger = new("Commands.Public.ProfilePicture");
-		[Command("profilepicture"), Description("Gets the profile picture of the requested user. Defaults to the requestor when no user is specified."), Aliases(new[] { "profile_picture", "pfp", "avatar" })]
+		[Command("profilepicture"), Description("Gets the profile picture of the requested user. Defaults to the requestor when no user is specified."), Aliases("profile_picture", "pfp", "avatar")]
 		public async Task Mention(CommandContext context) => Mention(context, context.User, 1024, ImageFormat.Png);
 
 		[Command("profilepicture")]

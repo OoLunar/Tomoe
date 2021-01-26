@@ -28,7 +28,7 @@ namespace Tomoe.Commands.Moderation
 			{
 				try
 				{
-					if (!guildVictim.IsBot) await guildVictim.SendMessageAsync($"You've been promemed by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: {Formatter.BlockCode(Formatter.Strip(promemeReason))}");
+					if (!guildVictim.IsBot) _ = await guildVictim.SendMessageAsync($"You've been promemed by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: {Formatter.BlockCode(Formatter.Strip(promemeReason))}");
 					sentDm = true;
 				}
 				catch (UnauthorizedException) { }

@@ -15,7 +15,7 @@ namespace Tomoe.Commands.Public
 		public async Task Pong(CommandContext context)
 		{
 			_logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");
-			Program.SendMessage(context, $"Pong! Latency is {context.Client.Ping}ms");
+			_ = Program.SendMessage(context, $"Pong! Latency is {context.Client.Ping}ms");
 			_logger.Trace("Message sent!");
 		}
 	}

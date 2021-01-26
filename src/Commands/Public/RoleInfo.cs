@@ -20,14 +20,14 @@ namespace Tomoe.Commands.Public
 	{
 		private static readonly Logger _logger = new("Commands.Public.RoleInfo");
 
-		[Command("roleinfo"), Description("Gets information about a server role."), Aliases(new[] { "role_info", "ri" }), Priority(0)]
+		[Command("roleinfo"), Description("Gets information about a server role."), Aliases("role_info", "ri"), Priority(0)]
 		public async Task ByName(CommandContext context, [Description("The role's name."), RemainingText] string roleName)
 		{
 			_logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");
 			roleName = roleName.Trim().ToLowerInvariant();
 			List<DiscordRole> rolesInQuestion = new();
 			// Check if it's the @everyone or @here roles.
-			if (roleName == "everyone" || roleName == "@here")
+			if (roleName is "everyone" or "@here")
 			{
 				_logger.Trace("Getting information on the everyone role!");
 				await ByPing(context, context.Guild.GetRole(context.Guild.Id));
@@ -37,7 +37,7 @@ namespace Tomoe.Commands.Public
 			{
 				foreach (DiscordRole role in context.Guild.Roles.Values)
 				{
-					if (role.Name.ToLower() == roleName || role.Name.Contains(roleName))
+					if (role.Name.ToLowerInvariant() == roleName || role.Name.Contains(roleName))
 					{
 						_logger.Trace($"Found role {role.Id}...");
 						rolesInQuestion.Add(role);

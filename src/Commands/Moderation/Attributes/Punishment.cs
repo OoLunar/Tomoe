@@ -15,7 +15,7 @@ namespace Tomoe.Commands.Moderation.Attributes
 	public class Punishment : CheckBaseAttribute
 	{
 
-		public bool CanSelfPunish;
+		public bool CanSelfPunish { get; private set; }
 
 		public Punishment(bool canSelfPunish = true) => CanSelfPunish = canSelfPunish;
 
@@ -24,12 +24,12 @@ namespace Tomoe.Commands.Moderation.Attributes
 			if (help) return true;
 			else if (context.User.Id == Program.Client.CurrentUser.Id)
 			{
-				Program.SendMessage(context, Program.SelfAction);
+				_ = Program.SendMessage(context, Program.SelfAction);
 				return false;
 			}
 			else if (context.Message.MentionedUsers.Select(user => user.Id).Contains(context.Guild.OwnerId))
 			{
-				Program.SendMessage(context, "Cannot execute actions on the guild owner!");
+				_ = Program.SendMessage(context, "Cannot execute actions on the guild owner!");
 				return false;
 			}
 			else if (context.Message.MentionedUsers.Contains(context.User))
@@ -41,7 +41,7 @@ namespace Tomoe.Commands.Moderation.Attributes
 					if (eventArgs.Emoji == Queue.ThumbsUp) confirm = true;
 					else if (eventArgs.Emoji == Queue.ThumbsDown)
 					{
-						_ = message.ModifyAsync($"~~{message.Content}~~\n**[Notice: Aborting...]**");
+						_ = message.ModifyAsync($"{Formatter.Strike(message.Content)}\n{Formatter.Bold("[Notice: Aborting...]")}");
 						confirm = false;
 					}
 				})).WaitForReaction();
@@ -54,12 +54,12 @@ namespace Tomoe.Commands.Moderation.Attributes
 		{
 			if (context.User.Id == Program.Client.CurrentUser.Id)
 			{
-				Program.SendMessage(context, Program.SelfAction);
+				_ = Program.SendMessage(context, Program.SelfAction);
 				return false;
 			}
 			else if (context.User.Id == context.Guild.OwnerId)
 			{
-				Program.SendMessage(context, "Cannot execute actions on the guild owner!");
+				_ = Program.SendMessage(context, "Cannot execute actions on the guild owner!");
 				return false;
 			}
 			else if (context.Message.MentionedUsers.Contains(context.User))
@@ -71,7 +71,7 @@ namespace Tomoe.Commands.Moderation.Attributes
 					if (eventArgs.Emoji == Queue.ThumbsUp) confirm = true;
 					else if (eventArgs.Emoji == Queue.ThumbsDown)
 					{
-						_ = message.ModifyAsync($"~~{message.Content}~~\n**[Notice: Aborting...]**");
+						_ = message.ModifyAsync($"{Formatter.Strike(message.Content)}\n{Formatter.Bold("[Notice: Aborting...]")}");
 						confirm = false;
 					}
 				})).WaitForReaction();
@@ -79,7 +79,7 @@ namespace Tomoe.Commands.Moderation.Attributes
 			}
 			else if (context.Member.Hierarchy <= victim.Hierarchy)
 			{
-				Program.SendMessage(context, Program.Hierarchy);
+				_ = Program.SendMessage(context, Program.Hierarchy);
 				return false;
 			}
 			else return true;

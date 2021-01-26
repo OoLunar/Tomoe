@@ -11,7 +11,7 @@ namespace Tomoe.Commands.Listeners
 	{
 		private static readonly Logger _logger = new("Commands.Listeners.GuildAvailable");
 
-		public static async Task Handler(DiscordClient _, GuildCreateEventArgs eventArgs)
+		public static async Task Handler(DiscordClient _client, GuildCreateEventArgs eventArgs)
 		{
 			if (!Program.Database.Guild.GuildIdExists(eventArgs.Guild.Id)) Program.Database.Guild.InsertGuildId(eventArgs.Guild.Id);
 			_logger.Info($"\"{eventArgs.Guild.Name}\" ({eventArgs.Guild.Id}) is ready! Handling {eventArgs.Guild.MemberCount} members.");

@@ -49,7 +49,7 @@ namespace Tomoe.Database
 		{
 			bool foundDriver = false;
 			_logger.Debug("Searching classes...");
-			Type[] assembly = Assembly.GetEntryAssembly().GetTypes().Where(assembler => assembler.GetInterface(typeof(IDatabase).Name) != null).ToArray();
+			Type[] assembly = Assembly.GetEntryAssembly().GetTypes().Where(assembler => assembler.GetInterface(nameof(IDatabase)) != null).ToArray();
 			foreach (Type classType in assembly)
 			{
 				_logger.Debug($"({classType.FullName}) Found class");
@@ -57,7 +57,7 @@ namespace Tomoe.Database
 				{
 					Type[] classParameters = constructor.GetParameters().Select(parameter => parameter.ParameterType).ToArray();
 					if (classParameters.Length != 3) continue;
-					if (classType.Name.ToLower() == selectedDriver.ToString().ToLower())
+					if (classType.Name.ToLowerInvariant() == selectedDriver.ToString().ToLowerInvariant())
 					{
 						_logger.Trace($"({classType.FullName}) Checking if the required properties are set...");
 						PropertyInfo guildProperty = classType.GetProperty("Guild");
@@ -77,10 +77,7 @@ namespace Tomoe.Database
 							foundDriver = true;
 						}
 					}
-					else
-					{
-						_logger.Trace($"({classType.FullName}) Failed to match the requested driver name.");
-					}
+					else _logger.Trace($"({classType.FullName}) Failed to match the requested driver name.");
 				}
 			}
 

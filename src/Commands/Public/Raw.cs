@@ -16,7 +16,7 @@ namespace Tomoe.Commands.Public
 		public async Task Message(CommandContext context, [Description("The message id or jumplink to the message.")] DiscordMessage message)
 		{
 			_logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");
-			if (message.Content == null && message.Embeds.Count < 0)
+			if (message.Content == string.Empty && message.Embeds.Count != 0)
 			{
 				_logger.Trace("Refusing to get contents of just an embed...");
 				_ = Program.SendMessage(context, "**[Error: Cannot get the raw version of an embed!]**");

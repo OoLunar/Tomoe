@@ -8,7 +8,7 @@ namespace Tomoe.Commands.Listeners
 {
 	public class GuildCreated
 	{
-		public static async Task Handler(DiscordClient client, GuildCreateEventArgs eventArgs)
+		public static async Task Handler(DiscordClient _client, GuildCreateEventArgs eventArgs)
 		{
 			if (Program.Database.Guild.GuildIdExists(eventArgs.Guild.Id))
 			{

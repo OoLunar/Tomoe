@@ -20,7 +20,7 @@ namespace Tomoe.Commands.Moderation
 			DiscordMember guildVictim = victim.GetMember(context.Guild);
 			if (guildVictim != null && !guildVictim.IsBot) try
 				{
-					await guildVictim.SendMessageAsync($"You've been banned by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: {Formatter.BlockCode(Formatter.Strip(banReason))}");
+					_ = await guildVictim.SendMessageAsync($"You've been banned by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: {Formatter.BlockCode(Formatter.Strip(banReason))}");
 					sentDm = true;
 				}
 				catch (UnauthorizedException) { }

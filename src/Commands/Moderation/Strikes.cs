@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Threading.Tasks;
 
 using DSharpPlus;
@@ -15,13 +16,13 @@ namespace Tomoe.Commands.Moderation
 	public class Strikes : BaseCommandModule
 	{
 		[GroupCommand]
-		public async Task Add(CommandContext context, DiscordUser victim, [Description("(Optional) Should prompt to confirm with the self strike")] bool confirmed = false, [RemainingText] string strikeReason = Program.MissingReason)
+		public async Task Add(CommandContext context, DiscordUser victim, [RemainingText] string strikeReason = Program.MissingReason)
 		{
 			bool sentDm = false;
 			DiscordMember guildVictim = victim.GetMember(context.Guild);
 			if (guildVictim != null && !guildVictim.IsBot) try
 				{
-					await guildVictim.SendMessageAsync($"You've been given a strike by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: {Formatter.BlockCode(Formatter.Strip(strikeReason))}");
+					_ = await guildVictim.SendMessageAsync($"You've been given a strike by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: {Formatter.BlockCode(Formatter.Strip(strikeReason))}");
 					sentDm = true;
 				}
 				catch (UnauthorizedException) { }
@@ -38,7 +39,7 @@ namespace Tomoe.Commands.Moderation
 			if (pastStrikes == null) _ = Program.SendMessage(context, "No previous strikes have been found!");
 			else
 			{
-				foreach (Strike strike in Program.Database.Strikes.GetVictim(context.Guild.Id, victim.Id)) embedBuilder.Description += $"Case #{strike.Id} [on {strike.CreatedAt.ToString("MMM' 'dd', 'yyyy' 'HH':'mm':'ss")}, Issued by {(await context.Client.GetUserAsync(strike.IssuerId)).Mention}]({strike.JumpLink}) {(strike.Dropped ? "(Dropped)" : null)}\n";
+				foreach (Strike strike in Program.Database.Strikes.GetVictim(context.Guild.Id, victim.Id)) embedBuilder.Description += $"Case #{strike.Id} [on {strike.CreatedAt.ToString("MMM' 'dd', 'yyyy' 'HH':'mm':'ss", CultureInfo.InvariantCulture)}, Issued by {(await context.Client.GetUserAsync(strike.IssuerId)).Mention}]({strike.JumpLink}) {(strike.Dropped ? "(Dropped)" : null)}\n";
 				_ = Program.SendMessage(context, null, embedBuilder.Build());
 			}
 		}

@@ -27,7 +27,7 @@ namespace Tomoe
 		public const string Hierarchy = "**[Denied: Prevented by hierarchy.]**";
 		public const string MissingRole = "**[Error: No role has been set!]**";
 		public static DiscordShardedClient Client { get; private set; }
-		public static readonly DatabaseLoader Database = new();
+		public static DatabaseLoader Database = new();
 		private static readonly Logger _logger = new("Main");
 
 		public static void Main() => MainAsync().ConfigureAwait(false).GetAwaiter().GetResult();
@@ -75,16 +75,16 @@ namespace Tomoe
 
 		public static DiscordMessage SendMessage(CommandContext context, string content = null, DiscordEmbed embed = null, params IMention[] mentions)
 		{
-			List<IMention> mentionList = new List<IMention>();
+			List<IMention> mentionList = new();
 			mentionList.AddRange(mentions);
 			mentionList.Add(new UserMention(context.User.Id));
 			DiscordMessageBuilder messageBuilder = new();
-			messageBuilder.WithReply(context.Message.Id, true);
-			messageBuilder.WithAllowedMentions(mentionList);
-			messageBuilder.HasTTS(false);
-			if (content == null && embed == null) throw new ArgumentNullException("Either content or embed needs to hold a value.");
+			_ = messageBuilder.WithReply(context.Message.Id, true);
+			_ = messageBuilder.WithAllowedMentions(mentionList);
+			_ = messageBuilder.HasTTS(false);
+			if (content == null && embed == null) throw new ArgumentNullException(nameof(content), "Either content or embed needs to hold a value.");
 			if (content != null) messageBuilder.Content = content;
-			if (embed == null) messageBuilder.Embed = embed;
+			if (embed != null) messageBuilder.Embed = embed;
 			try
 			{
 				return messageBuilder.SendAsync(context.Channel).GetAwaiter().GetResult();

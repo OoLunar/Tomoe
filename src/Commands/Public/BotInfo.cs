@@ -23,7 +23,7 @@ namespace Tomoe.Commands.Public
 			embedBuilder.Title = "General Bot Info";
 			_logger.Trace("Filling out description...");
 			embedBuilder.Description += $"Currently in {context.Client.Guilds.Count} guilds\n";
-			embedBuilder.Description += $"Handling around {context.Client.Presences.Count} people\n";
+			embedBuilder.Description += $"Handling around {context.Client.Presences.Count} guild members\n";
 			embedBuilder.Description += $"General Ping: {context.Client.Ping}ms\n";
 			embedBuilder.Description += $"Total shards: {Program.Client.ShardClients.Count}\n";
 			_logger.Trace("Getting resource usage...");

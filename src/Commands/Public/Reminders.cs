@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Threading.Tasks;
 using System.Timers;
 
@@ -30,7 +31,7 @@ namespace Tomoe.Commands.Public
 			_logger.Trace($"Creating reminder for {context.User.Username}");
 			Program.Database.Assignments.Create(AssignmentType.Reminder, context.Guild.Id, context.Channel.Id, context.Message.Id, context.User.Id, DateTime.Now + setOff, DateTime.Now, content);
 			_logger.Trace("Reminder created!");
-			_ = Program.SendMessage(context, $"Set off at {DateTime.Now.Add(setOff).ToString("MMM dd', 'HHH':'mm':'ss")}: ```\n{content}```");
+			_ = Program.SendMessage(context, $"Set off at {DateTime.Now.Add(setOff).ToString("MMM dd', 'HHH':'mm':'ss", CultureInfo.InvariantCulture)}: ```\n{content}```");
 			_logger.Trace("Message sent!");
 		}
 
@@ -56,7 +57,7 @@ namespace Tomoe.Commands.Public
 				foreach (Assignment task in tasks)
 				{
 					_logger.Trace($"Id #{task.AssignmentId}, Set off at {task.SetOff}");
-					reminders.Add($"Id #{task.AssignmentId}, Set off at {task.SetOff.ToString("MMM dd', 'HHH':'mm':'ss")}: {task.Content}");
+					reminders.Add($"Id #{task.AssignmentId}, Set off at {task.SetOff.ToString("MMM dd', 'HHH':'mm':'ss", CultureInfo.InvariantCulture)}: {task.Content}");
 				}
 			}
 
@@ -100,7 +101,7 @@ namespace Tomoe.Commands.Public
 			try
 			{
 				_logger.Trace($"Attempting to parse {taskId}...");
-				_ = Remove(context, int.Parse(taskId.Remove(0, 1)));
+				_ = Remove(context, int.Parse(taskId.Remove(0, 1), CultureInfo.InvariantCulture));
 			}
 			catch (FormatException)
 			{
@@ -150,7 +151,7 @@ namespace Tomoe.Commands.Public
 							case AssignmentType.Reminder:
 								_logger.Trace($"Creating reminder context for #{task.AssignmentId}...");
 								context = commandsNext.CreateContext(await channel.GetMessageAsync(task.MessageId), Utils.Config.Prefix, commandsNext.RegisteredCommands["remind"], null);
-								_ = Program.SendMessage(context, $"Set at {task.SetAt.ToString("MMM dd', 'HHH':'mm")}: {task.Content}");
+								_ = Program.SendMessage(context, $"Set at {task.SetAt.ToString("MMM dd', 'HHH':'mm", CultureInfo.InvariantCulture)}: {task.Content}");
 								_logger.Trace("Message sent!");
 								Program.Database.Assignments.Remove(task.AssignmentId);
 								_logger.Trace("Reminder removed!");
