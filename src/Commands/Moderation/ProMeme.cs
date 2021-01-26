@@ -12,7 +12,7 @@ namespace Tomoe.Commands.Moderation
 {
 	public class UnmemeBan : BaseCommandModule
 	{
-		[Command("promeme"), Description("Unmutes an individual."), Aliases("pro_meme", "unmemeban", "unmeme_ban", "un_memeban", "un_meme_ban", "tempnomeme", "temp_no_meme", "temp_nomeme", "tempno_meme"), Punishment(true)]
+		[Command("promeme"), Description("Unmutes an individual."), Aliases("pro_meme", "unmemeban", "unmeme_ban", "un_memeban", "un_meme_ban", "tempnomeme", "temp_no_meme", "temp_nomeme", "tempno_meme"), Punishment]
 		public async Task User(CommandContext context, DiscordUser victim, [RemainingText] string promemeReason = Program.MissingReason)
 		{
 			DiscordRole antimemeRole = Program.Database.Guild.AntimemeRole(context.Guild.Id).GetRole(context.Guild);
@@ -28,7 +28,7 @@ namespace Tomoe.Commands.Moderation
 			{
 				try
 				{
-					if (!guildVictim.IsBot) _ = await guildVictim.SendMessageAsync($"You've been promemed by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: {Formatter.BlockCode(Formatter.Strip(promemeReason))}");
+					if (!guildVictim.IsBot) _ = await guildVictim.SendMessageAsync($"You've been promemed by {Formatter.Bold(context.User.Mention)} from {Formatter.Bold(context.Guild.Name)}. Reason: {Formatter.BlockCode(Formatter.Strip(promemeReason))}");
 					sentDm = true;
 				}
 				catch (UnauthorizedException) { }
@@ -50,7 +50,7 @@ namespace Tomoe.Commands.Moderation
 			{
 				try
 				{
-					if (!guildVictim.IsBot) _ = await guildVictim.SendMessageAsync($"You've been unmuted by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: {Formatter.BlockCode("Tempmute complete!")}");
+					if (!guildVictim.IsBot) _ = await guildVictim.SendMessageAsync($"You've been unmuted by {Formatter.Bold(context.User.Mention)} from {Formatter.Bold(context.Guild.Name)}. Reason: {Formatter.BlockCode("Tempmute complete!")}");
 				}
 				catch (UnauthorizedException) { }
 				await guildVictim.RevokeRoleAsync(muteRole, "Tempmute complete!");

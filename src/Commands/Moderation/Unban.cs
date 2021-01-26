@@ -17,7 +17,7 @@ namespace Tomoe.Commands.Moderation
 	{
 		private static readonly Logger _logger = new("Commands.Moderation.Unban");
 
-		[Command("unban"), Description("Unbans people from the guild."), RequireUserPermissions(Permissions.BanMembers), RequireBotPermissions(Permissions.BanMembers), Punishment(true)]
+		[Command("unban"), Description("Unbans people from the guild."), RequireUserPermissions(Permissions.BanMembers), RequireBotPermissions(Permissions.BanMembers), Punishment]
 		public async Task User(CommandContext context, [Description("The person to be unbanned.")] DiscordUser victim, [Description("(Optional) The reason why the person is being unbanned."), RemainingText] string unbanReason = Program.MissingReason)
 		{
 			IReadOnlyList<DiscordBan> guildBans = await context.Guild.GetBansAsync();
@@ -32,7 +32,7 @@ namespace Tomoe.Commands.Moderation
 			DiscordMember guildVictim = victim.GetMember(context.Guild);
 			if (guildVictim != null && !guildVictim.IsBot) try
 				{
-					_ = await guildVictim.SendMessageAsync($"You've been unbanned by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: {Formatter.BlockCode(Formatter.Strip(unbanReason))}");
+					_ = await guildVictim.SendMessageAsync($"You've been unbanned by {Formatter.Bold(context.User.Mention)} from {Formatter.Bold(context.Guild.Name)}. Reason: {Formatter.BlockCode(Formatter.Strip(unbanReason))}");
 				}
 				catch (UnauthorizedException) { }
 			_ = Program.SendMessage(context, $"{victim.Mention} has been unbanned{(sentDm ? '.' : " (Failed to DM).")} Reason: {Formatter.BlockCode(Formatter.Strip(unbanReason))}", null, new UserMention(victim.Id));

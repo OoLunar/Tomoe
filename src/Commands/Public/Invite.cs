@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 
+using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 
@@ -16,7 +17,7 @@ namespace Tomoe.Commands.Public
 		{
 			_logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");
 			_logger.Trace($"Invite link: {Utils.Config.InviteLink}");
-			_ = Program.SendMessage(context, $"<{Utils.Config.InviteLink}>");
+			_ = Program.SendMessage(context, Formatter.EmbedlessUrl(new(Utils.Config.InviteLink)));
 			_logger.Trace("Message sent!");
 		}
 	}

@@ -14,7 +14,7 @@ namespace Tomoe.Commands
 	public class Config : BaseCommandModule
 	{
 		private static readonly Logger _muteLogger = new("Commands.Config.Mute");
-		private static readonly Logger _noMemeLogger = new("Commands.Config.Antimeme");
+		private static readonly Logger _antimemeLogger = new("Commands.Config.Antimeme");
 
 		[Command("mute"), Description("Sets up or assigns the mute role."), RequireUserPermissions(Permissions.ManageGuild), RequireGuild]
 		public async Task Mute(CommandContext context, DiscordRole muteRole)
@@ -89,8 +89,6 @@ namespace Tomoe.Commands
 			_ = await message.ModifyAsync($"Done! Mute role is now {muteRole.Mention}");
 		}
 
-
-
 		public static async Task FixMuteRolePermissions(DiscordGuild guild, DiscordRole muteRole)
 		{
 			foreach (DiscordChannel channel in guild.Channels.Values)
@@ -117,7 +115,7 @@ namespace Tomoe.Commands
 			}
 		}
 
-		[Command("antimeme"), Description("Sets up or assigns the antimeme role."), RequireUserPermissions(Permissions.ManageGuild), RequireGuild, Aliases(new[] { "anti_meme", "nomeme", "no_meme", "memeban", "meme_ban" })]
+		[Command("antimeme"), Description("Sets up or assigns the antimeme role."), RequireUserPermissions(Permissions.ManageGuild), RequireGuild, Aliases("anti_meme", "nomeme", "no_meme", "memeban", "meme_ban")]
 		public async Task Antimeme(CommandContext context, DiscordRole antimemeRole)
 		{
 			ulong? previousAntiMemeRoleId = Program.Database.Guild.AntimemeRole(context.Guild.Id);
@@ -132,13 +130,13 @@ namespace Tomoe.Commands
 						if (eventArgs.Emoji == Queue.ThumbsUp)
 						{
 							Program.Database.Guild.AntiMemeRole(context.Guild.Id, antimemeRole.Id);
-							_noMemeLogger.Trace($"Set {antimemeRole.Name} ({antimemeRole.Id}) as the antimeme role for {context.Guild.Name} ({context.Guild.Id})!");
+							_antimemeLogger.Trace($"Set {antimemeRole.Name} ({antimemeRole.Id}) as the antimeme role for {context.Guild.Name} ({context.Guild.Id})!");
 							await FixAntiMemeRolePermissions(context.Guild, antimemeRole);
 							_ = Program.SendMessage(context, $"{antimemeRole.Mention} is now set as the antimeme role.");
 						}
 						else if (eventArgs.Emoji == Queue.ThumbsDown)
 						{
-							_noMemeLogger.Trace($"Fixed permissions for the antimeme role {previousAntiMemeRole.Name} ({previousAntiMemeRole.Id}) on {context.Guild.Name} ({context.Guild.Id})!");
+							_antimemeLogger.Trace($"Fixed permissions for the antimeme role {previousAntiMemeRole.Name} ({previousAntiMemeRole.Id}) on {context.Guild.Name} ({context.Guild.Id})!");
 							await FixAntiMemeRolePermissions(context.Guild, previousAntiMemeRole);
 							_ = Program.SendMessage(context, $"Roles were left untouched.");
 						}
@@ -147,7 +145,7 @@ namespace Tomoe.Commands
 				}
 			}
 			Program.Database.Guild.AntiMemeRole(context.Guild.Id, antimemeRole.Id);
-			_noMemeLogger.Trace($"Set {antimemeRole.Name} ({antimemeRole.Id}) as the antimeme role for {context.Guild.Name} ({context.Guild.Id})!");
+			_antimemeLogger.Trace($"Set {antimemeRole.Name} ({antimemeRole.Id}) as the antimeme role for {context.Guild.Name} ({context.Guild.Id})!");
 			await FixAntiMemeRolePermissions(context.Guild, antimemeRole);
 			_ = Program.SendMessage(context, $"{antimemeRole.Mention} is now set as the antimeme role.");
 		}
@@ -170,7 +168,7 @@ namespace Tomoe.Commands
 						}
 						else if (eventArgs.Emoji == Queue.ThumbsDown)
 						{
-							_noMemeLogger.Trace($"Fixed permissions for the antimeme role {previousAntimemeRole.Name} ({previousAntimemeRole.Id}) on {context.Guild.Name} ({context.Guild.Id})!");
+							_antimemeLogger.Trace($"Fixed permissions for the antimeme role {previousAntimemeRole.Name} ({previousAntimemeRole.Id}) on {context.Guild.Name} ({context.Guild.Id})!");
 							await FixAntiMemeRolePermissions(context.Guild, previousAntimemeRole);
 							_ = Program.SendMessage(context, $"Roles were left untouched.");
 						}
@@ -186,7 +184,7 @@ namespace Tomoe.Commands
 		{
 			DiscordMessage message = Program.SendMessage(context, "Creating antimeme role...");
 			DiscordRole muteRole = await context.Guild.CreateRoleAsync("Antimeme", Permissions.None, DiscordColor.Gray, false, false, "Allows users to be no memed.");
-			_noMemeLogger.Trace($"Created antimeme role \"{muteRole.Name}\" ({muteRole.Id}) for {context.Guild.Name} ({context.Guild.Id})!");
+			_antimemeLogger.Trace($"Created antimeme role \"{muteRole.Name}\" ({muteRole.Id}) for {context.Guild.Name} ({context.Guild.Id})!");
 			Program.Database.Guild.AntiMemeRole(context.Guild.Id, muteRole.Id);
 			_ = await message.ModifyAsync($"Overriding channel permissions...");
 			await FixAntiMemeRolePermissions(context.Guild, muteRole);
@@ -200,17 +198,17 @@ namespace Tomoe.Commands
 				switch (channel.Type)
 				{
 					case ChannelType.Text:
-						_noMemeLogger.Trace($"Overwriting permission {Permissions.SendMessages} and {Permissions.AddReactions} for antimeme role {muteRole.Name} ({muteRole.Id}) on {channel.Type} channel {channel.Name} ({channel.Id}) for {guild.Name} ({guild.Id})...");
+						_antimemeLogger.Trace($"Overwriting permission {Permissions.SendMessages} and {Permissions.AddReactions} for antimeme role {muteRole.Name} ({muteRole.Id}) on {channel.Type} channel {channel.Name} ({channel.Id}) for {guild.Name} ({guild.Id})...");
 						await channel.AddOverwriteAsync(muteRole, Permissions.None, Permissions.AttachFiles | Permissions.AddReactions | Permissions.EmbedLinks | Permissions.UseExternalEmojis, "Stops members with the role from spamming chat with reactions, images or links.");
 						await Task.Delay(50);
 						break;
 					case ChannelType.Voice:
-						_noMemeLogger.Trace($"Overwriting permission {Permissions.Speak} and {Permissions.Stream} for antimeme role {muteRole.Name} ({muteRole.Id}) on {channel.Type} channel {channel.Name} ({channel.Id}) for {guild.Name} ({guild.Id})...");
+						_antimemeLogger.Trace($"Overwriting permission {Permissions.Speak} and {Permissions.Stream} for antimeme role {muteRole.Name} ({muteRole.Id}) on {channel.Type} channel {channel.Name} ({channel.Id}) for {guild.Name} ({guild.Id})...");
 						await channel.AddOverwriteAsync(muteRole, Permissions.None, Permissions.Stream | Permissions.UseVoiceDetection, "Disallows users to spam starting and stopping streams. Must push to talk.");
 						await Task.Delay(50);
 						break;
 					case ChannelType.Category:
-						_noMemeLogger.Trace($"Overwriting permission {Permissions.SendMessages}, {Permissions.AddReactions}, {Permissions.Speak} and {Permissions.Stream} for antimeme role {muteRole.Name} ({muteRole.Id}) on {channel.Type} channel {channel.Name} ({channel.Id}) for {guild.Name} ({guild.Id})...");
+						_antimemeLogger.Trace($"Overwriting permission {Permissions.SendMessages}, {Permissions.AddReactions}, {Permissions.Speak} and {Permissions.Stream} for antimeme role {muteRole.Name} ({muteRole.Id}) on {channel.Type} channel {channel.Name} ({channel.Id}) for {guild.Name} ({guild.Id})...");
 						await channel.AddOverwriteAsync(muteRole, Permissions.None, Permissions.AttachFiles | Permissions.AddReactions | Permissions.EmbedLinks | Permissions.UseExternalEmojis | Permissions.Stream | Permissions.UseVoiceDetection, "Stops members with the role from spamming chat with reactions, images or links/voice channels and through streams. Disallows users to spam starting and stopping streams. Must push to talk.");
 						await Task.Delay(50);
 						break;

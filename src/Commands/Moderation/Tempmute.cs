@@ -14,7 +14,7 @@ namespace Tomoe.Commands.Moderation
 {
 	public class TempMute : BaseCommandModule
 	{
-		[Command("tempmute"), Description("Mutes a person temporarily."), RequireBotPermissions(Permissions.ManageRoles), RequireUserPermissions(Permissions.ManageMessages), Aliases("temp_mute", "tempsilence", "temp_silence"), Punishment(true)]
+		[Command("tempmute"), Description("Mutes a person temporarily."), RequireBotPermissions(Permissions.ManageRoles), RequireUserPermissions(Permissions.ManageMessages), Aliases("temp_mute", "tempsilence", "temp_silence"), Punishment]
 		public async Task User(CommandContext context, DiscordUser victim, ExpandedTimeSpan muteTime, [RemainingText] string muteReason = Program.MissingReason)
 		{
 			DiscordRole muteRole = Program.Database.Guild.MuteRole(context.Guild.Id).GetRole(context.Guild);
@@ -30,7 +30,7 @@ namespace Tomoe.Commands.Moderation
 			{
 				try
 				{
-					if (!guildVictim.IsBot) _ = await guildVictim.SendMessageAsync($"You've been tempmuted by **{context.User.Mention}** from **{context.Guild.Name}** for {muteTime.TimeSpan}. Reason: {Formatter.BlockCode(Formatter.Strip(muteReason))}");
+					if (!guildVictim.IsBot) _ = await guildVictim.SendMessageAsync($"You've been tempmuted by {Formatter.Bold(context.User.Mention)} from {Formatter.Bold(context.Guild.Name)} for {Formatter.Bold(muteTime.ToString())}. Reason: {Formatter.BlockCode(Formatter.Strip(muteReason))}");
 				}
 				catch (UnauthorizedException) { }
 				await guildVictim.GrantRoleAsync(muteRole, muteReason);

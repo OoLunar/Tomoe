@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text;
 using System.Threading.Tasks;
 
 using DSharpPlus.CommandsNext;
@@ -19,17 +20,19 @@ namespace Tomoe.Commands.Public
 			_logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");
 			_logger.Trace("Creating embed...");
 			DiscordEmbedBuilder embedBuilder = new();
+			StringBuilder botInfo = new();
 			_logger.Trace("Setting title...");
 			embedBuilder.Title = "General Bot Info";
 			_logger.Trace("Filling out description...");
-			embedBuilder.Description += $"Currently in {context.Client.Guilds.Count} guilds\n";
-			embedBuilder.Description += $"Handling around {context.Client.Presences.Count} guild members\n";
-			embedBuilder.Description += $"General Ping: {context.Client.Ping}ms\n";
-			embedBuilder.Description += $"Total shards: {Program.Client.ShardClients.Count}\n";
+			_ = botInfo.Append($"Currently in {context.Client.Guilds.Count} guilds\n");
+			_ = botInfo.Append($"Handling around {context.Client.Presences.Count} guild members\n");
+			_ = botInfo.Append($"General Ping: {context.Client.Ping}ms\n");
+			_ = botInfo.Append($"Total shards: {Program.Client.ShardClients.Count}\n");
 			_logger.Trace("Getting resource usage...");
 			Process currentProcess = Process.GetCurrentProcess();
-			embedBuilder.Description += $"Total memory used: {currentProcess.PrivateMemorySize64 / 1024 / 1024}mb\n";
-			embedBuilder.Description += $"Total threads open: {currentProcess.Threads.Count}";
+			_ = botInfo.Append($"Total memory used: {currentProcess.PrivateMemorySize64 / 1024 / 1024}mb\n");
+			_ = botInfo.Append($"Total threads open: {currentProcess.Threads.Count}");
+			embedBuilder.Description = botInfo.ToString();
 			currentProcess.Dispose();
 			_logger.Trace("Disposing of Process.GetCurrentProcess()...");
 			_logger.Trace("Sending embed...");

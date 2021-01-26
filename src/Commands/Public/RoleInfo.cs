@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -49,7 +50,7 @@ namespace Tomoe.Commands.Public
 			if (rolesInQuestion.Count == 0)
 			{
 				_logger.Trace("No role found!");
-				_ = Program.SendMessage(context, $"There was no role called \"{roleName}\""); // No role was found. Inform the user.
+				_ = Program.SendMessage(context, Formatter.Bold($"[Error: There was no role called \"{roleName}\"]")); // No role was found. Inform the user.
 			}
 			else if (rolesInQuestion.Count == 1)
 			{
@@ -74,7 +75,7 @@ namespace Tomoe.Commands.Public
 						Url = context.User.AvatarUrl
 					};
 					embed.Color = role.Color;
-					embed.Title = $"Role Info for **{role.Name}**";
+					embed.Title = $"Role Info for {Formatter.Bold(role.Name)}";
 					embed.Footer = new()
 					{
 						Text = $"Page {embeds.Count + 1}"
@@ -93,9 +94,20 @@ namespace Tomoe.Commands.Public
 							}
 						}
 					}
-					_ = embed.AddField("**Members**", roleUsers.Length == 0 ? "None" : roleUsers.ToString());
+					_ = embed.AddField(Formatter.Bold("Members"), roleUsers.Length == 0 ? "None" : roleUsers.ToString());
 					_logger.Trace("Filling out description...");
-					embed.Description = $"Id: **{role.Id}**\nName: **{role.Name}**\nCreation: **{role.CreationTimestamp}**\nPosition: **{role.Position}**\nColor: **{role.Color}**\nMentionable: **{role.IsMentionable}**\nHoisted: **{role.IsHoisted}**\nManaged: **{role.IsManaged}**\nPermissions: **{role.Permissions.ToPermissionString()}**\nMembers: **{roleMemberCount}**";
+					StringBuilder roleInfo = new();
+					_ = roleInfo.Append($"Id: {Formatter.Bold(role.Id.ToString(CultureInfo.InvariantCulture))}\n");
+					_ = roleInfo.Append($"Name: {Formatter.Bold(role.Name.ToString())}\n");
+					_ = roleInfo.Append($"Creation Timestamp: {Formatter.Bold(role.CreationTimestamp.ToString(CultureInfo.InvariantCulture))}\n");
+					_ = roleInfo.Append($"Position: {Formatter.Bold(role.Position.ToString(CultureInfo.InvariantCulture))}\n");
+					_ = roleInfo.Append($"Color: {Formatter.Bold(role.Color.ToString())}");
+					_ = roleInfo.Append($"Mentionable: {Formatter.Bold(role.IsMentionable.ToString())}\n");
+					_ = roleInfo.Append($"Hoisted: {Formatter.Bold(role.IsHoisted.ToString())}\n");
+					_ = roleInfo.Append($"Managed: {Formatter.Bold(role.IsManaged.ToString())}\n");
+					_ = roleInfo.Append($"Permissions: {Formatter.Bold(role.Permissions.ToPermissionString())}\n");
+					_ = roleInfo.Append($"Member Count: {Formatter.Bold(roleMemberCount.ToString())}");
+					embed.Description = roleInfo.ToString();
 					_logger.Trace("Added embed to list...");
 					embeds.Add(new(null, embed));
 					_logger.Trace("Waiting 50ms to avoid breaking rate limits!");
@@ -137,9 +149,20 @@ namespace Tomoe.Commands.Public
 					}
 				}
 			}
-			_ = embed.AddField("**Members**", roleUsers.Length == 0 ? "None" : roleUsers.ToString());
+			_ = embed.AddField(Formatter.Bold("Members"), roleUsers.Length == 0 ? "None" : roleUsers.ToString());
 			_logger.Trace("Filling out description...");
-			embed.Description = $"Id: **{role.Id}**\nName: **{role.Name}**\nCreation: **{role.CreationTimestamp}**\nPosition: **{role.Position}**\nColor: **{role.Color}**\nMentionable: **{role.IsMentionable}**\nHoisted: **{role.IsHoisted}**\nManaged: **{role.IsManaged}**\nPermissions: **{role.Permissions.ToPermissionString()}**\nMembers: **{roleMemberCount}**";
+			StringBuilder roleInfo = new();
+			_ = roleInfo.Append($"Id: {Formatter.Bold(role.Id.ToString(CultureInfo.InvariantCulture))}\n");
+			_ = roleInfo.Append($"Name: {Formatter.Bold(role.Name.ToString())}\n");
+			_ = roleInfo.Append($"Creation Timestamp: {Formatter.Bold(role.CreationTimestamp.ToString(CultureInfo.InvariantCulture))}\n");
+			_ = roleInfo.Append($"Position: {Formatter.Bold(role.Position.ToString(CultureInfo.InvariantCulture))}\n");
+			_ = roleInfo.Append($"Color: {Formatter.Bold(role.Color.ToString())}");
+			_ = roleInfo.Append($"Mentionable: {Formatter.Bold(role.IsMentionable.ToString())}\n");
+			_ = roleInfo.Append($"Hoisted: {Formatter.Bold(role.IsHoisted.ToString())}\n");
+			_ = roleInfo.Append($"Managed: {Formatter.Bold(role.IsManaged.ToString())}\n");
+			_ = roleInfo.Append($"Permissions: {Formatter.Bold(role.Permissions.ToPermissionString())}\n");
+			_ = roleInfo.Append($"Member Count: {Formatter.Bold(roleMemberCount.ToString())}");
+			embed.Description = roleInfo.ToString();
 			_logger.Trace("Sending embed...");
 			_ = Program.SendMessage(context, null, embed.Build());
 			_logger.Trace("Embed sent!");

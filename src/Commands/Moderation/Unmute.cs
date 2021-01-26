@@ -6,11 +6,13 @@ using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
 
+using Tomoe.Commands.Moderation.Attributes;
+
 namespace Tomoe.Commands.Moderation
 {
 	public class Unmute : BaseCommandModule
 	{
-		[Command("unmute"), Description("Unmutes an individual."), Aliases("unsilence")]
+		[Command("unmute"), Description("Unmutes an individual."), Aliases("unsilence"), Punishment]
 		public async Task User(CommandContext context, DiscordUser victim, [RemainingText] string unmuteReason = Program.MissingReason)
 		{
 			DiscordRole muteRole = Program.Database.Guild.MuteRole(context.Guild.Id).GetRole(context.Guild);
@@ -26,7 +28,7 @@ namespace Tomoe.Commands.Moderation
 			{
 				try
 				{
-					if (!guildVictim.IsBot) _ = await guildVictim.SendMessageAsync($"You've been unmuted by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: {Formatter.BlockCode(Formatter.Strip(unmuteReason))}");
+					if (!guildVictim.IsBot) _ = await guildVictim.SendMessageAsync($"You've been unmuted by {Formatter.Bold(context.User.Mention)} from {Formatter.Bold(context.Guild.Name)}. Reason: {Formatter.BlockCode(Formatter.Strip(unmuteReason))}");
 				}
 				catch (UnauthorizedException) { }
 				await guildVictim.RevokeRoleAsync(muteRole, unmuteReason);
@@ -48,7 +50,7 @@ namespace Tomoe.Commands.Moderation
 				DiscordMember guildVictim = await context.Guild.GetMemberAsync(victim.Id);
 				try
 				{
-					if (!guildVictim.IsBot) _ = await guildVictim.SendMessageAsync($"You've been unmuted by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: {Formatter.BlockCode("Tempmute complete!")}");
+					if (!guildVictim.IsBot) _ = await guildVictim.SendMessageAsync($"You've been unmuted by {Formatter.Bold(context.User.Mention)} from {Formatter.Bold(context.Guild.Name)}. Reason: {Formatter.BlockCode("Tempmute complete!")}");
 				}
 				catch (UnauthorizedException) { }
 				await guildVictim.RevokeRoleAsync(muteRole, "Tempmute complete!");

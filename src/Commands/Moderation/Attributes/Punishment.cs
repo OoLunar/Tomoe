@@ -29,13 +29,13 @@ namespace Tomoe.Commands.Moderation.Attributes
 			}
 			else if (context.Message.MentionedUsers.Select(user => user.Id).Contains(context.Guild.OwnerId))
 			{
-				_ = Program.SendMessage(context, "Cannot execute actions on the guild owner!");
+				_ = Program.SendMessage(context, Formatter.Bold("[Denied: Cannot execute actions on the guild owner!]"));
 				return false;
 			}
 			else if (context.Message.MentionedUsers.Contains(context.User))
 			{
 				bool confirm = false;
-				DiscordMessage message = Program.SendMessage(context, "You're about to punish yourself. Do you still want to go through with this?");
+				DiscordMessage message = Program.SendMessage(context, Formatter.Bold("[Warning: You're about to punish yourself. Do you still want to go through with this?]"));
 				_ = new Queue(message, context.User, new(async eventArgs =>
 				{
 					if (eventArgs.Emoji == Queue.ThumbsUp) confirm = true;
@@ -59,13 +59,13 @@ namespace Tomoe.Commands.Moderation.Attributes
 			}
 			else if (context.User.Id == context.Guild.OwnerId)
 			{
-				_ = Program.SendMessage(context, "Cannot execute actions on the guild owner!");
+				_ = Program.SendMessage(context, Formatter.Bold("[Denied: Cannot execute actions on the guild owner!]"));
 				return false;
 			}
 			else if (context.Message.MentionedUsers.Contains(context.User))
 			{
 				bool confirm = false;
-				DiscordMessage message = Program.SendMessage(context, "You're about to punish yourself. Do you still want to go through with this?");
+				DiscordMessage message = Program.SendMessage(context, Formatter.Bold("[Warning: You're about to punish yourself. Do you still want to go through with this?]"));
 				_ = new Queue(message, context.User, new(async eventArgs =>
 				{
 					if (eventArgs.Emoji == Queue.ThumbsUp) confirm = true;

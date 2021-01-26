@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 
+using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 
@@ -14,7 +15,7 @@ namespace Tomoe.Commands.Public
 		public async Task Get(CommandContext context)
 		{
 			_logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");
-			_ = Program.SendMessage(context, Utils.Config.RepositoryLink);
+			_ = Program.SendMessage(context, Formatter.EmbedlessUrl(new(Utils.Config.RepositoryLink)));
 			_logger.Trace("Message sent!");
 		}
 	}

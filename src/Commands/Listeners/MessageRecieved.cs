@@ -45,8 +45,6 @@ namespace Tomoe.Commands.Listeners
 					}
 				}
 			}
-
-			_logger.Info($"\"{eventArgs.Guild.Name}\" ({eventArgs.Guild.Id}) is ready! Handling {eventArgs.Guild.MemberCount} members.");
 		}
 	}
 }

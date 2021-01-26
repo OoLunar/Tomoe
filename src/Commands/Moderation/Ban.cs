@@ -12,7 +12,7 @@ namespace Tomoe.Commands.Moderation
 {
 	public class Ban : BaseCommandModule
 	{
-		[Command("ban"), Description("Bans people from the guild, sending them off with a private message."), RequireUserPermissions(Permissions.BanMembers), RequireBotPermissions(Permissions.BanMembers), Punishment(true)]
+		[Command("ban"), Description("Bans people from the guild, sending them off with a private message."), RequireUserPermissions(Permissions.BanMembers), RequireBotPermissions(Permissions.BanMembers), Punishment]
 		public async Task User(CommandContext context, [Description("The person to be banned.")] DiscordUser victim, [Description("(Optional) Removed the victim's messages from the pass `x` days.")] int pruneDays = 7, [Description("(Optional) The reason why the person is being banned."), RemainingText] string banReason = Program.MissingReason)
 		{
 			if (pruneDays < 7) pruneDays = 7;
@@ -20,7 +20,7 @@ namespace Tomoe.Commands.Moderation
 			DiscordMember guildVictim = victim.GetMember(context.Guild);
 			if (guildVictim != null && !guildVictim.IsBot) try
 				{
-					_ = await guildVictim.SendMessageAsync($"You've been banned by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: {Formatter.BlockCode(Formatter.Strip(banReason))}");
+					_ = await guildVictim.SendMessageAsync($"You've been banned by {Formatter.Bold(context.User.Mention)} from {Formatter.Bold(context.Guild.Name)}. Reason: {Formatter.BlockCode(Formatter.Strip(banReason))}");
 					sentDm = true;
 				}
 				catch (UnauthorizedException) { }

@@ -15,7 +15,7 @@ namespace Tomoe.Commands.Moderation
 {
 	public class Temban : BaseCommandModule
 	{
-		[Command("tempban"), Description("Temporarily bans someone from the server."), RequireGuild, RequireBotPermissions(Permissions.BanMembers), RequireUserPermissions(Permissions.BanMembers), Aliases("temp_ban"), Punishment(true)]
+		[Command("tempban"), Description("Temporarily bans someone from the server."), RequireGuild, RequireBotPermissions(Permissions.BanMembers), RequireUserPermissions(Permissions.BanMembers), Aliases("temp_ban"), Punishment]
 		public async Task User(CommandContext context, DiscordUser victim, ExpandedTimeSpan banTime, int pruneDays = 7, [RemainingText] string banReason = Program.MissingReason)
 		{
 			if (pruneDays < 7) pruneDays = 7;
@@ -24,7 +24,7 @@ namespace Tomoe.Commands.Moderation
 			DiscordMember guildVictim = victim.GetMember(context.Guild);
 			if (guildVictim != null && !guildVictim.IsBot) try
 				{
-					_ = await guildVictim.SendMessageAsync($"You've been tempbanned by **{context.User.Mention}** from **{context.Guild.Name}** for **{banTime}**. Reason: {Formatter.BlockCode(Formatter.Strip(banReason))}");
+					_ = await guildVictim.SendMessageAsync($"You've been tempbanned by {Formatter.Bold(context.User.Mention)} from {Formatter.Bold(context.Guild.Name)} for {Formatter.Bold(banTime.ToString())}. Reason: {Formatter.BlockCode(Formatter.Strip(banReason))}");
 				}
 				catch (UnauthorizedException) { }
 			await context.Guild.BanMemberAsync(victim.Id, pruneDays, banReason);

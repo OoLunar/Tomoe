@@ -12,7 +12,7 @@ using Tomoe.Database.Interfaces;
 
 namespace Tomoe.Commands.Moderation
 {
-	[Group("strike"), Description("Gives a strike/warning to the specified victim."), RequireUserPermissions(Permissions.KickMembers), Aliases("warn"), Punishment(true)]
+	[Group("strike"), Description("Gives a strike/warning to the specified victim."), RequireUserPermissions(Permissions.KickMembers), Aliases("warn"), Punishment]
 	public class Strikes : BaseCommandModule
 	{
 		[GroupCommand]
@@ -22,7 +22,7 @@ namespace Tomoe.Commands.Moderation
 			DiscordMember guildVictim = victim.GetMember(context.Guild);
 			if (guildVictim != null && !guildVictim.IsBot) try
 				{
-					_ = await guildVictim.SendMessageAsync($"You've been given a strike by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: {Formatter.BlockCode(Formatter.Strip(strikeReason))}");
+					_ = await guildVictim.SendMessageAsync($"You've been given a strike by {Formatter.Bold(context.User.Mention)} from {Formatter.Bold(context.Guild.Name)}. Reason: {Formatter.BlockCode(Formatter.Strip(strikeReason))}");
 					sentDm = true;
 				}
 				catch (UnauthorizedException) { }

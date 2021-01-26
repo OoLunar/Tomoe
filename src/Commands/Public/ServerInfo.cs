@@ -51,7 +51,7 @@ namespace Tomoe.Commands.Public
 			_ = guildInfo.Append($"Splash Url: {context.Guild.SplashUrl ?? "Not set"}\n");
 			_ = guildInfo.Append($"Vanity Url: {context.Guild.VanityUrlCode ?? "Not set"}\n");
 			_ = guildInfo.Append($"Verification Level: {context.Guild.VerificationLevel}\n");
-			_ = guildInfo.Append($"Voice Region: {context.Guild.VoiceRegion.Name}\n");
+			_ = guildInfo.Append($"Voice Region: {context.Guild.VoiceRegion.Name}");
 			embedBuilder.Description = guildInfo.ToString();
 			embedBuilder.Thumbnail = new()
 			{

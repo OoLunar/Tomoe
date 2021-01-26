@@ -13,7 +13,7 @@ namespace Tomoe.Commands.Moderation
 {
 	public class Pardon : BaseCommandModule
 	{
-		[Command("pardon"), Description("Drops a strike."), Punishment(true)]
+		[Command("pardon"), Description("Drops a strike."), Punishment]
 		public async Task User(CommandContext context, int strikeId, [RemainingText] string pardonReason = Program.MissingReason)
 		{
 			Strike droppedStrike = Program.Database.Strikes.Drop(strikeId, pardonReason).Value;
@@ -22,7 +22,7 @@ namespace Tomoe.Commands.Moderation
 			DiscordMember guildVictim = (await context.Client.GetUserAsync(droppedStrike.VictimId)).GetMember(context.Guild);
 			if (guildVictim != null && !guildVictim.IsBot) try
 				{
-					_ = await guildVictim.SendMessageAsync($"Strike #{droppedStrike.StrikeCount} has been dropped by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: {Formatter.BlockCode(Formatter.Strip(pardonReason))}\nContext: {droppedStrike.JumpLink}");
+					_ = await guildVictim.SendMessageAsync($"Strike #{droppedStrike.StrikeCount} has been dropped by {Formatter.Bold(context.User.Mention)} from {Formatter.Bold(context.Guild.Name)}. Reason: {Formatter.BlockCode(Formatter.Strip(pardonReason))}\nContext: {droppedStrike.JumpLink}");
 					sentDm = true;
 				}
 				catch (UnauthorizedException) { }

@@ -26,7 +26,7 @@ namespace Tomoe.Commands.Public
 				_logger.Trace("Sleep for 2 seconds to avoid breaking rate limits...");
 				await Task.Delay(TimeSpan.FromSeconds(2));
 			}
-			_logger.Trace($"Successfully executed {commandName} {repeatCount} times!");
+			_logger.Trace($"Successfully executed {commandName} {repeatCount} {(repeatCount == 1 ? "time!" : "times!")}");
 		}
 	}
 }

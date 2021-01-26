@@ -34,7 +34,7 @@ namespace Tomoe.Commands.Public
 			}
 			else
 			{
-				_ = Program.SendMessage(context, "**[Error: User not found.]**");
+				_ = Program.SendMessage(context, Formatter.Bold("[Error: User not found.]"));
 				_logger.Trace("Message sent!");
 			}
 		}

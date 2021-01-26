@@ -25,7 +25,7 @@ namespace Tomoe.Commands.Public
 			{
 				_logger.Trace($"Escaping characters...");
 				_logger.Trace("Escaped characters!");
-				_ = Program.SendMessage(context, $"{Formatter.Sanitize(message.Content)}{(message.Embeds.Count < 0 ? "\n**[Notice: Cannot get the raw version of an embed!]**" : null)}");
+				_ = Program.SendMessage(context, $"{Formatter.Sanitize(message.Content)}{(message.Embeds.Count < 0 ? '\n' + Formatter.Bold("[Notice: Cannot get the raw version of an embed!]") : null)}");
 				_logger.Trace("Message sent!");
 			}
 		}

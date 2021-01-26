@@ -27,13 +27,13 @@ namespace Tomoe.Commands.Public
 			if (tagTitle.Length > 32)
 			{
 				_logger.Trace("Tag title was too long!");
-				_ = Program.SendMessage(context, "**[Error: Tag title too long.]**");
+				_ = Program.SendMessage(context, Formatter.Bold("[Error: Tag title too long.]"));
 				_logger.Trace("Message sent!");
 			}
 			else
 			{
 				_logger.Trace($"Retrieving tag \"{tagTitle}\"...");
-				_ = Program.SendMessage(context, Program.Database.Tags.Retrieve(context.Guild.Id, tagTitle) ?? $"**[Error: \"{tagTitle}\" doesn't exist!]**");
+				_ = Program.SendMessage(context, Program.Database.Tags.Retrieve(context.Guild.Id, tagTitle) ?? Formatter.Bold($"[Error: \"{tagTitle}\" doesn't exist!]"));
 				_logger.Trace("Message sent!");
 			}
 		}
@@ -86,14 +86,14 @@ namespace Tomoe.Commands.Public
 			else if (Program.Database.Tags.IsAlias(context.Guild.Id, oldName).Value)
 			{
 				_logger.Trace($"Tag \"{oldName}\" is an alias...");
-				_ = Program.SendMessage(context, $"**[Denied: Creating aliases of aliases aren't allowed. Use `>>tag create_alias {Program.Database.Tags.RealName(context.Guild.Id, oldName)}` to create the alias.]**");
+				_ = Program.SendMessage(context, Formatter.Bold($"[Denied: Creating aliases of aliases aren't allowed. Use {Formatter.InlineCode($">>tag create_alias {Program.Database.Tags.RealName(context.Guild.Id, oldName)}")} to create the alias.]"));
 				_logger.Trace("Message sent!");
 			}
 			else
 			{
 				_logger.Trace($"Creating new alias \"{newName}\"...");
 				Program.Database.Tags.CreateAlias(context.Guild.Id, context.User.Id, newName, oldName);
-				_ = Program.SendMessage(context, $"Tag \"{newName.ToLowerInvariant()}\" has been created!");
+				_ = Program.SendMessage(context, $"Tag \"{newName}\" has been created!");
 				_logger.Trace("Message sent!");
 			}
 		}
@@ -105,7 +105,7 @@ namespace Tomoe.Commands.Public
 			tagTitle = tagTitle.Trim().ToLowerInvariant();
 			_logger.Trace($"Deleting alias \"{tagTitle}\"...");
 			Program.Database.Tags.DeleteAlias(context.Guild.Id, tagTitle);
-			_ = Program.SendMessage(context, $"Tag alias \"{tagTitle.Trim().ToLowerInvariant()}\" successfully deleted.");
+			_ = Program.SendMessage(context, $"Tag alias \"{tagTitle}\" successfully deleted.");
 			_logger.Trace("Message sent!");
 		}
 
@@ -116,7 +116,7 @@ namespace Tomoe.Commands.Public
 			tagTitle = tagTitle.Trim().ToLowerInvariant();
 			_logger.Trace($"Deleting all aliases for tag \"{tagTitle}\"...");
 			Program.Database.Tags.DeleteAllAliases(context.Guild.Id, tagTitle);
-			_ = Program.SendMessage(context, $"All aliases for \"{tagTitle.Trim().ToLowerInvariant()}\" have been removed!");
+			_ = Program.SendMessage(context, $"All aliases for \"{tagTitle}\" have been removed!");
 			_logger.Trace("Message sent!");
 		}
 
@@ -181,7 +181,7 @@ namespace Tomoe.Commands.Public
 					Url = authorDiscordUser.AvatarUrl
 				};
 				_logger.Trace("Author is no longer in the guild, but the user still exists...");
-				embedBuilder.Description = $"Tag \"{tagTitle}\" belongs to {authorDiscordUser.Mention}, however they are not currently present in the guild. This means you can claim the tag. See `>>help tag claim` for more information.";
+				embedBuilder.Description = $"Tag \"{tagTitle}\" belongs to {authorDiscordUser.Mention}, however they are not currently present in the guild. This means you can claim the tag. See {Formatter.InlineCode(">>help tag claim")} for more information.";
 			}
 			else
 			{
@@ -192,7 +192,7 @@ namespace Tomoe.Commands.Public
 					Url = context.User.DefaultAvatarUrl
 				};
 				_logger.Trace("Author is not in the cache... Assuming they still exist despite not being in the guild...");
-				embedBuilder.Description = $"Tag \"{tagTitle}\" is owned by <@{tagAuthor}> ({tagAuthor}), however they are not currently present in the guild. This means you can claim the tag. See `>>help tag claim` for more information.";
+				embedBuilder.Description = $"Tag \"{tagTitle}\" is owned by <@{tagAuthor}> ({tagAuthor}), however they are not currently present in the guild. This means you can claim the tag. See {Formatter.InlineCode(">>help tag claim")} for more information.";
 			}
 			_logger.Trace("Sending embed...");
 			_ = Program.SendMessage(context, null, embedBuilder.Build());
@@ -219,7 +219,7 @@ namespace Tomoe.Commands.Public
 				if (guildAuthor != null)
 				{
 					_logger.Trace($"The owner of tag \"{tagTitle}\" is still in the guild...");
-					_ = Program.SendMessage(context, "**[Denied: Tag author is still in the guild!]**");
+					_ = Program.SendMessage(context, Formatter.Bold("[Denied: Tag author is still in the guild!]"));
 					_logger.Trace("Message sent!");
 				}
 				else
@@ -252,7 +252,7 @@ namespace Tomoe.Commands.Public
 				if (newAuthorMember == null)
 				{
 					_logger.Trace("The new owner is not in the guild...");
-					_ = Program.SendMessage(context, $"**[Denied: {newAuthor} isn't in the guild.]**");
+					_ = Program.SendMessage(context, Formatter.Bold($"[Denied: {newAuthor} isn't in the guild.]"));
 					_logger.Trace("Message sent!");
 				}
 				else
@@ -372,7 +372,7 @@ namespace Tomoe.Commands.Public
 			else
 			{
 				_logger.Trace($"Tag \"{tagTitle}\" is an alias...");
-				_ = Program.SendMessage(context, $"The original tag for the alias \"{tagTitle}\" is `>>tag {Program.Database.Tags.RealName(context.Guild.Id, tagTitle)}`");
+				_ = Program.SendMessage(context, $"The original tag for the alias \"{tagTitle}\" is {Formatter.InlineCode($">>tag {Program.Database.Tags.RealName(context.Guild.Id, tagTitle)}")}");
 				_logger.Trace("Message sent!");
 			}
 		}
@@ -415,32 +415,32 @@ namespace Tomoe.Commands.Public
 			string tagTitle = context.RawArgumentString.Split(' ')[0].Trim().ToLowerInvariant();
 			if (tagTitle.Length > 32)
 			{
-				_ = Program.SendMessage(context, "**[Error: Tag title too long.]**");
+				_ = Program.SendMessage(context, Formatter.Bold("[Error: Tag title too long.]"));
 				return false;
 			}
 			else if (MustExist == TagState.Exists && !Program.Database.Tags.Exist(context.Guild.Id, tagTitle))
 			{
-				_ = Program.SendMessage(context, $"**[Error: \"{tagTitle}\" doesn't exist!]**");
+				_ = Program.SendMessage(context, Formatter.Bold($"[Error: \"{tagTitle}\" doesn't exist!]"));
 				return false;
 			}
 			else if (MustExist == TagState.Missing && Program.Database.Tags.Exist(context.Guild.Id, tagTitle))
 			{
-				_ = Program.SendMessage(context, $"**[Error: \"{tagTitle}\" already exists!]**");
+				_ = Program.SendMessage(context, Formatter.Bold($"[Error: \"{tagTitle}\" already exists!]"));
 				return false;
 			}
 			else if (RequireOwner && (Program.Database.Tags.GetAuthor(context.Guild.Id, tagTitle) != context.User.Id || context.Member.Roles.Any(role => role.Permissions.HasFlag(Permissions.Administrator) || role.Permissions.HasFlag(Permissions.ManageMessages))))
 			{
-				_ = Program.SendMessage(context, "**[Denied: You aren't the tag owner!]**");
+				_ = Program.SendMessage(context, Formatter.Bold("[Denied: You aren't the tag owner!]"));
 				return false;
 			}
 			else if (RequireTagType == TagType.Tag && Program.Database.Tags.IsAlias(context.Guild.Id, tagTitle).Value)
 			{
-				_ = Program.SendMessage(context, "**[Denied: Tag isn't a tag.]**");
+				_ = Program.SendMessage(context, Formatter.Bold("[Denied: Tag isn't a tag.]"));
 				return false;
 			}
 			else if (RequireTagType == TagType.Alias && !Program.Database.Tags.IsAlias(context.Guild.Id, tagTitle).Value)
 			{
-				_ = Program.SendMessage(context, "**[Denied: Tag isn't an alias.]**");
+				_ = Program.SendMessage(context, Formatter.Bold("[Denied: Tag isn't an alias.]"));
 				return false;
 			}
 			else

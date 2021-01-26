@@ -12,13 +12,13 @@ namespace Tomoe.Commands.Moderation
 {
 	public class Kick : BaseCommandModule
 	{
-		[Command("kick"), Description("Kicks people from the guild, sending them off with a private message."), RequireGuild, RequireUserPermissions(Permissions.BanMembers), RequireBotPermissions(Permissions.BanMembers), Punishment(true)]
+		[Command("kick"), Description("Kicks people from the guild, sending them off with a private message."), RequireGuild, RequireUserPermissions(Permissions.BanMembers), RequireBotPermissions(Permissions.BanMembers), Punishment]
 		public async Task User(CommandContext context, [Description("The person to be kicked.")] DiscordMember victim, [Description("(Optional) The reason why the person is being kicked."), RemainingText] string kickReason = Program.MissingReason)
 		{
 			bool sentDm = false;
 			if (victim != null && !victim.IsBot) try
 				{
-					_ = await victim.SendMessageAsync($"You've been kicked by **{context.User.Mention}** from **{context.Guild.Name}**. Reason: {Formatter.BlockCode(Formatter.Strip(kickReason))}");
+					_ = await victim.SendMessageAsync($"You've been kicked by {Formatter.Bold(context.User.Mention)} from {Formatter.Bold(context.Guild.Name)}. Reason: {Formatter.BlockCode(Formatter.Strip(kickReason))}");
 					sentDm = true;
 				}
 				catch (UnauthorizedException) { }
