@@ -14,7 +14,7 @@ namespace Tomoe.Commands.Moderation
 	public class Pardon : BaseCommandModule
 	{
 		[Command("pardon"), Description("Drops a strike."), Punishment]
-		public async Task User(CommandContext context, int strikeId, [RemainingText] string pardonReason = Program.MissingReason)
+		public async Task User(CommandContext context, int strikeId, [RemainingText] string pardonReason = Constants.MissingReason)
 		{
 			Strike droppedStrike = Program.Database.Strikes.Drop(strikeId, pardonReason).Value;
 

@@ -19,13 +19,13 @@ namespace Tomoe.Commands.Public
 			if (message.Content == string.Empty && message.Embeds.Count != 0)
 			{
 				_logger.Trace("Refusing to get contents of just an embed...");
-				_ = Program.SendMessage(context, "**[Error: Cannot get the raw version of an embed!]**");
+				_ = Program.SendMessage(context, Constants.RawEmbed);
 			}
 			else
 			{
 				_logger.Trace($"Escaping characters...");
 				_logger.Trace("Escaped characters!");
-				_ = Program.SendMessage(context, $"{Formatter.Sanitize(message.Content)}{(message.Embeds.Count < 0 ? '\n' + Formatter.Bold("[Notice: Cannot get the raw version of an embed!]") : null)}");
+				_ = Program.SendMessage(context, $"{Formatter.Sanitize(message.Content)}{(message.Embeds.Count != 0 ? '\n' + Constants.RawEmbed : null)}");
 				_logger.Trace("Message sent!");
 			}
 		}

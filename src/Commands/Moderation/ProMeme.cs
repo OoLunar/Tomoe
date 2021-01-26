@@ -13,12 +13,12 @@ namespace Tomoe.Commands.Moderation
 	public class UnmemeBan : BaseCommandModule
 	{
 		[Command("promeme"), Description("Unmutes an individual."), Aliases("pro_meme", "unmemeban", "unmeme_ban", "un_memeban", "un_meme_ban", "tempnomeme", "temp_no_meme", "temp_nomeme", "tempno_meme"), Punishment]
-		public async Task User(CommandContext context, DiscordUser victim, [RemainingText] string promemeReason = Program.MissingReason)
+		public async Task User(CommandContext context, DiscordUser victim, [RemainingText] string promemeReason = Constants.MissingReason)
 		{
 			DiscordRole antimemeRole = Program.Database.Guild.AntimemeRole(context.Guild.Id).GetRole(context.Guild);
 			if (antimemeRole == null)
 			{
-				_ = Program.SendMessage(context, Program.MissingRole);
+				_ = Program.SendMessage(context, Constants.MissingRole);
 				return;
 			}
 

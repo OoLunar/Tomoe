@@ -16,7 +16,7 @@ namespace Tomoe.Commands.Moderation
 	public class Temban : BaseCommandModule
 	{
 		[Command("tempban"), Description("Temporarily bans someone from the server."), RequireGuild, RequireBotPermissions(Permissions.BanMembers), RequireUserPermissions(Permissions.BanMembers), Aliases("temp_ban"), Punishment]
-		public async Task User(CommandContext context, DiscordUser victim, ExpandedTimeSpan banTime, int pruneDays = 7, [RemainingText] string banReason = Program.MissingReason)
+		public async Task User(CommandContext context, DiscordUser victim, ExpandedTimeSpan banTime, int pruneDays = 7, [RemainingText] string banReason = Constants.MissingReason)
 		{
 			if (pruneDays < 7) pruneDays = 7;
 

@@ -16,7 +16,7 @@ namespace Tomoe.Commands.Moderation
 	public class Strikes : BaseCommandModule
 	{
 		[GroupCommand]
-		public async Task Add(CommandContext context, DiscordUser victim, [RemainingText] string strikeReason = Program.MissingReason)
+		public async Task Add(CommandContext context, DiscordUser victim, [RemainingText] string strikeReason = Constants.MissingReason)
 		{
 			bool sentDm = false;
 			DiscordMember guildVictim = victim.GetMember(context.Guild);

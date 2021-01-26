@@ -15,12 +15,12 @@ namespace Tomoe.Commands.Moderation
 	public class TempmemeBan : BaseCommandModule
 	{
 		[Command("tempantimeme"), Description("Temporarily antimemes the victim."), RequireBotPermissions(Permissions.ManageRoles), RequireUserPermissions(Permissions.ManageMessages), Aliases("temp_antimeme", "tempanti_meme", "temp_anti_meme", "tempmemeban", "temp_memeban", "temp_meme_ban", "tempmeme_ban"), Punishment]
-		public async Task User(CommandContext context, DiscordUser victim, ExpandedTimeSpan muteTime, [RemainingText] string antimemeReason = Program.MissingReason)
+		public async Task User(CommandContext context, DiscordUser victim, ExpandedTimeSpan muteTime, [RemainingText] string antimemeReason = Constants.MissingReason)
 		{
 			DiscordRole antiMemeRole = Program.Database.Guild.AntimemeRole(context.Guild.Id).GetRole(context.Guild);
 			if (antiMemeRole == null)
 			{
-				_ = Program.SendMessage(context, Program.MissingRole);
+				_ = Program.SendMessage(context, Constants.MissingRole);
 				return;
 			}
 

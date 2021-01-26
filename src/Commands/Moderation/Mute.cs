@@ -13,12 +13,12 @@ namespace Tomoe.Commands.Moderation
 	public class Mute : BaseCommandModule
 	{
 		[Command("mute"), Description("Mutes a person permanently."), RequireBotPermissions(Permissions.ManageRoles), RequireUserPermissions(Permissions.ManageMessages), Aliases("silence"), Punishment]
-		public async Task User(CommandContext context, DiscordUser victim, [RemainingText] string muteReason = Program.MissingReason)
+		public async Task User(CommandContext context, DiscordUser victim, [RemainingText] string muteReason = Constants.MissingReason)
 		{
 			DiscordRole muteRole = Program.Database.Guild.MuteRole(context.Guild.Id).GetRole(context.Guild);
 			if (muteRole == null)
 			{
-				_ = Program.SendMessage(context, Program.MissingRole);
+				_ = Program.SendMessage(context, Constants.MissingRole);
 				return;
 			}
 

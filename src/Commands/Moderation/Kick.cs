@@ -13,7 +13,7 @@ namespace Tomoe.Commands.Moderation
 	public class Kick : BaseCommandModule
 	{
 		[Command("kick"), Description("Kicks people from the guild, sending them off with a private message."), RequireGuild, RequireUserPermissions(Permissions.BanMembers), RequireBotPermissions(Permissions.BanMembers), Punishment]
-		public async Task User(CommandContext context, [Description("The person to be kicked.")] DiscordMember victim, [Description("(Optional) The reason why the person is being kicked."), RemainingText] string kickReason = Program.MissingReason)
+		public async Task User(CommandContext context, [Description("The person to be kicked.")] DiscordMember victim, [Description("(Optional) The reason why the person is being kicked."), RemainingText] string kickReason = Constants.MissingReason)
 		{
 			bool sentDm = false;
 			if (victim != null && !victim.IsBot) try
@@ -27,7 +27,7 @@ namespace Tomoe.Commands.Moderation
 		}
 
 		[Command("kick"), RequireGuild]
-		public async Task Group(CommandContext context, [Description("(Optional) The reason why people are being kicked.")] string kickReason = Program.MissingReason, [Description("The people to be kicked.")] params DiscordMember[] victims)
+		public async Task Group(CommandContext context, [Description("(Optional) The reason why people are being kicked.")] string kickReason = Constants.MissingReason, [Description("The people to be kicked.")] params DiscordMember[] victims)
 		{
 			foreach (DiscordMember victim in victims) if (await Punishment.CheckUser(context, await context.Guild.GetMemberAsync(victim.Id))) await User(context, victim, kickReason);
 		}

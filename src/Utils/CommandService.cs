@@ -58,14 +58,14 @@ namespace Tomoe.Utils
 					ChecksFailedException error = args.Exception as ChecksFailedException;
 					if (error.Context.Channel.IsPrivate)
 					{
-						_ = Program.SendMessage(args.Context, Program.NotAGuild);
+						_ = Program.SendMessage(args.Context, Constants.NotAGuild);
 						args.Handled = true;
 					}
 					else if (error.FailedChecks.OfType<Punishment>() != null) args.Handled = true;
 					else if (error.FailedChecks.OfType<TagCheck>() != null) args.Handled = true;
 					else if (error.FailedChecks.OfType<RequireUserPermissionsAttribute>() != null)
 					{
-						_ = Program.SendMessage(args.Context, Program.MissingPermissions);
+						_ = Program.SendMessage(args.Context, Constants.MissingPermissions);
 						args.Handled = true;
 					}
 				}

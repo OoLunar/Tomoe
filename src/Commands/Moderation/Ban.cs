@@ -13,7 +13,7 @@ namespace Tomoe.Commands.Moderation
 	public class Ban : BaseCommandModule
 	{
 		[Command("ban"), Description("Bans people from the guild, sending them off with a private message."), RequireUserPermissions(Permissions.BanMembers), RequireBotPermissions(Permissions.BanMembers), Punishment]
-		public async Task User(CommandContext context, [Description("The person to be banned.")] DiscordUser victim, [Description("(Optional) Removed the victim's messages from the pass `x` days.")] int pruneDays = 7, [Description("(Optional) The reason why the person is being banned."), RemainingText] string banReason = Program.MissingReason)
+		public async Task User(CommandContext context, [Description("The person to be banned.")] DiscordUser victim, [Description("(Optional) Removed the victim's messages from the pass `x` days.")] int pruneDays = 7, [Description("(Optional) The reason why the person is being banned."), RemainingText] string banReason = Constants.MissingReason)
 		{
 			if (pruneDays < 7) pruneDays = 7;
 			bool sentDm = false;
@@ -29,16 +29,16 @@ namespace Tomoe.Commands.Moderation
 		}
 
 		[Command("ban")]
-		public async Task User(CommandContext context, [Description("The person to be banned.")] DiscordUser victim, [Description("(Optional) Removed the victim's messages from the pass `x` days.")] int pruneDays = 7) => User(context, victim, pruneDays, Program.MissingReason);
+		public async Task User(CommandContext context, [Description("The person to be banned.")] DiscordUser victim, [Description("(Optional) Removed the victim's messages from the pass `x` days.")] int pruneDays = 7) => User(context, victim, pruneDays, Constants.MissingReason);
 
 		[Command("ban")]
-		public async Task Group(CommandContext context, [Description("(Optional) Removed the victim's messages from the pass `x` days.")] int pruneDays = 7, [Description("(Optional) The reason why the people are being banned.")] string banReason = Program.MissingReason, [Description("The people to be banned.")] params DiscordUser[] victims)
+		public async Task Group(CommandContext context, [Description("(Optional) Removed the victim's messages from the pass `x` days.")] int pruneDays = 7, [Description("(Optional) The reason why the people are being banned.")] string banReason = Constants.MissingReason, [Description("The people to be banned.")] params DiscordUser[] victims)
 		{
 			foreach (DiscordUser victim in victims) if (await Punishment.CheckUser(context, await context.Guild.GetMemberAsync(victim.Id))) await User(context, victim, pruneDays, banReason);
 		}
 
 		[Command("ban")]
-		public async Task Group(CommandContext context, [Description("(Optional) The reason why the people are being banned.")] string banReason = Program.MissingReason, [Description("The people to be banned.")] params DiscordUser[] victims) => Group(context, default, banReason, victims);
+		public async Task Group(CommandContext context, [Description("(Optional) The reason why the people are being banned.")] string banReason = Constants.MissingReason, [Description("The people to be banned.")] params DiscordUser[] victims) => Group(context, default, banReason, victims);
 
 		[Command("ban")]
 		public async Task Group(CommandContext context, [Description("The people to be banned.")] params DiscordUser[] victims) => Group(context, default, default, victims);

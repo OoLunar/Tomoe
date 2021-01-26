@@ -20,12 +20,6 @@ namespace Tomoe
 {
 	internal class Program
 	{
-		public const string MissingReason = "**[Notice: No reason was provided.]**";
-		public const string MissingPermissions = "**[Denied: Missing permissions.]**";
-		public const string NotAGuild = "**[Denied: Guild command.]**";
-		public const string SelfAction = "**[Denied: Cannot execute on myself.]**";
-		public const string Hierarchy = "**[Denied: Prevented by hierarchy.]**";
-		public const string MissingRole = "**[Error: No role has been set!]**";
 		public static DiscordShardedClient Client { get; private set; }
 		public static DatabaseLoader Database = new();
 		private static readonly Logger _logger = new("Main");

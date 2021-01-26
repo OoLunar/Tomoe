@@ -27,7 +27,7 @@ namespace Tomoe.Commands.Public
 			if (tagTitle.Length > 32)
 			{
 				_logger.Trace("Tag title was too long!");
-				_ = Program.SendMessage(context, Formatter.Bold("[Error: Tag title too long.]"));
+				_ = Program.SendMessage(context, Constants.Tags.TooLong);
 				_logger.Trace("Message sent!");
 			}
 			else
@@ -86,7 +86,7 @@ namespace Tomoe.Commands.Public
 			else if (Program.Database.Tags.IsAlias(context.Guild.Id, oldName).Value)
 			{
 				_logger.Trace($"Tag \"{oldName}\" is an alias...");
-				_ = Program.SendMessage(context, Formatter.Bold($"[Denied: Creating aliases of aliases aren't allowed. Use {Formatter.InlineCode($">>tag create_alias {Program.Database.Tags.RealName(context.Guild.Id, oldName)}")} to create the alias.]"));
+				_ = Program.SendMessage(context, Constants.Tags.AliasesOfAliases);
 				_logger.Trace("Message sent!");
 			}
 			else
@@ -219,7 +219,7 @@ namespace Tomoe.Commands.Public
 				if (guildAuthor != null)
 				{
 					_logger.Trace($"The owner of tag \"{tagTitle}\" is still in the guild...");
-					_ = Program.SendMessage(context, Formatter.Bold("[Denied: Tag author is still in the guild!]"));
+					_ = Program.SendMessage(context, Constants.Tags.AuthorStillPresent);
 					_logger.Trace("Message sent!");
 				}
 				else
@@ -304,7 +304,7 @@ namespace Tomoe.Commands.Public
 			if (userTags.Length == 0)
 			{
 				_logger.Trace("No tags found...");
-				_ = Program.SendMessage(context, "No tags found!");
+				_ = Program.SendMessage(context, Constants.Tags.NotFound);
 				_logger.Trace("Message sent!");
 				return;
 			}
@@ -337,7 +337,7 @@ namespace Tomoe.Commands.Public
 			if (allTags[0] == null)
 			{
 				_logger.Trace("No tags found...");
-				_ = Program.SendMessage(context, "No tags found!");
+				_ = Program.SendMessage(context, Constants.Tags.NotFound);
 				_logger.Trace("Message sent!");
 				return;
 			}
@@ -415,7 +415,7 @@ namespace Tomoe.Commands.Public
 			string tagTitle = context.RawArgumentString.Split(' ')[0].Trim().ToLowerInvariant();
 			if (tagTitle.Length > 32)
 			{
-				_ = Program.SendMessage(context, Formatter.Bold("[Error: Tag title too long.]"));
+				_ = Program.SendMessage(context, Constants.Tags.TooLong);
 				return false;
 			}
 			else if (MustExist == TagState.Exists && !Program.Database.Tags.Exist(context.Guild.Id, tagTitle))
@@ -430,23 +430,20 @@ namespace Tomoe.Commands.Public
 			}
 			else if (RequireOwner && (Program.Database.Tags.GetAuthor(context.Guild.Id, tagTitle) != context.User.Id || context.Member.Roles.Any(role => role.Permissions.HasFlag(Permissions.Administrator) || role.Permissions.HasFlag(Permissions.ManageMessages))))
 			{
-				_ = Program.SendMessage(context, Formatter.Bold("[Denied: You aren't the tag owner!]"));
+				_ = Program.SendMessage(context, Constants.Tags.NotOwnerOf);
 				return false;
 			}
 			else if (RequireTagType == TagType.Tag && Program.Database.Tags.IsAlias(context.Guild.Id, tagTitle).Value)
 			{
-				_ = Program.SendMessage(context, Formatter.Bold("[Denied: Tag isn't a tag.]"));
+				_ = Program.SendMessage(context, Constants.Tags.NotATag);
 				return false;
 			}
 			else if (RequireTagType == TagType.Alias && !Program.Database.Tags.IsAlias(context.Guild.Id, tagTitle).Value)
 			{
-				_ = Program.SendMessage(context, Formatter.Bold("[Denied: Tag isn't an alias.]"));
+				_ = Program.SendMessage(context, Constants.Tags.NotAnAlias);
 				return false;
 			}
-			else
-			{
-				return true;
-			}
+			else return true;
 		}
 	}
 }

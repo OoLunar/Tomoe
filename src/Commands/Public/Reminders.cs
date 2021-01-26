@@ -85,7 +85,7 @@ namespace Tomoe.Commands.Public
 			if (!task.HasValue)
 			{
 				_logger.Trace($"Reminder #{taskId} doesn't exist!");
-				_ = Program.SendMessage(context, $"Reminder #{taskId} does not exist!");
+				_ = Program.SendMessage(context, $"**[Error: Reminder #{taskId} does not exist!]**");
 			}
 			else
 			{

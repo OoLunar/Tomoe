@@ -13,12 +13,12 @@ namespace Tomoe.Commands.Moderation
 	public class Unmute : BaseCommandModule
 	{
 		[Command("unmute"), Description("Unmutes an individual."), Aliases("unsilence"), Punishment]
-		public async Task User(CommandContext context, DiscordUser victim, [RemainingText] string unmuteReason = Program.MissingReason)
+		public async Task User(CommandContext context, DiscordUser victim, [RemainingText] string unmuteReason = Constants.MissingReason)
 		{
 			DiscordRole muteRole = Program.Database.Guild.MuteRole(context.Guild.Id).GetRole(context.Guild);
 			if (muteRole == null)
 			{
-				_ = Program.SendMessage(context, Program.MissingRole);
+				_ = Program.SendMessage(context, Constants.MissingRole);
 				return;
 			}
 

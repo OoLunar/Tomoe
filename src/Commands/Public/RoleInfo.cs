@@ -106,7 +106,7 @@ namespace Tomoe.Commands.Public
 					_ = roleInfo.Append($"Hoisted: {Formatter.Bold(role.IsHoisted.ToString())}\n");
 					_ = roleInfo.Append($"Managed: {Formatter.Bold(role.IsManaged.ToString())}\n");
 					_ = roleInfo.Append($"Permissions: {Formatter.Bold(role.Permissions.ToPermissionString())}\n");
-					_ = roleInfo.Append($"Member Count: {Formatter.Bold(roleMemberCount.ToString())}");
+					_ = roleInfo.Append($"Member Count: {Formatter.Bold(roleMemberCount.ToString(CultureInfo.InvariantCulture))}");
 					embed.Description = roleInfo.ToString();
 					_logger.Trace("Added embed to list...");
 					embeds.Add(new(null, embed));
@@ -161,7 +161,7 @@ namespace Tomoe.Commands.Public
 			_ = roleInfo.Append($"Hoisted: {Formatter.Bold(role.IsHoisted.ToString())}\n");
 			_ = roleInfo.Append($"Managed: {Formatter.Bold(role.IsManaged.ToString())}\n");
 			_ = roleInfo.Append($"Permissions: {Formatter.Bold(role.Permissions.ToPermissionString())}\n");
-			_ = roleInfo.Append($"Member Count: {Formatter.Bold(roleMemberCount.ToString())}");
+			_ = roleInfo.Append($"Member Count: {Formatter.Bold(roleMemberCount.ToString(CultureInfo.InvariantCulture))}");
 			embed.Description = roleInfo.ToString();
 			_logger.Trace("Sending embed...");
 			_ = Program.SendMessage(context, null, embed.Build());

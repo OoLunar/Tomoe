@@ -18,7 +18,7 @@ namespace Tomoe.Commands.Moderation
 		private static readonly Logger _logger = new("Commands.Moderation.Unban");
 
 		[Command("unban"), Description("Unbans people from the guild."), RequireUserPermissions(Permissions.BanMembers), RequireBotPermissions(Permissions.BanMembers), Punishment]
-		public async Task User(CommandContext context, [Description("The person to be unbanned.")] DiscordUser victim, [Description("(Optional) The reason why the person is being unbanned."), RemainingText] string unbanReason = Program.MissingReason)
+		public async Task User(CommandContext context, [Description("The person to be unbanned.")] DiscordUser victim, [Description("(Optional) The reason why the person is being unbanned."), RemainingText] string unbanReason = Constants.MissingReason)
 		{
 			IReadOnlyList<DiscordBan> guildBans = await context.Guild.GetBansAsync();
 			if (guildBans.Count == 0 || guildBans.All(discordBan => discordBan.User != victim))
@@ -26,7 +26,7 @@ namespace Tomoe.Commands.Moderation
 				_ = Program.SendMessage(context, $"{victim.Mention} isn't banned!");
 				return;
 			}
-			await context.Guild.UnbanMemberAsync(victim, unbanReason ?? Program.MissingReason);
+			await context.Guild.UnbanMemberAsync(victim, unbanReason ?? Constants.MissingReason);
 
 			bool sentDm = true;
 			DiscordMember guildVictim = victim.GetMember(context.Guild);
