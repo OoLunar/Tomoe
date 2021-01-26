@@ -11,7 +11,7 @@ using NpgsqlTypes;
 using Tomoe.Database.Interfaces;
 using Tomoe.Utils;
 
-namespace Tomoe.Database.Drivers.PostgresSQL
+namespace Tomoe.Database.Drivers.PostgreSQL
 {
 	public class PostgresTags : ITags
 	{
