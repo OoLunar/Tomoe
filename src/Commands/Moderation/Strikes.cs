@@ -33,8 +33,7 @@ namespace Tomoe.Commands.Moderation
 		[Command("check"), Description("Gets the users past history"), RequireUserPermissions(Permissions.KickMembers), Aliases("history")]
 		public async Task Check(CommandContext context, DiscordUser victim)
 		{
-			DiscordEmbedBuilder embedBuilder = new();
-			embedBuilder.Title = $"{victim.Username}'s Past History";
+			DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder().GenerateDefaultEmbed(context, $"{victim.Username}'s Past History");
 			Strike[] pastStrikes = Program.Database.Strikes.GetVictim(context.Guild.Id, victim.Id);
 			if (pastStrikes == null) _ = Program.SendMessage(context, "No previous strikes have been found!");
 			else

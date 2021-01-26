@@ -19,10 +19,8 @@ namespace Tomoe.Commands.Public
 		{
 			_logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");
 			_logger.Trace("Creating embed...");
-			DiscordEmbedBuilder embedBuilder = new();
+			DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder().GenerateDefaultEmbed(context, "General Bot Info");
 			StringBuilder botInfo = new();
-			_logger.Trace("Setting title...");
-			embedBuilder.Title = "General Bot Info";
 			_logger.Trace("Filling out description...");
 			_ = botInfo.Append($"Currently in {context.Client.Guilds.Count} guilds\n");
 			_ = botInfo.Append($"Handling around {context.Client.Presences.Count} guild members\n");

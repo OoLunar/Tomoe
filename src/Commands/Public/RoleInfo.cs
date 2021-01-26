@@ -67,15 +67,8 @@ namespace Tomoe.Commands.Public
 				foreach (DiscordRole role in rolesInQuestion)
 				{
 					_logger.Trace("Creating embed...");
-					DiscordEmbedBuilder embed = new();
-					embed.Author = new()
-					{
-						Name = context.User.Username,
-						IconUrl = context.User.AvatarUrl,
-						Url = context.User.AvatarUrl
-					};
+					DiscordEmbedBuilder embed = new DiscordEmbedBuilder().GenerateDefaultEmbed(context, $"Role Info for {Formatter.Bold(role.Name)}");
 					embed.Color = role.Color;
-					embed.Title = $"Role Info for {Formatter.Bold(role.Name)}";
 					embed.Footer = new()
 					{
 						Text = $"Page {embeds.Count + 1}"
@@ -126,15 +119,8 @@ namespace Tomoe.Commands.Public
 		{
 			_logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");
 			_logger.Trace("Creating embed...");
-			DiscordEmbedBuilder embed = new();
-			embed.Author = new()
-			{
-				Name = context.User.Username,
-				IconUrl = context.User.AvatarUrl,
-				Url = context.User.AvatarUrl
-			};
+			DiscordEmbedBuilder embed = new DiscordEmbedBuilder().GenerateDefaultEmbed(context, $"Role Info for {Formatter.Bold(role.Name)}");
 			embed.Color = role.Color;
-			embed.Title = $"Role Info for **{role.Name}**";
 			_logger.Trace($"Getting members with role {role.Id}...");
 			int roleMemberCount = 0;
 			StringBuilder roleUsers = new();

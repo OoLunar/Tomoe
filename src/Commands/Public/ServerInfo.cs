@@ -20,9 +20,8 @@ namespace Tomoe.Commands.Public
 		{
 			_logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");
 			_logger.Trace("Creating embed...");
-			DiscordEmbedBuilder embedBuilder = new();
+			DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder().GenerateDefaultEmbed(context, context.Guild.Name);
 			_logger.Trace("Filling out description...");
-			embedBuilder.Title = context.Guild.Name;
 			embedBuilder.Url = context.Guild.IconUrl;
 			embedBuilder.Footer = new() { IconUrl = context.Guild.BannerUrl };
 			StringBuilder guildInfo = new();

@@ -159,7 +159,7 @@ namespace Tomoe.Commands.Public
 			ulong tagAuthor = Program.Database.Tags.GetAuthor(context.Guild.Id, tagTitle).Value;
 			DiscordUser authorDiscordUser = await context.Client.GetUserAsync(tagAuthor);
 			DiscordMember authorGuildMember = await context.Guild.GetMemberAsync(tagAuthor);
-			DiscordEmbedBuilder embedBuilder = new();
+			DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder().GenerateDefaultEmbed(context, tagTitle);
 			embedBuilder.Title = tagTitle;
 			if (authorGuildMember != null)
 			{
@@ -280,17 +280,10 @@ namespace Tomoe.Commands.Public
 				return;
 			}
 			_logger.Trace("Creating embed...");
-			DiscordEmbedBuilder embedBuilder = new();
-			embedBuilder.Author = new()
-			{
-				Name = context.User.Username,
-				IconUrl = context.User.AvatarUrl ?? context.User.DefaultAvatarUrl,
-				Url = context.User.AvatarUrl ?? context.User.DefaultAvatarUrl
-			};
-			embedBuilder.Title = $"All aliases for tag \"{tagTitle}\"";
+			DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder().GenerateDefaultEmbed(context, $"All aliases for tag \"{tagTitle}\"");
 			InteractivityExtension interactivity = context.Client.GetInteractivity();
 			_logger.Trace("Sending embed...");
-			await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, interactivity.GeneratePagesInEmbed(string.Join(", ", userTags), SplitType.Character, embedBuilder), timeoutoverride: TimeSpan.FromMinutes(2));
+			await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, interactivity.GeneratePagesInEmbed(string.Join(", ", userTags), SplitType.Character, embedBuilder));
 			_logger.Trace("Embed sent!");
 		}
 
@@ -310,14 +303,7 @@ namespace Tomoe.Commands.Public
 			}
 
 			_logger.Trace("Creating embed...");
-			DiscordEmbedBuilder embedBuilder = new();
-			embedBuilder.Author = new()
-			{
-				Name = context.User.Username,
-				IconUrl = context.User.AvatarUrl ?? context.User.DefaultAvatarUrl,
-				Url = context.User.AvatarUrl ?? context.User.DefaultAvatarUrl
-			};
-			embedBuilder.Title = $"All tags by {user.Username} on \"{context.Guild.Name}\"";
+			DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder().GenerateDefaultEmbed(context, $"All tags by {user.Username} on \"{context.Guild.Name}\"");
 			InteractivityExtension interactivity = context.Client.GetInteractivity();
 			_logger.Trace("Sending embed...");
 			await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, interactivity.GeneratePagesInEmbed(string.Join(", ", userTags), SplitType.Character, embedBuilder), timeoutoverride: TimeSpan.FromMinutes(2));
@@ -343,14 +329,13 @@ namespace Tomoe.Commands.Public
 			}
 
 			_logger.Trace("Creating embed...");
-			DiscordEmbedBuilder embedBuilder = new();
+			DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder().GenerateDefaultEmbed(context, $"All tags for \"{context.Guild.Name}\"");
 			embedBuilder.Author = new()
 			{
 				Name = context.Guild.Name,
 				IconUrl = context.Guild.IconUrl ?? context.User.DefaultAvatarUrl,
 				Url = context.Guild.IconUrl ?? context.User.DefaultAvatarUrl
 			};
-			embedBuilder.Title = $"All tags for \"{context.Guild.Name}\"";
 			InteractivityExtension interactivity = context.Client.GetInteractivity();
 			_logger.Trace("Sending embed...");
 			await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, interactivity.GeneratePagesInEmbed(string.Join(", ", allTags), SplitType.Character, embedBuilder), timeoutoverride: TimeSpan.FromMinutes(2));

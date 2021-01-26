@@ -62,14 +62,13 @@ namespace Tomoe.Commands.Public
 			}
 
 			_logger.Trace("Creating embed...");
-			DiscordEmbedBuilder embedBuilder = new();
+			DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder().GenerateDefaultEmbed(context, $"All reminders for {context.Member.GetCommonName()}");
 			embedBuilder.Author = new()
 			{
 				Name = context.Guild.Name,
 				Url = context.Guild.IconUrl ?? context.User.DefaultAvatarUrl,
 				IconUrl = context.Guild.IconUrl ?? context.User.DefaultAvatarUrl
 			};
-			embedBuilder.Title = $"All reminders for {context.Member.GetCommonName()}";
 			InteractivityExtension interactivity = context.Client.GetInteractivity();
 			_logger.Trace("Sending embed...");
 			await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, interactivity.GeneratePagesInEmbed(string.Join("\n", reminders.ToArray()), SplitType.Character, embedBuilder), timeoutoverride: TimeSpan.FromMinutes(2));
