@@ -1,5 +1,8 @@
+using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
+
+using Humanizer;
 
 namespace Tomoe
 {
@@ -11,6 +14,19 @@ namespace Tomoe
 		{
 			try { return guild.GetMemberAsync(user.Id).GetAwaiter().GetResult(); }
 			catch (NotFoundException) { return null; }
+		}
+
+		public static DiscordEmbedBuilder GenerateDefaultEmbed(this DiscordEmbedBuilder embedBuilder, CommandContext context, string title)
+		{
+			embedBuilder.Title = title.Humanize(LetterCasing.Title);
+			embedBuilder.Color = new DiscordColor("#7b84d1");
+			embedBuilder.Author = new()
+			{
+				Name = context.Member.GetCommonName(),
+				IconUrl = context.Member.AvatarUrl,
+				Url = context.Member.AvatarUrl
+			};
+			return embedBuilder;
 		}
 	}
 }
