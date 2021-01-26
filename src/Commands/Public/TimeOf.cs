@@ -20,7 +20,7 @@ namespace Tomoe.Commands.Public
 		private static readonly Logger _logger = new("Commands.Public.TimeOf");
 
 		[Command("timeof"), Description("Gets the time of the messages linked."), Aliases("time_of", "whenwas", "when_was", "timestamp")]
-		public async Task Choose(CommandContext context, params ulong[] messages)
+		public async Task Overload(CommandContext context, params ulong[] messages)
 		{
 			_logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");
 			await context.Channel.TriggerTypingAsync();

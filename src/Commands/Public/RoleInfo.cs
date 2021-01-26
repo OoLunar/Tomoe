@@ -22,7 +22,7 @@ namespace Tomoe.Commands.Public
 		private static readonly Logger _logger = new("Commands.Public.RoleInfo");
 
 		[Command("roleinfo"), Description("Gets information about a server role."), Aliases("role_info", "ri"), Priority(0)]
-		public async Task ByName(CommandContext context, [Description("The role's name."), RemainingText] string roleName)
+		public async Task Overload(CommandContext context, [Description("The role's name."), RemainingText] string roleName)
 		{
 			_logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");
 			roleName = roleName.Trim().ToLowerInvariant();
@@ -31,7 +31,7 @@ namespace Tomoe.Commands.Public
 			if (roleName is "everyone" or "@here")
 			{
 				_logger.Trace("Getting information on the everyone role!");
-				await ByPing(context, context.Guild.GetRole(context.Guild.Id));
+				await Overload(context, context.Guild.GetRole(context.Guild.Id));
 				return;
 			}
 			else
@@ -55,7 +55,7 @@ namespace Tomoe.Commands.Public
 			else if (rolesInQuestion.Count == 1)
 			{
 				_logger.Trace($"Found only 1 role ({rolesInQuestion[0].Id})!");
-				await ByPing(context, rolesInQuestion[0]);
+				await Overload(context, rolesInQuestion[0]);
 			}
 			else
 			{
@@ -115,7 +115,7 @@ namespace Tomoe.Commands.Public
 		}
 
 		[Command("roleinfo"), Priority(1)]
-		public async Task ByPing(CommandContext context, [Description("The role id or pinged. Please refrain from pinging the roles.")] DiscordRole role)
+		public async Task Overload(CommandContext context, [Description("The role id or pinged. Please refrain from pinging the roles.")] DiscordRole role)
 		{
 			_logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");
 			_logger.Trace("Creating embed...");

@@ -13,7 +13,7 @@ namespace Tomoe.Commands.Public
 	{
 		private static readonly Logger _logger = new("Commands.Public.Raw");
 		[Command("raw"), Description("Gets the raw version of the message provided."), Aliases("source")]
-		public async Task Message(CommandContext context, [Description("The message id or jumplink to the message.")] DiscordMessage message)
+		public async Task Overload(CommandContext context, [Description("The message id or jumplink to the message.")] DiscordMessage message)
 		{
 			_logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");
 			if (message.Content == string.Empty && message.Embeds.Count != 0)

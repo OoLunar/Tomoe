@@ -13,7 +13,7 @@ namespace Tomoe.Commands.Public
 		private static readonly Logger _logger = new("Commands.Public.Invite");
 
 		[Command("invite"), Description("Sends the link to add Tomoe to a guild without an embed."), Aliases("link")]
-		public async Task Mention(CommandContext context)
+		public async Task Overload(CommandContext context)
 		{
 			_logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");
 			_logger.Trace($"Invite link: {Utils.Config.InviteLink}");

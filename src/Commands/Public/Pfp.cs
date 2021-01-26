@@ -13,13 +13,13 @@ namespace Tomoe.Commands.Public
 	{
 		private static readonly Logger _logger = new("Commands.Public.ProfilePicture");
 		[Command("profilepicture"), Description("Gets the profile picture of the requested user. Defaults to the requestor when no user is specified."), Aliases("profile_picture", "pfp", "avatar")]
-		public async Task Mention(CommandContext context) => Mention(context, context.User, 1024, ImageFormat.Png);
+		public async Task Overload(CommandContext context) => Overload(context, context.User, 1024, ImageFormat.Png);
 
 		[Command("profilepicture")]
-		public async Task Mention(CommandContext context, [Description("(Optional) The user's pfp to be shown. Defaults to the requestor.")] DiscordUser user, [Description("(Optional) What format the image should be. See [image formats](https://discord.com/developers/docs/reference#image-formatting-image-formats).")] ImageFormat imageFormat = ImageFormat.Png) => Mention(context, user, 1024, imageFormat);
+		public async Task Overload(CommandContext context, [Description("(Optional) The user's pfp to be shown. Defaults to the requestor.")] DiscordUser user, [Description("(Optional) What format the image should be. See [image formats](https://discord.com/developers/docs/reference#image-formatting-image-formats).")] ImageFormat imageFormat = ImageFormat.Png) => Overload(context, user, 1024, imageFormat);
 
 		[Command("profilepicture")]
-		public async Task Mention(CommandContext context, [Description("(Optional) The user's pfp to be shown. Defaults to the requestor.")] DiscordUser user, [Description("(Optional) What size the image should be. Must be a power of two.")] ushort imageSize, [Description("(Optional) What format the image should be. See [image formats](https://discord.com/developers/docs/reference#image-formatting-image-formats).")] ImageFormat imageFormat = ImageFormat.Png)
+		public async Task Overload(CommandContext context, [Description("(Optional) The user's pfp to be shown. Defaults to the requestor.")] DiscordUser user, [Description("(Optional) What size the image should be. Must be a power of two.")] ushort imageSize, [Description("(Optional) What format the image should be. See [image formats](https://discord.com/developers/docs/reference#image-formatting-image-formats).")] ImageFormat imageFormat = ImageFormat.Png)
 		{
 			_logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");
 			bool userExists = user != null;

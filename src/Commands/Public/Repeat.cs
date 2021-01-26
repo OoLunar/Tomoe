@@ -13,7 +13,7 @@ namespace Tomoe.Commands.Public
 		private static readonly Logger _logger = new("Commands.Public.Repeat");
 
 		[Command("repeat"), Description("Repeats the command multiple times with the arguments provided. Waits 5 seconds before repeating the command.")]
-		public async Task Execute(CommandContext context, int repeatCount, string command, [RemainingText] string arguments)
+		public async Task Overload(CommandContext context, int repeatCount, string command, [RemainingText] string arguments)
 		{
 			_logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");
 			string commandName = command.ToLowerInvariant();

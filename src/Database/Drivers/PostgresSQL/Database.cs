@@ -9,7 +9,7 @@ using Tomoe.Utils;
 
 namespace Tomoe.Database.Drivers.PostgreSQL
 {
-	public class PostgresSQL : IDatabase
+	public class PostgreSQL : IDatabase
 	{
 		private readonly IUser PostgresUser;
 		private readonly IGuild PostgresGuild;
@@ -23,7 +23,7 @@ namespace Tomoe.Database.Drivers.PostgreSQL
 		public IAssignment Assignments { get => PostgresAssignments; }
 		public IStrikes Strikes { get => PostgresStrikes; }
 
-		public PostgresSQL(string password, string database_name, Dictionary<string, string> parameters)
+		public PostgreSQL(string password, string database_name, Dictionary<string, string> parameters)
 		{
 			NpgsqlLogManager.Provider = new NLogLoggingProvider();
 			NpgsqlLogManager.IsParameterLoggingEnabled = true;

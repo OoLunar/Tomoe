@@ -14,7 +14,7 @@ namespace Tomoe.Commands.Public
 		private static readonly Random _random = new();
 
 		[Command("flip"), Description("A simple heads or tails command."), Aliases("choose", "pick")]
-		public async Task Choose(CommandContext context)
+		public async Task Overload(CommandContext context)
 		{
 			_logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");
 			_logger.Trace("Generating number between 0 and 1...");
@@ -25,7 +25,7 @@ namespace Tomoe.Commands.Public
 		}
 
 		[Command("flip")]
-		public async Task Choose(CommandContext context, [Description("Have Tomoe pick from the choices listed.")] params string[] choices)
+		public async Task Overload(CommandContext context, [Description("Have Tomoe pick from the choices listed.")] params string[] choices)
 		{
 			_logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");
 			_logger.Debug($"Generating number between 1 and {choices.Length}...");

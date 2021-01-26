@@ -16,7 +16,7 @@ namespace Tomoe.Commands.Public
 		private static readonly Logger _logger = new("Commands.Public.ServerInfo");
 
 		[Command("serverinfo"), Description("Gets general info about the server."), Aliases("server_info")]
-		public async Task Get(CommandContext context)
+		public async Task Overload(CommandContext context)
 		{
 			_logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");
 			_logger.Trace("Creating embed...");
