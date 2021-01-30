@@ -50,7 +50,7 @@ namespace Tomoe.Commands.Public
 			if (rolesInQuestion.Count == 0)
 			{
 				_logger.Trace("No role found!");
-				_ = Program.SendMessage(context, Formatter.Bold($"[Error: There was no role called \"{roleName}\"]")); // No role was found. Inform the user.
+				_ = await Program.SendMessage(context, Formatter.Bold($"[Error: There was no role called \"{roleName}\"]")); // No role was found. Inform the user.
 			}
 			else if (rolesInQuestion.Count == 1)
 			{
@@ -60,7 +60,7 @@ namespace Tomoe.Commands.Public
 			else
 			{
 				_logger.Trace($"Found a total of {rolesInQuestion.Count} roles!");
-				DiscordMessage message = Program.SendMessage(context, "Getting role permissions...");
+				DiscordMessage message = await Program.SendMessage(context, "Getting role permissions...");
 				InteractivityExtension interactivity = context.Client.GetInteractivity();
 				_logger.Trace("Creating embed list...");
 				List<Page> embeds = new();
@@ -150,7 +150,7 @@ namespace Tomoe.Commands.Public
 			_ = roleInfo.Append($"Member Count: {Formatter.Bold(roleMemberCount.ToString(CultureInfo.InvariantCulture))}");
 			embed.Description = roleInfo.ToString();
 			_logger.Trace("Sending embed...");
-			_ = Program.SendMessage(context, null, embed.Build());
+			_ = await Program.SendMessage(context, null, embed.Build());
 			_logger.Trace("Embed sent!");
 		}
 	}

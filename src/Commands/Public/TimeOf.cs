@@ -34,10 +34,10 @@ namespace Tomoe.Commands.Public
 				InteractivityExtension interactivity = context.Client.GetInteractivity();
 				Page[] pages = interactivity.GeneratePagesInEmbed(timestamps.ToString(), SplitType.Line, embedBuilder).ToArray();
 
-				if (pages.Length == 1) _ = Program.SendMessage(context, null, pages[0].Embed);
+				if (pages.Length == 1) _ = await Program.SendMessage(context, null, pages[0].Embed);
 				else await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, pages);
 			}
-			else _ = Program.SendMessage(context, timestamps.ToString());
+			else _ = await Program.SendMessage(context, timestamps.ToString());
 			_logger.Trace("Message sent!");
 		}
 	}

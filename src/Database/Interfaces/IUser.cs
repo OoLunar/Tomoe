@@ -4,7 +4,8 @@ namespace Tomoe.Database.Interfaces
 {
 	public interface IUser : IDisposable
 	{
-		void InsertUser(ulong guildId, ulong userId);
+		void Insert(ulong guildId, ulong userId);
+		bool Exists(ulong guildId, ulong userId);
 
 		ulong[] GetRoles(ulong guildId, ulong userId);
 		void AddRole(ulong guildId, ulong userId, ulong roleId);

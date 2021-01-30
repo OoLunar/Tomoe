@@ -82,7 +82,7 @@ namespace Tomoe.Database.Drivers.PostgreSQL
 			}
 			catch (SocketException error)
 			{
-				if (retryCount > DatabaseLoader.RetryCount) _logger.Critical($"Failed to execute query \"{command}\" after {retryCount} times. Check your internet connection.");
+				if (retryCount > Config.Database.MaxRetryCount) _logger.Critical($"Failed to execute query \"{command}\" after {retryCount} times. Check your internet connection.");
 				else retryCount++;
 				_logger.Error($"Socket exception occured, retrying... Details: {error.Message}\n{error.StackTrace}");
 				return ExecuteQuery(command, parameters, needsResult);
@@ -107,14 +107,8 @@ namespace Tomoe.Database.Drivers.PostgreSQL
 				_ = createTagsTable.ExecuteNonQuery();
 				createTagsTable.Dispose();
 			}
-			catch (SocketException error)
-			{
-				_logger.Critical($"Failed to connect to database. {error.Message}");
-			}
-			catch (PostgresException error) when (error.SqlState == "28P01")
-			{
-				_logger.Critical($"Failed to connect to database. Check your password.");
-			}
+			catch (SocketException error) { _logger.Critical($"Failed to connect to database. {error.Message}", true); }
+			catch (PostgresException error) when (error.SqlState == "28P01") { _logger.Critical($"Failed to connect to database. Invalid Password.", true); }
 			_logger.Info("Preparing SQL commands...");
 			_logger.Debug($"Preparing {StatementType.Create}...");
 			NpgsqlCommand createAssignment = new("INSERT INTO assignments(task_type, guild_id, channel_id, message_id, user_id, set_off, set_at, content) VALUES(@taskType, @guildId, @channelId, @messageId, @userId, @setOff, @setAt, @content)", _connection);
@@ -161,6 +155,7 @@ namespace Tomoe.Database.Drivers.PostgreSQL
 			selectAllReminders.Prepare();
 			_preparedStatements.Add(StatementType.SelectAllReminders, selectAllReminders);
 		}
+
 		public void Create(AssignmentType taskType, ulong guildId, ulong channelId, ulong messageId, ulong userId, DateTime setOff, DateTime setAt, string content) => ExecuteQuery(StatementType.Create, new List<NpgsqlParameter>() { new("taskType", (int)taskType), new("guildId", (long)guildId), new("channelId", (long)channelId), new("messageId", (long)messageId), new("userId", (long)userId), new("setOff", setOff), new("setAt", setAt), new("content", content) });
 		public void Remove(int taskId) => ExecuteQuery(StatementType.Remove, new NpgsqlParameter("taskId", taskId));
 		public Assignment[] Retrieve(ulong userId, AssignmentType taskType)

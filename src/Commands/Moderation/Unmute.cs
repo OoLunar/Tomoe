@@ -18,7 +18,7 @@ namespace Tomoe.Commands.Moderation
 			DiscordRole muteRole = Program.Database.Guild.MuteRole(context.Guild.Id).GetRole(context.Guild);
 			if (muteRole == null)
 			{
-				_ = Program.SendMessage(context, Constants.MissingRole);
+				_ = await Program.SendMessage(context, Constants.MissingRole);
 				return;
 			}
 
@@ -34,7 +34,7 @@ namespace Tomoe.Commands.Moderation
 				await guildVictim.RevokeRoleAsync(muteRole, unmuteReason);
 			}
 			Program.Database.User.IsMuted(context.Guild.Id, victim.Id, false);
-			_ = Program.SendMessage(context, $"{victim.Mention} has been unmuted{(sentDm ? '.' : " (Failed to DM).")} Reason: {Formatter.BlockCode(Formatter.Strip(unmuteReason))}", null, new UserMention(victim.Id));
+			_ = await Program.SendMessage(context, $"{victim.Mention} has been unmuted{(sentDm ? '.' : " (Failed to DM).")} Reason: {Formatter.BlockCode(Formatter.Strip(unmuteReason))}", null, new UserMention(victim.Id));
 		}
 
 		public static async Task ByAssignment(CommandContext context, DiscordUser victim)

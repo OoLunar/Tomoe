@@ -29,7 +29,7 @@ namespace Tomoe.Commands.Moderation
 				catch (UnauthorizedException) { }
 			await context.Guild.BanMemberAsync(victim.Id, pruneDays, banReason);
 			Program.Database.Assignments.Create(AssignmentType.TempBan, context.Guild.Id, context.Channel.Id, context.Message.Id, victim.Id, DateTime.Now + banTime.TimeSpan, DateTime.Now, $"{victim.Id} tempbanned in {context.Guild.Id}");
-			_ = Program.SendMessage(context, $"{victim.Mention} has been temporarily banned{(sentDm ? '.' : " (Failed to DM).")} Reason: {Formatter.BlockCode(Formatter.Strip(banReason))}", null, new UserMention(victim.Id));
+			_ = await Program.SendMessage(context, $"{victim.Mention} has been temporarily banned{(sentDm ? '.' : " (Failed to DM).")} Reason: {Formatter.BlockCode(Formatter.Strip(banReason))}", null, new UserMention(victim.Id));
 		}
 	}
 }

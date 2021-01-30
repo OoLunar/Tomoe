@@ -52,7 +52,7 @@ namespace Tomoe.Types
 
 		public async Task WaitForReaction()
 		{
-			while (ReactionAdded._queueList.Contains(this)) Task.Delay(500);
+			while (ReactionAdded._queueList.Contains(this)) await Task.Delay(500);
 		}
 
 		public void Dispose()

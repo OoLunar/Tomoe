@@ -18,7 +18,7 @@ namespace Tomoe
 
 		public static DiscordEmbedBuilder GenerateDefaultEmbed(this DiscordEmbedBuilder embedBuilder, CommandContext context, string title)
 		{
-			embedBuilder.Title = title.Humanize(LetterCasing.Title);
+			embedBuilder.Title = title.Titleize();
 			embedBuilder.Color = new DiscordColor("#7b84d1");
 			embedBuilder.Author = new()
 			{

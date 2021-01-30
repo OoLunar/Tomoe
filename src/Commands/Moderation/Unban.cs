@@ -23,7 +23,7 @@ namespace Tomoe.Commands.Moderation
 			IReadOnlyList<DiscordBan> guildBans = await context.Guild.GetBansAsync();
 			if (guildBans.Count == 0 || guildBans.All(discordBan => discordBan.User != victim))
 			{
-				_ = Program.SendMessage(context, $"{victim.Mention} isn't banned!");
+				_ = await Program.SendMessage(context, $"{victim.Mention} isn't banned!");
 				return;
 			}
 			await context.Guild.UnbanMemberAsync(victim, unbanReason ?? Constants.MissingReason);
@@ -35,7 +35,7 @@ namespace Tomoe.Commands.Moderation
 					_ = await guildVictim.SendMessageAsync($"You've been unbanned by {Formatter.Bold(context.User.Mention)} from {Formatter.Bold(context.Guild.Name)}. Reason: {Formatter.BlockCode(Formatter.Strip(unbanReason))}");
 				}
 				catch (UnauthorizedException) { }
-			_ = Program.SendMessage(context, $"{victim.Mention} has been unbanned{(sentDm ? '.' : " (Failed to DM).")} Reason: {Formatter.BlockCode(Formatter.Strip(unbanReason))}", null, new UserMention(victim.Id));
+			_ = await Program.SendMessage(context, $"{victim.Mention} has been unbanned{(sentDm ? '.' : " (Failed to DM).")} Reason: {Formatter.BlockCode(Formatter.Strip(unbanReason))}", null, new UserMention(victim.Id));
 		}
 
 

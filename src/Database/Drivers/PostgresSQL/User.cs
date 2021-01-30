@@ -21,7 +21,8 @@ namespace Tomoe.Database.Drivers.PostgreSQL
 		private int retryCount;
 		private enum StatementType
 		{
-			InsertUser,
+			Insert,
+			Exists,
 			GetRoles,
 			AddRole,
 			RemoveRole,
@@ -91,7 +92,7 @@ namespace Tomoe.Database.Drivers.PostgreSQL
 			}
 			catch (SocketException error)
 			{
-				if (retryCount > DatabaseLoader.RetryCount) _logger.Critical($"Failed to execute query \"{command}\" after {retryCount} times. Check your internet connection.");
+				if (retryCount > Config.Database.MaxRetryCount) _logger.Critical($"Failed to execute query \"{command}\" after {retryCount} times. Check your internet connection.");
 				else retryCount++;
 				_logger.Error($"Socket exception occured, retrying... Details: {error.Message}\n{error.StackTrace}");
 				return ExecuteQuery(command, parameters, needsResult);
@@ -114,21 +115,22 @@ namespace Tomoe.Database.Drivers.PostgreSQL
 				_ = createGuildCacheTable.ExecuteNonQuery();
 				createGuildCacheTable.Dispose();
 			}
-			catch (SocketException error)
-			{
-				_logger.Critical($"Failed to connect to database. {error.Message}", true);
-			}
-			catch (PostgresException error) when (error.SqlState == "28P01")
-			{
-				_logger.Critical($"Failed to connect to database. Check your password.");
-			}
+			catch (SocketException error) { _logger.Critical($"Failed to connect to database. {error.Message}", true); }
+			//catch (PostgresException error) when (error.SqlState == "28P01") { _logger.Critical($"Failed to connect to database. Invalid Password.", true); }
 			_logger.Info("Preparing SQL commands...");
-			_logger.Debug($"Preparing {StatementType.InsertUser}...");
-			NpgsqlCommand insertUser = new("INSERT INTO guild_cache(guild_id, user_id) VALUES(@guildId, @userId)", _connection);
-			_ = insertUser.Parameters.Add(new("guildId", NpgsqlDbType.Bigint));
-			_ = insertUser.Parameters.Add(new("userId", NpgsqlDbType.Bigint));
-			insertUser.Prepare();
-			PreparedStatements.Add(StatementType.InsertUser, insertUser);
+			_logger.Debug($"Preparing {StatementType.Insert}...");
+			NpgsqlCommand insert = new("INSERT INTO guild_cache(guild_id, user_id) VALUES(@guildId, @userId)", _connection);
+			_ = insert.Parameters.Add(new("guildId", NpgsqlDbType.Bigint));
+			_ = insert.Parameters.Add(new("userId", NpgsqlDbType.Bigint));
+			insert.Prepare();
+			PreparedStatements.Add(StatementType.Insert, insert);
+
+			_logger.Debug($"Preparing {StatementType.Insert}...");
+			NpgsqlCommand exists = new("SELECT exists(select 1 FROM guild_cache WHERE guild_id=@guildId AND user_id=@userId)", _connection);
+			_ = exists.Parameters.Add(new("guildId", NpgsqlDbType.Bigint));
+			_ = exists.Parameters.Add(new("userId", NpgsqlDbType.Bigint));
+			exists.Prepare();
+			PreparedStatements.Add(StatementType.Exists, exists);
 
 			_logger.Debug($"Preparing {StatementType.GetRoles}...");
 			NpgsqlCommand getRoles = new("SELECT role_ids FROM guild_cache WHERE user_id=@userId AND guild_id=@guildId", _connection);
@@ -216,11 +218,12 @@ namespace Tomoe.Database.Drivers.PostgreSQL
 			GC.SuppressFinalize(this);
 		}
 
-		public void InsertUser(ulong guildId, ulong userId) => ExecuteQuery(StatementType.InsertUser, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("userId", (long)userId) });
-		public ulong[] GetRoles(ulong guildId, ulong userId) => ExecuteQuery(StatementType.GetRoles, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("userId", (long)userId) }, true)?[0].ConvertAll<ulong>(roleId => ulong.Parse(roleId)).ToArray();
+		public void Insert(ulong guildId, ulong userId) => ExecuteQuery(StatementType.Insert, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("userId", (long)userId) });
+		public bool Exists(ulong guildId, ulong userId) => ExecuteQuery(StatementType.Exists, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("userId", (long)userId) })[0][0];
+		public ulong[] GetRoles(ulong guildId, ulong userId) => ExecuteQuery(StatementType.GetRoles, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("userId", (long)userId) }, true)?[0].Cast<ulong>().ToArray();
 		public void AddRole(ulong guildId, ulong userId, ulong roleId) => ExecuteQuery(StatementType.AddRole, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("userId", (long)userId), new NpgsqlParameter("roleId", (long)roleId) });
 		public void RemoveRole(ulong guildId, ulong userId, ulong roleId) => ExecuteQuery(StatementType.RemoveRole, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("userId", (long)userId), new NpgsqlParameter("roleId", (long)roleId) });
-		public void SetRoles(ulong guildId, ulong userId, ulong[] roleIds) => ExecuteQuery(StatementType.SetRoles, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("userId", (long)userId), new NpgsqlParameter("roleId", roleIds.Select((role) => long.Parse(role.ToString()))) });
+		public void SetRoles(ulong guildId, ulong userId, ulong[] roleIds) => ExecuteQuery(StatementType.SetRoles, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("userId", (long)userId), new NpgsqlParameter("roleId", roleIds.Cast<long>()) });
 
 		public void AddStrike(ulong guildId, ulong userId) => ExecuteQuery(StatementType.AddStrike, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("userId", (long)userId) });
 		public void RemoveStrike(ulong guildId, ulong userId) => ExecuteQuery(StatementType.RemoveStrike, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("userId", (long)userId) });

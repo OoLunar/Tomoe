@@ -24,18 +24,18 @@ namespace Tomoe.Commands.Moderation.Attributes
 			if (help) return true;
 			else if (context.User.Id == Program.Client.CurrentUser.Id)
 			{
-				_ = Program.SendMessage(context, Constants.SelfAction);
+				_ = await Program.SendMessage(context, Constants.SelfAction);
 				return false;
 			}
 			else if (context.Message.MentionedUsers.Select(user => user.Id).Contains(context.Guild.OwnerId))
 			{
-				_ = Program.SendMessage(context, Constants.GuildOwner);
+				_ = await Program.SendMessage(context, Constants.GuildOwner);
 				return false;
 			}
 			else if (context.Message.MentionedUsers.Contains(context.User))
 			{
 				bool confirm = false;
-				DiscordMessage message = Program.SendMessage(context, Constants.SelfPunishment);
+				DiscordMessage message = await Program.SendMessage(context, Constants.SelfPunishment);
 				_ = new Queue(message, context.User, new(async eventArgs =>
 				{
 					if (eventArgs.Emoji == Queue.ThumbsUp) confirm = true;
@@ -54,18 +54,18 @@ namespace Tomoe.Commands.Moderation.Attributes
 		{
 			if (context.User.Id == Program.Client.CurrentUser.Id)
 			{
-				_ = Program.SendMessage(context, Constants.SelfAction);
+				_ = await Program.SendMessage(context, Constants.SelfAction);
 				return false;
 			}
 			else if (context.User.Id == context.Guild.OwnerId)
 			{
-				_ = Program.SendMessage(context, Constants.GuildOwner);
+				_ = await Program.SendMessage(context, Constants.GuildOwner);
 				return false;
 			}
 			else if (context.Message.MentionedUsers.Contains(context.User))
 			{
 				bool confirm = false;
-				DiscordMessage message = Program.SendMessage(context, Constants.SelfPunishment);
+				DiscordMessage message = await Program.SendMessage(context, Constants.SelfPunishment);
 				_ = new Queue(message, context.User, new(async eventArgs =>
 				{
 					if (eventArgs.Emoji == Queue.ThumbsUp) confirm = true;
@@ -79,7 +79,7 @@ namespace Tomoe.Commands.Moderation.Attributes
 			}
 			else if (context.Member.Hierarchy <= victim.Hierarchy)
 			{
-				_ = Program.SendMessage(context, Constants.Hierarchy);
+				_ = await Program.SendMessage(context, Constants.Hierarchy);
 				return false;
 			}
 			else return true;

@@ -27,7 +27,7 @@ namespace Tomoe.Commands.Moderation
 				}
 				catch (UnauthorizedException) { }
 
-			_ = Program.SendMessage(context, $"Case #{droppedStrike.Id} has been dropped, <@{droppedStrike.VictimId}> has been pardoned{(sentDm ? '.' : " (Failed to DM).")}Reason: {Formatter.BlockCode(Formatter.Strip(pardonReason))}", null, new UserMention(droppedStrike.VictimId));
+			_ = await Program.SendMessage(context, $"Case #{droppedStrike.Id} has been dropped, <@{droppedStrike.VictimId}> has been pardoned{(sentDm ? '.' : " (Failed to DM).")}Reason: {Formatter.BlockCode(Formatter.Strip(pardonReason))}", null, new UserMention(droppedStrike.VictimId));
 		}
 	}
 }

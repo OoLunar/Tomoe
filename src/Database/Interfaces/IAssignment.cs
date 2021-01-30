@@ -4,10 +4,10 @@ namespace Tomoe.Database.Interfaces
 {
 	public interface IAssignment : IDisposable
 	{
-		void Create(AssignmentType taskType, ulong guildId, ulong channelId, ulong messageId, ulong userId, DateTime setOff, DateTime setAt, string content);
-		void Remove(int taskId);
-		Assignment[] Retrieve(ulong userId, AssignmentType taskType);
-		Assignment? Retrieve(ulong userId, AssignmentType taskType, int taskId);
+		void Create(AssignmentType assignmentType, ulong guildId, ulong channelId, ulong messageId, ulong userId, DateTime setOff, DateTime setAt, string content);
+		void Remove(int assignmentId);
+		Assignment[] Retrieve(ulong userId, AssignmentType assignmentType);
+		Assignment? Retrieve(ulong userId, AssignmentType assignmentType, int assignmentId);
 		Assignment[] SelectAllAssignments();
 		Assignment[] SelectAllReminders(ulong userId);
 	}
@@ -23,14 +23,14 @@ namespace Tomoe.Database.Interfaces
 
 	public struct Assignment
 	{
-		public AssignmentType AssignmentType { get; internal set; }
-		public ulong GuildId { get; internal set; }
-		public ulong ChannelId { get; internal set; }
-		public ulong MessageId { get; internal set; }
-		public ulong UserId { get; internal set; }
-		public DateTime SetOff { get; internal set; }
-		public DateTime SetAt { get; internal set; }
-		public string Content { get; internal set; }
-		public int AssignmentId { get; internal set; }
+		public AssignmentType AssignmentType { get; set; }
+		public ulong GuildId { get; set; }
+		public ulong ChannelId { get; set; }
+		public ulong MessageId { get; set; }
+		public ulong UserId { get; set; }
+		public DateTime SetOff { get; set; }
+		public DateTime SetAt { get; set; }
+		public string Content { get; set; }
+		public int AssignmentId { get; set; }
 	}
 }

@@ -58,7 +58,7 @@ namespace Tomoe.Commands.Public
 			};
 
 			_logger.Trace("Sending embed...");
-			_ = Program.SendMessage(context, null, embedBuilder.Build());
+			_ = await Program.SendMessage(context, null, embedBuilder.Build());
 			_logger.Trace("Embed sent!");
 		}
 	}

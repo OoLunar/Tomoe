@@ -44,7 +44,7 @@ namespace Tomoe.Database.Interfaces
 		void MuteRole(ulong guildId, ulong roleId);
 
 		ulong? AntimemeRole(ulong guildId);
-		void AntiMemeRole(ulong guildId, ulong roleId);
+		void AntimemeRole(ulong guildId, ulong roleId);
 
 		ulong? VoiceBanRole(ulong guildId);
 		void VoiceBanRole(ulong guildId, ulong roleId);

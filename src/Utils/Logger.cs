@@ -1,10 +1,7 @@
 using System;
 using System.Collections.Concurrent;
-using System.Globalization;
 using System.IO;
 using System.Text;
-using System.Threading;
-
 using Microsoft.Extensions.Logging;
 
 using Npgsql.Logging;
@@ -14,6 +11,8 @@ namespace Tomoe.Utils
 	internal class Logger : ILogger
 	{
 
+		private static readonly Random _random = new();
+
 		/// <summary>What to prefix the log content with.</summary>
 		private readonly string _branchname;
 
@@ -21,9 +20,11 @@ namespace Tomoe.Utils
 		private readonly LogLevel _branchLogLevel;
 
 		/// <summary>The log file.</summary>
-		private static FileStream _logFile = Config.Logging.SaveToFile ? new FileStream(Path.Join(FileSystem.ProjectRoot, $"log/{GetTime()}.log"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite) : null;
+		public static FileStream _logFile { get; private set; } = null;
 
 		private readonly string _threadId;
+
+		private readonly bool _isCommand;
 
 		/// <summary>Unknown what this does. TODO: Implement this correctly.</summary>
 		public IDisposable BeginScope<TState>(TState state) => throw new NotImplementedException();
@@ -109,19 +110,23 @@ namespace Tomoe.Utils
 		///                                      //[Fri, Oct 13 2020 17:32:54] [Info] Main: Created Main logger!
 		/// </code>
 		/// </example>
-		/// <param name="branchName">The area of MCSharp that the logger is Logging.</param>
+		/// <param name="branchName">The area of Tomoe that the logger is Logging.</param>
 		public Logger(string branchName)
 		{
 			_branchname = branchName;
 			_branchLogLevel = Config.Logging.Tomoe;
-			_threadId = Thread.CurrentThread.ManagedThreadId.ToString();
+			if (Config.Logging.SaveToFile && _logFile == null) _logFile = new FileStream(Path.Join(FileSystem.ProjectRoot, $"log/{GetTime()}.log"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
+			if (branchName.Contains("Commands")) _isCommand = true;
+			_threadId = _random.Next(1000, 9999).ToString();
 		}
 
 		public Logger(string branchName, LogLevel branchLogLevel)
 		{
 			_branchname = branchName;
 			_branchLogLevel = branchLogLevel;
-			_threadId = Thread.CurrentThread.ManagedThreadId.ToString();
+			if (Config.Logging.SaveToFile && _logFile == null) _logFile = new FileStream(Path.Join(FileSystem.ProjectRoot, $"log/{GetTime()}.log"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
+			if (branchName.Contains("Commands")) _isCommand = true;
+			_threadId = _random.Next(1000, 9999).ToString();
 		}
 
 		/// <summary>
@@ -143,8 +148,8 @@ namespace Tomoe.Utils
 			Console.ResetColor();
 			Console.Write($"[{currentTime}] ");
 			Console.ForegroundColor = ConsoleColor.Blue;
-			Console.Write("[Trace]");
-			if (Config.Logging.ShowId)
+			Console.Write($"[Trace]");
+			if (_isCommand && Config.Logging.ShowId)
 			{
 				Console.ResetColor();
 				Console.Write(' ');
@@ -183,13 +188,13 @@ namespace Tomoe.Utils
 			Console.ResetColor();
 			Console.Write($"[{currentTime}] ");
 			Console.ForegroundColor = ConsoleColor.DarkGray;
-			Console.Write("[Debug]");
-			if (Config.Logging.ShowId)
+			Console.Write($"[Debug]");
+			if (_isCommand && Config.Logging.ShowId)
 			{
 				Console.ResetColor();
 				Console.Write(' ');
 				Console.ForegroundColor = ConsoleColor.DarkMagenta;
-				Console.Write($"[{_threadId}] ");
+				Console.Write($"[{_threadId}]");
 			}
 			Console.ResetColor();
 			Console.Write(' ');
@@ -225,17 +230,24 @@ namespace Tomoe.Utils
 			Console.Write($"[{currentTime}] ");
 			Console.ForegroundColor = ConsoleColor.Green;
 			Console.Write($"[Info]");
-			Console.ResetColor();
-			Console.Write("  ");
-			if (Config.Logging.ShowId)
+			if (_isCommand && Config.Logging.ShowId)
 			{
+				Console.ResetColor();
+				Console.Write("  ");
 				Console.ForegroundColor = ConsoleColor.DarkMagenta;
 				Console.Write($"[{_threadId}]");
 				Console.ResetColor();
 				Console.Write(' ');
+				Console.ForegroundColor = ConsoleColor.Cyan;
+				Console.Write(_branchname);
 			}
-			Console.ForegroundColor = ConsoleColor.Cyan;
-			Console.Write(_branchname);
+			else
+			{
+				Console.ResetColor();
+				Console.Write("  ");
+				Console.ForegroundColor = ConsoleColor.Cyan;
+				Console.Write(_branchname);
+			}
 			Console.ResetColor();
 			Console.WriteLine($": {value}");
 			if (Config.Logging.SaveToFile && _logFile != null)
@@ -245,11 +257,7 @@ namespace Tomoe.Utils
 			}
 			if (exit)
 			{
-				if (_logFile != null)
-				{
-					_logFile.Dispose();
-					_logFile = null;
-				}
+				if (_logFile != null) _logFile.Dispose();
 				Console.WriteLine("Exiting...");
 				Environment.Exit(1);
 			}
@@ -276,17 +284,24 @@ namespace Tomoe.Utils
 			Console.Write($"[{currentTime}] ");
 			Console.ForegroundColor = ConsoleColor.Yellow;
 			Console.Write($"[Warn]");
-			Console.ResetColor();
-			Console.Write("  ");
-			if (Config.Logging.ShowId)
+			if (_isCommand && Config.Logging.ShowId)
 			{
+				Console.ResetColor();
+				Console.Write("  ");
 				Console.ForegroundColor = ConsoleColor.DarkMagenta;
 				Console.Write($"[{_threadId}]");
 				Console.ResetColor();
 				Console.Write(' ');
+				Console.ForegroundColor = ConsoleColor.Cyan;
+				Console.Write(_branchname);
 			}
-			Console.ForegroundColor = ConsoleColor.Cyan;
-			Console.Write(_branchname);
+			else
+			{
+				Console.ResetColor();
+				Console.Write("  ");
+				Console.ForegroundColor = ConsoleColor.Cyan;
+				Console.Write(_branchname);
+			}
 			Console.ResetColor();
 			Console.WriteLine($": {value}");
 			if (Config.Logging.SaveToFile && _logFile != null)
@@ -296,11 +311,7 @@ namespace Tomoe.Utils
 			}
 			if (exit)
 			{
-				if (_logFile != null)
-				{
-					_logFile.Dispose();
-					_logFile = null;
-				}
+				if (_logFile != null) _logFile.Dispose();
 				Console.WriteLine("Exiting...");
 				Environment.Exit(1);
 			}
@@ -327,14 +338,15 @@ namespace Tomoe.Utils
 			Console.Write($"[{currentTime}] ");
 			Console.ForegroundColor = ConsoleColor.Red;
 			Console.Write($"[Error]");
-			Console.ResetColor();
-			Console.Write(' ');
-			if (Config.Logging.ShowId)
+			if (_isCommand && Config.Logging.ShowId)
 			{
+				Console.ResetColor();
+				Console.Write(' ');
 				Console.ForegroundColor = ConsoleColor.DarkMagenta;
 				Console.Write($"[{_threadId}]");
-				Console.Write(' ');
 			}
+			Console.ResetColor();
+			Console.Write(' ');
 			Console.ForegroundColor = ConsoleColor.Cyan;
 			Console.Write(_branchname);
 			Console.ResetColor();
@@ -346,11 +358,7 @@ namespace Tomoe.Utils
 			}
 			if (exit)
 			{
-				if (_logFile != null)
-				{
-					_logFile.Dispose();
-					_logFile = null;
-				}
+				if (_logFile != null) _logFile.Dispose();
 				Console.WriteLine("Exiting...");
 				Environment.Exit(1);
 			}
@@ -378,14 +386,23 @@ namespace Tomoe.Utils
 			Console.BackgroundColor = ConsoleColor.Red;
 			Console.Write($"[Crit]");
 			Console.ResetColor();
-			Console.Write("  ");
-			Console.ResetColor();
-			if (Config.Logging.ShowId)
+			if (_isCommand && Config.Logging.ShowId)
 			{
+				Console.ResetColor();
+				Console.Write("  ");
 				Console.ForegroundColor = ConsoleColor.DarkMagenta;
 				Console.Write($"[{_threadId}]");
 				Console.ResetColor();
 				Console.Write(' ');
+				Console.ForegroundColor = ConsoleColor.Cyan;
+				Console.Write(_branchname);
+			}
+			else
+			{
+				Console.ResetColor();
+				Console.Write("  ");
+				Console.ForegroundColor = ConsoleColor.Cyan;
+				Console.Write(_branchname);
 			}
 			Console.ForegroundColor = ConsoleColor.Cyan;
 			Console.Write(_branchname);
@@ -398,11 +415,7 @@ namespace Tomoe.Utils
 			}
 			if (exit)
 			{
-				if (_logFile != null)
-				{
-					_logFile.Dispose();
-					_logFile = null;
-				}
+				if (_logFile != null) _logFile.Dispose();
 				Console.WriteLine("Exiting...");
 				Environment.Exit(1);
 			}
@@ -416,7 +429,12 @@ namespace Tomoe.Utils
 	public class LoggerProvider : ILoggerFactory
 	{
 		private readonly ConcurrentDictionary<string, Logger> _loggers = new();
-		public ILogger CreateLogger(string categoryName) => categoryName.StartsWith("dsharpplus", true, CultureInfo.InvariantCulture) ? _loggers.GetOrAdd(categoryName, name => new Logger(name, Config.Logging.Discord)) : _loggers.GetOrAdd(categoryName, name => new Logger(name));
+		public ILogger CreateLogger(string categoryName)
+		{
+			if (categoryName.ToLower().StartsWith("dsharpplus")) return _loggers.GetOrAdd(categoryName, name => new Logger(name, Config.Logging.Discord));
+			else return _loggers.GetOrAdd(categoryName, name => new Logger(name));
+		}
+
 		public void Dispose() => GC.SuppressFinalize(this);
 		public void AddProvider(ILoggerProvider provider) { }
 	}
@@ -431,16 +449,27 @@ namespace Tomoe.Utils
 		private static Logger logger;
 		internal NpgsqlToLogger(string name) => logger = new Logger(name, Config.Logging.Npgsql);
 		public override bool IsEnabled(NpgsqlLogLevel level) => logger.IsEnabled(ToLogLevel(level));
-		public override void Log(NpgsqlLogLevel level, int connectorId, string msg, Exception? exception) => logger.Log(ToLogLevel(level), $"{msg}{(exception == null ? null : '\n' + exception.ToString())}");
-		public static LogLevel ToLogLevel(NpgsqlLogLevel level) => level switch
+		public override void Log(NpgsqlLogLevel level, int connectorId, string msg, Exception exception) => logger.Log(ToLogLevel(level), $"{msg}{(exception == null ? null : '\n' + exception.ToString())}");
+
+		static LogLevel ToLogLevel(NpgsqlLogLevel level)
 		{
-			NpgsqlLogLevel.Trace => LogLevel.Trace,
-			NpgsqlLogLevel.Debug => LogLevel.Debug,
-			NpgsqlLogLevel.Info => LogLevel.Information,
-			NpgsqlLogLevel.Warn => LogLevel.Warning,
-			NpgsqlLogLevel.Error => LogLevel.Error,
-			NpgsqlLogLevel.Fatal => LogLevel.Critical,
-			_ => LogLevel.Debug
-		};
+			switch (level)
+			{
+				case NpgsqlLogLevel.Trace:
+					return LogLevel.Trace;
+				case NpgsqlLogLevel.Debug:
+					return LogLevel.Debug;
+				case NpgsqlLogLevel.Info:
+					return LogLevel.Information;
+				case NpgsqlLogLevel.Warn:
+					return LogLevel.Warning;
+				case NpgsqlLogLevel.Error:
+					return LogLevel.Error;
+				case NpgsqlLogLevel.Fatal:
+					return LogLevel.Critical;
+				default:
+					return LogLevel.Debug;
+			}
+		}
 	}
 }

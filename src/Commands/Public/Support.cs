@@ -15,7 +15,7 @@ namespace Tomoe.Commands.Public
 		public async Task Overload(CommandContext context)
 		{
 			if (!context.Channel.IsPrivate) _logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");
-			_ = Program.SendMessage(context, Formatter.EmbedlessUrl(new("https://discord.gg/Y6JmYTNcGg")));
+			_ = await Program.SendMessage(context, Formatter.EmbedlessUrl(new("https://discord.gg/Y6JmYTNcGg")));
 			_logger.Trace("Message sent!");
 		}
 	}

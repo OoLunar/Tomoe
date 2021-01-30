@@ -17,7 +17,7 @@ namespace Tomoe.Commands.Public
 			_logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");
 			string guildIcon = context.Guild.IconUrl ?? "No custom icon set.";
 			_logger.Trace($"{context.Guild.Id}'s guild icon: {guildIcon}");
-			_ = Program.SendMessage(context, guildIcon.Replace(".jpg", ".png?size=1024"));
+			_ = await Program.SendMessage(context, guildIcon.Replace(".jpg", ".png?size=1024"));
 			_logger.Trace("Message sent!");
 		}
 	}

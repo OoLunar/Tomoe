@@ -8,7 +8,8 @@ using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.CommandsNext.Exceptions;
-
+using DSharpPlus.Interactivity;
+using DSharpPlus.Interactivity.Extensions;
 using Tomoe.Commands.Moderation.Attributes;
 using Tomoe.Commands.Public;
 
@@ -30,8 +31,15 @@ namespace Tomoe.Utils
 						StringPrefixes = new[] { Config.Prefix },
 						CaseSensitive = false,
 						EnableMentionPrefix = true,
-						EnableDms = true
+						EnableDms = true,
+						EnableDefaultHelp = false
 					});
+					_ = discordClient.UseInteractivityAsync(new InteractivityConfiguration
+					{
+						// default timeout for other actions to 2 minutes
+						Timeout = TimeSpan.FromMinutes(2)
+					});
+
 					foreach (CommandsNextExtension commands in commandsCollection.Values)
 					{
 						commands.RegisterConverter(new ImageFormatConverter());
@@ -58,20 +66,20 @@ namespace Tomoe.Utils
 					ChecksFailedException error = args.Exception as ChecksFailedException;
 					if (error.Context.Channel.IsPrivate)
 					{
-						_ = Program.SendMessage(args.Context, Constants.NotAGuild);
+						_ = await Program.SendMessage(args.Context, Constants.NotAGuild);
 						args.Handled = true;
 					}
 					else if (error.FailedChecks.OfType<Punishment>() != null) args.Handled = true;
 					else if (error.FailedChecks.OfType<TagCheck>() != null) args.Handled = true;
 					else if (error.FailedChecks.OfType<RequireUserPermissionsAttribute>() != null)
 					{
-						_ = Program.SendMessage(args.Context, Constants.MissingPermissions);
+						_ = await Program.SendMessage(args.Context, Constants.MissingPermissions);
 						args.Handled = true;
 					}
 				}
 				else if (args.Exception is NotImplementedException)
 				{
-					_ = Program.SendMessage(args.Context, $"{args.Command.Name} hasn't been implemented yet!");
+					_ = await Program.SendMessage(args.Context, $"{args.Command.Name} hasn't been implemented yet!");
 				}
 				else
 				{

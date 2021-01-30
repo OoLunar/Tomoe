@@ -113,7 +113,7 @@ namespace Tomoe.Database.Drivers.PostgreSQL
 			}
 			catch (SocketException error)
 			{
-				if (retryCount > DatabaseLoader.RetryCount) _logger.Critical($"Failed to execute query \"{command}\" after {retryCount} times. Check your internet connection.");
+				if (retryCount > Config.Database.MaxRetryCount) _logger.Critical($"Failed to execute query \"{command}\" after {retryCount} times. Check your internet connection.");
 				else retryCount++;
 				_logger.Error($"Socket exception occured, retrying... Details: {error.Message}\n{error.StackTrace}");
 				return ExecuteQuery(command, parameters, needsResult);
@@ -136,14 +136,8 @@ namespace Tomoe.Database.Drivers.PostgreSQL
 				_ = createGuildConfigTable.ExecuteNonQuery();
 				createGuildConfigTable.Dispose();
 			}
-			catch (SocketException error)
-			{
-				_logger.Critical($"Failed to connect to database. {error.Message}", true);
-			}
-			catch (PostgresException error) when (error.SqlState == "28P01")
-			{
-				_logger.Critical($"Failed to connect to database. Check your password.");
-			}
+			catch (SocketException error) { _logger.Critical($"Failed to connect to database. {error.Message}", true); }
+			catch (PostgresException error) when (error.SqlState == "28P01") { _logger.Critical($"Failed to connect to database. Invalid Password.", true); }
 			_logger.Info("Preparing SQL commands...");
 			_logger.Debug($"Preparing {StatementType.InsertGuildId}...");
 			NpgsqlCommand insertGuildId = new("INSERT INTO guild_config(guild_id) VALUES(@guildId)", _connection);
@@ -338,30 +332,30 @@ namespace Tomoe.Database.Drivers.PostgreSQL
 			_preparedStatements.Add(StatementType.SetMuteRole, setMuteRole);
 
 			_logger.Debug($"Preparing {StatementType.GetAntiMemeRole}...");
-			NpgsqlCommand getAntiMemeRole = new("SELECT antimeme_role FROM guild_config WHERE guild_id=@guildId", _connection);
-			_ = getAntiMemeRole.Parameters.Add(new("guildId", NpgsqlDbType.Bigint));
-			getAntiMemeRole.Prepare();
-			_preparedStatements.Add(StatementType.GetAntiMemeRole, getAntiMemeRole);
+			NpgsqlCommand getNoMemeRole = new("SELECT nomeme_role FROM guild_config WHERE guild_id=@guildId", _connection);
+			_ = getNoMemeRole.Parameters.Add(new("guildId", NpgsqlDbType.Bigint));
+			getNoMemeRole.Prepare();
+			_preparedStatements.Add(StatementType.GetAntiMemeRole, getNoMemeRole);
 
 			_logger.Debug($"Preparing {StatementType.SetAntiMemeRole}...");
-			NpgsqlCommand SetAntiMemeRole = new("UPDATE guild_config SET antimeme_role=@roleId WHERE guild_id=@guildId", _connection);
-			_ = SetAntiMemeRole.Parameters.Add(new("roleId", NpgsqlDbType.Bigint));
-			_ = SetAntiMemeRole.Parameters.Add(new("guildId", NpgsqlDbType.Bigint));
-			SetAntiMemeRole.Prepare();
-			_preparedStatements.Add(StatementType.SetAntiMemeRole, SetAntiMemeRole);
+			NpgsqlCommand setNoMemeRole = new("UPDATE guild_config SET nomeme_role=@roleId WHERE guild_id=@guildId", _connection);
+			_ = setNoMemeRole.Parameters.Add(new("roleId", NpgsqlDbType.Bigint));
+			_ = setNoMemeRole.Parameters.Add(new("guildId", NpgsqlDbType.Bigint));
+			setNoMemeRole.Prepare();
+			_preparedStatements.Add(StatementType.SetAntiMemeRole, setNoMemeRole);
 
 			_logger.Debug($"Preparing {StatementType.GetNoVCRole}...");
-			NpgsqlCommand getVoiceBanRole = new("SELECT voice_ban_role FROM guild_config WHERE guild_id=@guildId", _connection);
-			_ = getVoiceBanRole.Parameters.Add(new("guildId", NpgsqlDbType.Bigint));
-			getVoiceBanRole.Prepare();
-			_preparedStatements.Add(StatementType.GetNoVCRole, getVoiceBanRole);
+			NpgsqlCommand getNoVCRole = new("SELECT novc_role FROM guild_config WHERE guild_id=@guildId", _connection);
+			_ = getNoVCRole.Parameters.Add(new("guildId", NpgsqlDbType.Bigint));
+			getNoVCRole.Prepare();
+			_preparedStatements.Add(StatementType.GetNoVCRole, getNoVCRole);
 
 			_logger.Debug($"Preparing {StatementType.SetNoVCRole}...");
-			NpgsqlCommand setVoiceBanRole = new("UPDATE guild_config SET voice_ban_role=@roleId WHERE guild_id=@guildId", _connection);
-			_ = setVoiceBanRole.Parameters.Add(new("roleId", NpgsqlDbType.Bigint));
-			_ = setVoiceBanRole.Parameters.Add(new("guildId", NpgsqlDbType.Bigint));
-			setVoiceBanRole.Prepare();
-			_preparedStatements.Add(StatementType.SetNoVCRole, setVoiceBanRole);
+			NpgsqlCommand setNoVCRole = new("UPDATE guild_config SET novc_role=@roleId WHERE guild_id=@guildId", _connection);
+			_ = setNoVCRole.Parameters.Add(new("roleId", NpgsqlDbType.Bigint));
+			_ = setNoVCRole.Parameters.Add(new("guildId", NpgsqlDbType.Bigint));
+			setNoVCRole.Prepare();
+			_preparedStatements.Add(StatementType.SetNoVCRole, setNoVCRole);
 
 			_logger.Debug($"Preparing {StatementType.GetAntiRaid}...");
 			NpgsqlCommand getAntiRaid = new("SELECT antiraid FROM guild_config WHERE guild_id=@guildId", _connection);
@@ -404,7 +398,7 @@ namespace Tomoe.Database.Drivers.PostgreSQL
 		public bool AntiInvite(ulong guildId) => ExecuteQuery(StatementType.GetAntiInvite, new NpgsqlParameter("guildId", (long)guildId), true)?[0][0];
 		public void AntiInvite(ulong guildId, bool isEnabled) => ExecuteQuery(StatementType.SetAntiInvite, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("isEnabled", isEnabled) });
 
-		public string[] AllowedInvites(ulong guildId) => ExecuteQuery(StatementType.GetAllowedInvites, new NpgsqlParameter("guildId", (long)guildId), true)?[0].ConvertAll<string>(invite => invite.ToString()).ToArray();
+		public string[] AllowedInvites(ulong guildId) => ExecuteQuery(StatementType.GetAllowedInvites, new NpgsqlParameter("guildId", (long)guildId), true)?[0].Cast<string>().ToArray();
 		public void AllowedInvites(ulong guildId, string[] allowedInvites) => ExecuteQuery(StatementType.SetAllowedInvites, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("allowedInvites", allowedInvites) });
 		public void AddAllowedInvite(ulong guildId, string invite) => ExecuteQuery(StatementType.AddAllowedInvite, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("invite", invite) });
 		public void RemoveAllowedInvite(ulong guildId, string invite) => ExecuteQuery(StatementType.RemoveAllowedInvite, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("invite", invite) });
@@ -422,14 +416,14 @@ namespace Tomoe.Database.Drivers.PostgreSQL
 		public bool AutoRaidMode(ulong guildId) => ExecuteQuery(StatementType.GetAutoRaidMode, new NpgsqlParameter("guildId", (long)guildId), true)?[0][0];
 		public void AutoRaidMode(ulong guildId, bool isEnabled) => ExecuteQuery(StatementType.SetAutoRaidMode, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("isEnabled", isEnabled) });
 
-		public ulong[] IgnoredChannels(ulong guildId) => ExecuteQuery(StatementType.GetIgnoredChannels, new NpgsqlParameter("guildId", (long)guildId), true)?[0].ConvertAll<ulong>(channelId => ulong.Parse(channelId)).ToArray();
-		public void IgnoredChannels(ulong guildId, ulong[] channelIds) => ExecuteQuery(StatementType.SetIgnoredChannels, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("channelIds", channelIds.Select((role) => long.Parse(role.ToString()))) });
+		public ulong[] IgnoredChannels(ulong guildId) => ExecuteQuery(StatementType.GetIgnoredChannels, new NpgsqlParameter("guildId", (long)guildId), true)?[0].Cast<ulong>().ToArray();
+		public void IgnoredChannels(ulong guildId, ulong[] channelIds) => ExecuteQuery(StatementType.SetIgnoredChannels, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("channelIds", channelIds.Cast<long>()) });
 		public void AddIgnoredChannel(ulong guildId, ulong channelId) => ExecuteQuery(StatementType.AddIgnoredChannel, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("channelId", (long)channelId) });
 		public void RemoveIgnoredChannel(ulong guildId, ulong channelId) => ExecuteQuery(StatementType.RemoveIgnoredChannel, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("channelId", (long)channelId) });
 		public bool IsIgnoredChannel(ulong guildId, ulong channelId) => ExecuteQuery(StatementType.IsIgnoredChannel, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("channelId", (long)channelId) }, true)?[0][0];
 
-		public ulong[] AdminRoles(ulong guildId) => ExecuteQuery(StatementType.GetAdminRoles, new NpgsqlParameter("guildId", (long)guildId), true)?[0].ConvertAll<ulong>(roleId => ulong.Parse(roleId)).ToArray();
-		public void AdminRoles(ulong guildId, ulong[] roleIds) => ExecuteQuery(StatementType.SetAdminRoles, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("roleIds", roleIds.Select((role) => long.Parse(role.ToString()))) });
+		public ulong[] AdminRoles(ulong guildId) => ExecuteQuery(StatementType.GetAdminRoles, new NpgsqlParameter("guildId", (long)guildId), true)?[0][0].Cast<ulong>().ToArray();
+		public void AdminRoles(ulong guildId, ulong[] roleIds) => ExecuteQuery(StatementType.SetAdminRoles, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("roleIds", roleIds.Cast<long>()) });
 		public void AddAdminRole(ulong guildId, ulong roleId) => ExecuteQuery(StatementType.AddAdminRole, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("roleId", (long)roleId) });
 		public void RemoveAdminRole(ulong guildId, ulong roleId) => ExecuteQuery(StatementType.RemoveAdminRole, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("roleId", (long)roleId) });
 		public bool IsAdminRole(ulong guildId, ulong roleId) => ExecuteQuery(StatementType.IsAdminRole, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("roleId", (long)roleId) }, true)?[0][0];
@@ -439,7 +433,7 @@ namespace Tomoe.Database.Drivers.PostgreSQL
 		public void MuteRole(ulong guildId, ulong roleId) => ExecuteQuery(StatementType.SetMuteRole, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("roleId", (long)roleId) });
 
 		public ulong? AntimemeRole(ulong guildId) => (ulong?)ExecuteQuery(StatementType.GetAntiMemeRole, new NpgsqlParameter("guildId", (long)guildId), true)?[0][0];
-		public void AntiMemeRole(ulong guildId, ulong roleId) => ExecuteQuery(StatementType.SetAntiMemeRole, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("roleId", (long)roleId) });
+		public void AntimemeRole(ulong guildId, ulong roleId) => ExecuteQuery(StatementType.SetAntiMemeRole, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("roleId", (long)roleId) });
 
 		public ulong? VoiceBanRole(ulong guildId) => (ulong?)ExecuteQuery(StatementType.GetNoVCRole, new NpgsqlParameter("guildId", (long)guildId), true)?[0][0];
 		public void VoiceBanRole(ulong guildId, ulong roleId) => ExecuteQuery(StatementType.SetNoVCRole, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("roleId", (long)roleId) });

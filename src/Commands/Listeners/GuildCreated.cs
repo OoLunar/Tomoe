@@ -14,8 +14,9 @@ namespace Tomoe.Commands.Listeners
 			{
 				DiscordRole muteRole = Program.Database.Guild.MuteRole(eventArgs.Guild.Id).GetRole(eventArgs.Guild);
 				DiscordRole antimemeRole = Program.Database.Guild.AntimemeRole(eventArgs.Guild.Id).GetRole(eventArgs.Guild);
-				if (muteRole != null) await Config.FixMuteRolePermissions(eventArgs.Guild, muteRole);
-				if (antimemeRole != null) await Config.FixAntiMemeRolePermissions(eventArgs.Guild, antimemeRole);
+				DiscordRole vcBanRole = Program.Database.Guild.VoiceBanRole(eventArgs.Guild.Id).GetRole(eventArgs.Guild);
+				if (muteRole != null) await Moderation.Config.FixMuteRolePermissions(eventArgs.Guild, muteRole);
+				if (antimemeRole != null) await Moderation.Config.FixAntimemeRolePermissions(eventArgs.Guild, antimemeRole);
 			}
 			else Program.Database.Guild.InsertGuildId(eventArgs.Guild.Id);
 		}

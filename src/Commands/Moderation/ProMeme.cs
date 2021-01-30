@@ -18,7 +18,7 @@ namespace Tomoe.Commands.Moderation
 			DiscordRole antimemeRole = Program.Database.Guild.AntimemeRole(context.Guild.Id).GetRole(context.Guild);
 			if (antimemeRole == null)
 			{
-				_ = Program.SendMessage(context, Constants.MissingRole);
+				_ = await Program.SendMessage(context, Constants.MissingRole);
 				return;
 			}
 
@@ -35,7 +35,7 @@ namespace Tomoe.Commands.Moderation
 				await guildVictim.RevokeRoleAsync(antimemeRole, promemeReason);
 			}
 			Program.Database.User.IsAntiMemed(context.Guild.Id, victim.Id, false);
-			_ = Program.SendMessage(context, $"{victim.Mention} is no longer antimemed{(sentDm ? '.' : " (Failed to DM).")} Reason: {Formatter.BlockCode(Formatter.Strip(promemeReason))}", null, new UserMention(victim.Id));
+			_ = await Program.SendMessage(context, $"{victim.Mention} is no longer antimemed{(sentDm ? '.' : " (Failed to DM).")} Reason: {Formatter.BlockCode(Formatter.Strip(promemeReason))}", null, new UserMention(victim.Id));
 		}
 
 		public static async Task ByAssignment(CommandContext context, DiscordUser victim)

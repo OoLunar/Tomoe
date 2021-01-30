@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using System.Linq;
 
 using Tomoe.Utils;
 
@@ -23,7 +24,7 @@ namespace Tomoe.Commands.Public
 			StringBuilder botInfo = new();
 			_logger.Trace("Filling out description...");
 			_ = botInfo.Append($"Currently in {context.Client.Guilds.Count} guilds\n");
-			_ = botInfo.Append($"Handling around {context.Client.Presences.Count} guild members\n");
+			_ = botInfo.Append($"Handling around {context.Client.Guilds.Values.SelectMany(g => g.Members.Keys).Count()} guild members\n");
 			_ = botInfo.Append($"General Ping: {context.Client.Ping}ms\n");
 			_ = botInfo.Append($"Total shards: {Program.Client.ShardClients.Count}\n");
 			_logger.Trace("Getting resource usage...");
@@ -34,7 +35,7 @@ namespace Tomoe.Commands.Public
 			currentProcess.Dispose();
 			_logger.Trace("Disposing of Process.GetCurrentProcess()...");
 			_logger.Trace("Sending embed...");
-			_ = Program.SendMessage(context, null, embedBuilder.Build());
+			_ = await Program.SendMessage(context, null, embedBuilder.Build());
 			_logger.Trace("Embed sent!");
 		}
 	}

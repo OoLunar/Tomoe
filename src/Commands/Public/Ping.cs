@@ -15,7 +15,7 @@ namespace Tomoe.Commands.Public
 		public async Task Overload(CommandContext context)
 		{
 			_logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");
-			_ = Program.SendMessage(context, $"Pong! Latency is {context.Client.Ping}ms");
+			_ = await Program.SendMessage(context, $"Pong! Latency is {context.Client.Ping}ms");
 			_logger.Trace("Message sent!");
 		}
 	}

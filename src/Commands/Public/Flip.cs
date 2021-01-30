@@ -20,7 +20,7 @@ namespace Tomoe.Commands.Public
 			_logger.Trace("Generating number between 0 and 1...");
 			int randomNumber = _random.Next(0, 2);
 			_logger.Trace($"Random number is {randomNumber}...");
-			_ = Program.SendMessage(context, randomNumber == 0 ? "Heads" : "Tails");
+			_ = await Program.SendMessage(context, randomNumber == 0 ? "Heads" : "Tails");
 			_logger.Trace("Message sent!");
 		}
 
@@ -31,7 +31,7 @@ namespace Tomoe.Commands.Public
 			_logger.Debug($"Generating number between 1 and {choices.Length}...");
 			int randomNumber = _random.Next(0, 1);
 			_logger.Trace($"Random number is {randomNumber}...");
-			_ = Program.SendMessage(context, choices[_random.Next(0, choices.Length)]);
+			_ = await Program.SendMessage(context, choices[_random.Next(0, choices.Length)]);
 			_logger.Trace("Message sent!");
 		}
 	}

@@ -5,8 +5,6 @@ using System.Threading.Tasks;
 
 using Newtonsoft.Json;
 
-using Tomoe.Database;
-
 namespace Tomoe.Utils
 {
 	internal class Config
@@ -21,7 +19,7 @@ namespace Tomoe.Utils
 		public static Logging Logging = new();
 
 		[JsonProperty("database")]
-		public static DatabaseLoader Database;
+		public static DatabaseConfig Database = new();
 
 		[JsonProperty("repository_link")]
 		public static string RepositoryLink = "https://github.com/OoLunar/Tomoe.git";

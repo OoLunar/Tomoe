@@ -14,14 +14,12 @@ using DSharpPlus.Interactivity.Extensions;
 using Tomoe.Database;
 using Tomoe.Utils;
 
-using Microsoft.Extensions.Logging;
-
 namespace Tomoe
 {
-	internal class Program
+	public class Program
 	{
 		public static DiscordShardedClient Client { get; private set; }
-		public static DatabaseLoader Database = new();
+		internal static DatabaseLoader Database = new();
 		private static readonly Logger _logger = new("Main");
 
 		public static void Main() => MainAsync().ConfigureAwait(false).GetAwaiter().GetResult();
@@ -30,34 +28,27 @@ namespace Tomoe
 		{
 			await Config.Init();
 			LoggerProvider loggerProvider = new();
+			Console.CancelKeyPress += Quit.ConsoleShutdown;
 			DiscordConfiguration discordConfiguration = new()
 			{
 				AutoReconnect = true,
 				Token = Config.Token,
 				TokenType = TokenType.Bot,
-				MinimumLogLevel = LogLevel.Information,
-				UseRelativeRatelimit = true,
+				MinimumLogLevel = Config.Logging.Discord,
+				UseRelativeRatelimit = false,
 				MessageCacheSize = 512,
-				LoggerFactory = loggerProvider,
+				LoggerFactory = loggerProvider
 			};
 
 			Client = new(discordConfiguration);
-
-			_ = Client.UseInteractivityAsync(new InteractivityConfiguration
-			{
-				// default pagination behaviour to just ignore the reactions
-				PaginationBehaviour = PaginationBehaviour.WrapAround,
-				// default timeout for other actions to 2 minutes
-				Timeout = TimeSpan.FromMinutes(2),
-				PaginationDeletion = PaginationDeletion.DeleteEmojis,
-				PollBehaviour = PollBehaviour.DeleteEmojis
-			});
-
 			Client.MessageReactionAdded += (DiscordClient client, MessageReactionAddEventArgs eventArgs) => Task.Run(async () => Commands.Listeners.ReactionAdded.Handler(client, eventArgs));
 			Client.GuildCreated += (DiscordClient client, GuildCreateEventArgs eventArgs) => Task.Run(async () => Commands.Listeners.GuildCreated.Handler(client, eventArgs));
 			Client.GuildAvailable += (DiscordClient client, GuildCreateEventArgs eventArgs) => Task.Run(async () => Commands.Listeners.GuildAvailable.Handler(client, eventArgs));
+			Client.GuildMemberAdded += (DiscordClient client, GuildMemberAddEventArgs eventArgs) => Task.Run(async () => Commands.Listeners.GuildMemberAdded.Handler(client, eventArgs));
+			Client.GuildMemberUpdated += (DiscordClient client, GuildMemberUpdateEventArgs eventArgs) => Task.Run(async () => Commands.Listeners.GuildMemberUpdated.Handler(client, eventArgs));
+			Client.GuildMemberRemoved += (DiscordClient client, GuildMemberRemoveEventArgs eventArgs) => Task.Run(async () => Commands.Listeners.GuildMemberRemoved.Handler(client, eventArgs));
 			//Client.MessageCreated += (DiscordClient client, MessageCreateEventArgs eventArgs) => Task.Run(async () => Commands.Listeners.MessageRecieved.Handler(client, eventArgs));
-			Client.Ready += (DiscordClient client, ReadyEventArgs eventArgs) => Task.Run(async () => Events.OnReady(client, eventArgs));
+			Client.Ready += (DiscordClient client, ReadyEventArgs eventArgs) => Task.Run(async () => Commands.Listeners.OnReady.Handler(client, eventArgs));
 			await CommandService.Launch(Client);
 
 			await Client.StartAsync();
@@ -67,7 +58,7 @@ namespace Tomoe
 			await Task.Delay(-1);
 		}
 
-		public static DiscordMessage SendMessage(CommandContext context, string content = null, DiscordEmbed embed = null, params IMention[] mentions)
+		public static async Task<DiscordMessage> SendMessage(CommandContext context, string content = null, DiscordEmbed embed = null, params IMention[] mentions)
 		{
 			List<IMention> mentionList = new();
 			mentionList.AddRange(mentions);
@@ -81,11 +72,11 @@ namespace Tomoe
 			if (embed != null) messageBuilder.Embed = embed;
 			try
 			{
-				return messageBuilder.SendAsync(context.Channel).GetAwaiter().GetResult();
+				return await messageBuilder.SendAsync(context.Channel);
 			}
 			catch (UnauthorizedException)
 			{
-				return context.Member.SendMessageAsync(messageBuilder).GetAwaiter().GetResult();
+				return await context.Member.SendMessageAsync(messageBuilder);
 			}
 		}
 	}

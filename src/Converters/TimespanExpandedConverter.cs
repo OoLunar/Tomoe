@@ -1,7 +1,5 @@
 using System;
 using System.Globalization;
-using System.Runtime.CompilerServices;
-using System.Security.Authentication.ExtendedProtection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -13,7 +11,7 @@ namespace Tomoe
 {
 	public class ExpandedTimeSpan
 	{
-		public TimeSpan TimeSpan { get; set; }
+		public TimeSpan TimeSpan;
 		public override string ToString() => TimeSpan.ToString();
 	}
 

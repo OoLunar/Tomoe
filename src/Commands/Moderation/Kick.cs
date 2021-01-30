@@ -23,7 +23,7 @@ namespace Tomoe.Commands.Moderation
 				}
 				catch (UnauthorizedException) { }
 			await victim.RemoveAsync(kickReason);
-			_ = Program.SendMessage(context, $"{victim.Mention} has been {(sentDm ? '.' : " (Failed to DM).")} Reason: {Formatter.BlockCode(Formatter.Strip(kickReason))}", null, new UserMention(victim.Id));
+			_ = await Program.SendMessage(context, $"{victim.Mention} has been {(sentDm ? '.' : " (Failed to DM).")} Reason: {Formatter.BlockCode(Formatter.Strip(kickReason))}", null, new UserMention(victim.Id));
 		}
 
 		[Command("kick"), RequireGuild]
@@ -33,6 +33,6 @@ namespace Tomoe.Commands.Moderation
 		}
 
 		[Command("kick"), RequireGuild]
-		public async Task Group(CommandContext context, [Description("The people to be kicked.")] params DiscordMember[] victims) => Group(context, default, victims);
+		public async Task Group(CommandContext context, [Description("The people to be kicked.")] params DiscordMember[] victims) => await Group(context, default, victims);
 	}
 }

@@ -23,6 +23,7 @@ namespace Tomoe.Commands.Public
 	public class Reminders : BaseCommandModule
 	{
 		private static readonly Logger _logger = new("Commands.Public.Tasks");
+		internal static readonly Timer Timer = new();
 
 		[GroupCommand]
 		public async Task Create(CommandContext context, TimeSpan setOff, [RemainingText] string content)
@@ -31,7 +32,7 @@ namespace Tomoe.Commands.Public
 			_logger.Trace($"Creating reminder for {context.User.Username}");
 			Program.Database.Assignments.Create(AssignmentType.Reminder, context.Guild.Id, context.Channel.Id, context.Message.Id, context.User.Id, DateTime.Now + setOff, DateTime.Now, content);
 			_logger.Trace("Reminder created!");
-			_ = Program.SendMessage(context, $"Set off at {DateTime.Now.Add(setOff).ToString("MMM dd', 'HHH':'mm':'ss", CultureInfo.InvariantCulture)}: ```\n{content}```");
+			_ = await Program.SendMessage(context, $"Set off at {DateTime.Now.Add(setOff).ToString("MMM dd', 'HHH':'mm':'ss", CultureInfo.InvariantCulture)}: ```\n{content}```");
 			_logger.Trace("Message sent!");
 		}
 
@@ -84,12 +85,12 @@ namespace Tomoe.Commands.Public
 			if (!task.HasValue)
 			{
 				_logger.Trace($"Reminder #{taskId} doesn't exist!");
-				_ = Program.SendMessage(context, $"**[Error: Reminder #{taskId} does not exist!]**");
+				_ = await Program.SendMessage(context, $"**[Error: Reminder #{taskId} does not exist!]**");
 			}
 			else
 			{
 				Program.Database.Assignments.Remove(taskId);
-				_ = Program.SendMessage(context, $"Reminder #{taskId} was removed!");
+				_ = await Program.SendMessage(context, $"Reminder #{taskId} was removed!");
 			}
 		}
 
@@ -105,17 +106,16 @@ namespace Tomoe.Commands.Public
 			catch (FormatException)
 			{
 				_logger.Trace($"{taskId} is not an id.");
-				_ = Program.SendMessage(context, $"\"{taskId}\" is not an id.");
+				_ = await Program.SendMessage(context, $"\"{taskId}\" is not an id.");
 			}
 		}
 
 		public static void StartRoutine()
 		{
 			_logger.Debug("Starting reminders routine...");
-			Timer timer = new();
-			timer.Interval = 1000;
+			Timer.Interval = 1000;
 			_logger.Trace("Setting reminders routine to go off every 1 second...");
-			timer.Elapsed += async (object sender, ElapsedEventArgs e) =>
+			Timer.Elapsed += async (object sender, ElapsedEventArgs e) =>
 			{
 				Assignment[] tasks;
 				try
@@ -150,7 +150,7 @@ namespace Tomoe.Commands.Public
 							case AssignmentType.Reminder:
 								_logger.Trace($"Creating reminder context for #{task.AssignmentId}...");
 								context = commandsNext.CreateContext(await channel.GetMessageAsync(task.MessageId), Utils.Config.Prefix, commandsNext.RegisteredCommands["remind"], null);
-								_ = Program.SendMessage(context, $"Set at {task.SetAt.ToString("MMM dd', 'HHH':'mm", CultureInfo.InvariantCulture)}: {task.Content}");
+								_ = await Program.SendMessage(context, $"Set at {task.SetAt.ToString("MMM dd', 'HHH':'mm", CultureInfo.InvariantCulture)}: {task.Content}");
 								_logger.Trace("Message sent!");
 								Program.Database.Assignments.Remove(task.AssignmentId);
 								_logger.Trace("Reminder removed!");
@@ -173,7 +173,7 @@ namespace Tomoe.Commands.Public
 					}
 				}
 			};
-			timer.Start();
+			Timer.Start();
 		}
 	}
 }

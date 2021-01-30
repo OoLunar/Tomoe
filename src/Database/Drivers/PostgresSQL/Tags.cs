@@ -92,7 +92,7 @@ namespace Tomoe.Database.Drivers.PostgreSQL
 			}
 			catch (SocketException error)
 			{
-				if (retryCount > DatabaseLoader.RetryCount) _logger.Critical($"Failed to execute query \"{command}\" after {retryCount} times. Check your internet connection.");
+				if (retryCount > Config.Database.MaxRetryCount) _logger.Critical($"Failed to execute query \"{command}\" after {retryCount} times. Check your internet connection.");
 				else retryCount++;
 				_logger.Error($"Socket exception occured, retrying... Details: {error.Message}\n{error.StackTrace}");
 				return ExecuteQuery(command, parameters, needsResult);
@@ -125,14 +125,8 @@ namespace Tomoe.Database.Drivers.PostgreSQL
 				_ = createFunctions.ExecuteNonQuery();
 				createFunctions.Dispose();
 			}
-			catch (SocketException error)
-			{
-				_logger.Critical($"Failed to connect to database. {error.Message}", true);
-			}
-			catch (PostgresException error) when (error.SqlState == "28P01")
-			{
-				_logger.Critical($"Failed to connect to database. Check your password.");
-			}
+			catch (SocketException error) { _logger.Critical($"Failed to connect to database. {error.Message}", true); }
+			catch (PostgresException error) when (error.SqlState == "28P01") { _logger.Critical($"Failed to connect to database. Invalid Password.", true); }
 			_logger.Info("Preparing SQL commands...");
 			_logger.Debug($"Preparing {StatementType.Create}...");
 			NpgsqlCommand create = new("INSERT INTO tags VALUES(@tagTitle, @guildId, @userId, DEFAULT, DEFAULT, @content)", _connection);
@@ -274,9 +268,9 @@ namespace Tomoe.Database.Drivers.PostgreSQL
 		public ulong? GetAuthor(ulong guildId, string tagTitle) => ExecuteQuery(StatementType.GetAuthor, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("tagTitle", tagTitle) }, true)?[0][0];
 		public bool? IsAlias(ulong guildId, string tagTitle) => ExecuteQuery(StatementType.IsAlias, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("tagTitle", tagTitle) }, true)?[0][0];
 		public bool Exist(ulong guildId, string tagTitle) => ExecuteQuery(StatementType.Exist, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("tagTitle", tagTitle) }, true)?[0][0];
-		public string[] GetAliases(ulong guildId, string tagTitle) => ExecuteQuery(StatementType.GetAliases, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("tagTitle", tagTitle) }, true)?[0].ConvertAll<string>(tag => tag.ToString()).ToArray();
-		public string[] GetGuild(ulong guildId) => ExecuteQuery(StatementType.GetGuild, new NpgsqlParameter("guildId", (long)guildId), true)?[0].ConvertAll<string>(tag => tag.ToString()).ToArray();
-		public string[] GetUser(ulong guildId, ulong userId) => ExecuteQuery(StatementType.GetUserGuild, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("userId", (long)userId) }, true)?[0].ConvertAll<string>(tag => tag.ToString()).ToArray();
-		public string[] GetUser(ulong userId) => ExecuteQuery(StatementType.GetUserOverall, new NpgsqlParameter("userId", (long)userId))?[0].ConvertAll<string>(tag => tag.ToString()).ToArray();
+		public string[] GetAliases(ulong guildId, string tagTitle) => ExecuteQuery(StatementType.GetAliases, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("tagTitle", tagTitle) }, true)?[0].Cast<string>().ToArray();
+		public string[] GetGuild(ulong guildId) => ExecuteQuery(StatementType.GetGuild, new NpgsqlParameter("guildId", (long)guildId), true)?[0].Cast<string>().ToArray();
+		public string[] GetUser(ulong guildId, ulong userId) => ExecuteQuery(StatementType.GetUserGuild, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("userId", (long)userId) }, true)?[0].Cast<string>().ToArray();
+		public string[] GetUser(ulong userId) => ExecuteQuery(StatementType.GetUserOverall, new NpgsqlParameter("userId", (long)userId))?[0].Cast<string>().ToArray();
 	}
 }

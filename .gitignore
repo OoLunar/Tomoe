@@ -1,7 +1,7 @@
-.vscode/
 bin/
 obj/
 log/
-res/config.jsonc
-.dccache
-.obsidian
+res/config.jsonc.prod
+res/*.db
+res/*.bak
+*.db

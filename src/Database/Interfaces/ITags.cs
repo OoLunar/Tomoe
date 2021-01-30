@@ -4,7 +4,7 @@ namespace Tomoe.Database.Interfaces
 {
 	public interface ITags : IDisposable
 	{
-		string? Retrieve(ulong guildId, string tagTitle);
+		string Retrieve(ulong guildId, string tagTitle);
 		string[] GetGuild(ulong guildId);
 		string[] GetUser(ulong guildId, ulong userId);
 		string[] GetUser(ulong userId);
