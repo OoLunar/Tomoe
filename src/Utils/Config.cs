@@ -30,11 +30,15 @@ namespace Tomoe.Utils
 		[JsonProperty("auto_update")]
 		public static bool AutoUpdate = true;
 
-		private static readonly string TokenFile = Path.Join(FileSystem.ProjectRoot, "res/config.jsonc");
+		private static readonly string TokenFile = File.Exists(Path.Join(FileSystem.ProjectRoot, "res/config.jsonc.prod")) switch
+		{
+			true => Path.Join(FileSystem.ProjectRoot, "res/config.jsonc.prod"),
+			false => File.Exists(Path.Join(FileSystem.ProjectRoot, "res/config.jsonc")) ? Path.Join(FileSystem.ProjectRoot, "res/config.jsonc") : null,
+		};
 
 		public static async Task Init()
 		{
-			if (File.Exists(TokenFile))
+			if (TokenFile != null)
 			{
 				try
 				{

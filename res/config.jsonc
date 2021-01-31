@@ -28,7 +28,7 @@
 	},
 	/*Database details*/
 	"database": {
-		/*PostgresSQL database. More support will be added in the future.*/
+		/*Choose from either sqlite or postgresql*/
 		"driver": "sqlite",
 		/*A database compliant password used to login. Requirements change based on the driver being used.*/
 		"password": "<insert database password>",
@@ -37,7 +37,7 @@
 		"parameters": {
 			/*Postgres settings:*/
 			/*The IP or hostname that the database is listening on.*/
-			"host": "mc.forsaken-borders.net",
+			"host": "<www.example.com>",
 			/*The port that the database is listening on.*/
 			"port": 5432,
 			/*The username used to login to the database.*/

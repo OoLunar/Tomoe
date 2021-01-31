@@ -23,11 +23,6 @@ namespace Tomoe.Commands.Listeners
 						await eventArgs.Member.GrantRoleAsync(role, "Persistent Roles.");
 					}
 				}
-				else
-				{
-					Program.Database.User.Insert(eventArgs.Guild.Id, eventArgs.Member.Id);
-					Program.Database.User.SetRoles(eventArgs.Guild.Id, eventArgs.Member.Id, eventArgs.Member.Roles.Select(role => role.Id).ToArray());
-				}
 			}
 			else
 			{

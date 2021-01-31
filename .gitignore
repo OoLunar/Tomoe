@@ -5,3 +5,5 @@ res/config.jsonc.prod
 res/*.db
 res/*.bak
 *.db
+.obsidian
+.vscode

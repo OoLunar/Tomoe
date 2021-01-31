@@ -9,24 +9,14 @@ namespace Tomoe
 {
 	public class ImageFormatConverter : IArgumentConverter<ImageFormat>
 	{
-		public Task<Optional<ImageFormat>> ConvertAsync(string value, CommandContext ctx)
+		public Task<Optional<ImageFormat>> ConvertAsync(string value, CommandContext ctx) => value.ToLowerInvariant() switch
 		{
-			switch (value.ToLowerInvariant())
-			{
-				case "png":
-					return Task.FromResult(Optional.FromValue(ImageFormat.Png));
-				case "jpeg":
-					return Task.FromResult(Optional.FromValue(ImageFormat.Jpeg));
-				case "webp":
-					return Task.FromResult(Optional.FromValue(ImageFormat.WebP));
-				case "gif":
-					return Task.FromResult(Optional.FromValue(ImageFormat.Gif));
-				case "unknown":
-				case "auto":
-					return Task.FromResult(Optional.FromValue(ImageFormat.Auto));
-				default:
-					return Task.FromResult(Optional.FromNoValue<ImageFormat>());
-			}
-		}
+			"png" => Task.FromResult(Optional.FromValue(ImageFormat.Png)),
+			"jpeg" => Task.FromResult(Optional.FromValue(ImageFormat.Jpeg)),
+			"webp" => Task.FromResult(Optional.FromValue(ImageFormat.WebP)),
+			"gif" => Task.FromResult(Optional.FromValue(ImageFormat.Gif)),
+			"unknown" or "auto" => Task.FromResult(Optional.FromValue(ImageFormat.Auto)),
+			_ => Task.FromResult(Optional.FromNoValue<ImageFormat>())
+		};
 	}
 }

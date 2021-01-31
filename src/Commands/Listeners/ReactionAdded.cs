@@ -12,13 +12,13 @@ namespace Tomoe.Commands.Listeners
 {
 	public class ReactionAdded
 	{
+		internal static readonly List<Queue> QueueList = new();
 		private static readonly Logger _logger = new("Commands.Listeners.ReactionAdded");
-		internal static readonly List<Queue> _queueList = new();
 
 		public static async Task Handler(DiscordClient _client, MessageReactionAddEventArgs eventArgs)
 		{
 			_logger.Trace($"Reaction recieved: {eventArgs.Emoji}");
-			foreach (Queue queue in _queueList)
+			foreach (Queue queue in QueueList)
 			{
 				if (eventArgs.User.Id == Program.Client.CurrentUser.Id) continue;
 				else if (queue.User.Id != eventArgs.User.Id) await eventArgs.Message.DeleteReactionAsync(eventArgs.Emoji, eventArgs.User, "Not the correct user.");
@@ -29,7 +29,7 @@ namespace Tomoe.Commands.Listeners
 						if (eventArgs.Emoji == Queue.ThumbsUp || eventArgs.Emoji == Queue.ThumbsDown)
 						{
 							await queue.Action.Invoke(eventArgs);
-							_ = _queueList.Remove(queue);
+							_ = QueueList.Remove(queue);
 							queue.Dispose();
 						}
 						else await eventArgs.Message.DeleteReactionAsync(eventArgs.Emoji, eventArgs.User, "Not the correct emoji.");
@@ -40,7 +40,7 @@ namespace Tomoe.Commands.Listeners
 						else
 						{
 							await queue.Action.Invoke(eventArgs);
-							_ = _queueList.Remove(queue);
+							_ = QueueList.Remove(queue);
 							queue.Dispose();
 						}
 					}

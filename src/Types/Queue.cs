@@ -35,7 +35,7 @@ namespace Tomoe.Types
 			message.DeleteAllReactionsAsync("Adding confirmation emoji's.").GetAwaiter().GetResult();
 			message.CreateReactionAsync(ThumbsUp).GetAwaiter().GetResult();
 			message.CreateReactionAsync(ThumbsDown).GetAwaiter().GetResult();
-			ReactionAdded._queueList.Add(this);
+			ReactionAdded.QueueList.Add(this);
 		}
 
 		public Queue(DiscordMessage message, DiscordUser user, DiscordEmoji[] emojis, ReactionHandler action)
@@ -47,12 +47,12 @@ namespace Tomoe.Types
 			Type = ReactionType.Custom;
 			message.DeleteAllReactionsAsync().GetAwaiter().GetResult();
 			for (int i = 0; i < emojis.Length; i++) message.CreateReactionAsync(emojis[i]).GetAwaiter().GetResult();
-			ReactionAdded._queueList.Add(this);
+			ReactionAdded.QueueList.Add(this);
 		}
 
 		public async Task WaitForReaction()
 		{
-			while (ReactionAdded._queueList.Contains(this)) await Task.Delay(500);
+			while (ReactionAdded.QueueList.Contains(this)) await Task.Delay(100);
 		}
 
 		public void Dispose()

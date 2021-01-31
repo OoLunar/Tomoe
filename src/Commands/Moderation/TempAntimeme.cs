@@ -30,7 +30,7 @@ namespace Tomoe.Commands.Moderation
 			{
 				try
 				{
-					if (!guildVictim.IsBot) _ = await guildVictim.SendMessageAsync($"You've been temporarily meme banned by {Formatter.Bold(context.User.Mention)} from {Formatter.Bold(context.Guild.Name)} for {Formatter.Bold(muteTime.ToString())}. This means you cannot link embeds, send files or react. All you can do is send and read messages. Reason: {Formatter.BlockCode(Formatter.Sanitize(antimemeReason))}");
+					if (!guildVictim.IsBot) _ = await guildVictim.SendMessageAsync($"You've been temporarily antimemed by {Formatter.Bold(context.User.Mention)} from {Formatter.Bold(context.Guild.Name)} for {Formatter.Bold(muteTime.ToString())}. This means you cannot link embeds, send files or react. All you can do is send and read messages. Reason: {Formatter.BlockCode(Formatter.Sanitize(antimemeReason))}");
 					sentDm = true;
 				}
 				catch (UnauthorizedException) { }
@@ -38,7 +38,7 @@ namespace Tomoe.Commands.Moderation
 			}
 			Program.Database.User.IsAntiMemed(context.Guild.Id, victim.Id, true);
 			Program.Database.Assignments.Create(AssignmentType.TempMute, context.Guild.Id, context.Channel.Id, context.Message.Id, victim.Id, DateTime.Now + muteTime.TimeSpan, DateTime.Now, $"{victim.Id} tempmuted in {context.Guild.Id}");
-			_ = await Program.SendMessage(context, $"{victim.Mention} has been muted{(sentDm ? '.' : " (Failed to DM).")} Reason: {Formatter.BlockCode(Formatter.Sanitize(antimemeReason))}", null, new UserMention(victim.Id));
+			_ = await Program.SendMessage(context, $"{victim.Mention} has been antimemed{(sentDm ? '.' : " (Failed to DM).")} Reason: {Formatter.BlockCode(Formatter.Sanitize(antimemeReason))}", null, new UserMention(victim.Id));
 		}
 	}
 }

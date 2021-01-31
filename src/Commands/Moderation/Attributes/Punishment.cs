@@ -34,18 +34,20 @@ namespace Tomoe.Commands.Moderation.Attributes
 			}
 			else if (context.Message.MentionedUsers.Contains(context.User))
 			{
-				bool confirm = false;
 				DiscordMessage message = await Program.SendMessage(context, Constants.SelfPunishment);
-				_ = new Queue(message, context.User, new(async eventArgs =>
+				await new Queue(message, context.User, new(async eventArgs =>
 				{
-					if (eventArgs.Emoji == Queue.ThumbsUp) confirm = true;
+					if (eventArgs.Emoji == Queue.ThumbsUp)
+					{
+						_ = await context.Command.ExecuteAsync(context);
+
+					}
 					else if (eventArgs.Emoji == Queue.ThumbsDown)
 					{
 						_ = message.ModifyAsync($"{Formatter.Strike(message.Content)}\n{Formatter.Bold("[Notice: Aborting...]")}");
-						confirm = false;
 					}
 				})).WaitForReaction();
-				return confirm;
+				return false;
 			}
 			else return true;
 		}

@@ -99,10 +99,6 @@ namespace Tomoe.Database.Drivers.PostgreSQL
 			}
 		}
 
-		/// <inheritdoc cref="ExecuteQuery(StatementType, List{NpgsqlParameter}, bool)" />
-		/// <param name="parameter">One <see cref="NpgsqlParameter">NpgsqlParameter</see>, which gets converted into a <see cref="List{T}">List&lt;NpgsqlParameter&gt;</see>.</param>
-		private Dictionary<int, List<dynamic>> ExecuteQuery(StatementType command, NpgsqlParameter parameter, bool needsResult = false) => ExecuteQuery(command, new List<NpgsqlParameter> { parameter }, needsResult);
-
 		public PostgresUser(string host, int port, string username, string password, string database_name, SslMode sslMode)
 		{
 			_connection = new($"Host={host};Port={port};Username={username};Password={password};Database={database_name};SSL Mode={sslMode}");

@@ -13,11 +13,9 @@ Tomoe uses dotnet 5.0. You can get it from [Microsoft](https://dotnet.microsoft.
 ``` bash
 git clone https://github.com/OoLunar/Tomoe.git
 cd Tomoe
-```
-
-Be sure to edit your res/config.jsonc, then:
-
-``` bash
+dotnet restore
+cp res/config.jsonc res/config.jsonc.prod
+printf "\n\nPlease edit res/config.jsonc.prod\n\n\n"
 dotnet run # First run might take a minute since it has to download dependencies and whatnot.
 ```
 
