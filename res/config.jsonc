@@ -33,7 +33,7 @@
 		/*A database compliant password used to login. Requirements change based on the driver being used.*/
 		"password": "<insert database password>",
 		/*Database name. If you're using Sqlite, you could set it to :memory:*/
-		"database_name": "res/sql/Tomoe.db",
+		"database_name": "res/Tomoe.db",
 		"parameters": {
 			/*Postgres settings:*/
 			/*The IP or hostname that the database is listening on.*/

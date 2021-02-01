@@ -149,7 +149,7 @@ namespace Tomoe.Commands.Public
 						{
 							case AssignmentType.Reminder:
 								_logger.Trace($"Creating reminder context for #{task.AssignmentId}...");
-								context = commandsNext.CreateContext(await channel.GetMessageAsync(task.MessageId), Utils.Config.Prefix, commandsNext.RegisteredCommands["remind"], null);
+								context = commandsNext.CreateContext(await channel.GetMessageAsync(task.MessageId), Config.Prefix, commandsNext.RegisteredCommands["remind"], null);
 								_ = await Program.SendMessage(context, $"Set at {task.SetAt.ToString("MMM dd', 'HHH':'mm", CultureInfo.InvariantCulture)}: {task.Content}");
 								_logger.Trace("Message sent!");
 								Program.Database.Assignments.Remove(task.AssignmentId);
@@ -157,17 +157,24 @@ namespace Tomoe.Commands.Public
 								break;
 							case AssignmentType.TempBan:
 								_logger.Trace($"Creating tempban context for #{task.AssignmentId}...");
-								context = commandsNext.CreateContext(await channel.GetMessageAsync(task.MessageId), Utils.Config.Prefix, commandsNext.RegisteredCommands["tempban"], null);
+								context = commandsNext.CreateContext(await channel.GetMessageAsync(task.MessageId), Config.Prefix, commandsNext.RegisteredCommands["tempban"], null);
 								await Moderation.Unban.ByAssignment(context, await context.Client.GetUserAsync(task.UserId));
 								Program.Database.Assignments.Remove(task.AssignmentId);
 								_logger.Trace("Unban removed!");
 								break;
 							case AssignmentType.TempMute:
 								_logger.Trace($"Creating reminder context for #{task.AssignmentId}...");
-								context = commandsNext.CreateContext(await channel.GetMessageAsync(task.MessageId), Utils.Config.Prefix, commandsNext.RegisteredCommands["tempmute"], null);
+								context = commandsNext.CreateContext(await channel.GetMessageAsync(task.MessageId), Config.Prefix, commandsNext.RegisteredCommands["tempmute"], null);
 								await Moderation.Unmute.ByAssignment(context, await context.Client.GetUserAsync(task.UserId));
 								Program.Database.Assignments.Remove(task.AssignmentId);
 								_logger.Trace("Unmute removed!");
+								break;
+							case AssignmentType.TempAntimeme:
+								_logger.Trace($"Creating reminder context for #{task.AssignmentId}...");
+								context = commandsNext.CreateContext(await channel.GetMessageAsync(task.MessageId), Config.Prefix, commandsNext.RegisteredCommands["tempantimeme"], null);
+								await Moderation.Promeme.ByAssignment(context, await context.Client.GetUserAsync(task.UserId));
+								Program.Database.Assignments.Remove(task.AssignmentId);
+								_logger.Trace("Antimeme removed!");
 								break;
 						}
 					}

@@ -17,8 +17,8 @@ namespace Tomoe.Database.Interfaces
 		Reminder,
 		TempBan,
 		TempMute,
-		TempNoMeme,
-		TempNoVC
+		TempAntimeme,
+		TempVoiceBan
 	}
 
 	public struct Assignment
