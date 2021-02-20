@@ -103,9 +103,17 @@ namespace Tomoe.Database.Drivers.PostgreSQL
 		/// <param name="parameter">One <see cref="NpgsqlParameter">NpgsqlParameter</see>, which gets converted into a <see cref="List{T}">List&lt;NpgsqlParameter&gt;</see>.</param>
 		private Dictionary<int, List<dynamic>> ExecuteQuery(StatementType command, NpgsqlParameter parameter, bool needsResult = false) => ExecuteQuery(command, new List<NpgsqlParameter> { parameter }, needsResult);
 
-		public PostgresTags(string host, int port, string username, string password, string database_name, SslMode sslMode)
+		public PostgresTags(string host, int port, string username, string password, string databaseName, SslMode sslMode)
 		{
-			_connection = new($"Host={host};Port={port};Username={username};Password={password};Database={database_name};SSL Mode={sslMode}");
+			NpgsqlConnectionStringBuilder connectionString = new();
+			connectionString.ApplicationName = "Tomoe";
+			connectionString.Database = databaseName;
+			connectionString.Username = username;
+			connectionString.Host = host;
+			connectionString.SslMode = sslMode;
+			connectionString.Port = port;
+			connectionString.Password = password;
+			_connection = new(connectionString.ToString());
 			_logger.Info("Opening connection to database...");
 			try
 			{

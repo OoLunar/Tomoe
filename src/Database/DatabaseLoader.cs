@@ -50,7 +50,7 @@ namespace Tomoe.Database
 						if (guildProperty != null && tagProperty != null && tasksProperty != null && userProperty != null && strikesProperty != null)
 						{
 							_logger.Debug($"({classType.FullName}) Successfully maps to the \"{Config.Database.Driver}\" driver.");
-							IDatabase database = constructor.Invoke(new object[] { Config.Database.Driver, Config.Database.DatabaseName, Config.Database.Parameters }) as IDatabase;
+							IDatabase database = constructor.Invoke(new object[] { Config.Database.Password, Config.Database.DatabaseName, Config.Database.Parameters }) as IDatabase;
 							Database = database;
 							Guild = database.Guild;
 							//Tags = database.Tags;

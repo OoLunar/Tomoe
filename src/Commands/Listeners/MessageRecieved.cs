@@ -17,7 +17,8 @@ namespace Tomoe.Commands.Listeners
 		public static async Task Handler(DiscordClient _client, MessageCreateEventArgs eventArgs)
 		{
 			_logger.Trace($"Recieved message in {eventArgs.Channel.Id} on {eventArgs.Guild.Id}");
-			if (eventArgs.Channel.IsPrivate || Program.Database.Guild.IsIgnoredChannel(eventArgs.Guild.Id, eventArgs.Channel.Id) || (await eventArgs.Guild.GetMemberAsync(eventArgs.Author.Id)).Roles.Any(role => Program.Database.Guild.IsAdminRole(eventArgs.Guild.Id, role.Id))) return;
+			if (eventArgs.Author == _client.CurrentUser) return;
+			_ = await eventArgs.Channel.SendMessageAsync(Program.Database.Guild.AntiInvite(eventArgs.Guild.Id).ToString() + "Fired!");
 			int maxMentions = Program.Database.Guild.MaxMentions(eventArgs.Guild.Id);
 			int maxLines = Program.Database.Guild.MaxLines(eventArgs.Guild.Id);
 
@@ -33,15 +34,15 @@ namespace Tomoe.Commands.Listeners
 				_ = await eventArgs.Message.RespondAsync($"{eventArgs.Author.Mention}: Message deleted due to it exceeding the max lines count. Please refrain from spamming pings.");
 			}
 
-			if (eventArgs.Message.Content.Contains("discord.gg") || eventArgs.Message.Content.Contains("discord.com/invite"))
+			if (Program.Database.Guild.AntiInvite(eventArgs.Guild.Id))
 			{
-				CaptureCollection invites = _regex.Match(eventArgs.Message.Content).Captures;
-				foreach (Capture capture in invites)
+				Match messageInvites = _regex.Match(eventArgs.Message.Content);
+				if (messageInvites.Success)
 				{
-					if (Program.Database.Guild.AntiInvite(eventArgs.Guild.Id) && !Program.Database.Guild.IsAllowedInvite(eventArgs.Guild.Id, capture.Value.Trim().ToLowerInvariant()))
+					CaptureCollection invites = messageInvites.Captures;
+					foreach (Capture capture in invites)
 					{
-						await eventArgs.Message.DeleteAsync("Invite is not whitelisted.");
-
+						if (!Program.Database.Guild.IsAllowedInvite(eventArgs.Guild.Id, capture.Value)) await eventArgs.Message.DeleteAsync("Invite is not whitelisted.");
 					}
 				}
 			}

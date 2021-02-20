@@ -161,7 +161,7 @@ namespace Tomoe.Utils
 			Console.ForegroundColor = ConsoleColor.Cyan;
 			Console.Write(_branchname);
 			Console.ResetColor();
-			Console.WriteLine($": {value}");
+			Console.WriteLine($": {value.Trim()}");
 			if (Config.Logging.SaveToFile && LogFile != null)
 			{
 				LogFile.Write(Encoding.UTF8.GetBytes($"[{currentTime}] [Trace] {_branchname}: {value}{Environment.NewLine}"));
@@ -201,7 +201,7 @@ namespace Tomoe.Utils
 			Console.ForegroundColor = ConsoleColor.Cyan;
 			Console.Write(_branchname);
 			Console.ResetColor();
-			Console.WriteLine($": {value}");
+			Console.WriteLine($": {value.Trim()}");
 			if (Config.Logging.SaveToFile && LogFile != null)
 			{
 				LogFile.Write(Encoding.UTF8.GetBytes($"[{currentTime}] [Debug] {_branchname}: {value}{Environment.NewLine}"));
@@ -249,7 +249,7 @@ namespace Tomoe.Utils
 				Console.Write(_branchname);
 			}
 			Console.ResetColor();
-			Console.WriteLine($": {value}");
+			Console.WriteLine($": {value.Trim()}");
 			if (Config.Logging.SaveToFile && LogFile != null)
 			{
 				LogFile.Write(Encoding.UTF8.GetBytes($"[{currentTime}] [Info]  {_branchname}: {value}{Environment.NewLine}"));
@@ -303,7 +303,7 @@ namespace Tomoe.Utils
 				Console.Write(_branchname);
 			}
 			Console.ResetColor();
-			Console.WriteLine($": {value}");
+			Console.WriteLine($": {value.Trim()}");
 			if (Config.Logging.SaveToFile && LogFile != null)
 			{
 				LogFile.Write(Encoding.UTF8.GetBytes($"[{currentTime}] [Warn]  {_branchname}: {value}{Environment.NewLine}"));
@@ -350,7 +350,7 @@ namespace Tomoe.Utils
 			Console.ForegroundColor = ConsoleColor.Cyan;
 			Console.Write(_branchname);
 			Console.ResetColor();
-			Console.WriteLine($": {value}");
+			Console.WriteLine($": {value.Trim()}");
 			if (Config.Logging.SaveToFile && LogFile != null)
 			{
 				LogFile.Write(Encoding.UTF8.GetBytes($"[{currentTime}] [Error] {_branchname}: {value}{Environment.NewLine}"));
@@ -407,7 +407,7 @@ namespace Tomoe.Utils
 			Console.ForegroundColor = ConsoleColor.Cyan;
 			Console.Write(_branchname);
 			Console.ResetColor();
-			Console.WriteLine($": {value}");
+			Console.WriteLine($": {value.Trim()}");
 			if (Config.Logging.SaveToFile && LogFile != null)
 			{
 				LogFile.Write(Encoding.UTF8.GetBytes($"[{currentTime}] [Crit]  {_branchname}: {value}{Environment.NewLine}"));

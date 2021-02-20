@@ -220,7 +220,7 @@ namespace Tomoe.Database.Drivers.Sqlite
 		public bool IsAntiMemed(ulong guildId, ulong userId) => ExecuteQuery(StatementType.GetIsAntiMemed, new List<SqliteParameter>() { new SqliteParameter("guildId", guildId), new SqliteParameter("userId", userId) }, true)?[0][0];
 		public void IsAntiMemed(ulong guildId, ulong userId, bool isNoMemed) => ExecuteQuery(StatementType.SetIsAntiMemed, new List<SqliteParameter>() { new SqliteParameter("guildId", guildId), new SqliteParameter("userId", userId), new SqliteParameter("isNoMemed", isNoMemed) });
 
-		public bool IsNoVC(ulong guildId, ulong userId) => ExecuteQuery(StatementType.GetIsNoVC, new List<SqliteParameter>() { new SqliteParameter("guildId", guildId), new SqliteParameter("userId", userId) }, true)?[0][0];
-		public void IsNoVC(ulong guildId, ulong userId, bool isNoVC) => ExecuteQuery(StatementType.SetIsNoVC, new List<SqliteParameter>() { new SqliteParameter("guildId", guildId), new SqliteParameter("userId", userId), new SqliteParameter("isNoVC", isNoVC) });
+		public bool IsVoiceBanned(ulong guildId, ulong userId) => ExecuteQuery(StatementType.GetIsNoVC, new List<SqliteParameter>() { new SqliteParameter("guildId", guildId), new SqliteParameter("userId", userId) }, true)?[0][0];
+		public void IsVoiceBanned(ulong guildId, ulong userId, bool isNoVC) => ExecuteQuery(StatementType.SetIsNoVC, new List<SqliteParameter>() { new SqliteParameter("guildId", guildId), new SqliteParameter("userId", userId), new SqliteParameter("isNoVC", isNoVC) });
 	}
 }

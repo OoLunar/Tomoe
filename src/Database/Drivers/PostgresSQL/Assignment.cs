@@ -95,8 +95,16 @@ namespace Tomoe.Database.Drivers.PostgreSQL
 
 		public PostgresAssignments(string host, int port, string username, string password, string databaseName, SslMode sslMode)
 		{
-			_connection = new NpgsqlConnection($"Host={host};Port={port};Username={username};Password={password};Database={databaseName};SSL Mode={sslMode}");
-			NpgsqlConnection selectRoutineConnection = new($"Host={host};Port={port};Username={username};Password={password};Database={databaseName};SSL Mode={sslMode}");
+			NpgsqlConnectionStringBuilder connectionString = new();
+			connectionString.ApplicationName = "Tomoe";
+			connectionString.Database = databaseName;
+			connectionString.Username = username;
+			connectionString.Host = host;
+			connectionString.SslMode = sslMode;
+			connectionString.Port = port;
+			connectionString.Password = password;
+			_connection = new(connectionString.ToString());
+			NpgsqlConnection selectRoutineConnection = new(connectionString.ToString());
 			_logger.Info("Opening connection to database...");
 			try
 			{

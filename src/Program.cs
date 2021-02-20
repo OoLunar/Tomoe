@@ -7,9 +7,6 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus.Exceptions;
-using DSharpPlus.Interactivity;
-using DSharpPlus.Interactivity.Enums;
-using DSharpPlus.Interactivity.Extensions;
 
 using Tomoe.Database;
 using Tomoe.Utils;
@@ -48,7 +45,7 @@ namespace Tomoe
 			Client.GuildMemberUpdated += (DiscordClient client, GuildMemberUpdateEventArgs eventArgs) => Task.Run(async () => Commands.Listeners.GuildMemberUpdated.Handler(client, eventArgs));
 			Client.GuildMemberRemoved += (DiscordClient client, GuildMemberRemoveEventArgs eventArgs) => Task.Run(async () => Commands.Listeners.GuildMemberRemoved.Handler(client, eventArgs));
 			Client.ChannelCreated += (DiscordClient client, ChannelCreateEventArgs eventArgs) => Task.Run(async () => Commands.Listeners.ChannelCreated.Handler(client, eventArgs));
-			//Client.MessageCreated += (DiscordClient client, MessageCreateEventArgs eventArgs) => Task.Run(async () => Commands.Listeners.MessageRecieved.Handler(client, eventArgs));
+			Client.MessageCreated += (DiscordClient client, MessageCreateEventArgs eventArgs) => Task.Run(async () => Commands.Listeners.MessageRecieved.Handler(client, eventArgs));
 			Client.Ready += (DiscordClient client, ReadyEventArgs eventArgs) => Task.Run(async () => Commands.Listeners.OnReady.Handler(client, eventArgs));
 			await CommandService.Launch(Client);
 

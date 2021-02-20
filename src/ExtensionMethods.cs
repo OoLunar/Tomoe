@@ -16,9 +16,9 @@ namespace Tomoe
 			catch (NotFoundException) { return null; }
 		}
 
-		public static DiscordEmbedBuilder GenerateDefaultEmbed(this DiscordEmbedBuilder embedBuilder, CommandContext context, string title)
+		public static DiscordEmbedBuilder GenerateDefaultEmbed(this DiscordEmbedBuilder embedBuilder, CommandContext context, string title = null)
 		{
-			embedBuilder.Title = title.Titleize();
+			if (!string.IsNullOrEmpty(title)) embedBuilder.Title = title.Titleize();
 			embedBuilder.Color = new DiscordColor("#7b84d1");
 			embedBuilder.Author = new()
 			{

@@ -23,7 +23,7 @@ namespace Tomoe.Database.Interfaces
 		bool IsAntiMemed(ulong guildId, ulong userId);
 		void IsAntiMemed(ulong guildId, ulong userId, bool isNoMemed);
 
-		bool IsNoVC(ulong guildId, ulong userId);
-		void IsNoVC(ulong guildId, ulong userId, bool isNoVC);
+		bool IsVoiceBanned(ulong guildId, ulong userId);
+		void IsVoiceBanned(ulong guildId, ulong userId, bool isNoVC);
 	}
 }

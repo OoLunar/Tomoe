@@ -99,9 +99,17 @@ namespace Tomoe.Database.Drivers.PostgreSQL
 			}
 		}
 
-		public PostgresUser(string host, int port, string username, string password, string database_name, SslMode sslMode)
+		public PostgresUser(string host, int port, string username, string password, string databaseName, SslMode sslMode)
 		{
-			_connection = new($"Host={host};Port={port};Username={username};Password={password};Database={database_name};SSL Mode={sslMode}");
+			NpgsqlConnectionStringBuilder connectionString = new();
+			connectionString.ApplicationName = "Tomoe";
+			connectionString.Database = databaseName;
+			connectionString.Username = username;
+			connectionString.Host = host;
+			connectionString.SslMode = sslMode;
+			connectionString.Port = port;
+			connectionString.Password = password;
+			_connection = new(connectionString.ToString());
 			_logger.Info("Opening connection to database...");
 			try
 			{
@@ -232,7 +240,7 @@ namespace Tomoe.Database.Drivers.PostgreSQL
 		public bool IsAntiMemed(ulong guildId, ulong userId) => ExecuteQuery(StatementType.GetIsAntiMemed, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("userId", (long)userId) }, true)?[0][0];
 		public void IsAntiMemed(ulong guildId, ulong userId, bool isNoMemed) => ExecuteQuery(StatementType.SetIsAntiMemed, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("userId", (long)userId), new NpgsqlParameter("isNoMemed", isNoMemed) });
 
-		public bool IsNoVC(ulong guildId, ulong userId) => ExecuteQuery(StatementType.GetIsNoVC, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("userId", (long)userId) }, true)?[0][0];
-		public void IsNoVC(ulong guildId, ulong userId, bool isNoVC) => ExecuteQuery(StatementType.SetIsNoVC, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("userId", (long)userId), new NpgsqlParameter("isNoVC", isNoVC) });
+		public bool IsVoiceBanned(ulong guildId, ulong userId) => ExecuteQuery(StatementType.GetIsNoVC, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("userId", (long)userId) }, true)?[0][0];
+		public void IsVoiceBanned(ulong guildId, ulong userId, bool isNoVC) => ExecuteQuery(StatementType.SetIsNoVC, new List<NpgsqlParameter>() { new NpgsqlParameter("guildId", (long)guildId), new NpgsqlParameter("userId", (long)userId), new NpgsqlParameter("isNoVC", isNoVC) });
 	}
 }
