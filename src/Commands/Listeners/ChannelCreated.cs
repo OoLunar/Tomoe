@@ -1,8 +1,11 @@
 using System.Threading.Tasks;
+using System.Linq;
 
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
+using Tomoe.Db;
+using Microsoft.EntityFrameworkCore;
 
 namespace Tomoe.Commands.Listeners
 {
@@ -10,20 +13,22 @@ namespace Tomoe.Commands.Listeners
 	{
 		public static async Task Handler(DiscordClient client, ChannelCreateEventArgs eventArgs)
 		{
-			if (Program.Database.Guild.GuildIdExists(eventArgs.Guild.Id))
+			Guild guild = await Program.Database.Guilds.FirstAsync(guild => guild.Id == eventArgs.Guild.Id);
+			if (guild != null)
 			{
-				DiscordRole muteRole = Program.Database.Guild.MuteRole(eventArgs.Guild.Id).GetRole(eventArgs.Guild);
-				if (muteRole != null) await Moderation.Config.FixMuteRolePermissions(eventArgs.Channel, muteRole);
+				DiscordRole muteRole = guild.MuteRole.GetRole(eventArgs.Guild);
+				if (muteRole != null) await Moderation.Config.FixPermissions(eventArgs.Channel, muteRole, Moderation.Config.PermissionType.Mute);
 
-				DiscordRole antimemeRole = Program.Database.Guild.AntimemeRole(eventArgs.Guild.Id).GetRole(eventArgs.Guild);
-				if (antimemeRole != null) await Moderation.Config.FixAntimemeRolePermissions(eventArgs.Channel, antimemeRole);
+				DiscordRole antimemeRole = guild.AntimemeRole.GetRole(eventArgs.Guild);
+				if (antimemeRole != null) await Moderation.Config.FixPermissions(eventArgs.Channel, antimemeRole, Moderation.Config.PermissionType.Antimeme);
 
-				DiscordRole voiceBanRole = Program.Database.Guild.VoiceBanRole(eventArgs.Guild.Id).GetRole(eventArgs.Guild);
-				if (voiceBanRole != null) await Moderation.Config.FixVoiceBanPermissions(eventArgs.Channel, voiceBanRole);
+				DiscordRole voiceBanRole = guild.VoiceBanRole.GetRole(eventArgs.Guild);
+				if (voiceBanRole != null) await Moderation.Config.FixPermissions(eventArgs.Channel, voiceBanRole, Moderation.Config.PermissionType.VoiceBan);
 			}
 			else
 			{
-				Program.Database.Guild.InsertGuildId(eventArgs.Guild.Id);
+				guild = new(eventArgs.Guild.Id);
+				_ = await Program.Database.Guilds.AddAsync(guild);
 				await Handler(client, eventArgs);
 			}
 		}

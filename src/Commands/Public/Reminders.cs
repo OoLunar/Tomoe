@@ -12,10 +12,10 @@ using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Enums;
 using DSharpPlus.Interactivity.Extensions;
 
-using Npgsql;
-
-using Tomoe.Database.Interfaces;
 using Tomoe.Utils;
+using Tomoe.Db;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace Tomoe.Commands.Public
 {
@@ -30,7 +30,19 @@ namespace Tomoe.Commands.Public
 		{
 			_logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");
 			_logger.Trace($"Creating reminder for {context.User.Username}");
-			Program.Database.Assignments.Create(AssignmentType.Reminder, context.Guild.Id, context.Channel.Id, context.Message.Id, context.User.Id, DateTime.Now + setOff, DateTime.Now, content);
+
+			Assignment assignment = new();
+			assignment.AssignmentType = AssignmentType.Reminder;
+			assignment.ChannelId = context.Channel.Id;
+			assignment.Content = content;
+			assignment.GuildId = context.Guild.Id;
+			assignment.MessageId = context.Message.Id;
+			assignment.SetAt = DateTime.Now + setOff;
+			assignment.SetOff = DateTime.Now;
+			assignment.UserId = context.User.Id;
+			_ = await Program.Database.Assignments.AddAsync(assignment);
+			_ = await Program.Database.SaveChangesAsync();
+
 			_logger.Trace("Reminder created!");
 			_ = await Program.SendMessage(context, $"Set off at {DateTime.Now.Add(setOff).ToString("MMM dd', 'HHH':'mm':'ss", CultureInfo.InvariantCulture)}: ```\n{content}```");
 			_logger.Trace("Message sent!");
@@ -45,7 +57,7 @@ namespace Tomoe.Commands.Public
 		{
 			_logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");
 			_logger.Trace($"Retriving reminders for {context.User.Username}...");
-			Assignment[] tasks = Program.Database.Assignments.SelectAllReminders(context.User.Id);
+			Assignment[] tasks = Program.Database.Assignments.Where(assignment => assignment.UserId == context.User.Id).ToArray();
 			List<string> reminders = new();
 			if (tasks == null)
 			{
@@ -81,15 +93,16 @@ namespace Tomoe.Commands.Public
 		{
 			_logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");
 			_logger.Trace($"Selecting reminder #{taskId}...");
-			Assignment? task = Program.Database.Assignments.Retrieve(context.User.Id, AssignmentType.Reminder, taskId);
-			if (!task.HasValue)
+			Assignment task = Program.Database.Assignments.Where(assignment => assignment.AssignmentType == AssignmentType.Reminder && assignment.UserId == context.User.Id && assignment.AssignmentId == taskId).First();
+			if (task != null)
 			{
 				_logger.Trace($"Reminder #{taskId} doesn't exist!");
 				_ = await Program.SendMessage(context, $"**[Error: Reminder #{taskId} does not exist!]**");
 			}
 			else
 			{
-				Program.Database.Assignments.Remove(taskId);
+				_ = Program.Database.Assignments.Remove(task);
+				_ = await Program.Database.SaveChangesAsync();
 				_ = await Program.SendMessage(context, $"Reminder #{taskId} was removed!");
 			}
 		}
@@ -113,21 +126,12 @@ namespace Tomoe.Commands.Public
 		public static void StartRoutine()
 		{
 			_logger.Debug("Starting reminders routine...");
-			Timer.Interval = 1000;
-			_logger.Trace("Setting reminders routine to go off every 1 second...");
+			Timer.Interval = TimeSpan.FromMinutes(1).TotalMilliseconds;
+			_logger.Trace("Setting reminders routine to go off every 1 minute...");
 			Timer.Elapsed += async (object sender, ElapsedEventArgs e) =>
 			{
-				Assignment[] tasks;
-				try
-				{
-					_logger.Trace("Selecting all assignments...");
-					tasks = Program.Database.Assignments.SelectAllAssignments();
-				}
-				catch (NpgsqlOperationInProgressException)
-				{
-					_logger.Trace("Still selecting from previous iteration!");
-					return;
-				}
+				_logger.Trace("Selecting all assignments...");
+				Assignment[] tasks = await Program.Database.Assignments.ToArrayAsync();
 				if (tasks == null)
 				{
 					_logger.Trace("No reminders found!");
@@ -152,28 +156,28 @@ namespace Tomoe.Commands.Public
 								context = commandsNext.CreateContext(await channel.GetMessageAsync(task.MessageId), Config.Prefix, commandsNext.RegisteredCommands["remind"], null);
 								_ = await Program.SendMessage(context, $"Set at {task.SetAt.ToString("MMM dd', 'HHH':'mm", CultureInfo.InvariantCulture)}: {task.Content}");
 								_logger.Trace("Message sent!");
-								Program.Database.Assignments.Remove(task.AssignmentId);
+								Program.Database.Assignments.Remove(task);
 								_logger.Trace("Reminder removed!");
 								break;
 							case AssignmentType.TempBan:
 								_logger.Trace($"Creating tempban context for #{task.AssignmentId}...");
 								context = commandsNext.CreateContext(await channel.GetMessageAsync(task.MessageId), Config.Prefix, commandsNext.RegisteredCommands["tempban"], null);
 								await Moderation.Unban.ByAssignment(context, await context.Client.GetUserAsync(task.UserId));
-								Program.Database.Assignments.Remove(task.AssignmentId);
+								Program.Database.Assignments.Remove(task);
 								_logger.Trace("Unban removed!");
 								break;
 							case AssignmentType.TempMute:
 								_logger.Trace($"Creating reminder context for #{task.AssignmentId}...");
 								context = commandsNext.CreateContext(await channel.GetMessageAsync(task.MessageId), Config.Prefix, commandsNext.RegisteredCommands["tempmute"], null);
 								await Moderation.Unmute.ByAssignment(context, await context.Client.GetUserAsync(task.UserId));
-								Program.Database.Assignments.Remove(task.AssignmentId);
+								Program.Database.Assignments.Remove(task);
 								_logger.Trace("Unmute removed!");
 								break;
 							case AssignmentType.TempAntimeme:
 								_logger.Trace($"Creating reminder context for #{task.AssignmentId}...");
 								context = commandsNext.CreateContext(await channel.GetMessageAsync(task.MessageId), Config.Prefix, commandsNext.RegisteredCommands["tempantimeme"], null);
 								await Moderation.Promeme.ByAssignment(context, await context.Client.GetUserAsync(task.UserId));
-								Program.Database.Assignments.Remove(task.AssignmentId);
+								Program.Database.Assignments.Remove(task);
 								_logger.Trace("Antimeme removed!");
 								break;
 						}

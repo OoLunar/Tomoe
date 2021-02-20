@@ -1,8 +1,10 @@
 using System.Threading.Tasks;
 
+using Tomoe.Db;
+
 using DSharpPlus;
 using DSharpPlus.EventArgs;
-
+using Microsoft.EntityFrameworkCore;
 using Tomoe.Utils;
 
 namespace Tomoe.Commands.Listeners
@@ -13,7 +15,12 @@ namespace Tomoe.Commands.Listeners
 
 		public static async Task Handler(DiscordClient _client, GuildCreateEventArgs eventArgs)
 		{
-			if (!Program.Database.Guild.GuildIdExists(eventArgs.Guild.Id)) Program.Database.Guild.InsertGuildId(eventArgs.Guild.Id);
+			Guild guild = await Program.Database.Guilds.FirstAsync(guild => guild.Id == eventArgs.Guild.Id);
+			if (guild == null)
+			{
+				guild = new(eventArgs.Guild.Id);
+				_ = await Program.Database.Guilds.AddAsync(guild);
+			}
 			_logger.Info($"\"{eventArgs.Guild.Name}\" ({eventArgs.Guild.Id}) is ready! Handling {eventArgs.Guild.MemberCount} members.");
 		}
 	}

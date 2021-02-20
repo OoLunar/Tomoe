@@ -1,9 +1,0 @@
-CREATE TABLE IF NOT EXISTS tag_aliases(
-    title VARCHAR(32) NOT NULL,
-    guild_id BIGINT NOT NULL,
-    user_id BIGINT NOT NULL,
-    id TEXT NOT NULL,
-    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT (now())::TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL,
-    UNIQUE(title, guild_id),
-    CONSTRAINT tags_aliases_lock FOREIGN KEY(id) REFERENCES tags(id) ON DELETE CASCADE
-);

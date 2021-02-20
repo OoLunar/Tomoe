@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using System.Linq;
 
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
@@ -7,6 +8,7 @@ using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
 
 using Tomoe.Commands.Moderation.Attributes;
+using Tomoe.Db;
 
 namespace Tomoe.Commands.Moderation
 {
@@ -15,7 +17,8 @@ namespace Tomoe.Commands.Moderation
 		[Command("mute"), Description("Mutes a person permanently."), RequireBotPermissions(Permissions.ManageRoles), RequireUserPermissions(Permissions.ManageMessages), Aliases("silence"), Punishment]
 		public async Task User(CommandContext context, DiscordUser victim, [RemainingText] string muteReason = Constants.MissingReason)
 		{
-			DiscordRole muteRole = Program.Database.Guild.MuteRole(context.Guild.Id).GetRole(context.Guild);
+			Guild guild = Program.Database.Guilds.First(guild => guild.Id == context.Guild.Id);
+			DiscordRole muteRole = guild.MuteRole.GetRole(context.Guild);
 			if (muteRole == null)
 			{
 				_ = await Program.SendMessage(context, Constants.MissingRole);
@@ -34,7 +37,10 @@ namespace Tomoe.Commands.Moderation
 				catch (UnauthorizedException) { }
 				await guildVictim.GrantRoleAsync(muteRole, muteReason);
 			}
-			Program.Database.User.IsMuted(context.Guild.Id, victim.Id, true);
+
+			GuildUser user = guild.Users.First(user => user.Id == victim.Id);
+			user.IsMuted = true;
+
 			_ = await Program.SendMessage(context, $"{victim.Mention} has been muted{(sentDm ? '.' : " (Failed to DM).")} Reason: {Formatter.BlockCode(Formatter.Strip(muteReason))}", null, new UserMention(victim.Id));
 		}
 	}

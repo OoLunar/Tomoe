@@ -4,8 +4,6 @@ using System.IO;
 using System.Text;
 using Microsoft.Extensions.Logging;
 
-using Npgsql.Logging;
-
 namespace Tomoe.Utils
 {
 	internal class Logger : ILogger
@@ -161,7 +159,7 @@ namespace Tomoe.Utils
 			Console.ForegroundColor = ConsoleColor.Cyan;
 			Console.Write(_branchname);
 			Console.ResetColor();
-			Console.WriteLine($": {value}");
+			Console.WriteLine($": {value.Trim()}");
 			if (Config.Logging.SaveToFile && LogFile != null)
 			{
 				LogFile.Write(Encoding.UTF8.GetBytes($"[{currentTime}] [Trace] {_branchname}: {value}{Environment.NewLine}"));
@@ -201,7 +199,7 @@ namespace Tomoe.Utils
 			Console.ForegroundColor = ConsoleColor.Cyan;
 			Console.Write(_branchname);
 			Console.ResetColor();
-			Console.WriteLine($": {value}");
+			Console.WriteLine($": {value.Trim()}");
 			if (Config.Logging.SaveToFile && LogFile != null)
 			{
 				LogFile.Write(Encoding.UTF8.GetBytes($"[{currentTime}] [Debug] {_branchname}: {value}{Environment.NewLine}"));
@@ -249,7 +247,7 @@ namespace Tomoe.Utils
 				Console.Write(_branchname);
 			}
 			Console.ResetColor();
-			Console.WriteLine($": {value}");
+			Console.WriteLine($": {value.Trim()}");
 			if (Config.Logging.SaveToFile && LogFile != null)
 			{
 				LogFile.Write(Encoding.UTF8.GetBytes($"[{currentTime}] [Info]  {_branchname}: {value}{Environment.NewLine}"));
@@ -303,7 +301,7 @@ namespace Tomoe.Utils
 				Console.Write(_branchname);
 			}
 			Console.ResetColor();
-			Console.WriteLine($": {value}");
+			Console.WriteLine($": {value.Trim()}");
 			if (Config.Logging.SaveToFile && LogFile != null)
 			{
 				LogFile.Write(Encoding.UTF8.GetBytes($"[{currentTime}] [Warn]  {_branchname}: {value}{Environment.NewLine}"));
@@ -350,7 +348,7 @@ namespace Tomoe.Utils
 			Console.ForegroundColor = ConsoleColor.Cyan;
 			Console.Write(_branchname);
 			Console.ResetColor();
-			Console.WriteLine($": {value}");
+			Console.WriteLine($": {value.Trim()}");
 			if (Config.Logging.SaveToFile && LogFile != null)
 			{
 				LogFile.Write(Encoding.UTF8.GetBytes($"[{currentTime}] [Error] {_branchname}: {value}{Environment.NewLine}"));
@@ -407,7 +405,7 @@ namespace Tomoe.Utils
 			Console.ForegroundColor = ConsoleColor.Cyan;
 			Console.Write(_branchname);
 			Console.ResetColor();
-			Console.WriteLine($": {value}");
+			Console.WriteLine($": {value.Trim()}");
 			if (Config.Logging.SaveToFile && LogFile != null)
 			{
 				LogFile.Write(Encoding.UTF8.GetBytes($"[{currentTime}] [Crit]  {_branchname}: {value}{Environment.NewLine}"));
@@ -437,29 +435,5 @@ namespace Tomoe.Utils
 
 		public void Dispose() => GC.SuppressFinalize(this);
 		public void AddProvider(ILoggerProvider provider) { }
-	}
-
-	public class NLogLoggingProvider : INpgsqlLoggingProvider
-	{
-		public NpgsqlLogger CreateLogger(string name) => new NpgsqlToLogger(name);
-	}
-
-	public class NpgsqlToLogger : NpgsqlLogger
-	{
-		private static Logger logger;
-		internal NpgsqlToLogger(string name) => logger = new Logger(name, Config.Logging.Npgsql);
-		public override bool IsEnabled(NpgsqlLogLevel level) => logger.IsEnabled(ToLogLevel(level));
-		public override void Log(NpgsqlLogLevel level, int connectorId, string msg, Exception exception) => logger.Log(ToLogLevel(level), $"{msg}{(exception == null ? null : '\n' + exception.ToString())}");
-
-		static LogLevel ToLogLevel(NpgsqlLogLevel level) => level switch
-		{
-			NpgsqlLogLevel.Trace => LogLevel.Trace,
-			NpgsqlLogLevel.Debug => LogLevel.Debug,
-			NpgsqlLogLevel.Info => LogLevel.Information,
-			NpgsqlLogLevel.Warn => LogLevel.Warning,
-			NpgsqlLogLevel.Error => LogLevel.Error,
-			NpgsqlLogLevel.Fatal => LogLevel.Critical,
-			_ => LogLevel.Debug
-		};
 	}
 }

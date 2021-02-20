@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using System.Linq;
 
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
@@ -8,7 +9,7 @@ using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
 
 using Tomoe.Commands.Moderation.Attributes;
-using Tomoe.Database.Interfaces;
+using Tomoe.Db;
 
 namespace Tomoe.Commands.Moderation
 {
@@ -17,7 +18,8 @@ namespace Tomoe.Commands.Moderation
 		[Command("tempmute"), Description("Mutes a person temporarily."), RequireBotPermissions(Permissions.ManageRoles), RequireUserPermissions(Permissions.ManageMessages), Aliases("temp_mute", "tempsilence", "temp_silence"), Punishment]
 		public async Task User(CommandContext context, DiscordUser victim, ExpandedTimeSpan muteTime, [RemainingText] string muteReason = Constants.MissingReason)
 		{
-			DiscordRole muteRole = Program.Database.Guild.MuteRole(context.Guild.Id).GetRole(context.Guild);
+			Guild guild = Program.Database.Guilds.First(guild => guild.Id == context.Guild.Id);
+			DiscordRole muteRole = guild.MuteRole.GetRole(context.Guild);
 			if (muteRole == null)
 			{
 				_ = await Program.SendMessage(context, Constants.MissingRole);
@@ -36,8 +38,19 @@ namespace Tomoe.Commands.Moderation
 				await guildVictim.GrantRoleAsync(muteRole, muteReason);
 			}
 
-			Program.Database.User.IsMuted(context.Guild.Id, victim.Id, true);
-			Program.Database.Assignments.Create(AssignmentType.TempMute, context.Guild.Id, context.Channel.Id, context.Message.Id, victim.Id, DateTime.Now + muteTime.TimeSpan, DateTime.Now, $"{victim.Id} tempmuted in {context.Guild.Id}");
+			GuildUser user = guild.Users.First(user => user.Id == victim.Id);
+			user.IsMuted = true;
+
+			Assignment assignment = new();
+			assignment.AssignmentType = AssignmentType.TempMute;
+			assignment.ChannelId = context.Channel.Id;
+			assignment.Content = $"Tempmute issued for {victim.Id}";
+			assignment.GuildId = context.Guild.Id;
+			assignment.MessageId = context.Message.Id;
+			assignment.SetOff = DateTime.Now + muteTime.TimeSpan;
+			assignment.UserId = victim.Id;
+			_ = Program.Database.Assignments.Add(assignment);
+
 			_ = await Program.SendMessage(context, $"{victim.Mention} has been muted{(sentDm ? '.' : " (Failed to DM).")} Reason: {Formatter.BlockCode(Formatter.Strip(muteReason))}", null, new UserMention(victim.Id));
 		}
 	}
