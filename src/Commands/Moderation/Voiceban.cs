@@ -17,7 +17,7 @@ namespace Tomoe.Commands.Moderation
 		[Command("voiceban"), Description("Prevents the victim from joining voice channels. Good to use when someone is switching between channels or spamming unmutting and muting."), RequireBotPermissions(Permissions.ManageRoles), RequireUserPermissions(Permissions.MuteMembers), Aliases("voice_ban", "vb"), Punishment]
 		public async Task User(CommandContext context, DiscordUser victim, [RemainingText] string voiceBanReason = Constants.MissingReason)
 		{
-			Guild guild = Program.Database.Guilds.First(guild => guild.Id == context.Guild.Id);
+			Guild guild = Program.Database.Guilds.FirstOrDefault(guild => guild.Id == context.Guild.Id);
 			DiscordRole voiceBanRole = guild.VoiceBanRole.GetRole(context.Guild);
 			if (voiceBanRole == null)
 			{
@@ -38,17 +38,17 @@ namespace Tomoe.Commands.Moderation
 				await guildVictim.GrantRoleAsync(voiceBanRole, voiceBanReason);
 			}
 
-			GuildUser user = guild.Users.First(user => user.Id == victim.Id);
-			user.IsVoiceBanned = false;
+			GuildUser user = guild.Users.FirstOrDefault(user => user.Id == victim.Id);
+			if (user != null) user.IsVoiceBanned = false;
 
 			_ = await Program.SendMessage(context, $"{victim.Mention} has been voicebanned{(sentDm ? '.' : " (Failed to DM).")} Reason: {Formatter.BlockCode(Formatter.Strip(voiceBanReason))}", null, new UserMention(victim.Id));
 		}
 
 		public static async Task ByAssignment(CommandContext context, DiscordUser victim)
 		{
-			Guild guild = Program.Database.Guilds.First(guild => guild.Id == context.Guild.Id);
-			GuildUser user = guild.Users.First(user => user.Id == victim.Id);
-			user.IsVoiceBanned = false;
+			Guild guild = Program.Database.Guilds.FirstOrDefault(guild => guild.Id == context.Guild.Id);
+			GuildUser user = guild.Users.FirstOrDefault(user => user.Id == victim.Id);
+			if (user != null) user.IsVoiceBanned = false;
 
 			DiscordRole voicebanRole = guild.VoiceBanRole.GetRole(context.Guild);
 			if (voicebanRole == null) return;

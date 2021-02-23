@@ -7,7 +7,7 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
-
+using Microsoft.EntityFrameworkCore;
 using Tomoe.Commands.Moderation.Attributes;
 using Tomoe.Db;
 
@@ -18,7 +18,7 @@ namespace Tomoe.Commands.Moderation
 		[Command("tempantimeme"), Description("Temporarily antimemes the victim."), RequireBotPermissions(Permissions.ManageRoles), RequireUserPermissions(Permissions.ManageMessages), Aliases("temp_antimeme", "tempanti_meme", "temp_anti_meme", "tempmemeban", "temp_memeban", "temp_meme_ban", "tempmeme_ban"), Punishment]
 		public async Task User(CommandContext context, DiscordUser victim, ExpandedTimeSpan antimemeTime, [RemainingText] string antimemeReason = Constants.MissingReason)
 		{
-			Guild guild = Program.Database.Guilds.First(guild => guild.Id == context.Guild.Id);
+			Guild guild = await Program.Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
 			DiscordRole antiMemeRole = guild.AntimemeRole.GetRole(context.Guild);
 			if (antiMemeRole == null)
 			{
@@ -38,7 +38,7 @@ namespace Tomoe.Commands.Moderation
 				catch (UnauthorizedException) { }
 				await guildVictim.GrantRoleAsync(antiMemeRole, antimemeReason);
 			}
-			GuildUser user = guild.Users.First(user => user.Id == victim.Id);
+			GuildUser user = guild.Users.FirstOrDefault(user => user.Id == victim.Id);
 			user.IsAntimemed = true;
 
 			Assignment assignment = new();

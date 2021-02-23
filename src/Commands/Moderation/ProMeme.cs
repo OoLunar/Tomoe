@@ -6,7 +6,7 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
-
+using Microsoft.EntityFrameworkCore;
 using Tomoe.Commands.Moderation.Attributes;
 using Tomoe.Db;
 
@@ -17,7 +17,7 @@ namespace Tomoe.Commands.Moderation
 		[Command("promeme"), Description("Unmutes an individual."), Aliases("pro_meme", "unmemeban", "unmeme_ban", "un_memeban", "un_meme_ban", "tempnomeme", "temp_no_meme", "temp_nomeme", "tempno_meme"), Punishment]
 		public async Task User(CommandContext context, DiscordUser victim, [RemainingText] string promemeReason = Constants.MissingReason)
 		{
-			Guild guild = Program.Database.Guilds.First(guild => guild.Id == context.Guild.Id);
+			Guild guild = await Program.Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
 			DiscordRole antimemeRole = guild.AntimemeRole.GetRole(context.Guild);
 			if (antimemeRole == null)
 			{
@@ -38,17 +38,17 @@ namespace Tomoe.Commands.Moderation
 				await guildVictim.RevokeRoleAsync(antimemeRole, promemeReason);
 			}
 
-			GuildUser user = guild.Users.First(user => user.Id == victim.Id);
-			user.IsAntimemed = false;
+			GuildUser user = guild.Users.FirstOrDefault(user => user.Id == victim.Id);
+			if (user == null) user.IsAntimemed = false;
 
 			_ = await Program.SendMessage(context, $"{victim.Mention} is no longer antimemed{(sentDm ? '.' : " (Failed to DM).")} Reason: {Formatter.BlockCode(Formatter.Strip(promemeReason))}", null, new UserMention(victim.Id));
 		}
 
 		public static async Task ByAssignment(CommandContext context, DiscordUser victim)
 		{
-			Guild guild = Program.Database.Guilds.First(guild => guild.Id == context.Guild.Id);
-			GuildUser user = guild.Users.First(user => user.Id == victim.Id);
-			user.IsAntimemed = false;
+			Guild guild = await Program.Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
+			GuildUser user = guild.Users.FirstOrDefault(user => user.Id == victim.Id);
+			if (user == null) user.IsAntimemed = false;
 
 			DiscordRole antimemeRole = guild.AntimemeRole.GetRole(context.Guild);
 			if (antimemeRole == null) return;

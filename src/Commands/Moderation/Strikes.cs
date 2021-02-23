@@ -32,6 +32,7 @@ namespace Tomoe.Commands.Moderation
 			strike.Id = Program.Database.Strikes.Count(strike => strike.GuildId == context.Guild.Id);
 			strike.VictimId = victim.Id;
 			strike.VictimMessaged = false;
+			_ = await Program.Database.Strikes.AddAsync(strike);
 
 			DiscordMember guildVictim = victim.GetMember(context.Guild);
 			if (guildVictim != null && !guildVictim.IsBot) try

@@ -17,7 +17,7 @@ namespace Tomoe.Commands.Moderation
 		[Command("unmute"), Description("Unmutes an individual."), Aliases("unsilence"), Punishment]
 		public async Task User(CommandContext context, DiscordUser victim, [RemainingText] string unmuteReason = Constants.MissingReason)
 		{
-			Guild guild = Program.Database.Guilds.First(guild => guild.Id == context.Guild.Id);
+			Guild guild = Program.Database.Guilds.FirstOrDefault(guild => guild.Id == context.Guild.Id);
 			DiscordRole muteRole = guild.MuteRole.GetRole(context.Guild);
 			if (muteRole == null)
 			{
@@ -37,17 +37,17 @@ namespace Tomoe.Commands.Moderation
 				await guildVictim.RevokeRoleAsync(muteRole, unmuteReason);
 			}
 
-			GuildUser user = guild.Users.First(user => user.Id == victim.Id);
-			user.IsMuted = false;
+			GuildUser user = guild.Users.FirstOrDefault(user => user.Id == victim.Id);
+			if (user != null) user.IsMuted = false;
 
 			_ = await Program.SendMessage(context, $"{victim.Mention} has been unmuted{(sentDm ? '.' : " (Failed to DM).")} Reason: {Formatter.BlockCode(Formatter.Strip(unmuteReason))}", null, new UserMention(victim.Id));
 		}
 
 		public static async Task ByAssignment(CommandContext context, DiscordUser victim)
 		{
-			Guild guild = Program.Database.Guilds.First(guild => guild.Id == context.Guild.Id);
-			GuildUser user = guild.Users.First(user => user.Id == victim.Id);
-			user.IsMuted = false;
+			Guild guild = Program.Database.Guilds.FirstOrDefault(guild => guild.Id == context.Guild.Id);
+			GuildUser user = guild.Users.FirstOrDefault(user => user.Id == victim.Id);
+			if (user != null) user.IsMuted = false;
 
 			DiscordRole muteRole = guild.MuteRole.GetRole(context.Guild);
 			if (muteRole == null) return;

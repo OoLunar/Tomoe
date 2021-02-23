@@ -6,7 +6,7 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
-
+using Microsoft.EntityFrameworkCore;
 using Tomoe.Commands.Moderation.Attributes;
 using Tomoe.Db;
 
@@ -17,7 +17,7 @@ namespace Tomoe.Commands.Moderation
 		[Command("antimeme"), Description("Prevents the victim from linking embeds, sending files or reacting to messages. All they can do is send and read messages. This is the command to use when someone is constantly spamming reactions onto messages or sending a bunch of images."), RequireBotPermissions(Permissions.ManageRoles), RequireUserPermissions(Permissions.ManageMessages), Aliases("anti_meme", "meme_ban", "memeban", "nomeme", "no_meme"), Punishment]
 		public async Task User(CommandContext context, DiscordUser victim, [RemainingText] string antimemeReason = Constants.MissingReason)
 		{
-			Guild guild = Program.Database.Guilds.First(guild => guild.Id == context.Guild.Id);
+			Guild guild = await Program.Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
 			DiscordRole antimemeRole = guild.AntimemeRole.GetRole(context.Guild);
 			if (antimemeRole == null)
 			{
@@ -38,8 +38,8 @@ namespace Tomoe.Commands.Moderation
 				await guildVictim.GrantRoleAsync(antimemeRole, antimemeReason);
 			}
 
-			GuildUser user = guild.Users.First(user => user.Id == victim.Id);
-			user.IsAntimemed = true;
+			GuildUser user = guild.Users.FirstOrDefault(user => user.Id == victim.Id);
+			if (user != null) user.IsAntimemed = true;
 
 			_ = await Program.SendMessage(context, $"{victim.Mention} has been antimemed{(sentDm ? '.' : " (Failed to DM).")} Reason: {Formatter.BlockCode(Formatter.Strip(antimemeReason))}", null, new UserMention(victim.Id));
 		}
