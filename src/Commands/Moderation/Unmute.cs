@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 
 using DSharpPlus;
@@ -7,6 +8,7 @@ using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
 
 using Tomoe.Commands.Moderation.Attributes;
+using Tomoe.Db;
 
 namespace Tomoe.Commands.Moderation
 {
@@ -15,7 +17,8 @@ namespace Tomoe.Commands.Moderation
 		[Command("unmute"), Description("Unmutes an individual."), Aliases("unsilence"), Punishment]
 		public async Task User(CommandContext context, DiscordUser victim, [RemainingText] string unmuteReason = Constants.MissingReason)
 		{
-			DiscordRole muteRole = Program.Database.Guild.MuteRole(context.Guild.Id).GetRole(context.Guild);
+			Guild guild = Program.Database.Guilds.First(guild => guild.Id == context.Guild.Id);
+			DiscordRole muteRole = guild.MuteRole.GetRole(context.Guild);
 			if (muteRole == null)
 			{
 				_ = await Program.SendMessage(context, Constants.MissingRole);
@@ -33,21 +36,25 @@ namespace Tomoe.Commands.Moderation
 				catch (UnauthorizedException) { }
 				await guildVictim.RevokeRoleAsync(muteRole, unmuteReason);
 			}
-			Program.Database.User.IsMuted(context.Guild.Id, victim.Id, false);
+
+			GuildUser user = guild.Users.First(user => user.Id == victim.Id);
+			user.IsMuted = false;
+
 			_ = await Program.SendMessage(context, $"{victim.Mention} has been unmuted{(sentDm ? '.' : " (Failed to DM).")} Reason: {Formatter.BlockCode(Formatter.Strip(unmuteReason))}", null, new UserMention(victim.Id));
 		}
 
 		public static async Task ByAssignment(CommandContext context, DiscordUser victim)
 		{
-			Program.Database.User.IsMuted(context.Guild.Id, victim.Id, false);
-			ulong? muteRoleId = Program.Database.Guild.MuteRole(context.Guild.Id);
-			if (!muteRoleId.HasValue) return;
-			DiscordRole muteRole = context.Guild.GetRole(muteRoleId.Value);
+			Guild guild = Program.Database.Guilds.First(guild => guild.Id == context.Guild.Id);
+			GuildUser user = guild.Users.First(user => user.Id == victim.Id);
+			user.IsMuted = false;
+
+			DiscordRole muteRole = guild.MuteRole.GetRole(context.Guild);
 			if (muteRole == null) return;
 
-			try
+			DiscordMember guildVictim = victim.GetMember(context.Guild);
+			if (guildVictim != null)
 			{
-				DiscordMember guildVictim = await context.Guild.GetMemberAsync(victim.Id);
 				try
 				{
 					if (!guildVictim.IsBot) _ = await guildVictim.SendMessageAsync($"You've been unmuted by {Formatter.Bold(context.User.Mention)} from {Formatter.Bold(context.Guild.Name)}. Reason: {Formatter.BlockCode("Tempmute complete!")}");
@@ -55,7 +62,6 @@ namespace Tomoe.Commands.Moderation
 				catch (UnauthorizedException) { }
 				await guildVictim.RevokeRoleAsync(muteRole, "Tempmute complete!");
 			}
-			catch (NotFoundException) { }
 		}
 	}
 }

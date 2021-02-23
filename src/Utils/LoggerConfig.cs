@@ -6,16 +6,13 @@ using Newtonsoft.Json;
 
 namespace Tomoe.Utils
 {
-	internal class Logging
+	internal class LoggerConfig
 	{
 		[JsonProperty("tomoe")]
 		public readonly LogLevel Tomoe;
 
 		[JsonProperty("discord")]
 		public readonly LogLevel Discord;
-
-		[JsonProperty("npgsql")]
-		public readonly LogLevel Npgsql;
 
 		[JsonProperty("show_commands_id")]
 		public readonly bool ShowId;
@@ -24,11 +21,10 @@ namespace Tomoe.Utils
 		public readonly bool SaveToFile;
 
 		[JsonConstructor]
-		public Logging(LogLevel tomoe = LogLevel.Information, LogLevel discord = LogLevel.Information, LogLevel npgsql = LogLevel.Information, bool showId = false, bool saveToFile = false)
+		public LoggerConfig(LogLevel tomoe = LogLevel.Information, LogLevel discord = LogLevel.Information, bool showId = false, bool saveToFile = false)
 		{
 			Tomoe = tomoe;
 			Discord = discord;
-			Npgsql = npgsql;
 			ShowId = showId;
 			SaveToFile = saveToFile;
 		}

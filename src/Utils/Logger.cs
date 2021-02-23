@@ -2,9 +2,8 @@ using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Text;
-using Microsoft.Extensions.Logging;
 
-using Npgsql.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace Tomoe.Utils
 {
@@ -34,7 +33,7 @@ namespace Tomoe.Utils
 		/// </summary>
 		/// <param name="logLevel">What level to test if is activated.</param>
 		/// <returns>true if <paramref name="logLevel">logLevel</paramref> is enabled, otherwise false.</returns>
-		public bool IsEnabled(LogLevel logLevel) => Config.Logging.Tomoe <= logLevel;
+		public bool IsEnabled(LogLevel logLevel) => Config.LoggerConfig.Tomoe <= logLevel;
 
 		/// <summary>
 		/// Logs stuff to console.
@@ -114,8 +113,8 @@ namespace Tomoe.Utils
 		public Logger(string branchName)
 		{
 			_branchname = branchName;
-			_branchLogLevel = Config.Logging.Tomoe;
-			if (Config.Logging.SaveToFile && LogFile == null) LogFile = new FileStream(Path.Join(FileSystem.ProjectRoot, $"log/{GetTime()}.log"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
+			_branchLogLevel = Config.LoggerConfig.Tomoe;
+			if (Config.LoggerConfig.SaveToFile && LogFile == null) LogFile = new FileStream(Path.Join(FileSystem.ProjectRoot, $"log/{GetTime()}.log"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
 			if (branchName.Contains("Commands")) _isCommand = true;
 			_threadId = _random.Next(1000, 9999).ToString();
 		}
@@ -124,7 +123,7 @@ namespace Tomoe.Utils
 		{
 			_branchname = branchName;
 			_branchLogLevel = branchLogLevel;
-			if (Config.Logging.SaveToFile && LogFile == null) LogFile = new FileStream(Path.Join(FileSystem.ProjectRoot, $"log/{GetTime()}.log"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
+			if (Config.LoggerConfig.SaveToFile && LogFile == null) LogFile = new FileStream(Path.Join(FileSystem.ProjectRoot, $"log/{GetTime()}.log"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
 			if (branchName.Contains("Commands")) _isCommand = true;
 			_threadId = _random.Next(1000, 9999).ToString();
 		}
@@ -143,13 +142,13 @@ namespace Tomoe.Utils
 		/// <param name="value">What to be logged.</param>
 		public void Trace(string value)
 		{
-			if (Config.Logging.Tomoe > LogLevel.Trace || _branchLogLevel > LogLevel.Trace) return;
+			if (Config.LoggerConfig.Tomoe > LogLevel.Trace || _branchLogLevel > LogLevel.Trace) return;
 			string currentTime = GetTime();
 			Console.ResetColor();
 			Console.Write($"[{currentTime}] ");
 			Console.ForegroundColor = ConsoleColor.Blue;
 			Console.Write($"[Trace]");
-			if (_isCommand && Config.Logging.ShowId)
+			if (_isCommand && Config.LoggerConfig.ShowId)
 			{
 				Console.ResetColor();
 				Console.Write(' ');
@@ -162,7 +161,7 @@ namespace Tomoe.Utils
 			Console.Write(_branchname);
 			Console.ResetColor();
 			Console.WriteLine($": {value.Trim()}");
-			if (Config.Logging.SaveToFile && LogFile != null)
+			if (Config.LoggerConfig.SaveToFile && LogFile != null)
 			{
 				LogFile.Write(Encoding.UTF8.GetBytes($"[{currentTime}] [Trace] {_branchname}: {value}{Environment.NewLine}"));
 				LogFile.Flush();
@@ -183,13 +182,13 @@ namespace Tomoe.Utils
 		/// <param name="value">What to be logged.</param>
 		public void Debug(string value)
 		{
-			if (Config.Logging.Tomoe > LogLevel.Debug || _branchLogLevel > LogLevel.Debug) return;
+			if (Config.LoggerConfig.Tomoe > LogLevel.Debug || _branchLogLevel > LogLevel.Debug) return;
 			string currentTime = GetTime();
 			Console.ResetColor();
 			Console.Write($"[{currentTime}] ");
 			Console.ForegroundColor = ConsoleColor.DarkGray;
 			Console.Write($"[Debug]");
-			if (_isCommand && Config.Logging.ShowId)
+			if (_isCommand && Config.LoggerConfig.ShowId)
 			{
 				Console.ResetColor();
 				Console.Write(' ');
@@ -202,7 +201,7 @@ namespace Tomoe.Utils
 			Console.Write(_branchname);
 			Console.ResetColor();
 			Console.WriteLine($": {value.Trim()}");
-			if (Config.Logging.SaveToFile && LogFile != null)
+			if (Config.LoggerConfig.SaveToFile && LogFile != null)
 			{
 				LogFile.Write(Encoding.UTF8.GetBytes($"[{currentTime}] [Debug] {_branchname}: {value}{Environment.NewLine}"));
 				LogFile.Flush();
@@ -224,13 +223,13 @@ namespace Tomoe.Utils
 		/// <param name="exit">Determines if the program exits. Defaults to false.</param>
 		public void Info(string value, bool exit = false)
 		{
-			if (Config.Logging.Tomoe > LogLevel.Information || _branchLogLevel > LogLevel.Information) return;
+			if (Config.LoggerConfig.Tomoe > LogLevel.Information || _branchLogLevel > LogLevel.Information) return;
 			string currentTime = GetTime();
 			Console.ResetColor();
 			Console.Write($"[{currentTime}] ");
 			Console.ForegroundColor = ConsoleColor.Green;
 			Console.Write($"[Info]");
-			if (_isCommand && Config.Logging.ShowId)
+			if (_isCommand && Config.LoggerConfig.ShowId)
 			{
 				Console.ResetColor();
 				Console.Write("  ");
@@ -250,7 +249,7 @@ namespace Tomoe.Utils
 			}
 			Console.ResetColor();
 			Console.WriteLine($": {value.Trim()}");
-			if (Config.Logging.SaveToFile && LogFile != null)
+			if (Config.LoggerConfig.SaveToFile && LogFile != null)
 			{
 				LogFile.Write(Encoding.UTF8.GetBytes($"[{currentTime}] [Info]  {_branchname}: {value}{Environment.NewLine}"));
 				LogFile.Flush();
@@ -278,13 +277,13 @@ namespace Tomoe.Utils
 		/// <param name="exit">Determines if the program exits. Defaults to false.</param>
 		public void Warn(string value, bool exit = false)
 		{
-			if (Config.Logging.Tomoe > LogLevel.Warning || _branchLogLevel > LogLevel.Warning) return;
+			if (Config.LoggerConfig.Tomoe > LogLevel.Warning || _branchLogLevel > LogLevel.Warning) return;
 			string currentTime = GetTime();
 			Console.ResetColor();
 			Console.Write($"[{currentTime}] ");
 			Console.ForegroundColor = ConsoleColor.Yellow;
 			Console.Write($"[Warn]");
-			if (_isCommand && Config.Logging.ShowId)
+			if (_isCommand && Config.LoggerConfig.ShowId)
 			{
 				Console.ResetColor();
 				Console.Write("  ");
@@ -304,7 +303,7 @@ namespace Tomoe.Utils
 			}
 			Console.ResetColor();
 			Console.WriteLine($": {value.Trim()}");
-			if (Config.Logging.SaveToFile && LogFile != null)
+			if (Config.LoggerConfig.SaveToFile && LogFile != null)
 			{
 				LogFile.Write(Encoding.UTF8.GetBytes($"[{currentTime}] [Warn]  {_branchname}: {value}{Environment.NewLine}"));
 				LogFile.Flush();
@@ -332,13 +331,13 @@ namespace Tomoe.Utils
 		/// <param name="exit">Determines if the program exits. Defaults to false.</param>
 		public void Error(string value, bool exit = false)
 		{
-			if (Config.Logging.Tomoe > LogLevel.Error || _branchLogLevel > LogLevel.Error) return;
+			if (Config.LoggerConfig.Tomoe > LogLevel.Error || _branchLogLevel > LogLevel.Error) return;
 			string currentTime = GetTime();
 			Console.ResetColor();
 			Console.Write($"[{currentTime}] ");
 			Console.ForegroundColor = ConsoleColor.Red;
 			Console.Write($"[Error]");
-			if (_isCommand && Config.Logging.ShowId)
+			if (_isCommand && Config.LoggerConfig.ShowId)
 			{
 				Console.ResetColor();
 				Console.Write(' ');
@@ -351,7 +350,7 @@ namespace Tomoe.Utils
 			Console.Write(_branchname);
 			Console.ResetColor();
 			Console.WriteLine($": {value.Trim()}");
-			if (Config.Logging.SaveToFile && LogFile != null)
+			if (Config.LoggerConfig.SaveToFile && LogFile != null)
 			{
 				LogFile.Write(Encoding.UTF8.GetBytes($"[{currentTime}] [Error] {_branchname}: {value}{Environment.NewLine}"));
 				LogFile.Flush();
@@ -386,7 +385,7 @@ namespace Tomoe.Utils
 			Console.BackgroundColor = ConsoleColor.Red;
 			Console.Write($"[Crit]");
 			Console.ResetColor();
-			if (_isCommand && Config.Logging.ShowId)
+			if (_isCommand && Config.LoggerConfig.ShowId)
 			{
 				Console.ResetColor();
 				Console.Write("  ");
@@ -408,7 +407,7 @@ namespace Tomoe.Utils
 			Console.Write(_branchname);
 			Console.ResetColor();
 			Console.WriteLine($": {value.Trim()}");
-			if (Config.Logging.SaveToFile && LogFile != null)
+			if (Config.LoggerConfig.SaveToFile && LogFile != null)
 			{
 				LogFile.Write(Encoding.UTF8.GetBytes($"[{currentTime}] [Crit]  {_branchname}: {value}{Environment.NewLine}"));
 				LogFile.Flush();
@@ -431,35 +430,11 @@ namespace Tomoe.Utils
 		private readonly ConcurrentDictionary<string, Logger> _loggers = new();
 		public ILogger CreateLogger(string categoryName)
 		{
-			if (categoryName.ToLower().StartsWith("dsharpplus")) return _loggers.GetOrAdd(categoryName, name => new Logger(name, Config.Logging.Discord));
+			if (categoryName.ToLower().StartsWith("dsharpplus")) return _loggers.GetOrAdd(categoryName, name => new Logger(name, Config.LoggerConfig.Discord));
 			else return _loggers.GetOrAdd(categoryName, name => new Logger(name));
 		}
 
 		public void Dispose() => GC.SuppressFinalize(this);
 		public void AddProvider(ILoggerProvider provider) { }
-	}
-
-	public class NLogLoggingProvider : INpgsqlLoggingProvider
-	{
-		public NpgsqlLogger CreateLogger(string name) => new NpgsqlToLogger(name);
-	}
-
-	public class NpgsqlToLogger : NpgsqlLogger
-	{
-		private static Logger logger;
-		internal NpgsqlToLogger(string name) => logger = new Logger(name, Config.Logging.Npgsql);
-		public override bool IsEnabled(NpgsqlLogLevel level) => logger.IsEnabled(ToLogLevel(level));
-		public override void Log(NpgsqlLogLevel level, int connectorId, string msg, Exception exception) => logger.Log(ToLogLevel(level), $"{msg}{(exception == null ? null : '\n' + exception.ToString())}");
-
-		static LogLevel ToLogLevel(NpgsqlLogLevel level) => level switch
-		{
-			NpgsqlLogLevel.Trace => LogLevel.Trace,
-			NpgsqlLogLevel.Debug => LogLevel.Debug,
-			NpgsqlLogLevel.Info => LogLevel.Information,
-			NpgsqlLogLevel.Warn => LogLevel.Warning,
-			NpgsqlLogLevel.Error => LogLevel.Error,
-			NpgsqlLogLevel.Fatal => LogLevel.Critical,
-			_ => LogLevel.Debug
-		};
 	}
 }

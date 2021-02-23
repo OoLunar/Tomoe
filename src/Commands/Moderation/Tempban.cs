@@ -1,5 +1,4 @@
 using System;
-using System.Globalization;
 using System.Threading.Tasks;
 
 using DSharpPlus;
@@ -9,7 +8,7 @@ using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
 
 using Tomoe.Commands.Moderation.Attributes;
-using Tomoe.Database.Interfaces;
+using Tomoe.Db;
 
 namespace Tomoe.Commands.Moderation
 {
@@ -28,7 +27,17 @@ namespace Tomoe.Commands.Moderation
 				}
 				catch (UnauthorizedException) { }
 			await context.Guild.BanMemberAsync(victim.Id, pruneDays, banReason);
-			Program.Database.Assignments.Create(AssignmentType.TempBan, context.Guild.Id, context.Channel.Id, context.Message.Id, victim.Id, DateTime.Now + banTime.TimeSpan, DateTime.Now, $"{victim.Id} tempbanned in {context.Guild.Id}");
+
+			Assignment assignment = new();
+			assignment.AssignmentType = AssignmentType.TempBan;
+			assignment.ChannelId = context.Channel.Id;
+			assignment.Content = $"Tempban issued for {victim.Id}";
+			assignment.GuildId = context.Guild.Id;
+			assignment.MessageId = context.Message.Id;
+			assignment.SetOff = DateTime.Now + banTime.TimeSpan;
+			assignment.UserId = victim.Id;
+			_ = Program.Database.Assignments.Add(assignment);
+
 			_ = await Program.SendMessage(context, $"{victim.Mention} has been temporarily banned{(sentDm ? '.' : " (Failed to DM).")} Reason: {Formatter.BlockCode(Formatter.Strip(banReason))}", null, new UserMention(victim.Id));
 		}
 	}

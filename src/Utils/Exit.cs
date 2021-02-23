@@ -11,10 +11,11 @@ namespace Tomoe.Utils
 			_logger.Info("Shutting down...");
 			_logger.Info("Closing routines...");
 			Commands.Public.Reminders.Timer.Dispose();
-			_logger.Info("Closing database...");
-			Program.Database.Dispose();
 			_logger.Info("Closing Discord...");
 			await Program.Client.StopAsync();
+			_logger.Info("Closing database...");
+			_ = await Program.Database.SaveChangesAsync();
+			Program.Database.Dispose();
 			_logger.Info("Goodbyte!");
 			Environment.Exit(0);
 		}

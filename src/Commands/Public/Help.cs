@@ -11,16 +11,13 @@ using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
-using Humanizer;
 
-using Tomoe.Utils;
+using Humanizer;
 
 namespace Tomoe.Commands.Public
 {
 	public class Help : BaseCommandModule
 	{
-		private static readonly Logger _logger = new("Commands.Public.Help");
-
 		[Command("help"), Description("Sends the help menu!")]
 		public async Task Overload(CommandContext context)
 		{

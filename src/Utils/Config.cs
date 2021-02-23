@@ -15,11 +15,8 @@ namespace Tomoe.Utils
 		[JsonProperty("discord_bot_prefix")]
 		public static string Prefix = ">>";
 
-		[JsonProperty("logging")]
-		public static Logging Logging = new();
-
-		[JsonProperty("database")]
-		public static DatabaseConfig Database = new();
+		[JsonProperty("logger_config")]
+		public static LoggerConfig LoggerConfig = new();
 
 		[JsonProperty("repository_link")]
 		public static string RepositoryLink = "https://github.com/OoLunar/Tomoe.git";
@@ -29,6 +26,9 @@ namespace Tomoe.Utils
 
 		[JsonProperty("auto_update")]
 		public static bool AutoUpdate = true;
+
+		[JsonProperty("db_filepath")]
+		public static string DatabaseFilePath = "res/Tomoe.db";
 
 		private static readonly string TokenFile = File.Exists(Path.Join(FileSystem.ProjectRoot, "res/config.jsonc.prod")) switch
 		{
@@ -53,7 +53,7 @@ namespace Tomoe.Utils
 					new Logger("Config").Critical($"Error resolving config option on \"{TokenFile}\" Make sure all the config options are valid. Error: {typeException.Message}");
 				}
 				await Task.Delay(50);
-				if (Logging.SaveToFile && !Directory.Exists(Path.Join(FileSystem.ProjectRoot, "log/")))
+				if (LoggerConfig.SaveToFile && !Directory.Exists(Path.Join(FileSystem.ProjectRoot, "log/")))
 				{
 					_ = FileSystem.CreateDirectory(Path.Join(FileSystem.ProjectRoot, "log/"));
 				}

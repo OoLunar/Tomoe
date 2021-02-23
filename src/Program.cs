@@ -5,10 +5,9 @@ using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
-using DSharpPlus.EventArgs;
 using DSharpPlus.Exceptions;
 
-using Tomoe.Database;
+using Tomoe.Db;
 using Tomoe.Utils;
 
 namespace Tomoe
@@ -16,7 +15,7 @@ namespace Tomoe
 	public class Program
 	{
 		public static DiscordShardedClient Client { get; private set; }
-		internal static DatabaseLoader Database = new();
+		internal static Database Database = new();
 		private static readonly Logger _logger = new("Main");
 
 		public static void Main() => MainAsync().ConfigureAwait(false).GetAwaiter().GetResult();
@@ -26,27 +25,29 @@ namespace Tomoe
 			await Config.Init();
 			LoggerProvider loggerProvider = new();
 			Console.CancelKeyPress += Quit.ConsoleShutdown;
+			_ = await Database.Database.EnsureCreatedAsync();
 			DiscordConfiguration discordConfiguration = new()
 			{
 				AutoReconnect = true,
 				Token = Config.Token,
 				TokenType = TokenType.Bot,
-				MinimumLogLevel = Config.Logging.Discord,
+				MinimumLogLevel = Config.LoggerConfig.Discord,
 				UseRelativeRatelimit = false,
 				MessageCacheSize = 512,
 				LoggerFactory = loggerProvider
 			};
 
 			Client = new(discordConfiguration);
-			Client.MessageReactionAdded += (DiscordClient client, MessageReactionAddEventArgs eventArgs) => Task.Run(async () => Commands.Listeners.ReactionAdded.Handler(client, eventArgs));
-			Client.GuildCreated += (DiscordClient client, GuildCreateEventArgs eventArgs) => Task.Run(async () => Commands.Listeners.GuildCreated.Handler(client, eventArgs));
-			Client.GuildAvailable += (DiscordClient client, GuildCreateEventArgs eventArgs) => Task.Run(async () => Commands.Listeners.GuildAvailable.Handler(client, eventArgs));
-			Client.GuildMemberAdded += (DiscordClient client, GuildMemberAddEventArgs eventArgs) => Task.Run(async () => Commands.Listeners.GuildMemberAdded.Handler(client, eventArgs));
-			Client.GuildMemberUpdated += (DiscordClient client, GuildMemberUpdateEventArgs eventArgs) => Task.Run(async () => Commands.Listeners.GuildMemberUpdated.Handler(client, eventArgs));
-			Client.GuildMemberRemoved += (DiscordClient client, GuildMemberRemoveEventArgs eventArgs) => Task.Run(async () => Commands.Listeners.GuildMemberRemoved.Handler(client, eventArgs));
-			Client.ChannelCreated += (DiscordClient client, ChannelCreateEventArgs eventArgs) => Task.Run(async () => Commands.Listeners.ChannelCreated.Handler(client, eventArgs));
-			Client.MessageCreated += (DiscordClient client, MessageCreateEventArgs eventArgs) => Task.Run(async () => Commands.Listeners.MessageRecieved.Handler(client, eventArgs));
-			Client.Ready += (DiscordClient client, ReadyEventArgs eventArgs) => Task.Run(async () => Commands.Listeners.OnReady.Handler(client, eventArgs));
+			Client.MessageCreated += CommandHandler.Handler;
+			Client.MessageReactionAdded += Commands.Listeners.ReactionAdded.Handler;
+			Client.GuildCreated += Commands.Listeners.GuildCreated.Handler;
+			Client.GuildAvailable += Commands.Listeners.GuildAvailable.Handler;
+			Client.GuildMemberAdded += Commands.Listeners.GuildMemberAdded.Handler;
+			Client.GuildMemberUpdated += Commands.Listeners.GuildMemberUpdated.Handler;
+			Client.GuildMemberRemoved += Commands.Listeners.GuildMemberRemoved.Handler;
+			Client.ChannelCreated += Commands.Listeners.ChannelCreated.Handler;
+			Client.MessageCreated += Commands.Listeners.MessageRecieved.Handler;
+			Client.Ready += Commands.Listeners.OnReady.Handler;
 			await CommandService.Launch(Client);
 
 			await Client.StartAsync();

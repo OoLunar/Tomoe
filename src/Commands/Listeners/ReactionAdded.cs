@@ -6,18 +6,15 @@ using DSharpPlus;
 using DSharpPlus.EventArgs;
 
 using Tomoe.Types;
-using Tomoe.Utils;
 
 namespace Tomoe.Commands.Listeners
 {
 	public class ReactionAdded
 	{
 		internal static readonly List<Queue> QueueList = new();
-		private static readonly Logger _logger = new("Commands.Listeners.ReactionAdded");
 
 		public static async Task Handler(DiscordClient _client, MessageReactionAddEventArgs eventArgs)
 		{
-			_logger.Trace($"Reaction recieved: {eventArgs.Emoji}");
 			foreach (Queue queue in QueueList)
 			{
 				if (eventArgs.User.Id == Program.Client.CurrentUser.Id) continue;

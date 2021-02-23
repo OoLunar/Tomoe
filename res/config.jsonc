@@ -9,7 +9,7 @@
 	"invite_link": "https://discord.com/oauth2/authorize?client_id=481314095723839508&permissions=8&scope=bot",
 	/*Whether to auto-update using the git library*/
 	"auto_update": true,
-	"logging": {
+	"logger_config": {
 		/* Options are:
 	     * - None
 	     * - Trace
@@ -21,54 +21,8 @@
         */
 		"tomoe": "Debug",
 		"discord": "Information",
-		/*Ignored when database.driver is not set to PostgresSQL*/
-		"npgsql": "Information",
 		"show_commands_id": true,
 		"save_to_file": false
 	},
-	/*Database details*/
-	"database": {
-		/*Choose from either sqlite or postgresql*/
-		"driver": "sqlite",
-		/*A database compliant password used to login. Requirements change based on the driver being used.*/
-		"password": "<insert database password>",
-		/*Database name. If you're using Sqlite, you could set it to :memory:*/
-		"database_name": "res/Tomoe.db",
-		"parameters": {
-			/*Postgres settings:*/
-			/*The IP or hostname that the database is listening on.*/
-			"host": "<www.example.com>",
-			/*The port that the database is listening on.*/
-			"port": 5432,
-			/*The username used to login to the database.*/
-			"username": "tomoe_discord_bot",
-			/*
-			 * Choose security levels. Options are:
-			 * - Require
-			 * - Prefer
-			 * - Disable
-			 * Defaults to Require.
-			 */
-			"ssl_mode": "Require",
-			/*Sqlite settings:*/
-			/*
-			 * Choose the cache mode. Options are:
-			 * - Default
-			 * - Shared
-			 * - Private
-			 * Defaults to Shared.
-			 */
-			"cache_mode": "Shared",
-			/*
-			 * Choose the open mode. Options are:
-			 * - Memory
-			 * - ReadOnly
-			 * - ReadWrite
-			 * - ReadWriteCreate
-			 * ReadOnly is not supported. ReadWrite will likely create an error if the database does not exist. Memory will overwrite the database_name.
-			 * Defaults to ReadWriteCreate.
-			 */
-			"open_mode": "ReadWriteCreate"
-		}
-	}
+	"db_filepath": "res/Tomoe.db"
 }

@@ -1,26 +1,25 @@
-using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+
+using Microsoft.EntityFrameworkCore;
 
 using DSharpPlus;
 using DSharpPlus.EventArgs;
 
-using Tomoe.Utils;
+using Tomoe.Db;
 
 namespace Tomoe.Commands.Listeners
 {
 	public class MessageRecieved
 	{
-		private static readonly Logger _logger = new("Commands.Listeners.GuildAvailable");
 		private static readonly Regex _regex = new(@"(discord((app\.com|.com)\/invite|\.gg)\/[A-z]+)", RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.IgnoreCase);
 
 		public static async Task Handler(DiscordClient _client, MessageCreateEventArgs eventArgs)
 		{
-			_logger.Trace($"Recieved message in {eventArgs.Channel.Id} on {eventArgs.Guild.Id}");
+			Guild guild = await Program.Database.Guilds.FirstAsync(guild => guild.Id == eventArgs.Guild.Id);
 			if (eventArgs.Author == _client.CurrentUser) return;
-			_ = await eventArgs.Channel.SendMessageAsync(Program.Database.Guild.AntiInvite(eventArgs.Guild.Id).ToString() + "Fired!");
-			int maxMentions = Program.Database.Guild.MaxMentions(eventArgs.Guild.Id);
-			int maxLines = Program.Database.Guild.MaxLines(eventArgs.Guild.Id);
+			int maxMentions = guild.MaxMentions;
+			int maxLines = guild.MaxLines;
 
 			if (maxMentions > -1 && eventArgs.MentionedUsers.Count + eventArgs.MentionedRoles.Count > maxMentions)
 			{
@@ -34,16 +33,15 @@ namespace Tomoe.Commands.Listeners
 				_ = await eventArgs.Message.RespondAsync($"{eventArgs.Author.Mention}: Message deleted due to it exceeding the max lines count. Please refrain from spamming pings.");
 			}
 
-			if (Program.Database.Guild.AntiInvite(eventArgs.Guild.Id))
+			if (guild.AntiInvite)
 			{
 				Match messageInvites = _regex.Match(eventArgs.Message.Content);
 				if (messageInvites.Success)
 				{
 					CaptureCollection invites = messageInvites.Captures;
 					foreach (Capture capture in invites)
-					{
-						if (!Program.Database.Guild.IsAllowedInvite(eventArgs.Guild.Id, capture.Value)) await eventArgs.Message.DeleteAsync("Invite is not whitelisted.");
-					}
+						if (!guild.AllowedInvites.Contains(capture.Value))
+							await eventArgs.Message.DeleteAsync("Invite is not whitelisted.");
 				}
 			}
 		}

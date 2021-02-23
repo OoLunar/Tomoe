@@ -7,21 +7,14 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 
-using Tomoe.Utils;
-
 namespace Tomoe.Commands.Public
 {
 	public class ServerInfo : BaseCommandModule
 	{
-		private static readonly Logger _logger = new("Commands.Public.ServerInfo");
-
 		[Command("serverinfo"), Description("Gets general info about the server."), Aliases("server_info")]
 		public async Task Overload(CommandContext context)
 		{
-			_logger.Debug($"Executing in channel {context.Channel.Id} on guild {context.Guild.Id}");
-			_logger.Trace("Creating embed...");
 			DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder().GenerateDefaultEmbed(context, context.Guild.Name);
-			_logger.Trace("Filling out description...");
 			embedBuilder.Url = context.Guild.IconUrl;
 			embedBuilder.Footer = new() { IconUrl = context.Guild.BannerUrl };
 			StringBuilder guildInfo = new();
@@ -57,9 +50,7 @@ namespace Tomoe.Commands.Public
 				Url = context.Guild.IconUrl.Replace(".jpg", ".png?&size=1024")
 			};
 
-			_logger.Trace("Sending embed...");
 			_ = await Program.SendMessage(context, null, embedBuilder.Build());
-			_logger.Trace("Embed sent!");
 		}
 	}
 }

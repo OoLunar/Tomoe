@@ -1,9 +1,13 @@
 using System.Linq;
 using System.Threading.Tasks;
 
+using Microsoft.EntityFrameworkCore;
+
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
+
+using Tomoe.Db;
 
 namespace Tomoe.Commands.Listeners
 {
@@ -11,22 +15,29 @@ namespace Tomoe.Commands.Listeners
 	{
 		public static async Task Handler(DiscordClient client, GuildMemberAddEventArgs eventArgs)
 		{
-			if (Program.Database.Guild.GuildIdExists(eventArgs.Guild.Id))
+			Guild guild = await Program.Database.Guilds.FirstAsync(guild => guild.Id == eventArgs.Guild.Id);
+			if (guild != null)
 			{
-				if (Program.Database.User.Exists(eventArgs.Guild.Id, eventArgs.Member.Id))
+				GuildUser user = guild.Users.First(user => user.Id == eventArgs.Member.Id);
+				if (user != null)
 				{
-					ulong[] userRoles = Program.Database.User.GetRoles(eventArgs.Guild.Id, eventArgs.Member.Id);
-					foreach (ulong roleId in userRoles)
+					foreach (ulong roleId in user.Roles)
 					{
 						DiscordRole role = eventArgs.Guild.GetRole(roleId);
 						if (role == null) continue;
 						await eventArgs.Member.GrantRoleAsync(role, "Persistent Roles.");
 					}
 				}
+				else
+				{
+					user = new(eventArgs.Guild.Id);
+					guild.Users.Add(user);
+				}
 			}
 			else
 			{
-				Program.Database.Guild.InsertGuildId(eventArgs.Guild.Id);
+				guild = new(eventArgs.Guild.Id);
+				_ = await Program.Database.Guilds.AddAsync(guild);
 				await Handler(client, eventArgs);
 			}
 		}

@@ -11,7 +11,7 @@ namespace Tomoe
 {
 	public class ExpandedTimeSpan
 	{
-		public TimeSpan TimeSpan;
+		public TimeSpan TimeSpan { get; internal set; }
 		public override string ToString() => TimeSpan.ToString();
 	}
 
