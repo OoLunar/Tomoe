@@ -28,12 +28,24 @@ namespace Tomoe
 		{
 			if (!string.IsNullOrEmpty(title)) embedBuilder.Title = title.Titleize();
 			embedBuilder.Color = new DiscordColor("#7b84d1");
-			embedBuilder.Author = new()
+			if (context.Guild == null)
 			{
-				Name = context.Member.GetCommonName(),
-				IconUrl = context.Member.AvatarUrl,
-				Url = context.Member.AvatarUrl
-			};
+				embedBuilder.Author = new()
+				{
+					Name = context.User.Username,
+					IconUrl = context.User.AvatarUrl,
+					Url = context.User.AvatarUrl
+				};
+			}
+			else
+			{
+				embedBuilder.Author = new()
+				{
+					Name = context.Member.GetCommonName(),
+					IconUrl = context.Member.AvatarUrl,
+					Url = context.Member.AvatarUrl
+				};
+			}
 			return embedBuilder;
 		}
 

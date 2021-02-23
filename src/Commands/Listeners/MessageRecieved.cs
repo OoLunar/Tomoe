@@ -16,8 +16,8 @@ namespace Tomoe.Commands.Listeners
 
 		public static async Task Handler(DiscordClient _client, MessageCreateEventArgs eventArgs)
 		{
+			if (eventArgs.Author == _client.CurrentUser && eventArgs.Guild == null) return;
 			Guild guild = await Program.Database.Guilds.FirstAsync(guild => guild.Id == eventArgs.Guild.Id);
-			if (eventArgs.Author == _client.CurrentUser) return;
 			int maxMentions = guild.MaxMentions;
 			int maxLines = guild.MaxLines;
 

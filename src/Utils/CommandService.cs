@@ -30,7 +30,6 @@ namespace Tomoe.Utils
 					{
 						StringPrefixes = new[] { Config.Prefix },
 						CaseSensitive = false,
-						EnableMentionPrefix = true,
 						EnableDms = true,
 						EnableDefaultHelp = false,
 						UseDefaultCommandHandler = false
