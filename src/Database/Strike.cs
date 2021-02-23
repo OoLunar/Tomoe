@@ -7,14 +7,14 @@ namespace Tomoe.Db
 	public class Strike
 	{
 		[Key]
-		public int StrikeId { get; set; }
-		public ulong GuildId { get; set; }
-		public ulong IssuerId { get; set; }
-		public ulong VictimId { get; set; }
-		public List<string> Reason { get; set; }
-		public Uri JumpLink { get; set; }
-		public bool VictimMessaged { get; set; }
-		public bool Dropped { get; set; }
-		public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+		public int Id { get; internal set; }
+		public ulong GuildId { get; internal set; }
+		public ulong IssuerId { get; internal set; }
+		public ulong VictimId { get; internal set; }
+		public List<string> Reason { get; internal set; } = new();
+		public Uri JumpLink { get; internal set; }
+		public bool VictimMessaged { get; internal set; }
+		public bool Dropped { get; internal set; }
+		public DateTime CreatedAt { get; internal set; } = DateTime.UtcNow;
 	}
 }

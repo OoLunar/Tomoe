@@ -12,16 +12,5 @@ namespace Tomoe
 		public const string NotAGuild = "**[Denied: Guild command.]**";
 		public const string SelfAction = "**[Denied: Cannot execute on myself.]**";
 		public const string Hierarchy = "**[Denied: Prevented by hierarchy.]**";
-
-		public class Tags
-		{
-			public const string NotFound = "**[Error: No tags found!]**";
-			public const string TooLong = "**[Error: Tag title too long.]**";
-			public const string AliasesOfAliases = "**[Denied: Creating aliases of aliases aren't allowed. Try getting the real tag name first.]**";
-			public const string AuthorStillPresent = "**[Denied: Tag author is still in the guild!]**";
-			public const string NotOwnerOf = "**[Denied: You aren't the tag owner!]**";
-			public const string NotATag = "**[Denied: Tag isn't a tag.]**";
-			public const string NotAnAlias = "**[Denied: Tag isn't an alias.]**";
-		}
 	}
 }

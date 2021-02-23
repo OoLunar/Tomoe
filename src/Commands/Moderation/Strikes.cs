@@ -3,12 +3,14 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 
+using Microsoft.EntityFrameworkCore;
+
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
-using Microsoft.EntityFrameworkCore;
+
 using Tomoe.Commands.Moderation.Attributes;
 using Tomoe.Db;
 
@@ -27,7 +29,7 @@ namespace Tomoe.Commands.Moderation
 			strike.IssuerId = context.User.Id;
 			strike.JumpLink = context.Message.JumpLink;
 			strike.Reason.Add(strikeReason.Trim());
-			strike.StrikeId = Program.Database.Strikes.Count(strike => strike.GuildId == context.Guild.Id);
+			strike.Id = Program.Database.Strikes.Count(strike => strike.GuildId == context.Guild.Id);
 			strike.VictimId = victim.Id;
 			strike.VictimMessaged = false;
 
@@ -49,7 +51,7 @@ namespace Tomoe.Commands.Moderation
 			if (pastStrikes == null) _ = await Program.SendMessage(context, "No previous strikes have been found!");
 			else
 			{
-				foreach (Strike strike in pastStrikes) embedBuilder.Description += $"Case #{strike.StrikeId} [on {strike.CreatedAt.ToString("MMM' 'dd', 'yyyy' 'HH':'mm':'ss", CultureInfo.InvariantCulture)}, Issued by {(await context.Client.GetUserAsync(strike.IssuerId)).Mention}]({strike.JumpLink}) {(strike.Dropped ? "(Dropped)" : null)}\n";
+				foreach (Strike strike in pastStrikes) embedBuilder.Description += $"Case #{strike.Id} [on {strike.CreatedAt.ToString("MMM' 'dd', 'yyyy' 'HH':'mm':'ss", CultureInfo.InvariantCulture)}, Issued by {(await context.Client.GetUserAsync(strike.IssuerId)).Mention}]({strike.JumpLink}) {(strike.Dropped ? "(Dropped)" : null)}\n";
 				_ = await Program.SendMessage(context, null, embedBuilder.Build());
 			}
 		}

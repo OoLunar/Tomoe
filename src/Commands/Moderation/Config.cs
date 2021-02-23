@@ -1,5 +1,5 @@
-using System.Threading.Tasks;
 using System.Linq;
+using System.Threading.Tasks;
 
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
@@ -8,17 +8,14 @@ using DSharpPlus.Entities;
 
 using Humanizer;
 
-using Tomoe.Types;
-using Tomoe.Utils;
 using Tomoe.Db;
+using Tomoe.Types;
 
 namespace Tomoe.Commands.Moderation
 {
 	[Group("config")]
 	public class Config : BaseCommandModule
 	{
-		private static readonly Logger _logger = new("Commands.Config");
-
 		#region MuteCommand
 
 		[Command("mute"), Description("Sets up or assigns the mute role."), RequireUserPermissions(Permissions.ManageGuild), RequireGuild]
@@ -29,7 +26,6 @@ namespace Tomoe.Commands.Moderation
 			if (previousMuteRole == null)
 			{
 				guild.MuteRole = muteRole.Id;
-				_logger.Trace($"Set {muteRole.Name} ({muteRole.Id}) as mute role for {context.Guild.Name} ({context.Guild.Id})!");
 				await FixPermissions(context.Guild, muteRole, PermissionType.Mute);
 				_ = await Program.SendMessage(context, $"{muteRole.Mention} is now set as the mute role.");
 
@@ -42,14 +38,12 @@ namespace Tomoe.Commands.Moderation
 				if (eventArgs.Emoji == Queue.ThumbsUp)
 				{
 					guild.MuteRole = muteRole.Id;
-					_logger.Trace($"Set {muteRole.Name} ({muteRole.Id}) as mute role for {context.Guild.Name} ({context.Guild.Id})!");
 					_ = await discordMessage.ModifyAsync($"{Formatter.Strike(discordMessage.Content)}\n{Formatter.Bold("[Notice: Fixing role permissions...]")}");
 					await FixPermissions(context.Guild, muteRole, PermissionType.Mute);
 					_ = await discordMessage.ModifyAsync($"{muteRole.Mention} is now set as the mute role.");
 				}
 				else if (eventArgs.Emoji == Queue.ThumbsDown)
 				{
-					_logger.Trace($"Fixed permissions for the mute role {previousMuteRole.Name} ({previousMuteRole.Id}) on {context.Guild.Name} ({context.Guild.Id})!");
 					_ = await discordMessage.ModifyAsync($"{Formatter.Strike(discordMessage.Content)}\n{Formatter.Bold("[Notice: Fixing role permissions...]")}");
 					await FixPermissions(context.Guild, previousMuteRole, PermissionType.Mute);
 					_ = await discordMessage.ModifyAsync($"{Formatter.Strike(discordMessage.Content)}\n{Formatter.Bold("[Notice: Mute role has not been changed.]")}");
@@ -75,7 +69,6 @@ namespace Tomoe.Commands.Moderation
 				if (eventArgs.Emoji == Queue.ThumbsUp) await CreateRole(context.Guild, discordMessage, PermissionType.Mute);
 				else if (eventArgs.Emoji == Queue.ThumbsDown)
 				{
-					_logger.Trace($"Fixed permissions for the mute role {previousMuteRole.Name} ({previousMuteRole.Id}) on {context.Guild.Name} ({context.Guild.Id})!");
 					await FixPermissions(context.Guild, previousMuteRole, PermissionType.Mute);
 					_ = await Program.SendMessage(context, $"Roles were left untouched.");
 				}
@@ -93,7 +86,6 @@ namespace Tomoe.Commands.Moderation
 			if (previousAntimemeRole == null)
 			{
 				guild.AntimemeRole = antimemeRole.Id;
-				_logger.Trace($"Set {antimemeRole.Name} ({antimemeRole.Id}) as the antimeme role for {context.Guild.Name} ({context.Guild.Id})!");
 				await FixPermissions(context.Guild, antimemeRole, PermissionType.Antimeme);
 				_ = await Program.SendMessage(context, $"{antimemeRole.Mention} is now set as the antimeme role.");
 				return;
@@ -105,14 +97,12 @@ namespace Tomoe.Commands.Moderation
 				if (eventArgs.Emoji == Queue.ThumbsUp)
 				{
 					guild.AntimemeRole = antimemeRole.Id;
-					_logger.Trace($"Set {antimemeRole.Name} ({antimemeRole.Id}) as the antimeme role for {context.Guild.Name} ({context.Guild.Id})!");
 					_ = await discordMessage.ModifyAsync($"{Formatter.Strike(discordMessage.Content)}\n{Formatter.Bold("[Notice: Fixing role permissions...]")}");
 					await FixPermissions(context.Guild, antimemeRole, PermissionType.Antimeme);
 					_ = await discordMessage.ModifyAsync($"{antimemeRole.Mention} is now set as the antimeme role.");
 				}
 				else if (eventArgs.Emoji == Queue.ThumbsDown)
 				{
-					_logger.Trace($"Fixed permissions for the antimeme role {previousAntimemeRole.Name} ({previousAntimemeRole.Id}) on {context.Guild.Name} ({context.Guild.Id})!");
 					_ = await discordMessage.ModifyAsync($"{Formatter.Strike(discordMessage.Content)}\n{Formatter.Bold("[Notice: Fixing role permissions...]")}");
 					await FixPermissions(context.Guild, antimemeRole, PermissionType.Antimeme);
 					_ = await discordMessage.ModifyAsync($"{Formatter.Strike(discordMessage.Content)}\n{Formatter.Bold("[Notice: Antimeme role has not been changed.]")}");
@@ -137,7 +127,6 @@ namespace Tomoe.Commands.Moderation
 				if (eventArgs.Emoji == Queue.ThumbsUp) await CreateRole(context.Guild, discordMessage, PermissionType.Antimeme);
 				else if (eventArgs.Emoji == Queue.ThumbsDown)
 				{
-					_logger.Trace($"Fixed permissions for the antimeme role {previousAntimemeRole.Name} ({previousAntimemeRole.Id}) on {context.Guild.Name} ({context.Guild.Id})!");
 					await FixPermissions(context.Guild, previousAntimemeRole, PermissionType.Antimeme);
 					_ = await Program.SendMessage(context, $"Roles were left untouched.");
 				}
@@ -155,7 +144,6 @@ namespace Tomoe.Commands.Moderation
 			if (previousVoiceBanRole == null)
 			{
 				guild.VoiceBanRole = voiceBanRole.Id;
-				_logger.Trace($"Set {voiceBanRole.Name} ({voiceBanRole.Id}) as the voiceban role for {context.Guild.Name} ({context.Guild.Id})!");
 				await FixPermissions(context.Guild, voiceBanRole, PermissionType.VoiceBan);
 				_ = await Program.SendMessage(context, $"{voiceBanRole.Mention} is now set as the voiceban role.");
 				return;
@@ -167,14 +155,12 @@ namespace Tomoe.Commands.Moderation
 				if (eventArgs.Emoji == Queue.ThumbsUp)
 				{
 					guild.VoiceBanRole = voiceBanRole.Id;
-					_logger.Trace($"Set {voiceBanRole.Name} ({voiceBanRole.Id}) as the voiceban role for {context.Guild.Name} ({context.Guild.Id})!");
 					_ = await discordMessage.ModifyAsync($"{Formatter.Strike(discordMessage.Content)}\n{Formatter.Bold("[Notice: Fixing role permissions...]")}");
 					await FixPermissions(context.Guild, voiceBanRole, PermissionType.VoiceBan);
 					_ = await discordMessage.ModifyAsync($"{voiceBanRole.Mention} is now set as the voiceban role.");
 				}
 				else if (eventArgs.Emoji == Queue.ThumbsDown)
 				{
-					_logger.Trace($"Fixed permissions for the voiceban role {previousVoiceBanRole.Name} ({previousVoiceBanRole.Id}) on {context.Guild.Name} ({context.Guild.Id})!");
 					_ = await discordMessage.ModifyAsync($"{Formatter.Strike(discordMessage.Content)}\n{Formatter.Bold("[Notice: Fixing role permissions...]")}");
 					await FixPermissions(context.Guild, voiceBanRole, PermissionType.VoiceBan);
 					_ = await discordMessage.ModifyAsync($"{Formatter.Strike(discordMessage.Content)}\n{Formatter.Bold("[Notice: Voiceban role has not been changed.]")}");
@@ -199,7 +185,6 @@ namespace Tomoe.Commands.Moderation
 				if (eventArgs.Emoji == Queue.ThumbsUp) await CreateRole(context.Guild, discordMessage, PermissionType.VoiceBan);
 				else if (eventArgs.Emoji == Queue.ThumbsDown)
 				{
-					_logger.Trace($"Fixed permissions for the voiceban role {previousVoiceBanRole.Name} ({previousVoiceBanRole.Id}) on {context.Guild.Name} ({context.Guild.Id})!");
 					await FixPermissions(context.Guild, previousVoiceBanRole, PermissionType.VoiceBan);
 					_ = await Program.SendMessage(context, $"Roles were left untouched.");
 				}
@@ -242,14 +227,16 @@ namespace Tomoe.Commands.Moderation
 			{
 				PermissionType.Mute => Permissions.SendMessages | Permissions.AddReactions,
 				PermissionType.Antimeme => Permissions.AttachFiles | Permissions.AddReactions | Permissions.EmbedLinks | Permissions.UseExternalEmojis,
-				PermissionType.VoiceBan => Permissions.None
+				PermissionType.VoiceBan => Permissions.None,
+				_ => Permissions.None
 			};
 
 			Permissions voiceChannelPerms = permissionType switch
 			{
 				PermissionType.Mute => Permissions.Speak | Permissions.Stream,
 				PermissionType.Antimeme => Permissions.Stream | Permissions.UseVoiceDetection,
-				PermissionType.VoiceBan => Permissions.UseVoice
+				PermissionType.VoiceBan => Permissions.UseVoice,
+				_ => Permissions.None
 			};
 
 			Permissions categoryPerms = textChannelPerms | voiceChannelPerms;

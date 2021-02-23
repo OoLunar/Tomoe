@@ -1,23 +1,22 @@
-using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
+using Microsoft.EntityFrameworkCore;
+
 using DSharpPlus;
 using DSharpPlus.EventArgs;
+
 using Tomoe.Db;
-using Tomoe.Utils;
 
 namespace Tomoe.Commands.Listeners
 {
 	public class MessageRecieved
 	{
-		private static readonly Logger _logger = new("Commands.Listeners.GuildAvailable");
 		private static readonly Regex _regex = new(@"(discord((app\.com|.com)\/invite|\.gg)\/[A-z]+)", RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.IgnoreCase);
 
 		public static async Task Handler(DiscordClient _client, MessageCreateEventArgs eventArgs)
 		{
-			_logger.Trace($"Recieved message in {eventArgs.Channel.Id} on {eventArgs.Guild.Id}");
-			Guild guild = Program.Database.Guilds.First(guild => guild.Id == eventArgs.Guild.Id);
+			Guild guild = await Program.Database.Guilds.FirstAsync(guild => guild.Id == eventArgs.Guild.Id);
 			if (eventArgs.Author == _client.CurrentUser) return;
 			int maxMentions = guild.MaxMentions;
 			int maxLines = guild.MaxLines;

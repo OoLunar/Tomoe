@@ -10,8 +10,8 @@ using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.CommandsNext.Exceptions;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
+
 using Tomoe.Commands.Moderation.Attributes;
-using Tomoe.Commands.Public;
 
 // Copied from https://github.com/TheRealHona/DSharpPlusBotTemplate/blob/main/TemplateDiscordBot/Services/CommandService.cs
 // Go take a look at their project!
@@ -32,7 +32,8 @@ namespace Tomoe.Utils
 						CaseSensitive = false,
 						EnableMentionPrefix = true,
 						EnableDms = true,
-						EnableDefaultHelp = false
+						EnableDefaultHelp = false,
+						UseDefaultCommandHandler = false
 					});
 					_ = discordClient.UseInteractivityAsync(new InteractivityConfiguration
 					{
@@ -70,7 +71,6 @@ namespace Tomoe.Utils
 						args.Handled = true;
 					}
 					else if (error.FailedChecks.OfType<Punishment>() != null) args.Handled = true;
-					else if (error.FailedChecks.OfType<TagCheck>() != null) args.Handled = true;
 					else if (error.FailedChecks.OfType<RequireUserPermissionsAttribute>() != null)
 					{
 						_ = await Program.SendMessage(args.Context, Constants.MissingPermissions);

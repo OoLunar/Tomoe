@@ -14,7 +14,7 @@ namespace Tomoe.Utils
 			_logger.Info("Closing Discord...");
 			await Program.Client.StopAsync();
 			_logger.Info("Closing database...");
-			_ = Program.Database.SaveChanges();
+			_ = await Program.Database.SaveChangesAsync();
 			Program.Database.Dispose();
 			_logger.Info("Goodbyte!");
 			Environment.Exit(0);

@@ -1,8 +1,16 @@
+using System.Linq;
+using System.Threading.Tasks;
+
+using Microsoft.EntityFrameworkCore;
+
+using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
 
 using Humanizer;
+
+using Tomoe.Db;
 
 namespace Tomoe
 {
@@ -28,5 +36,16 @@ namespace Tomoe
 			};
 			return embedBuilder;
 		}
+
+		public static async Task<bool> IsAdmin(this DiscordMember guildMember, DiscordGuild discordGuild)
+		{
+			if (guildMember.HasPermission(Permissions.Administrator)) return true;
+			Guild guild = await Program.Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == discordGuild.Id);
+			if (guild.AdminRoles.Cast<string>().Intersect(guildMember.Roles.Cast<string>()) != null) return true;
+			else return false;
+		}
+
+		public static bool HasPermission(this DiscordMember guildMember, Permissions permission) => !guildMember.Roles.Any() ? guildMember.Guild.EveryoneRole.HasPermission(permission) : guildMember.Roles.Any(role => role.HasPermission(permission));
+		public static bool HasPermission(this DiscordRole role, Permissions permission) => role.Permissions.HasPermission(permission);
 	}
 }

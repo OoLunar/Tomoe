@@ -17,7 +17,7 @@ namespace Tomoe.Commands.Moderation
 		[Command("pardon"), Description("Drops a strike."), Punishment]
 		public async Task User(CommandContext context, int strikeId, [RemainingText] string pardonReason = Constants.MissingReason)
 		{
-			Strike droppedStrike = Program.Database.Strikes.First(strike => strike.StrikeId == strikeId);
+			Strike droppedStrike = Program.Database.Strikes.First(strike => strike.Id == strikeId);
 			droppedStrike.Dropped = true;
 			droppedStrike.Reason.Add(pardonReason.Trim());
 			droppedStrike.VictimMessaged = false;

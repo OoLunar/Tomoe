@@ -1,12 +1,12 @@
 using System.Threading.Tasks;
-using System.Linq;
 
-using Tomoe.Db;
+using Microsoft.EntityFrameworkCore;
 
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
-using Microsoft.EntityFrameworkCore;
+
+using Tomoe.Db;
 
 namespace Tomoe.Commands.Listeners
 {

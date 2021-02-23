@@ -9,14 +9,11 @@ using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
 
 using Tomoe.Commands.Moderation.Attributes;
-using Tomoe.Utils;
 
 namespace Tomoe.Commands.Moderation
 {
 	public class Unban : BaseCommandModule
 	{
-		private static readonly Logger _logger = new("Commands.Moderation.Unban");
-
 		[Command("unban"), Description("Unbans people from the guild."), RequireUserPermissions(Permissions.BanMembers), RequireBotPermissions(Permissions.BanMembers), Punishment]
 		public async Task User(CommandContext context, [Description("The person to be unbanned.")] DiscordUser victim, [Description("(Optional) The reason why the person is being unbanned."), RemainingText] string unbanReason = Constants.MissingReason)
 		{
@@ -42,11 +39,7 @@ namespace Tomoe.Commands.Moderation
 		public static async Task ByAssignment(CommandContext context, DiscordUser victim)
 		{
 			IReadOnlyList<DiscordBan> guildBans = await context.Guild.GetBansAsync();
-			if (guildBans.Count == 0 || guildBans.All(discordBan => discordBan.User != victim))
-			{
-				_logger.Debug($"No bans found, skipping unbanning of {victim.Id}");
-				return;
-			}
+			if (guildBans.Count == 0 || guildBans.All(discordBan => discordBan.User != victim)) return;
 
 			try
 			{
