@@ -23,6 +23,7 @@ namespace Tomoe.Commands.Public
 	[Group("remind"), Aliases("reminders"), Description("Creates a reminder to go off at the specified time.")]
 	public class Reminders : BaseCommandModule
 	{
+		public Database Database { private get; set; }
 		internal static readonly Timer Timer = new();
 
 		[GroupCommand]
@@ -37,8 +38,8 @@ namespace Tomoe.Commands.Public
 			assignment.SetAt = DateTime.Now + setOff;
 			assignment.SetOff = DateTime.Now;
 			assignment.UserId = context.User.Id;
-			_ = await Program.Database.Assignments.AddAsync(assignment);
-			_ = await Program.Database.SaveChangesAsync();
+			_ = await Database.Assignments.AddAsync(assignment);
+			_ = await Database.SaveChangesAsync();
 			_ = await Program.SendMessage(context, $"Set off at {DateTime.Now.Add(setOff).ToString("MMM dd', 'HHH':'mm':'ss", CultureInfo.InvariantCulture)}: ```\n{content}```");
 		}
 
@@ -49,7 +50,7 @@ namespace Tomoe.Commands.Public
 		[Description("Lists what reminders are set.")]
 		public async Task List(CommandContext context)
 		{
-			Assignment[] tasks = Program.Database.Assignments.Where(assignment => assignment.UserId == context.User.Id).ToArray();
+			Assignment[] tasks = await Database.Assignments.Where(assignment => assignment.UserId == context.User.Id).ToArrayAsync();
 			List<string> reminders = new();
 			if (tasks == null) reminders.Add("No reminders are set!");
 			else
@@ -69,12 +70,12 @@ namespace Tomoe.Commands.Public
 		[Command("remove"), Description("Removes a reminder.")]
 		public async Task Remove(CommandContext context, int taskId)
 		{
-			Assignment task = Program.Database.Assignments.Where(assignment => assignment.AssignmentType == AssignmentType.Reminder && assignment.UserId == context.User.Id && assignment.Id == taskId).First();
+			Assignment task = Database.Assignments.Where(assignment => assignment.AssignmentType == AssignmentType.Reminder && assignment.UserId == context.User.Id && assignment.Id == taskId).First();
 			if (task != null) _ = await Program.SendMessage(context, $"**[Error: Reminder #{taskId} does not exist!]**");
 			else
 			{
-				_ = Program.Database.Assignments.Remove(task);
-				_ = await Program.Database.SaveChangesAsync();
+				_ = Database.Assignments.Remove(task);
+				_ = await Database.SaveChangesAsync();
 				_ = await Program.SendMessage(context, $"Reminder #{taskId} was removed!");
 			}
 		}

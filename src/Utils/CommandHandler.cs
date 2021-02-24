@@ -36,11 +36,13 @@ namespace Tomoe.Utils
 			CommandContext context = commandsNext.CreateContext(message, prefix, command, args);
 			if (context.Guild != null)
 			{
-				Guild guild = await Program.Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
+				Database Database = (Database)Program.ServiceProvider.GetService(typeof(Database));
+				Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == eventArgs.Guild.Id);
 				if (guild == null)
 				{
 					guild = new(context.Guild.Id);
-					_ = await Program.Database.Guilds.AddAsync(guild);
+					_ = await Database.Guilds.AddAsync(guild);
+					_ = await Database.SaveChangesAsync();
 				}
 				GuildUser guildUser = guild.Users.FirstOrDefault(user => user.Id == context.User.Id);
 				if (guildUser == null)

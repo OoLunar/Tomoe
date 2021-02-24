@@ -7,6 +7,7 @@ using DSharpPlus;
 using DSharpPlus.EventArgs;
 
 using Tomoe.Db;
+using System.Linq;
 
 namespace Tomoe.Commands.Listeners
 {
@@ -17,7 +18,9 @@ namespace Tomoe.Commands.Listeners
 		public static async Task Handler(DiscordClient _client, MessageCreateEventArgs eventArgs)
 		{
 			if (eventArgs.Author == _client.CurrentUser && eventArgs.Guild == null) return;
-			Guild guild = await Program.Database.Guilds.FirstAsync(guild => guild.Id == eventArgs.Guild.Id);
+			Database Database = (Database)Program.ServiceProvider.GetService(typeof(Database));
+			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == eventArgs.Guild.Id);
+			if (guild == null || guild.IgnoredChannels.Contains(eventArgs.Channel.Id) || guild.AdminRoles.Cast<string>().Intersect(eventArgs.Author.GetMember(eventArgs.Guild).Roles.Cast<string>()).Any()) return;
 			int maxMentions = guild.MaxMentions;
 			int maxLines = guild.MaxLines;
 
@@ -30,7 +33,7 @@ namespace Tomoe.Commands.Listeners
 			if (maxLines > -1 && eventArgs.Message.Content.Split('\n').Length > maxLines)
 			{
 				await eventArgs.Message.DeleteAsync("Exceeded max line length.");
-				_ = await eventArgs.Message.RespondAsync($"{eventArgs.Author.Mention}: Message deleted due to it exceeding the max lines count. Please refrain from spamming pings.");
+				_ = await eventArgs.Message.RespondAsync($"{eventArgs.Author.Mention}: Message deleted due to it exceeding the max lines count. Please refrain from spamming chat.");
 			}
 
 			if (guild.AntiInvite)

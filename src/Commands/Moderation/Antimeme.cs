@@ -14,10 +14,12 @@ namespace Tomoe.Commands.Moderation
 {
 	public class Antimeme : BaseCommandModule
 	{
+		public Database Database { private get; set; }
+
 		[Command("antimeme"), Description("Prevents the victim from linking embeds, sending files or reacting to messages. All they can do is send and read messages. This is the command to use when someone is constantly spamming reactions onto messages or sending a bunch of images."), RequireBotPermissions(Permissions.ManageRoles), RequireUserPermissions(Permissions.ManageMessages), Aliases("anti_meme", "meme_ban", "memeban", "nomeme", "no_meme"), Punishment]
 		public async Task User(CommandContext context, DiscordUser victim, [RemainingText] string antimemeReason = Constants.MissingReason)
 		{
-			Guild guild = await Program.Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
+			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
 			DiscordRole antimemeRole = guild.AntimemeRole.GetRole(context.Guild);
 			if (antimemeRole == null)
 			{

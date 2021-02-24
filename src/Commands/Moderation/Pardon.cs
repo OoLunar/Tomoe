@@ -14,10 +14,12 @@ namespace Tomoe.Commands.Moderation
 {
 	public class Pardon : BaseCommandModule
 	{
+		public Database Database { private get; set; }
+
 		[Command("pardon"), Description("Drops a strike."), Punishment]
 		public async Task User(CommandContext context, int strikeId, [RemainingText] string pardonReason = Constants.MissingReason)
 		{
-			Strike droppedStrike = await Program.Database.Strikes.FirstOrDefaultAsync(strike => strike.Id == strikeId);
+			Strike droppedStrike = await Database.Strikes.FirstOrDefaultAsync(strike => strike.Id == strikeId);
 			droppedStrike.Dropped = true;
 			droppedStrike.Reason.Add(pardonReason.Trim());
 			droppedStrike.VictimMessaged = false;

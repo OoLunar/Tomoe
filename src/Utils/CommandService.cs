@@ -10,7 +10,7 @@ using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.CommandsNext.Exceptions;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
-
+using Microsoft.Extensions.DependencyInjection;
 using Tomoe.Commands.Moderation.Attributes;
 
 // Copied from https://github.com/TheRealHona/DSharpPlusBotTemplate/blob/main/TemplateDiscordBot/Services/CommandService.cs
@@ -20,7 +20,7 @@ namespace Tomoe.Utils
 	internal class CommandService
 	{
 		private static readonly Logger _logger = new("CommandService");
-		internal static async Task Launch(DiscordShardedClient discordClient)
+		internal static async Task Launch(DiscordShardedClient discordClient, IServiceProvider services)
 		{
 			while (true)
 			{
@@ -32,7 +32,8 @@ namespace Tomoe.Utils
 						CaseSensitive = false,
 						EnableDms = true,
 						EnableDefaultHelp = false,
-						UseDefaultCommandHandler = false
+						UseDefaultCommandHandler = false,
+						Services = services
 					});
 					_ = discordClient.UseInteractivityAsync(new InteractivityConfiguration
 					{

@@ -19,6 +19,8 @@ namespace Tomoe.Commands.Moderation
 	[Group("strike"), Description("Gives a strike/warning to the specified victim."), RequireUserPermissions(Permissions.KickMembers), Aliases("warn"), Punishment]
 	public class Strikes : BaseCommandModule
 	{
+		public Database Database { private get; set; }
+
 		[GroupCommand]
 		public async Task Add(CommandContext context, DiscordUser victim, [RemainingText] string strikeReason = Constants.MissingReason)
 		{
@@ -29,10 +31,10 @@ namespace Tomoe.Commands.Moderation
 			strike.IssuerId = context.User.Id;
 			strike.JumpLink = context.Message.JumpLink;
 			strike.Reason.Add(strikeReason.Trim());
-			strike.Id = Program.Database.Strikes.Count(strike => strike.GuildId == context.Guild.Id);
+			strike.Id = Database.Strikes.Count(strike => strike.GuildId == context.Guild.Id);
 			strike.VictimId = victim.Id;
 			strike.VictimMessaged = false;
-			_ = await Program.Database.Strikes.AddAsync(strike);
+			_ = await Database.Strikes.AddAsync(strike);
 
 			DiscordMember guildVictim = victim.GetMember(context.Guild);
 			if (guildVictim != null && !guildVictim.IsBot) try
@@ -41,14 +43,14 @@ namespace Tomoe.Commands.Moderation
 					strike.VictimMessaged = true;
 				}
 				catch (UnauthorizedException) { }
-			_ = await Program.SendMessage(context, $"Case #{strike}, {victim.Mention} has been striked{(strike.VictimMessaged ? '.' : " (Failed to DM).")} This is strike #{Program.Database.Strikes.Count(strike => strike.VictimId == context.User.Id && !strike.Dropped)}. Reason: {Formatter.BlockCode(Formatter.Strip(strikeReason))}", null, new UserMention(victim.Id));
+			_ = await Program.SendMessage(context, $"Case #{strike}, {victim.Mention} has been striked{(strike.VictimMessaged ? '.' : " (Failed to DM).")} This is strike #{Database.Strikes.Count(strike => strike.VictimId == context.User.Id && !strike.Dropped)}. Reason: {Formatter.BlockCode(Formatter.Strip(strikeReason))}", null, new UserMention(victim.Id));
 		}
 
 		[Command("check"), Description("Gets the users past history"), RequireUserPermissions(Permissions.KickMembers), Aliases("history")]
 		public async Task Check(CommandContext context, DiscordUser victim)
 		{
 			DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder().GenerateDefaultEmbed(context, $"{victim.Username}'s Past History");
-			Strike[] pastStrikes = await Program.Database.Strikes.Where(strike => strike.GuildId == context.Guild.Id && strike.VictimId == victim.Id).ToArrayAsync();
+			Strike[] pastStrikes = await Database.Strikes.Where(strike => strike.GuildId == context.Guild.Id && strike.VictimId == victim.Id).ToArrayAsync();
 			if (pastStrikes == null) _ = await Program.SendMessage(context, "No previous strikes have been found!");
 			else
 			{

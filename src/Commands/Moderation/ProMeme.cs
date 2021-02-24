@@ -14,11 +14,14 @@ namespace Tomoe.Commands.Moderation
 {
 	public class Promeme : BaseCommandModule
 	{
+		public Database Database { private get; set; }
+
 		[Command("promeme"), Description("Unmutes an individual."), Aliases("pro_meme", "unmemeban", "unmeme_ban", "un_memeban", "un_meme_ban", "tempnomeme", "temp_no_meme", "temp_nomeme", "tempno_meme"), Punishment]
 		public async Task User(CommandContext context, DiscordUser victim, [RemainingText] string promemeReason = Constants.MissingReason)
 		{
-			Guild guild = await Program.Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
-			DiscordRole antimemeRole = guild.AntimemeRole.GetRole(context.Guild);
+			DiscordRole antimemeRole = null;
+			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
+			if (guild != null) antimemeRole = guild.AntimemeRole.GetRole(context.Guild);
 			if (antimemeRole == null)
 			{
 				_ = await Program.SendMessage(context, Constants.MissingRole);

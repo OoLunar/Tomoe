@@ -6,7 +6,7 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
-
+using Microsoft.EntityFrameworkCore;
 using Tomoe.Commands.Moderation.Attributes;
 using Tomoe.Db;
 
@@ -14,11 +14,14 @@ namespace Tomoe.Commands.Moderation
 {
 	public class Unmute : BaseCommandModule
 	{
+		public Database Database { private get; set; }
+
 		[Command("unmute"), Description("Unmutes an individual."), Aliases("unsilence"), Punishment]
 		public async Task User(CommandContext context, DiscordUser victim, [RemainingText] string unmuteReason = Constants.MissingReason)
 		{
-			Guild guild = Program.Database.Guilds.FirstOrDefault(guild => guild.Id == context.Guild.Id);
-			DiscordRole muteRole = guild.MuteRole.GetRole(context.Guild);
+			DiscordRole muteRole = null;
+			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
+			if (guild != null) muteRole = guild.MuteRole.GetRole(context.Guild);
 			if (muteRole == null)
 			{
 				_ = await Program.SendMessage(context, Constants.MissingRole);
@@ -45,7 +48,8 @@ namespace Tomoe.Commands.Moderation
 
 		public static async Task ByAssignment(CommandContext context, DiscordUser victim)
 		{
-			Guild guild = Program.Database.Guilds.FirstOrDefault(guild => guild.Id == context.Guild.Id);
+			Guild guild = await Program.Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
+			if (guild == null) return;
 			GuildUser user = guild.Users.FirstOrDefault(user => user.Id == victim.Id);
 			if (user != null) user.IsMuted = false;
 

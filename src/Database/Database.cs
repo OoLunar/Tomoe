@@ -11,7 +11,11 @@ namespace Tomoe.Db
 		public DbSet<Strike> Strikes { get; set; }
 		public DbSet<Assignment> Assignments { get; set; }
 
-		protected override void OnConfiguring(DbContextOptionsBuilder options) => options.UseSqlite($"Data Source={Utils.Config.DatabaseFilePath}");
+		protected override void OnConfiguring(DbContextOptionsBuilder options)
+		{
+			_ = options.UseSqlite($"Data Source={Utils.Config.DatabaseFilePath}");
+			_ = options.EnableSensitiveDataLogging(true);
+		}
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
 			_ = modelBuilder.Entity<Guild>()

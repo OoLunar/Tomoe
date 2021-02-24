@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Threading.Tasks;
 
 using DSharpPlus;
@@ -13,15 +12,17 @@ using Tomoe.Types;
 
 namespace Tomoe.Commands.Moderation
 {
+
 	[Group("config")]
 	public class Config : BaseCommandModule
 	{
+		public Database Database { private get; set; }
 		#region MuteCommand
 
 		[Command("mute"), Description("Sets up or assigns the mute role."), RequireUserPermissions(Permissions.ManageGuild), RequireGuild]
 		public async Task Mute(CommandContext context, DiscordRole muteRole)
 		{
-			Guild guild = await Program.Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
+			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
 			DiscordRole previousMuteRole = guild.MuteRole.GetRole(context.Guild);
 			if (previousMuteRole == null)
 			{
@@ -55,7 +56,7 @@ namespace Tomoe.Commands.Moderation
 		[Command("mute"), RequireUserPermissions(Permissions.ManageGuild), RequireBotPermissions(Permissions.ManageRoles), RequireGuild]
 		public async Task Mute(CommandContext context)
 		{
-			Guild guild = await Program.Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
+			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
 			DiscordRole previousMuteRole = guild.MuteRole.GetRole(context.Guild);
 			if (previousMuteRole == null) // Should only be executed if there was no previous mute role id, or if the role cannot be found.
 			{
@@ -81,7 +82,7 @@ namespace Tomoe.Commands.Moderation
 		[Command("antimeme"), Description("Sets up or assigns the antimeme role."), RequireUserPermissions(Permissions.ManageGuild), RequireGuild, Aliases("anti_meme", "nomeme", "no_meme", "memeban", "meme_ban")]
 		public async Task Antimeme(CommandContext context, DiscordRole antimemeRole)
 		{
-			Guild guild = await Program.Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
+			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
 			DiscordRole previousAntimemeRole = guild.AntimemeRole.GetRole(context.Guild);
 			if (previousAntimemeRole == null)
 			{
@@ -113,7 +114,7 @@ namespace Tomoe.Commands.Moderation
 		[Command("antimeme"), RequireUserPermissions(Permissions.ManageGuild), RequireBotPermissions(Permissions.ManageRoles), RequireGuild]
 		public async Task Antimeme(CommandContext context)
 		{
-			Guild guild = await Program.Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
+			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
 			DiscordRole previousAntimemeRole = guild.AntimemeRole.GetRole(context.Guild);
 			if (previousAntimemeRole == null) // Should only be executed if there was no previous mute role id, or if the role cannot be found.
 			{
@@ -139,7 +140,7 @@ namespace Tomoe.Commands.Moderation
 		[Command("voiceban"), Description("Sets up or assigns the voiceban role."), RequireUserPermissions(Permissions.ManageGuild), RequireGuild, Aliases("voice_ban", "vb")]
 		public async Task VoiceBan(CommandContext context, DiscordRole voiceBanRole)
 		{
-			Guild guild = await Program.Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
+			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
 			DiscordRole previousVoiceBanRole = guild.VoiceBanRole.GetRole(context.Guild);
 			if (previousVoiceBanRole == null)
 			{
@@ -171,7 +172,7 @@ namespace Tomoe.Commands.Moderation
 		[Command("voiceban"), RequireUserPermissions(Permissions.ManageGuild), RequireBotPermissions(Permissions.ManageRoles), RequireGuild]
 		public async Task VoiceBan(CommandContext context)
 		{
-			Guild guild = await Program.Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
+			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
 			DiscordRole previousVoiceBanRole = guild.VoiceBanRole.GetRole(context.Guild);
 			if (previousVoiceBanRole == null)
 			{
@@ -193,7 +194,7 @@ namespace Tomoe.Commands.Moderation
 
 		#endregion VoiceBanCommand
 
-		public static async Task CreateRole(DiscordGuild discordGuild, DiscordMessage message, PermissionType permissionType)
+		public async Task CreateRole(DiscordGuild discordGuild, DiscordMessage message, PermissionType permissionType)
 		{
 			if (message == null) message = await message.ModifyAsync($"Creating {permissionType.Humanize()} role...");
 			Guild databaseGuild;
@@ -201,17 +202,17 @@ namespace Tomoe.Commands.Moderation
 			switch (permissionType)
 			{
 				case PermissionType.Mute:
-					databaseGuild = await Program.Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == discordGuild.Id);
+					databaseGuild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == discordGuild.Id);
 					role = await discordGuild.CreateRoleAsync("Muted", Permissions.None, DiscordColor.Gray, false, false, "Allows people to be muted.");
 					databaseGuild.MuteRole = role.Id;
 					break;
 				case PermissionType.Antimeme:
-					databaseGuild = await Program.Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == discordGuild.Id);
+					databaseGuild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == discordGuild.Id);
 					role = await discordGuild.CreateRoleAsync("Antimemed", Permissions.None, DiscordColor.Gray, false, false, "Allows people to meme no longer.");
 					databaseGuild.AntimemeRole = role.Id;
 					break;
 				case PermissionType.VoiceBan:
-					databaseGuild = await Program.Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == discordGuild.Id);
+					databaseGuild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == discordGuild.Id);
 					role = await discordGuild.CreateRoleAsync("Voicebanned", Permissions.None, DiscordColor.Gray, false, false, "Allows people to be banned from voice channels.");
 					databaseGuild.VoiceBanRole = role.Id;
 					break;
@@ -274,7 +275,12 @@ namespace Tomoe.Commands.Moderation
 		[Command("anti_invite"), RequireUserPermissions(Permissions.ManageGuild), RequireGuild, Aliases("antiinvite", "antinvite")]
 		public async Task AntiInvite(CommandContext context, bool isEnabled = true)
 		{
-			Guild guild = await Program.Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
+			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
+			if (guild == null)
+			{
+				guild = new(context.Guild.Id);
+				_ = await Database.Guilds.AddAsync(guild);
+			}
 			guild.AntiInvite = isEnabled;
 			_ = await Program.SendMessage(context, "Anti-Invite is now enabled!");
 		}

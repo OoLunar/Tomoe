@@ -14,11 +14,14 @@ namespace Tomoe.Commands.Moderation
 {
 	public class Mute : BaseCommandModule
 	{
+		public Database Database { private get; set; }
+
 		[Command("mute"), Description("Mutes a person permanently."), RequireBotPermissions(Permissions.ManageRoles), RequireUserPermissions(Permissions.ManageMessages), Aliases("silence"), Punishment]
 		public async Task User(CommandContext context, DiscordUser victim, [RemainingText] string muteReason = Constants.MissingReason)
 		{
-			Guild guild = await Program.Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
-			DiscordRole muteRole = guild.MuteRole.GetRole(context.Guild);
+			DiscordRole muteRole = null;
+			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
+			if (guild != null) muteRole = guild.MuteRole.GetRole(context.Guild);
 			if (muteRole == null)
 			{
 				_ = await Program.SendMessage(context, Constants.MissingRole);

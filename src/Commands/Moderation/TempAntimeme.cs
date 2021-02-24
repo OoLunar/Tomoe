@@ -15,12 +15,15 @@ namespace Tomoe.Commands.Moderation
 {
 	public class TempmemeBan : BaseCommandModule
 	{
+		public Database Database { private get; set; }
+
 		[Command("tempantimeme"), Description("Temporarily antimemes the victim."), RequireBotPermissions(Permissions.ManageRoles), RequireUserPermissions(Permissions.ManageMessages), Aliases("temp_antimeme", "tempanti_meme", "temp_anti_meme", "tempmemeban", "temp_memeban", "temp_meme_ban", "tempmeme_ban"), Punishment]
 		public async Task User(CommandContext context, DiscordUser victim, ExpandedTimeSpan antimemeTime, [RemainingText] string antimemeReason = Constants.MissingReason)
 		{
-			Guild guild = await Program.Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
-			DiscordRole antiMemeRole = guild.AntimemeRole.GetRole(context.Guild);
-			if (antiMemeRole == null)
+			DiscordRole antimemeRole = null;
+			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
+			if (guild != null) antimemeRole = guild.AntimemeRole.GetRole(context.Guild);
+			if (antimemeRole == null)
 			{
 				_ = await Program.SendMessage(context, Constants.MissingRole);
 				return;
@@ -36,10 +39,10 @@ namespace Tomoe.Commands.Moderation
 					sentDm = true;
 				}
 				catch (UnauthorizedException) { }
-				await guildVictim.GrantRoleAsync(antiMemeRole, antimemeReason);
+				await guildVictim.GrantRoleAsync(antimemeRole, antimemeReason);
 			}
 			GuildUser user = guild.Users.FirstOrDefault(user => user.Id == victim.Id);
-			user.IsAntimemed = true;
+			if (user != null) user.IsAntimemed = true;
 
 			Assignment assignment = new();
 			assignment.AssignmentType = AssignmentType.TempAntimeme;
@@ -49,7 +52,7 @@ namespace Tomoe.Commands.Moderation
 			assignment.MessageId = context.Message.Id;
 			assignment.SetOff = DateTime.Now + antimemeTime.TimeSpan;
 			assignment.UserId = victim.Id;
-			_ = Program.Database.Assignments.Add(assignment);
+			_ = Database.Assignments.Add(assignment);
 
 			_ = await Program.SendMessage(context, $"{victim.Mention} has been antimemed{(sentDm ? '.' : " (Failed to DM).")} Reason: {Formatter.BlockCode(Formatter.Sanitize(antimemeReason))}", null, new UserMention(victim.Id));
 		}

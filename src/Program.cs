@@ -6,7 +6,7 @@ using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
-
+using Microsoft.Extensions.DependencyInjection;
 using Tomoe.Db;
 using Tomoe.Utils;
 
@@ -15,6 +15,7 @@ namespace Tomoe
 	public class Program
 	{
 		public static DiscordShardedClient Client { get; private set; }
+		public static IServiceProvider ServiceProvider { get; private set; }
 		internal static Database Database = new();
 		private static readonly Logger _logger = new("Main");
 
@@ -48,7 +49,10 @@ namespace Tomoe
 			Client.ChannelCreated += Commands.Listeners.ChannelCreated.Handler;
 			Client.MessageCreated += Commands.Listeners.MessageRecieved.Handler;
 			Client.Ready += Commands.Listeners.OnReady.Handler;
-			await CommandService.Launch(Client);
+			ServiceCollection services = new();
+			_ = services.AddSingleton(Database);
+			ServiceProvider = services.BuildServiceProvider();
+			await CommandService.Launch(Client, ServiceProvider);
 
 			await Client.StartAsync();
 			_logger.Info("Starting routines...");
