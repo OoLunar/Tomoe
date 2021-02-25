@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using System.Linq;
 
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
@@ -9,6 +10,7 @@ using Humanizer;
 using Microsoft.EntityFrameworkCore;
 using Tomoe.Db;
 using Tomoe.Types;
+using System.Text.RegularExpressions;
 
 namespace Tomoe.Commands.Moderation
 {
@@ -283,6 +285,130 @@ namespace Tomoe.Commands.Moderation
 			}
 			guild.AntiInvite = isEnabled;
 			_ = await Program.SendMessage(context, "Anti-Invite is now enabled!");
+		}
+
+		[Command("allow_invite"), RequireUserPermissions(Permissions.ManageMessages), RequireGuild, Aliases("allowinvite", "add_invite", "addinvite")]
+		public async Task AllowInvite(CommandContext context, string invite)
+		{
+			string capture = Listeners.MessageRecieved.InviteRegex.Match(invite.Trim()).Captures.FirstOrDefault()?.Value;
+			if (capture != null)
+			{
+				Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
+				guild.AllowedInvites.Add(capture);
+				_ = await Program.SendMessage(context, $"Invite code {Formatter.InlineCode(capture)} added!");
+			}
+			else
+			{
+				_ = await Program.SendMessage(context, $"Invite code {Formatter.InlineCode(capture)} is not an invite!");
+			}
+		}
+
+		[Command("remove_invite"), RequireUserPermissions(Permissions.ManageMessages), RequireGuild, Aliases("removeinvite", "delete_invite", "deleteinvite", "del_invite", "delinvite")]
+		public async Task RemoveInvite(CommandContext context, string invite)
+		{
+			string capture = Listeners.MessageRecieved.InviteRegex.Match(invite.Trim()).Captures.FirstOrDefault()?.Value;
+			if (capture != null)
+			{
+				Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
+				bool removed = guild.AllowedInvites.Remove(capture);
+				_ = await Program.SendMessage(context, $"Invite code {Formatter.InlineCode(capture)} {(removed ? "has been removed!" : "is not whitelisted!")}");
+			}
+			else
+			{
+				_ = await Program.SendMessage(context, $"Invite code {Formatter.InlineCode(capture)} is not an invite!");
+			}
+		}
+
+		[Command("max_lines"), RequireUserPermissions(Permissions.ManageMessages), RequireGuild, Aliases("maxlines", "max_line", "maxline")]
+		public async Task MaxLines(CommandContext context, int maxLineCount)
+		{
+			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
+			if (guild != null)
+			{
+				guild.MaxLines = maxLineCount;
+				_ = await Program.SendMessage(context, "Max line count successfully updated!");
+			}
+			else _ = await Program.SendMessage(context, Formatter.Bold("[Error: Failed to get database from cache]"));
+		}
+
+		[Command("max_mentions"), RequireUserPermissions(Permissions.ManageMessages), RequireGuild, Aliases("maxmentions", "max_mention", "maxmention")]
+		public async Task MaxMentions(CommandContext context, int maxMentionCount)
+		{
+			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
+			if (guild != null)
+			{
+				guild.MaxMentions = maxMentionCount;
+				_ = await Program.SendMessage(context, "Max mention count successfully updated!");
+			}
+			else _ = await Program.SendMessage(context, Formatter.Bold("[Error: Failed to get database from cache]"));
+		}
+
+		[Command("ignore_channel"), RequireUserPermissions(Permissions.ManageChannels), RequireGuild, Aliases("ignorechannel", "hide_channel", "hidechannel")]
+		public async Task IgnoreChannel(CommandContext context, DiscordChannel channel)
+		{
+			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
+			if (guild != null)
+			{
+				if (!guild.IgnoredChannels.Contains(channel.Id)) _ = await Program.SendMessage(context, $"Channel {channel.Mention} was already ignored!");
+				else
+				{
+					guild.IgnoredChannels.Add(channel.Id);
+					_ = await Program.SendMessage(context, $"Channel {channel.Mention} is now ignored!");
+				}
+			}
+			else _ = await Program.SendMessage(context, Formatter.Bold("[Error: Failed to get database from cache]"));
+		}
+
+		[Command("unignore_channel"), RequireUserPermissions(Permissions.ManageChannels), RequireGuild, Aliases("unignorechannel", "see_channel", "seechannel")]
+		public async Task UnignoreChannel(CommandContext context, DiscordChannel channel)
+		{
+			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
+			if (guild != null)
+			{
+				bool removed = guild.IgnoredChannels.Remove(channel.Id);
+				_ = await Program.SendMessage(context, $"Channel {channel.Mention} {(removed ? "has been removed!" : "is not whitelisted!")}");
+			}
+			else _ = await Program.SendMessage(context, Formatter.Bold("[Error: Failed to get database from cache]"));
+		}
+
+		[Command("add_admin"), RequireUserPermissions(Permissions.ManageRoles), RequireGuild, Aliases("admin", "staff", "add_staff", "addadmin", "addstaff")]
+		public async Task AdminRole(CommandContext context, DiscordRole role)
+		{
+			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
+			if (guild != null)
+			{
+				if (!guild.AdminRoles.Contains(role.Id)) _ = await Program.SendMessage(context, $"Role {role.Mention} was already admin!");
+				else
+				{
+					guild.AdminRoles.Add(role.Id);
+					_ = await Program.SendMessage(context, $"Channel {role.Mention} is now admin!");
+				}
+			}
+			else _ = await Program.SendMessage(context, Formatter.Bold("[Error: Failed to get database from cache]"));
+		}
+
+		[Command("remove_admin"), RequireUserPermissions(Permissions.ManageChannels), RequireGuild, Aliases("removeadmin", "remove_staff", "removestaff", "unadmin", "unstaff")]
+		public async Task RemoveAdmin(CommandContext context, DiscordChannel channel)
+		{
+			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
+			if (guild != null)
+			{
+				bool removed = guild.IgnoredChannels.Remove(channel.Id);
+				_ = await Program.SendMessage(context, $"Channel {channel.Mention} {(removed ? "has been removed!" : "is not whitelisted!")}");
+			}
+			else _ = await Program.SendMessage(context, Formatter.Bold("[Error: Failed to get database from cache]"));
+		}
+
+		[Command("strike_automod"), RequireUserPermissions(Permissions.KickMembers), RequireGuild, Aliases("strikeautomod", "punish_automod", "punishautomod")]
+		public async Task StrikeAutoMod(CommandContext context, bool enabled)
+		{
+			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
+			if (guild != null)
+			{
+				guild.StrikeAutomod = enabled;
+				_ = await Program.SendMessage(context, "Automod now gives out strikes!");
+			}
+			else _ = await Program.SendMessage(context, Formatter.Bold("[Error: Failed to get database from cache]"));
 		}
 	}
 }

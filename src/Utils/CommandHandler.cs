@@ -31,38 +31,12 @@ namespace Tomoe.Utils
 			Command command = commandsNext.FindCommand(commandName, out string args);
 
 			if (command == null) return;
-			await eventArgs.Channel.TriggerTypingAsync();
 
 			CommandContext context = commandsNext.CreateContext(message, prefix, command, args);
-			if (context.Guild != null)
-			{
-				Database Database = (Database)Program.ServiceProvider.GetService(typeof(Database));
-				Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == eventArgs.Guild.Id);
-				if (guild == null)
-				{
-					guild = new(context.Guild.Id);
-					_ = await Database.Guilds.AddAsync(guild);
-					_ = await Database.SaveChangesAsync();
-				}
-				GuildUser guildUser = guild.Users.FirstOrDefault(user => user.Id == context.User.Id);
-				if (guildUser == null)
-				{
-					guildUser = new(context.User.Id);
-					guildUser.Roles = context.Member.Roles.Select(role => role.Id).ToList();
-					guild.Users.Add(guildUser);
-				}
-
-				foreach (DiscordUser userMention in context.Message.MentionedUsers)
-				{
-					GuildUser mentionUser = guild.Users.FirstOrDefault(user => user.Id == userMention.Id);
-					if (guildUser == null)
-					{
-						guildUser = new(context.User.Id);
-						guildUser.Roles = context.Member.Roles.Select(role => role.Id).ToList();
-						guild.Users.Add(guildUser);
-					}
-				}
-			}
+			Database Database = (Database)Program.ServiceProvider.GetService(typeof(Database));
+			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
+			if (guild != null && guild.IgnoredChannels.Contains(context.Channel.Id)) return;
+			await eventArgs.Channel.TriggerTypingAsync();
 
 			_ = Task.Run(async () => await commandsNext.ExecuteCommandAsync(context));
 			return;

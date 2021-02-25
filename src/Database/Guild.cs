@@ -20,6 +20,7 @@ namespace Tomoe.Db
 		public ulong MuteRole { get; internal set; }
 		public ulong AntimemeRole { get; internal set; }
 		public ulong VoiceBanRole { get; internal set; }
+		public bool StrikeAutomod { get; internal set; } = false;
 
 		public List<GuildUser> Users { get; internal set; } = new();
 
