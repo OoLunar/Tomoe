@@ -39,7 +39,6 @@ namespace Tomoe
 			};
 
 			Client = new(discordConfiguration);
-			Client.MessageCreated += Commands.Listeners.CacheHandler.Handler;
 			Client.MessageCreated += CommandHandler.Handler;
 			Client.MessageReactionAdded += Commands.Listeners.ReactionAdded.Handler;
 			Client.GuildCreated += Commands.Listeners.GuildCreated.Handler;
@@ -51,7 +50,7 @@ namespace Tomoe
 			Client.MessageCreated += Commands.Listeners.MessageRecieved.Handler;
 			Client.Ready += Commands.Listeners.OnReady.Handler;
 			ServiceCollection services = new();
-			_ = services.AddSingleton(Database);
+			_ = services.AddScoped(typeof(Database));
 			ServiceProvider = services.BuildServiceProvider();
 			await CommandService.Launch(Client, ServiceProvider);
 			await Client.StartAsync();

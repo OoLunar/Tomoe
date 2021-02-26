@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using DSharpPlus.Exceptions;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
 
@@ -35,7 +36,8 @@ namespace Tomoe.Commands.Public
 				embedSections.Add(new Page($"{context.User.Mention}:", embed));
 			}
 			InteractivityExtension interactivity = context.Client.GetInteractivity();
-			await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, embedSections);
+			try { await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, embedSections); }
+			catch (NotFoundException) { }
 		}
 
 		[Command("help")]

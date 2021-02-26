@@ -12,7 +12,7 @@ namespace Tomoe.Commands.Listeners
 {
 	public class ChannelCreated
 	{
-		public static async Task Handler(DiscordClient client, ChannelCreateEventArgs eventArgs)
+		public static async Task Handler(DiscordClient _client, ChannelCreateEventArgs eventArgs)
 		{
 			Guild guild = await Program.Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == eventArgs.Guild.Id);
 			if (guild != null)

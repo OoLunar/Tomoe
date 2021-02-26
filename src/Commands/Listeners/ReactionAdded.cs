@@ -15,7 +15,8 @@ namespace Tomoe.Commands.Listeners
 
 		public static async Task Handler(DiscordClient _client, MessageReactionAddEventArgs eventArgs)
 		{
-			foreach (Queue queue in QueueList)
+			// Call ToList to create a clone, which prevents https://stackoverflow.com/questions/33703494/foreach-collection-was-modified-enumeration-operation-may-not-execute
+			foreach (Queue queue in QueueList.ToList())
 			{
 				if (eventArgs.User.Id == Program.Client.CurrentUser.Id) continue;
 				else if (queue.User.Id != eventArgs.User.Id) await eventArgs.Message.DeleteReactionAsync(eventArgs.Emoji, eventArgs.User, "Not the correct user.");

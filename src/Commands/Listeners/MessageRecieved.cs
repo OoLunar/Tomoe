@@ -11,6 +11,7 @@ using System.Linq;
 using System;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace Tomoe.Commands.Listeners
 {
@@ -24,11 +25,13 @@ namespace Tomoe.Commands.Listeners
 			Database Database = (Database)Program.ServiceProvider.GetService(typeof(Database));
 			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == eventArgs.Guild.Id);
 			if (guild == null
+				|| eventArgs.Author.IsBot
+				|| (eventArgs.Author.IsSystem.HasValue && eventArgs.Author.IsSystem.Value)
 				|| guild.IgnoredChannels.Contains(eventArgs.Channel.Id)
 				|| eventArgs.Author.GetMember(eventArgs.Guild).HasPermission(Permissions.ManageMessages)
 				|| eventArgs.Author.GetMember(eventArgs.Guild).HasPermission(Permissions.Administrator)
 				|| eventArgs.Guild.OwnerId == eventArgs.Author.Id
-				|| guild.AdminRoles.Cast<string>().Intersect(eventArgs.Author.GetMember(eventArgs.Guild).Roles.Cast<string>()).Any()
+				|| guild.AdminRoles.ConvertAll(role => role.ToString()).Intersect(eventArgs.Author.GetMember(eventArgs.Guild).Roles.ToList().ConvertAll(role => role.ToString())).Any()
 			) return;
 			int maxMentions = guild.MaxMentions;
 			int maxLines = guild.MaxLines;

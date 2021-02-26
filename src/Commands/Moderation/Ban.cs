@@ -29,7 +29,7 @@ namespace Tomoe.Commands.Moderation
 		}
 
 		[Command("ban")]
-		public async Task User(CommandContext context, [Description("The person to be banned.")] DiscordUser victim, [Description("(Optional) Removed the victim's messages from the pass `x` days.")] int pruneDays = 7) => await User(context, victim, pruneDays, Constants.MissingReason);
+		public async Task User(CommandContext context, [Description("The person to be banned.")] DiscordUser victim, [Description("(Optional) The reason why the person is being banned."), RemainingText] string banReason = Constants.MissingReason) => await User(context, victim, 1, banReason);
 
 		[Command("ban")]
 		public async Task Group(CommandContext context, [Description("(Optional) Removed the victim's messages from the pass `x` days.")] int pruneDays = 7, [Description("(Optional) The reason why the people are being banned.")] string banReason = Constants.MissingReason, [Description("The people to be banned.")] params DiscordUser[] victims)

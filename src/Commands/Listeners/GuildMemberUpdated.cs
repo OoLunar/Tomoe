@@ -18,7 +18,7 @@ namespace Tomoe.Commands.Listeners
 			if (guild != null)
 			{
 				GuildUser user = guild.Users.FirstOrDefault(user => user.Id == eventArgs.Member.Id);
-				if (user != null) user.Roles = eventArgs.Member.Roles.Select(role => role.Id).ToList();
+				if (user != null) user.Roles = eventArgs.RolesAfter.Except(new[] { eventArgs.Guild.EveryoneRole }).Select(role => role.Id).ToList();
 			}
 		}
 	}

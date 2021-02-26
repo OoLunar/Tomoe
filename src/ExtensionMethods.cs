@@ -53,8 +53,7 @@ namespace Tomoe
 		{
 			if (guildMember.HasPermission(Permissions.Administrator)) return true;
 			Guild guild = await Program.Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == discordGuild.Id);
-			if (guild.AdminRoles.Cast<string>().Intersect(guildMember.Roles.Cast<string>()) != null) return true;
-			else return false;
+			return guild.AdminRoles.Cast<string>().Intersect(guildMember.Roles.Cast<string>()) != null;
 		}
 
 		public static bool HasPermission(this DiscordMember guildMember, Permissions permission) => !guildMember.Roles.Any() ? guildMember.Guild.EveryoneRole.HasPermission(permission) : guildMember.Roles.Any(role => role.HasPermission(permission));

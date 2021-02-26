@@ -15,7 +15,8 @@ namespace Tomoe.Commands.Listeners
 	{
 		public static async Task Handler(DiscordClient client, GuildMemberAddEventArgs eventArgs)
 		{
-			Guild guild = await Program.Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == eventArgs.Guild.Id);
+			Database Database = Program.ServiceProvider.GetService(typeof(Database)) as Database;
+			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == eventArgs.Guild.Id);
 			if (guild != null)
 			{
 				GuildUser user = guild.Users.FirstOrDefault(user => user.Id == eventArgs.Member.Id);
@@ -27,6 +28,11 @@ namespace Tomoe.Commands.Listeners
 						if (role == null) continue;
 						await eventArgs.Member.GrantRoleAsync(role, "Persistent Roles.");
 					}
+				}
+				else
+				{
+					user = new(eventArgs.Member.Id);
+					guild.Users.Add(user);
 				}
 			}
 		}

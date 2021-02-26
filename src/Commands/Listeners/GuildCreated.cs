@@ -14,7 +14,8 @@ namespace Tomoe.Commands.Listeners
 	{
 		public static async Task Handler(DiscordClient _client, GuildCreateEventArgs eventArgs)
 		{
-			Guild guild = await Program.Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == eventArgs.Guild.Id);
+			Database Database = Program.ServiceProvider.GetService(typeof(Database)) as Database;
+			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == eventArgs.Guild.Id);
 			if (guild != null)
 			{
 				DiscordRole muteRole = guild.MuteRole.GetRole(eventArgs.Guild);
@@ -27,7 +28,7 @@ namespace Tomoe.Commands.Listeners
 			else
 			{
 				guild = new(eventArgs.Guild.Id);
-				_ = await Program.Database.SaveChangesAsync();
+				_ = await Database.Guilds.AddAsync(guild);
 			}
 		}
 	}

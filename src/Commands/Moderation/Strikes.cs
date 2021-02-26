@@ -43,15 +43,16 @@ namespace Tomoe.Commands.Moderation
 					strike.VictimMessaged = true;
 				}
 				catch (UnauthorizedException) { }
-			_ = await Program.SendMessage(context, $"Case #{strike}, {victim.Mention} has been striked{(strike.VictimMessaged ? '.' : " (Failed to DM).")} This is strike #{Database.Strikes.Count(strike => strike.VictimId == context.User.Id && !strike.Dropped)}. Reason: {Formatter.BlockCode(Formatter.Strip(strikeReason))}", null, new UserMention(victim.Id));
+			_ = await Program.SendMessage(context, $"Case #{strike.Id}, {victim.Mention} has been striked{(strike.VictimMessaged ? '.' : " (Failed to DM).")} This is strike #{Database.Strikes.Count(strike => strike.VictimId == context.User.Id && !strike.Dropped) + 1}. Reason: {Formatter.BlockCode(Formatter.Strip(strikeReason))}", null, new UserMention(victim.Id));
 		}
 
 		[Command("check"), Description("Gets the users past history"), RequireUserPermissions(Permissions.KickMembers), Aliases("history")]
 		public async Task Check(CommandContext context, DiscordUser victim)
 		{
-			DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder().GenerateDefaultEmbed(context, $"{victim.Username}'s Past History");
+			DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder().GenerateDefaultEmbed(context);
+			embedBuilder.Title = $"{victim.Username}'s Past History";
 			Strike[] pastStrikes = await Database.Strikes.Where(strike => strike.GuildId == context.Guild.Id && strike.VictimId == victim.Id).ToArrayAsync();
-			if (pastStrikes == null) _ = await Program.SendMessage(context, "No previous strikes have been found!");
+			if (pastStrikes.Length == 0) _ = await Program.SendMessage(context, "No previous strikes have been found!");
 			else
 			{
 				foreach (Strike strike in pastStrikes) embedBuilder.Description += $"Case #{strike.Id} [on {strike.CreatedAt.ToString("MMM' 'dd', 'yyyy' 'HH':'mm':'ss", CultureInfo.InvariantCulture)}, Issued by {(await context.Client.GetUserAsync(strike.IssuerId)).Mention}]({strike.JumpLink}) {(strike.Dropped ? "(Dropped)" : null)}\n";

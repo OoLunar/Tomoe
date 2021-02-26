@@ -16,6 +16,24 @@ namespace Tomoe.Commands.Listeners
 	{
 		private static readonly Logger _logger = new("Commands.Listeners.GuildAvailable");
 
-		public static async Task Handler(DiscordClient _client, GuildCreateEventArgs eventArgs) => _logger.Info($"\"{eventArgs.Guild.Name}\" ({eventArgs.Guild.Id}) is ready! Handling {eventArgs.Guild.MemberCount} members.");
+		public static async Task Handler(DiscordClient _client, GuildCreateEventArgs eventArgs)
+		{
+			Database Database = Program.ServiceProvider.GetService(typeof(Database)) as Database;
+
+			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == eventArgs.Guild.Id);
+			if (guild == null)
+			{
+				guild = new(eventArgs.Guild.Id);
+				_ = Database.Guilds.Add(guild);
+				_ = await Database.SaveChangesAsync();
+			}
+			foreach (DiscordMember member in eventArgs.Guild.Members.Values)
+			{
+				GuildUser guildUser = new(member.Id);
+				guildUser.Roles = member.Roles.Except(new[] { eventArgs.Guild.EveryoneRole }).Select(role => role.Id).ToList();
+				guild.Users.Add(guildUser);
+			}
+			_logger.Info($"\"{eventArgs.Guild.Name}\" ({eventArgs.Guild.Id}) is ready! Handling {eventArgs.Guild.MemberCount} members.");
+		}
 	}
 }

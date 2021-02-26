@@ -349,7 +349,7 @@ namespace Tomoe.Commands.Moderation
 			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
 			if (guild != null)
 			{
-				if (!guild.IgnoredChannels.Contains(channel.Id)) _ = await Program.SendMessage(context, $"Channel {channel.Mention} was already ignored!");
+				if (guild.IgnoredChannels.Contains(channel.Id)) _ = await Program.SendMessage(context, $"Channel {channel.Mention} was already ignored!");
 				else
 				{
 					guild.IgnoredChannels.Add(channel.Id);
