@@ -11,10 +11,11 @@ namespace Tomoe.Commands.Public
 {
 	public class ServerInfo : BaseCommandModule
 	{
-		[Command("serverinfo"), Description("Gets general info about the server."), Aliases("server_info")]
+		[Command("serverinfo"), Description("Gets general info about the server."), Aliases("server_info", "guildinfo", "guild_info")]
 		public async Task Overload(CommandContext context)
 		{
-			DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder().GenerateDefaultEmbed(context, context.Guild.Name);
+			DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder().GenerateDefaultEmbed(context, null);
+			embedBuilder.Title = context.Guild.Name;
 			embedBuilder.Url = context.Guild.IconUrl;
 			embedBuilder.Footer = new() { IconUrl = context.Guild.BannerUrl };
 			StringBuilder guildInfo = new();

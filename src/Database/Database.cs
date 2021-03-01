@@ -19,38 +19,38 @@ namespace Tomoe.Db
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
 			_ = modelBuilder.Entity<Guild>()
-			.Property(e => e.AllowedInvites)
+			.Property(guild => guild.AllowedInvites)
 			.HasConversion(
-				v => string.Join('\v', v).Replace("\\v", "\v"),
-				v => v.Replace("\v", "\\v").Split('\v', StringSplitOptions.RemoveEmptyEntries).ToList()
+				allowedInvites => string.Join('\v', allowedInvites),
+				allowedInvites => allowedInvites.Split('\v', StringSplitOptions.RemoveEmptyEntries).ToList()
 			);
 
 			_ = modelBuilder.Entity<Guild>()
-			.Property(e => e.IgnoredChannels)
+			.Property(guild => guild.IgnoredChannels)
 			.HasConversion(
-				v => string.Join(';', v),
-				v => v.Split(';', StringSplitOptions.RemoveEmptyEntries).Cast<ulong>().ToList()
+				ignoredChannels => string.Join(';', ignoredChannels),
+				ignoredChannels => ignoredChannels.Split(';', StringSplitOptions.RemoveEmptyEntries).Cast<ulong>().ToList()
 			);
 
 			_ = modelBuilder.Entity<Guild>()
-			.Property(e => e.AdminRoles)
+			.Property(guild => guild.AdminRoles)
 			.HasConversion(
-				v => string.Join(';', v),
-				v => v.Split(';', StringSplitOptions.RemoveEmptyEntries).Cast<ulong>().ToList()
+				adminRoles => string.Join(';', adminRoles),
+				adminRoles => adminRoles.Split(';', StringSplitOptions.RemoveEmptyEntries).Cast<ulong>().ToList()
 			);
 
 			_ = modelBuilder.Entity<GuildUser>()
-			.Property(e => e.Roles)
+			.Property(guildUser => guildUser.Roles)
 			.HasConversion(
-				v => string.Join(';', v),
-				v => v.Split(';', StringSplitOptions.RemoveEmptyEntries).Cast<ulong>().ToList()
+				roles => string.Join(';', roles),
+				roles => roles.Split(';', StringSplitOptions.RemoveEmptyEntries).Cast<ulong>().ToList()
 			);
 
 			_ = modelBuilder.Entity<Strike>()
-			.Property(e => e.Reason)
+			.Property(strike => strike.Reasons)
 			.HasConversion(
-				v => string.Join('\v', v).Replace("\\v", "\v"),
-				v => v.Replace("\v", "\\v").Split('\v', StringSplitOptions.RemoveEmptyEntries).ToList()
+				reason => string.Join('\v', reason),
+				reason => reason.Split('\v', StringSplitOptions.RemoveEmptyEntries).ToList()
 			);
 		}
 	}

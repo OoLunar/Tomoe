@@ -34,7 +34,7 @@ namespace Tomoe
 				return Task.FromResult(Optional.FromNoValue<ExpandedTimeSpan>());
 			}
 
-			if (TimeSpan.TryParse(value, CultureInfo.InvariantCulture, out var result))
+			if (TimeSpan.TryParse(value, CultureInfo.InvariantCulture, out TimeSpan result))
 			{
 				expandedTimeSpan.TimeSpan = result;
 				return Task.FromResult(Optional.FromValue(expandedTimeSpan));

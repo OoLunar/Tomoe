@@ -40,14 +40,14 @@ namespace Tomoe.Commands.Listeners
 			{
 				await eventArgs.Message.DeleteAsync("Exceeded max mentions count.");
 				DiscordMessage message = await eventArgs.Message.RespondAsync($"{eventArgs.Author.Mention}: Message deleted due to it exceeding the max mention count. Please refrain from spamming pings.");
-				if (guild.StrikeAutomod) await Moderation.Strikes.Automated(eventArgs.Guild, Database.Strikes, eventArgs.Author, message.JumpLink, "Exceeded max mentions count. Please refrain from mass pinging.");
+				if (guild.StrikeAutomod) await Moderation.Strikes.Automated(eventArgs.Guild, Database, eventArgs.Author, message.JumpLink, "Exceeded max mentions count. Please refrain from mass pinging.");
 			}
 
 			if (maxLines > -1 && eventArgs.Message.Content.Split('\n').Length > maxLines)
 			{
 				await eventArgs.Message.DeleteAsync("Exceeded max line count.");
 				DiscordMessage message = await eventArgs.Message.RespondAsync($"{eventArgs.Author.Mention}: Message deleted due to it exceeding the max lines count. Please refrain from spamming chat.");
-				if (guild.StrikeAutomod) await Moderation.Strikes.Automated(eventArgs.Guild, Database.Strikes, eventArgs.Author, message.JumpLink, "Exceeded max line count. Please refrain from spamming new lines.");
+				if (guild.StrikeAutomod) await Moderation.Strikes.Automated(eventArgs.Guild, Database, eventArgs.Author, message.JumpLink, "Exceeded max line count. Please refrain from spamming new lines.");
 				await Task.Delay(TimeSpan.FromSeconds(5));
 				try { await message.DeleteAsync("Timed message"); }
 				catch (NotFoundException) { }

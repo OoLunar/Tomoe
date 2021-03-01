@@ -27,7 +27,7 @@ namespace Tomoe.Utils
 			}
 
 			string prefix = message.Content.Substring(0, commandStart);
-			string commandName = message.Content.Substring(commandStart);
+			string commandName = message.Content[commandStart..];
 			Command command = commandsNext.FindCommand(commandName, out string args);
 
 			if (command == null) return;

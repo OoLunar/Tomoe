@@ -33,7 +33,7 @@ namespace Tomoe.Utils
 						EnableDms = true,
 						EnableDefaultHelp = false,
 						UseDefaultCommandHandler = false,
-						Services = services
+						Services = services,
 					});
 					_ = discordClient.UseInteractivityAsync(new InteractivityConfiguration
 					{
@@ -45,6 +45,7 @@ namespace Tomoe.Utils
 					{
 						commands.RegisterConverter(new ImageFormatConverter());
 						commands.RegisterConverter(new ExpandedTimeSpanConverter());
+						commands.RegisterConverter(new StrikeConverter());
 						commands.RegisterCommands(Assembly.GetEntryAssembly());
 						commands.CommandErrored += CommandErrored;
 					}
