@@ -1,7 +1,10 @@
 using System;
 using System.Linq;
-
+using System.Runtime.InteropServices;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
+using Npgsql.EntityFrameworkCore.PostgreSQL;
+using Tomoe.Utils;
 
 namespace Tomoe.Db
 {
@@ -13,8 +16,16 @@ namespace Tomoe.Db
 
 		protected override void OnConfiguring(DbContextOptionsBuilder options)
 		{
-			_ = options.UseSqlite($"Data Source={Utils.Config.DatabaseFilePath}");
+			LoggerProvider loggerProvider = new();
+			NpgsqlConnectionStringBuilder connectionBuilder = new();
+			connectionBuilder.ApplicationName = "Tomoe";
+			connectionBuilder.Database = "tomoe";
+			connectionBuilder.Host = "mail.forsaken-borders.net";
+			connectionBuilder.Password = "253ef055d412bf500ae9ce2f2de29ea96f71696734b91c49eae279d56489e299f6759095591e225b";
+			connectionBuilder.Username = "tomoe_discord_bot";
+			_ = options.UseNpgsql(connectionBuilder.ToString());
 			_ = options.EnableSensitiveDataLogging(true);
+			_ = options.UseLoggerFactory(loggerProvider);
 		}
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
@@ -52,6 +63,14 @@ namespace Tomoe.Db
 				reason => string.Join('\v', reason),
 				reason => reason.Split('\v', StringSplitOptions.RemoveEmptyEntries).ToList()
 			);
+
+			_ = modelBuilder.Entity<Strike>()
+			.Property(strike => strike.Id)
+			.ValueGeneratedOnAdd();
+
+			_ = modelBuilder.Entity<Tag>()
+			.Property(tag => tag.TagId)
+			.ValueGeneratedOnAdd();
 		}
 	}
 }

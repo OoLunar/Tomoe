@@ -1,12 +1,15 @@
 using System.Linq;
 using System.Threading.Tasks;
 
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
-using Microsoft.EntityFrameworkCore;
+
 using Tomoe.Commands.Moderation.Attributes;
 using Tomoe.Db;
 
@@ -48,7 +51,9 @@ namespace Tomoe.Commands.Moderation
 
 		public static async Task ByAssignment(CommandContext context, DiscordUser victim)
 		{
-			Guild guild = await Program.Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
+			using IServiceScope scope = context.Services.CreateScope();
+			Database database = scope.ServiceProvider.GetService<Database>();
+			Guild guild = await database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
 			if (guild == null) return;
 			GuildUser user = guild.Users.FirstOrDefault(user => user.Id == victim.Id);
 			if (user != null) user.IsMuted = false;

@@ -1,7 +1,7 @@
-using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
@@ -33,7 +33,7 @@ namespace Tomoe.Utils
 			if (command == null) return;
 
 			CommandContext context = commandsNext.CreateContext(message, prefix, command, args);
-			Database Database = (Database)Program.ServiceProvider.GetService(typeof(Database));
+			Database Database = Program.ServiceProvider.GetService<Database>();
 			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
 			if (guild != null && guild.IgnoredChannels.Contains(context.Channel.Id)) return;
 			await eventArgs.Channel.TriggerTypingAsync();

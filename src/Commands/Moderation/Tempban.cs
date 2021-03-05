@@ -12,8 +12,9 @@ using Tomoe.Db;
 
 namespace Tomoe.Commands.Moderation
 {
-	public class Temban : BaseCommandModule
+	public class Tempban : BaseCommandModule
 	{
+		public Database Database { private get; set; }
 		[Command("tempban"), Description("Temporarily bans someone from the server."), RequireGuild, RequireBotPermissions(Permissions.BanMembers), RequireUserPermissions(Permissions.BanMembers), Aliases("temp_ban"), Punishment]
 		public async Task User(CommandContext context, DiscordUser victim, ExpandedTimeSpan banTime, int pruneDays = 7, [RemainingText] string banReason = Constants.MissingReason)
 		{
@@ -36,7 +37,7 @@ namespace Tomoe.Commands.Moderation
 			assignment.MessageId = context.Message.Id;
 			assignment.SetOff = DateTime.Now + banTime.TimeSpan;
 			assignment.UserId = victim.Id;
-			_ = Program.Database.Assignments.Add(assignment);
+			_ = Database.Assignments.Add(assignment);
 
 			_ = await Program.SendMessage(context, $"{victim.Mention} has been temporarily banned{(sentDm ? '.' : " (Failed to DM).")} Reason: {Formatter.BlockCode(Formatter.Strip(banReason))}", null, new UserMention(victim.Id));
 		}

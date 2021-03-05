@@ -17,11 +17,13 @@ using DSharpPlus.Interactivity.Extensions;
 
 using Tomoe.Db;
 using Tomoe.Utils;
+using Microsoft.Extensions.DependencyInjection;
+using Humanizer;
 
 namespace Tomoe.Commands.Public
 {
-	[Group("remind"), Aliases("reminders"), Description("Creates a reminder to go off at the specified time.")]
-	public class Reminders : BaseCommandModule
+	[Group("assignment"), Aliases("reminders", "remind", "task"), Description("Creates an assignment to go off at the specified time.")]
+	public class Assignments : BaseCommandModule
 	{
 		public Database Database { private get; set; }
 		internal static readonly Timer Timer = new();
@@ -35,28 +37,27 @@ namespace Tomoe.Commands.Public
 			assignment.Content = content;
 			assignment.GuildId = context.Guild.Id;
 			assignment.MessageId = context.Message.Id;
-			assignment.SetAt = DateTime.Now + setOff;
-			assignment.SetOff = DateTime.Now;
+			assignment.SetAt = DateTime.UtcNow + setOff;
+			assignment.SetOff = DateTime.UtcNow;
 			assignment.UserId = context.User.Id;
-			_ = await Database.Assignments.AddAsync(assignment);
+			_ = Database.Assignments.Add(assignment);
 			_ = await Database.SaveChangesAsync();
-			_ = await Program.SendMessage(context, $"Set off at {DateTime.Now.Add(setOff).ToString("MMM dd', 'HHH':'mm':'ss", CultureInfo.InvariantCulture)}: ```\n{content}```");
+			_ = await Program.SendMessage(context, $"{DateTime.UtcNow.Add(setOff).Humanize()}: ```\n{content}```");
 		}
 
 		[GroupCommand]
 		public async Task ListByGroup(CommandContext context) => await List(context);
 
 		[Command("list")]
-		[Description("Lists what reminders are set.")]
+		[Description("Lists what assignments are set.")]
 		public async Task List(CommandContext context)
 		{
 			Assignment[] tasks = await Database.Assignments.Where(assignment => assignment.UserId == context.User.Id).ToArrayAsync();
 			List<string> reminders = new();
-			if (tasks == null) reminders.Add("No reminders are set!");
-			else
-				foreach (Assignment task in tasks)
+			if (tasks.Length == 0) reminders.Add("No assignments are set!");
+			else foreach (Assignment task in tasks)
 					reminders.Add($"Id #{task.Id}, Set off at {task.SetOff.ToString("MMM dd', 'HHH':'mm':'ss", CultureInfo.InvariantCulture)}: {task.Content}");
-			DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder().GenerateDefaultEmbed(context, $"All reminders for {context.Member.GetCommonName()}");
+			DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder().GenerateDefaultEmbed(context, $"All assignments for {context.Member.GetCommonName()}");
 			embedBuilder.Author = new()
 			{
 				Name = context.Guild.Name,
@@ -64,45 +65,29 @@ namespace Tomoe.Commands.Public
 				IconUrl = context.Guild.IconUrl ?? context.User.DefaultAvatarUrl
 			};
 			InteractivityExtension interactivity = context.Client.GetInteractivity();
-			await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, interactivity.GeneratePagesInEmbed(string.Join("\n", reminders.ToArray()), SplitType.Character, embedBuilder), timeoutoverride: TimeSpan.FromMinutes(2));
+			await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, interactivity.GeneratePagesInEmbed(string.Join("\n", reminders.ToArray()), SplitType.Character, embedBuilder));
 		}
 
 		[Command("remove"), Description("Removes a reminder.")]
-		public async Task Remove(CommandContext context, int taskId)
+		public async Task Remove(CommandContext context, Assignment assignment)
 		{
-			Assignment task = Database.Assignments.Where(assignment => assignment.AssignmentType == AssignmentType.Reminder && assignment.UserId == context.User.Id && assignment.Id == taskId).First();
-			if (task != null) _ = await Program.SendMessage(context, $"**[Error: Reminder #{taskId} does not exist!]**");
-			else
-			{
-				_ = Database.Assignments.Remove(task);
-				_ = await Database.SaveChangesAsync();
-				_ = await Program.SendMessage(context, $"Reminder #{taskId} was removed!");
-			}
-		}
-
-		[Command("remove")]
-		public async Task Remove(CommandContext context, string taskId)
-		{
-			try
-			{
-				_ = Remove(context, int.Parse(taskId.Remove(0, 1), CultureInfo.InvariantCulture));
-			}
-			catch (FormatException)
-			{
-				_ = await Program.SendMessage(context, $"\"{taskId}\" is not an id.");
-			}
+			_ = Database.Assignments.Remove(assignment);
+			_ = await Database.SaveChangesAsync();
+			_ = await Program.SendMessage(context, $"Reminder #{assignment.Id} was removed!");
 		}
 
 		public static void StartRoutine()
 		{
-			Timer.Interval = TimeSpan.FromMinutes(1).TotalMilliseconds;
+			IServiceScope scope = Program.ServiceProvider.CreateScope();
+			Database database = scope.ServiceProvider.GetService<Database>();
+			Timer.Interval = TimeSpan.FromSeconds(5).TotalMilliseconds;
 			Timer.Elapsed += async (object sender, ElapsedEventArgs e) =>
 			{
-				Assignment[] tasks = await Program.Database.Assignments.ToArrayAsync();
-				if (tasks == null) return;
+				Assignment[] tasks = await database.Assignments.ToArrayAsync();
+				if (tasks.Length == 0) return;
 				foreach (Assignment task in tasks)
 				{
-					if (task.SetOff.CompareTo(DateTime.Now) < 0)
+					if (DateTime.UtcNow > task.SetOff)
 					{
 						DiscordClient client = Program.Client.ShardClients[0];
 						CommandsNextExtension commandsNext = client.GetCommandsNext();
@@ -113,25 +98,32 @@ namespace Tomoe.Commands.Public
 						{
 							case AssignmentType.Reminder:
 								context = commandsNext.CreateContext(await channel.GetMessageAsync(task.MessageId), Config.Prefix, commandsNext.RegisteredCommands["remind"], null);
-								_ = await Program.SendMessage(context, $"Set at {task.SetAt.ToString("MMM dd', 'HHH':'mm", CultureInfo.InvariantCulture)}: {task.Content}");
-								_ = Program.Database.Assignments.Remove(task);
+								_ = await Program.SendMessage(context, $"{task.SetAt.Humanize()}: {task.Content}");
+								_ = database.Assignments.Remove(task);
 								break;
 							case AssignmentType.TempBan:
 								context = commandsNext.CreateContext(await channel.GetMessageAsync(task.MessageId), Config.Prefix, commandsNext.RegisteredCommands["tempban"], null);
 								await Moderation.Unban.ByAssignment(context, await context.Client.GetUserAsync(task.UserId));
-								_ = Program.Database.Assignments.Remove(task);
+								_ = database.Assignments.Remove(task);
 								break;
 							case AssignmentType.TempMute:
 								context = commandsNext.CreateContext(await channel.GetMessageAsync(task.MessageId), Config.Prefix, commandsNext.RegisteredCommands["tempmute"], null);
 								await Moderation.Unmute.ByAssignment(context, await context.Client.GetUserAsync(task.UserId));
-								_ = Program.Database.Assignments.Remove(task);
+								_ = database.Assignments.Remove(task);
 								break;
 							case AssignmentType.TempAntimeme:
 								context = commandsNext.CreateContext(await channel.GetMessageAsync(task.MessageId), Config.Prefix, commandsNext.RegisteredCommands["tempantimeme"], null);
 								await Moderation.Promeme.ByAssignment(context, await context.Client.GetUserAsync(task.UserId));
-								_ = Program.Database.Assignments.Remove(task);
+								_ = database.Assignments.Remove(task);
 								break;
+							case AssignmentType.TempVoiceBan:
+								context = commandsNext.CreateContext(await channel.GetMessageAsync(task.MessageId), Config.Prefix, commandsNext.RegisteredCommands["tempantimeme"], null);
+								await Moderation.VoiceBan.ByAssignment(context, await context.Client.GetUserAsync(task.UserId));
+								_ = database.Assignments.Remove(task);
+								break;
+							default: break;
 						}
+						_ = await database.SaveChangesAsync();
 					}
 				}
 			};

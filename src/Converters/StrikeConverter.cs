@@ -1,12 +1,14 @@
 using System.Globalization;
 using System.Threading.Tasks;
 
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Converters;
 using DSharpPlus.Entities;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
+
 using Tomoe.Db;
 
 namespace Tomoe
@@ -15,7 +17,8 @@ namespace Tomoe
 	{
 		public async Task<Optional<Strike>> ConvertAsync(string value, CommandContext context)
 		{
-			Database database = context.Services.CreateScope().ServiceProvider.GetService(typeof(Database)) as Database;
+			using IServiceScope scope = context.Services.CreateScope();
+			Database database = scope.ServiceProvider.GetService<Database>();
 			if (value[0] == '#') value = value[1..];
 			bool convertedSuccessfully = int.TryParse(value, NumberStyles.Number, CultureInfo.InvariantCulture, out int strikeId);
 			if (!convertedSuccessfully)

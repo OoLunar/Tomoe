@@ -1,4 +1,7 @@
 using System;
+using Microsoft.Extensions.DependencyInjection;
+
+using Tomoe.Db;
 
 namespace Tomoe.Utils
 {
@@ -10,12 +13,11 @@ namespace Tomoe.Utils
 			Console.Write("\b\b");
 			_logger.Info("Shutting down...");
 			_logger.Info("Closing routines...");
-			Commands.Public.Reminders.Timer.Dispose();
+			Commands.Public.Assignments.Timer.Dispose();
 			_logger.Info("Closing Discord...");
 			await Program.Client.StopAsync();
 			_logger.Info("Closing database...");
-			_ = await Program.Database.SaveChangesAsync();
-			Program.Database.Dispose();
+			_ = await Program.ServiceProvider.GetService<Database>().SaveChangesAsync();
 			_logger.Info("Goodbyte!");
 			Environment.Exit(0);
 		}

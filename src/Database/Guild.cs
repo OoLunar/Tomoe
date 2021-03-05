@@ -23,6 +23,7 @@ namespace Tomoe.Db
 		public bool StrikeAutomod { get; internal set; } = false;
 
 		public List<GuildUser> Users { get; internal set; } = new();
+		public List<Tag> Tags { get; internal set; } = new();
 
 		public Guild(ulong id) => Id = id;
 	}

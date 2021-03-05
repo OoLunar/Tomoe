@@ -11,7 +11,7 @@ using System.Linq;
 using System;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
-using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Tomoe.Commands.Listeners
 {
@@ -19,11 +19,12 @@ namespace Tomoe.Commands.Listeners
 	{
 		public static readonly Regex InviteRegex = new(@"disc(?:ord)?(?:(?:app)?\.com\/invite|(?:\.gg))\/([A-z0-9-]{2,})", RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.IgnoreCase);
 
-		public static async Task Handler(DiscordClient _client, MessageCreateEventArgs eventArgs)
+		public static async Task Handler(DiscordClient client, MessageCreateEventArgs eventArgs)
 		{
-			if (eventArgs.Author.Id == _client.CurrentUser.Id || eventArgs.Guild == null) return;
-			Database Database = (Database)Program.ServiceProvider.GetService(typeof(Database));
-			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == eventArgs.Guild.Id);
+			if (eventArgs.Author.Id == client.CurrentUser.Id || eventArgs.Guild == null) return;
+			using IServiceScope scope = Program.ServiceProvider.CreateScope();
+			Database database = scope.ServiceProvider.GetService<Database>();
+			Guild guild = await database.Guilds.FirstOrDefaultAsync(guild => guild.Id == eventArgs.Guild.Id);
 			if (guild == null
 				|| eventArgs.Author.IsBot
 				|| (eventArgs.Author.IsSystem.HasValue && eventArgs.Author.IsSystem.Value)
@@ -40,14 +41,14 @@ namespace Tomoe.Commands.Listeners
 			{
 				await eventArgs.Message.DeleteAsync("Exceeded max mentions count.");
 				DiscordMessage message = await eventArgs.Message.RespondAsync($"{eventArgs.Author.Mention}: Message deleted due to it exceeding the max mention count. Please refrain from spamming pings.");
-				if (guild.StrikeAutomod) await Moderation.Strikes.Automated(eventArgs.Guild, Database, eventArgs.Author, message.JumpLink, "Exceeded max mentions count. Please refrain from mass pinging.");
+				if (guild.StrikeAutomod) await Moderation.Strikes.Automated(eventArgs.Guild, database, eventArgs.Author, message.JumpLink, "Exceeded max mentions count. Please refrain from mass pinging.");
 			}
 
 			if (maxLines > -1 && eventArgs.Message.Content.Split('\n').Length > maxLines)
 			{
 				await eventArgs.Message.DeleteAsync("Exceeded max line count.");
 				DiscordMessage message = await eventArgs.Message.RespondAsync($"{eventArgs.Author.Mention}: Message deleted due to it exceeding the max lines count. Please refrain from spamming chat.");
-				if (guild.StrikeAutomod) await Moderation.Strikes.Automated(eventArgs.Guild, Database, eventArgs.Author, message.JumpLink, "Exceeded max line count. Please refrain from spamming new lines.");
+				if (guild.StrikeAutomod) await Moderation.Strikes.Automated(eventArgs.Guild, database, eventArgs.Author, message.JumpLink, "Exceeded max line count. Please refrain from spamming new lines.");
 				await Task.Delay(TimeSpan.FromSeconds(5));
 				try { await message.DeleteAsync("Timed message"); }
 				catch (NotFoundException) { }

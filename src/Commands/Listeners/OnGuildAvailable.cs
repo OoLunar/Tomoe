@@ -10,6 +10,7 @@ using DSharpPlus.EventArgs;
 
 using Tomoe.Db;
 using Tomoe.Utils;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace Tomoe.Commands.Listeners
 {
@@ -19,13 +20,14 @@ namespace Tomoe.Commands.Listeners
 
 		public static async Task Handler(DiscordClient _client, GuildCreateEventArgs eventArgs)
 		{
-			Database Database = Program.ServiceProvider.CreateScope().ServiceProvider.GetService(typeof(Database)) as Database;
+			using IServiceScope scope = Program.ServiceProvider.CreateScope();
+			Database database = scope.ServiceProvider.GetService<Database>();
 
-			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == eventArgs.Guild.Id);
+			Guild guild = await database.Guilds.FirstOrDefaultAsync(guild => guild.Id == eventArgs.Guild.Id);
 			if (guild == null)
 			{
 				guild = new(eventArgs.Guild.Id);
-				_ = Database.Guilds.Add(guild);
+				_ = database.Guilds.Add(guild);
 			}
 
 			foreach (DiscordMember member in eventArgs.Guild.Members.Values)
@@ -34,6 +36,31 @@ namespace Tomoe.Commands.Listeners
 				guildUser.Roles = member.Roles.Except(new[] { eventArgs.Guild.EveryoneRole }).Select(role => role.Id).ToList();
 				guild.Users.Add(guildUser);
 			}
+
+			bool saved = false;
+			while (!saved)
+				try
+				{
+					_ = await database.SaveChangesAsync();
+					saved = true;
+				}
+				catch (DbUpdateConcurrencyException error)
+				{
+					foreach (EntityEntry entry in error.Entries)
+					{
+						if (entry.Entity is Guild)
+						{
+							if (entry.CurrentValues.GetValue<ulong>("Id") == guild.Id)
+							{
+								entry.OriginalValues.SetValues(entry.CurrentValues);
+							}
+							else
+							{
+								entry.OriginalValues.SetValues(entry.GetDatabaseValues());
+							}
+						}
+					}
+				}
 			_logger.Info($"\"{eventArgs.Guild.Name}\" ({eventArgs.Guild.Id}) is ready! Handling {eventArgs.Guild.MemberCount} members.");
 		}
 	}

@@ -2,6 +2,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 using DSharpPlus;
 using DSharpPlus.Entities;
@@ -13,10 +14,11 @@ namespace Tomoe.Commands.Listeners
 {
 	public class GuildMemberAdded
 	{
-		public static async Task Handler(DiscordClient client, GuildMemberAddEventArgs eventArgs)
+		public static async Task Handler(DiscordClient _client, GuildMemberAddEventArgs eventArgs)
 		{
-			Database Database = Program.ServiceProvider.GetService(typeof(Database)) as Database;
-			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == eventArgs.Guild.Id);
+			using IServiceScope scope = Program.ServiceProvider.CreateScope();
+			Database database = scope.ServiceProvider.GetService<Database>();
+			Guild guild = await database.Guilds.FirstOrDefaultAsync(guild => guild.Id == eventArgs.Guild.Id);
 			if (guild != null)
 			{
 				GuildUser user = guild.Users.FirstOrDefault(user => user.Id == eventArgs.Member.Id);

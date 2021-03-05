@@ -6,6 +6,7 @@ using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Tomoe.Db;
 using Tomoe.Utils;
@@ -16,7 +17,6 @@ namespace Tomoe
 	{
 		public static DiscordShardedClient Client { get; private set; }
 		public static IServiceProvider ServiceProvider { get; private set; }
-		internal static Database Database = new();
 		private static readonly Logger _logger = new("Main");
 
 		public static void Main() => MainAsync().ConfigureAwait(false).GetAwaiter().GetResult();
@@ -26,7 +26,10 @@ namespace Tomoe
 			await Config.Init();
 			LoggerProvider loggerProvider = new();
 			Console.CancelKeyPress += Quit.ConsoleShutdown;
-			_ = await Database.Database.EnsureCreatedAsync();
+			ServiceCollection services = new();
+			_ = services.AddDbContext<Database>();
+			ServiceProvider = services.BuildServiceProvider();
+			_ = await ServiceProvider.GetService<Database>().Database.EnsureCreatedAsync();
 			DiscordConfiguration discordConfiguration = new()
 			{
 				AutoReconnect = true,
@@ -49,13 +52,10 @@ namespace Tomoe
 			Client.ChannelCreated += Commands.Listeners.ChannelCreated.Handler;
 			Client.MessageCreated += Commands.Listeners.MessageRecieved.Handler;
 			Client.Ready += Commands.Listeners.OnReady.Handler;
-			ServiceCollection services = new();
-			_ = services.AddScoped(typeof(Database));
-			ServiceProvider = services.BuildServiceProvider();
 			await CommandService.Launch(Client, ServiceProvider);
 			await Client.StartAsync();
 			_logger.Info("Starting routines...");
-			Commands.Public.Reminders.StartRoutine();
+			Commands.Public.Assignments.StartRoutine();
 			_logger.Info("Started.");
 			await Task.Delay(-1);
 		}

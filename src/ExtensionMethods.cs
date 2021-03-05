@@ -11,6 +11,7 @@ using DSharpPlus.Exceptions;
 using Humanizer;
 
 using Tomoe.Db;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Tomoe
 {
@@ -52,7 +53,9 @@ namespace Tomoe
 		public static async Task<bool> IsAdmin(this DiscordMember guildMember, DiscordGuild discordGuild)
 		{
 			if (guildMember.HasPermission(Permissions.Administrator)) return true;
-			Guild guild = await Program.Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == discordGuild.Id);
+			using IServiceScope scope = Program.ServiceProvider.CreateScope();
+			Database database = scope.ServiceProvider.GetService<Database>();
+			Guild guild = await database.Guilds.FirstOrDefaultAsync(guild => guild.Id == discordGuild.Id);
 			return guild.AdminRoles.Cast<string>().Intersect(guildMember.Roles.Cast<string>()) != null;
 		}
 

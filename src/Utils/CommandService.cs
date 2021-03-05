@@ -10,7 +10,6 @@ using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.CommandsNext.Exceptions;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
-using Microsoft.Extensions.DependencyInjection;
 using Tomoe.Commands.Moderation.Attributes;
 
 // Copied from https://github.com/TheRealHona/DSharpPlusBotTemplate/blob/main/TemplateDiscordBot/Services/CommandService.cs
@@ -46,6 +45,7 @@ namespace Tomoe.Utils
 						commands.RegisterConverter(new ImageFormatConverter());
 						commands.RegisterConverter(new ExpandedTimeSpanConverter());
 						commands.RegisterConverter(new StrikeConverter());
+						commands.RegisterConverter(new TagConverter());
 						commands.RegisterCommands(Assembly.GetEntryAssembly());
 						commands.CommandErrored += CommandErrored;
 					}
@@ -58,7 +58,7 @@ namespace Tomoe.Utils
 			}
 		}
 
-		private static async Task CommandErrored(CommandsNextExtension _client, CommandErrorEventArgs args)
+		private static async Task CommandErrored(CommandsNextExtension client, CommandErrorEventArgs args)
 		{
 			// No need to log when a command isn't found
 			if (!(args.Exception is CommandNotFoundException) && !args.Handled)
@@ -78,13 +78,12 @@ namespace Tomoe.Utils
 						args.Handled = true;
 					}
 				}
-				else if (args.Exception is NotImplementedException)
-				{
-					_ = await Program.SendMessage(args.Context, $"{args.Command.Name} hasn't been implemented yet!");
-				}
+				else if (args.Exception is NotImplementedException) _ = await Program.SendMessage(args.Context, $"{args.Command.Name} hasn't been implemented yet!");
+				else if (args.Exception is ArgumentException) args.Handled = true;
 				else
 				{
 					_logger.Error($"'{args.Command?.QualifiedName ?? "<unknown command>"}' errored: {args.Exception.GetType()}, {args.Exception.Message ?? "<no message>"}\n{args.Exception.StackTrace}");
+					_ = await Program.SendMessage(args.Context, Formatter.Bold("[Error: An unknown error occured. Try executing the command again?]"));
 				}
 			}
 		}

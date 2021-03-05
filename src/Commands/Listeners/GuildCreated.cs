@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 using DSharpPlus;
 using DSharpPlus.Entities;
@@ -14,8 +15,9 @@ namespace Tomoe.Commands.Listeners
 	{
 		public static async Task Handler(DiscordClient _client, GuildCreateEventArgs eventArgs)
 		{
-			Database Database = Program.ServiceProvider.GetService(typeof(Database)) as Database;
-			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == eventArgs.Guild.Id);
+			using IServiceScope scope = Program.ServiceProvider.CreateScope();
+			Database database = scope.ServiceProvider.GetService<Database>();
+			Guild guild = await database.Guilds.FirstOrDefaultAsync(guild => guild.Id == eventArgs.Guild.Id);
 			if (guild != null)
 			{
 				DiscordRole muteRole = guild.MuteRole.GetRole(eventArgs.Guild);
@@ -28,7 +30,7 @@ namespace Tomoe.Commands.Listeners
 			else
 			{
 				guild = new(eventArgs.Guild.Id);
-				_ = await Database.Guilds.AddAsync(guild);
+				_ = await database.Guilds.AddAsync(guild);
 			}
 		}
 	}

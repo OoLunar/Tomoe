@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Globalization;
 using System.IO;
 using System.Text;
 
@@ -422,17 +423,18 @@ namespace Tomoe.Utils
 
 		/// <summary>Gets the time in <code>yyyy-MM-dd HH:mm:ss</code> following rfc3339 format, slightly tweaked (see removed 'T'). See https://tools.ietf.org/html/rfc3339#section-5.6.</summary>
 		/// <returns>string</returns>
-		public static string GetTime() => DateTime.Now.ToLocalTime().ToString("yyyy'-'MM'-'dd' 'HH':'mm':'ss'.'ffff");
+		public static string GetTime() => DateTime.Now.ToLocalTime().ToString("yyyy'-'MM'-'dd' 'HH':'mm':'ss'.'ffff", CultureInfo.InvariantCulture);
 	}
 
 	public class LoggerProvider : ILoggerFactory
 	{
 		private readonly ConcurrentDictionary<string, Logger> _loggers = new();
-		public ILogger CreateLogger(string categoryName)
+		public ILogger CreateLogger(string categoryName) => categoryName switch
 		{
-			if (categoryName.ToLower().StartsWith("dsharpplus")) return _loggers.GetOrAdd(categoryName, name => new Logger(name, Config.LoggerConfig.Discord));
-			else return _loggers.GetOrAdd(categoryName, name => new Logger(name));
-		}
+			string value when value.StartsWith("dsharpplus", true, CultureInfo.InvariantCulture) => _loggers.GetOrAdd(categoryName, name => new Logger(name, Config.LoggerConfig.Discord)),
+			string value when value.StartsWith("microsoft.entityframeworkcore", true, CultureInfo.InvariantCulture) => _loggers.GetOrAdd(categoryName, name => new Logger(name, Config.LoggerConfig.Database)),
+			_ => _loggers.GetOrAdd(categoryName, name => new Logger(name))
+		};
 
 		public void Dispose() => GC.SuppressFinalize(this);
 		public void AddProvider(ILoggerProvider provider) { }

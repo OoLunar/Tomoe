@@ -1,5 +1,8 @@
-using System.Threading.Tasks;
 using System.Linq;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+
+using Microsoft.EntityFrameworkCore;
 
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
@@ -7,10 +10,9 @@ using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 
 using Humanizer;
-using Microsoft.EntityFrameworkCore;
+
 using Tomoe.Db;
 using Tomoe.Types;
-using System.Text.RegularExpressions;
 
 namespace Tomoe.Commands.Moderation
 {
@@ -25,6 +27,12 @@ namespace Tomoe.Commands.Moderation
 		public async Task Mute(CommandContext context, DiscordRole muteRole)
 		{
 			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
+			if (guild == null)
+			{
+				_ = await Program.SendMessage(context, Formatter.Bold("[Error: Failed to set mute role, guild is not in the database!]"));
+				return;
+			}
+
 			DiscordRole previousMuteRole = guild.MuteRole.GetRole(context.Guild);
 			if (previousMuteRole == null)
 			{
@@ -59,6 +67,12 @@ namespace Tomoe.Commands.Moderation
 		public async Task Mute(CommandContext context)
 		{
 			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
+			if (guild == null)
+			{
+				_ = await Program.SendMessage(context, Formatter.Bold("[Error: Failed to set mute role, guild is not in the database!]"));
+				return;
+			}
+
 			DiscordRole previousMuteRole = guild.MuteRole.GetRole(context.Guild);
 			if (previousMuteRole == null) // Should only be executed if there was no previous mute role id, or if the role cannot be found.
 			{
@@ -85,6 +99,12 @@ namespace Tomoe.Commands.Moderation
 		public async Task Antimeme(CommandContext context, DiscordRole antimemeRole)
 		{
 			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
+			if (guild == null)
+			{
+				_ = await Program.SendMessage(context, Formatter.Bold("[Error: Failed to set antimeme role, guild is not in the database!]"));
+				return;
+			}
+
 			DiscordRole previousAntimemeRole = guild.AntimemeRole.GetRole(context.Guild);
 			if (previousAntimemeRole == null)
 			{
@@ -117,6 +137,12 @@ namespace Tomoe.Commands.Moderation
 		public async Task Antimeme(CommandContext context)
 		{
 			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
+			if (guild == null)
+			{
+				_ = await Program.SendMessage(context, Formatter.Bold("[Error: Failed to set antimeme role, guild is not in the database!]"));
+				return;
+			}
+
 			DiscordRole previousAntimemeRole = guild.AntimemeRole.GetRole(context.Guild);
 			if (previousAntimemeRole == null) // Should only be executed if there was no previous mute role id, or if the role cannot be found.
 			{
@@ -143,6 +169,12 @@ namespace Tomoe.Commands.Moderation
 		public async Task VoiceBan(CommandContext context, DiscordRole voiceBanRole)
 		{
 			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
+			if (guild == null)
+			{
+				_ = await Program.SendMessage(context, Formatter.Bold("[Error: Failed to set voiceban role, guild is not in the database!]"));
+				return;
+			}
+
 			DiscordRole previousVoiceBanRole = guild.VoiceBanRole.GetRole(context.Guild);
 			if (previousVoiceBanRole == null)
 			{
@@ -175,6 +207,12 @@ namespace Tomoe.Commands.Moderation
 		public async Task VoiceBan(CommandContext context)
 		{
 			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
+			if (guild == null)
+			{
+				_ = await Program.SendMessage(context, Formatter.Bold("[Error: Failed to set voiceban role, guild is not in the database!]"));
+				return;
+			}
+
 			DiscordRole previousVoiceBanRole = guild.VoiceBanRole.GetRole(context.Guild);
 			if (previousVoiceBanRole == null)
 			{
@@ -280,9 +318,10 @@ namespace Tomoe.Commands.Moderation
 			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
 			if (guild == null)
 			{
-				guild = new(context.Guild.Id);
-				_ = await Database.Guilds.AddAsync(guild);
+				_ = await Program.SendMessage(context, Formatter.Bold("[Error: Failed to activate anti-invite, guild is not in the database!]"));
+				return;
 			}
+
 			guild.AntiInvite = isEnabled;
 			_ = await Program.SendMessage(context, "Anti-Invite is now enabled!");
 		}
@@ -294,6 +333,12 @@ namespace Tomoe.Commands.Moderation
 			if (capture != null)
 			{
 				Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
+				if (guild == null)
+				{
+					_ = await Program.SendMessage(context, Formatter.Bold("[Error: Failed to add invite, guild is not in the database!]"));
+					return;
+				}
+
 				guild.AllowedInvites.Add(capture);
 				_ = await Program.SendMessage(context, $"Invite code {Formatter.InlineCode(capture)} added!");
 			}
@@ -323,92 +368,106 @@ namespace Tomoe.Commands.Moderation
 		public async Task MaxLines(CommandContext context, int maxLineCount)
 		{
 			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
-			if (guild != null)
+			if (guild == null)
 			{
-				guild.MaxLines = maxLineCount;
-				_ = await Program.SendMessage(context, "Max line count successfully updated!");
+				_ = await Program.SendMessage(context, Formatter.Bold("[Error: Failed to remove invite, guild is not in the database!]"));
+				return;
 			}
-			else _ = await Program.SendMessage(context, Formatter.Bold("[Error: Failed to get database from cache]"));
+
+			guild.MaxLines = maxLineCount;
+			_ = await Program.SendMessage(context, "Max line count successfully updated!");
 		}
 
 		[Command("max_mentions"), RequireUserPermissions(Permissions.ManageMessages), RequireGuild, Aliases("maxmentions", "max_mention", "maxmention")]
 		public async Task MaxMentions(CommandContext context, int maxMentionCount)
 		{
 			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
-			if (guild != null)
+			if (guild == null)
 			{
-				guild.MaxMentions = maxMentionCount;
-				_ = await Program.SendMessage(context, "Max mention count successfully updated!");
+				_ = await Program.SendMessage(context, Formatter.Bold("[Error: Failed to set max mentions count, guild is not in the database!]"));
+				return;
 			}
-			else _ = await Program.SendMessage(context, Formatter.Bold("[Error: Failed to get database from cache]"));
+
+			guild.MaxMentions = maxMentionCount;
+			_ = await Program.SendMessage(context, "Max mention count successfully updated!");
 		}
 
 		[Command("ignore_channel"), RequireUserPermissions(Permissions.ManageChannels), RequireGuild, Aliases("ignorechannel", "hide_channel", "hidechannel")]
 		public async Task IgnoreChannel(CommandContext context, DiscordChannel channel)
 		{
 			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
-			if (guild != null)
+			if (guild == null)
 			{
-				if (guild.IgnoredChannels.Contains(channel.Id)) _ = await Program.SendMessage(context, $"Channel {channel.Mention} was already ignored!");
-				else
-				{
-					guild.IgnoredChannels.Add(channel.Id);
-					_ = await Program.SendMessage(context, $"Channel {channel.Mention} is now ignored!");
-				}
+				_ = await Program.SendMessage(context, Formatter.Bold("[Error: Failed to ignore the channel, guild is not in the database!]"));
+				return;
 			}
-			else _ = await Program.SendMessage(context, Formatter.Bold("[Error: Failed to get database from cache]"));
+
+			if (guild.IgnoredChannels.Contains(channel.Id)) _ = await Program.SendMessage(context, $"Channel {channel.Mention} was already ignored!");
+			else
+			{
+				guild.IgnoredChannels.Add(channel.Id);
+				_ = await Program.SendMessage(context, $"Channel {channel.Mention} is now ignored!");
+			}
 		}
 
 		[Command("unignore_channel"), RequireUserPermissions(Permissions.ManageChannels), RequireGuild, Aliases("unignorechannel", "see_channel", "seechannel")]
 		public async Task UnignoreChannel(CommandContext context, DiscordChannel channel)
 		{
 			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
-			if (guild != null)
+			if (guild == null)
 			{
-				bool removed = guild.IgnoredChannels.Remove(channel.Id);
-				_ = await Program.SendMessage(context, $"Channel {channel.Mention} {(removed ? "has been removed!" : "is not whitelisted!")}");
+				_ = await Program.SendMessage(context, Formatter.Bold("[Error: Failed to unignore the channel, guild is not in the database!]"));
+				return;
 			}
-			else _ = await Program.SendMessage(context, Formatter.Bold("[Error: Failed to get database from cache]"));
+
+			bool removed = guild.IgnoredChannels.Remove(channel.Id);
+			_ = await Program.SendMessage(context, $"Channel {channel.Mention} {(removed ? "has been removed!" : "is not whitelisted!")}");
 		}
 
 		[Command("add_admin"), RequireUserPermissions(Permissions.ManageRoles), RequireGuild, Aliases("admin", "staff", "add_staff", "addadmin", "addstaff")]
 		public async Task AdminRole(CommandContext context, DiscordRole role)
 		{
 			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
-			if (guild != null)
+			if (guild == null)
 			{
-				if (!guild.AdminRoles.Contains(role.Id)) _ = await Program.SendMessage(context, $"Role {role.Mention} was already admin!");
-				else
-				{
-					guild.AdminRoles.Add(role.Id);
-					_ = await Program.SendMessage(context, $"Channel {role.Mention} is now admin!");
-				}
+				_ = await Program.SendMessage(context, Formatter.Bold("[Error: Failed to add the admin, guild is not in the database!]"));
+				return;
 			}
-			else _ = await Program.SendMessage(context, Formatter.Bold("[Error: Failed to get database from cache]"));
+
+			if (!guild.AdminRoles.Contains(role.Id)) _ = await Program.SendMessage(context, $"Role {role.Mention} was already admin!");
+			else
+			{
+				guild.AdminRoles.Add(role.Id);
+				_ = await Program.SendMessage(context, $"Channel {role.Mention} is now admin!");
+			}
 		}
 
 		[Command("remove_admin"), RequireUserPermissions(Permissions.ManageChannels), RequireGuild, Aliases("removeadmin", "remove_staff", "removestaff", "unadmin", "unstaff")]
 		public async Task RemoveAdmin(CommandContext context, DiscordChannel channel)
 		{
 			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
-			if (guild != null)
+			if (guild == null)
 			{
-				bool removed = guild.IgnoredChannels.Remove(channel.Id);
-				_ = await Program.SendMessage(context, $"Channel {channel.Mention} {(removed ? "has been removed!" : "is not whitelisted!")}");
+				_ = await Program.SendMessage(context, Formatter.Bold("[Error: Failed to remove the admin, guild is not in the database!]"));
+				return;
 			}
-			else _ = await Program.SendMessage(context, Formatter.Bold("[Error: Failed to get database from cache]"));
+
+			bool removed = guild.IgnoredChannels.Remove(channel.Id);
+			_ = await Program.SendMessage(context, $"Channel {channel.Mention} {(removed ? "has been removed!" : "is not whitelisted!")}");
 		}
 
 		[Command("strike_automod"), RequireUserPermissions(Permissions.KickMembers), RequireGuild, Aliases("strikeautomod", "punish_automod", "punishautomod")]
 		public async Task StrikeAutoMod(CommandContext context, bool enabled)
 		{
 			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
-			if (guild != null)
+			if (guild == null)
 			{
-				guild.StrikeAutomod = enabled;
-				_ = await Program.SendMessage(context, "Automod now gives out strikes!");
+				_ = await Program.SendMessage(context, Formatter.Bold("[Error: Failed to change automod mode, guild is not in the database!]"));
+				return;
 			}
-			else _ = await Program.SendMessage(context, Formatter.Bold("[Error: Failed to get database from cache]"));
+
+			guild.StrikeAutomod = enabled;
+			_ = await Program.SendMessage(context, "Automod now gives out strikes!");
 		}
 	}
 }
