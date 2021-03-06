@@ -1,9 +1,7 @@
 using System;
 using System.Linq;
-using System.Runtime.InteropServices;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
-using Npgsql.EntityFrameworkCore.PostgreSQL;
 using Tomoe.Utils;
 
 namespace Tomoe.Db

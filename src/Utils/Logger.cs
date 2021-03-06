@@ -115,7 +115,7 @@ namespace Tomoe.Utils
 		{
 			_branchname = branchName;
 			_branchLogLevel = Config.LoggerConfig.Tomoe;
-			if (Config.LoggerConfig.SaveToFile && LogFile == null) LogFile = new FileStream(Path.Join(FileSystem.ProjectRoot, $"log/{GetTime()}.log"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
+			if (Config.LoggerConfig.SaveToFile && LogFile == null) LogFile = new FileStream($"log/{GetTime()}.log", FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
 			if (branchName.Contains("Commands")) _isCommand = true;
 			_threadId = _random.Next(1000, 9999).ToString();
 		}
@@ -124,7 +124,7 @@ namespace Tomoe.Utils
 		{
 			_branchname = branchName;
 			_branchLogLevel = branchLogLevel;
-			if (Config.LoggerConfig.SaveToFile && LogFile == null) LogFile = new FileStream(Path.Join(FileSystem.ProjectRoot, $"log/{GetTime()}.log"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
+			if (Config.LoggerConfig.SaveToFile && LogFile == null) LogFile = new FileStream($"log/{GetTime()}.log", FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
 			if (branchName.Contains("Commands")) _isCommand = true;
 			_threadId = _random.Next(1000, 9999).ToString();
 		}

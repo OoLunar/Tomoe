@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -27,18 +28,13 @@ namespace Tomoe.Utils
 		[JsonProperty("auto_update")]
 		public static bool AutoUpdate = true;
 
-		[JsonProperty("db_filepath")]
-		public static string DatabaseFilePath = "res/Tomoe.db";
-
-		private static readonly string TokenFile = File.Exists(Path.Join(FileSystem.ProjectRoot, "res/config.jsonc.prod")) switch
-		{
-			true => Path.Join(FileSystem.ProjectRoot, "res/config.jsonc.prod"),
-			false => File.Exists(Path.Join(FileSystem.ProjectRoot, "res/config.jsonc")) ? Path.Join(FileSystem.ProjectRoot, "res/config.jsonc") : null,
-		};
+		private static readonly string TokenFile = File.Exists("res/config.jsonc.prod") ? "res/config.jsonc.prod" : "res/config.jsonc";
 
 		public static async Task Init()
 		{
-			if (TokenFile != null)
+			//TODO: Clean this up after serilogger is used.
+			//TODO: Use environment variables to find config file + Docker support
+			if (File.Exists(TokenFile))
 			{
 				try
 				{
@@ -47,22 +43,25 @@ namespace Tomoe.Utils
 				catch (JsonReaderException jsonException)
 				{
 					new Logger("Config").Critical($"Invalid JSONC on \"{TokenFile}\". {jsonException.Message}");
+					Environment.Exit(1);
 				}
 				catch (JsonSerializationException typeException)
 				{
 					new Logger("Config").Critical($"Error resolving config option on \"{TokenFile}\" Make sure all the config options are valid. Error: {typeException.Message}");
+					Environment.Exit(1);
 				}
-				await Task.Delay(50);
-				if (LoggerConfig.SaveToFile && !Directory.Exists(Path.Join(FileSystem.ProjectRoot, "log/")))
+
+				if (LoggerConfig.SaveToFile && !Directory.Exists("log/"))
 				{
-					_ = FileSystem.CreateDirectory(Path.Join(FileSystem.ProjectRoot, "log/"));
+					//TODO: Try catch this after we transfer to serilogger.
+					_ = Directory.CreateDirectory("log/");
 				}
 			}
 			else
 			{
-				_ = FileSystem.CreateFile(TokenFile);
-				File.WriteAllText(TokenFile, "{\r\n    /*Token to have your bot login to Discord.*/\r\n    \"discord_api_token\": \"<insert Discord Token here>\",\r\n    /*The default prefix when the bot joins.*/\r\n    \"discord_bot_prefix\": \">>\",\r\n    /*An HTTPS link to the git repository.*/\r\n    \"repository_link\": \"https://github.com/OoLunar/Tomoe.git\",\r\n    /*Whether to auto-update using the git library*/\r\n    \"auto_update\": true,\r\n    \"logging\": {\r\n        /* Options are:\r\n\t     * - None\r\n\t     * - Trace\r\n\t     * - Debug\r\n\t     * - Information\r\n\t     * - Warn\r\n\t     * - Error\r\n\t     * - Critical\r\n        */\r\n        \"tomoe\": \"Information\",\r\n        \"discord\": \"Information\",\r\n        /*Ignored when database.driver is not set to PostgresSQL*/\r\n        \"npgsql\": \"Information\",\r\n        \"show_commands_id\": true,\r\n        \"save_to_file\": true\r\n    },\r\n    /*Database details*/\r\n    \"database\": {\r\n        /*PostgresSQL database. More support will be added in the future.*/\r\n        \"driver\": \"PostgresSQL\",\r\n        /*The IP or hostname that the database is listening on.*/\r\n        \"host\": \"<insert hostname>\",\r\n        /*The port that the database is listening on.*/\r\n        \"port\": 5432,\r\n        /*The username used to login to the database.*/\r\n        \"username\": \"tomoe_discord_bot\",\r\n        /*An Postgres compliant password used to login. Must be Postgres compliant.*/\r\n        \"password\": \"<insert password>\",\r\n        /*Database name.*/\r\n        \"database_name\": \"tomoe\",\r\n        /* Choose security levels. Options are:\r\n\t\t* - Require\r\n\t\t* - Prefer\r\n\t\t* - Disable\r\n\t\t* Defaults to Require.\r\n\t\t*/\r\n        \"ssl_mode\": \"Require\"\r\n    }\r\n}");
-				new Logger("Config").Critical($"\"{TokenFile}\" was created, which means that the Discord Bot Token and the database driver information will need to be filled out.");
+				WebClient webClient = new();
+				webClient.DownloadFile("https://github.com/OoLunar/Tomoe/blob/master/res/config.jsonc", "res/config.jsonc");
+				new Logger("Config").Critical($"The config file was downloaded. Please go fill out \"res/config.jsonc\". It is recommended to use \"res/config.jsonc.prod\" if you intend on contributing to Tomoe.");
 				Environment.Exit(1);
 			}
 		}

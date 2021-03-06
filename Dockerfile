@@ -1,22 +1,9 @@
-# Build it
-FROM mcr.microsoft.com/dotnet/sdk:5.0-alpine AS build
-
+FROM mcr.microsoft.com/dotnet/sdk:5.0-alpine
 WORKDIR /src
 
-COPY ./ ./Tomoe/
+COPY ./ /src
+RUN dotnet restore -r linux-musl-x64 --configfile /src/Nuget.Config
+RUN dotnet publish -c release -r linux-musl-x64 --no-restore
+RUN apk upgrade --update-cache --available && apk add openssl && rm -rf /var/cache/apk/*
 
-RUN dotnet restore -r linux-musl-x64 --project=./Tomoe/Tomoe.csproj
-WORKDIR /src/Tomoe
-RUN dotnet build ./Tomoe.csproj -c Release -o /Tomoe/build -r linux-musl-x64
-
-# Run it
-FROM mcr.microsoft.com/dotnet/runtime:5.0-alpine
-
-RUN apk upgrade --update-cache --available && \
-    apk add openssl && \
-    rm -rf /var/cache/apk/*
-
-WORKDIR /Tomoe
-COPY --from=build /Tomoe/build .
-
-CMD dotnet Tomoe.dll
+ENTRYPOINT ["/src/bin/release/net5.0/linux-musl-x64/publish/Tomoe"]
