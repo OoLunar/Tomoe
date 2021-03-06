@@ -11,6 +11,10 @@ using DSharpPlus.Exceptions;
 
 using Tomoe.Db;
 using Tomoe.Utils;
+using Serilog;
+using System.Globalization;
+using Microsoft.Extensions.Logging;
+using Serilog.Sinks.SystemConsole.Themes;
 
 namespace Tomoe
 {
@@ -18,17 +22,24 @@ namespace Tomoe
 	{
 		public static DiscordShardedClient Client { get; private set; }
 		public static IServiceProvider ServiceProvider { get; private set; }
-		private static readonly Logger _logger = new("Main");
 
 		public static void Main() => MainAsync().ConfigureAwait(false).GetAwaiter().GetResult();
 
 		public static async Task MainAsync()
 		{
 			await Config.Init();
-			LoggerProvider loggerProvider = new();
+			LoggerConfiguration loggerConfiguration = new LoggerConfiguration()
+				.Enrich.WithThreadId()
+				.MinimumLevel.Is(Config.LoggerConfig.Tomoe)
+				.MinimumLevel.Override("DSharpPlus", Config.LoggerConfig.Discord)
+				.MinimumLevel.Override("Microsoft", Config.LoggerConfig.Database)
+				.WriteTo.Console(theme: LoggerTheme.Lunar, outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u4}] [{ThreadId}] {SourceContext}: {Message:lj}{NewLine}{Exception}");
+			if (Config.LoggerConfig.SaveToFile) _ = loggerConfiguration.WriteTo.File($"logs/{DateTime.Now.ToLocalTime().ToString("yyyy'-'MM'-'dd' 'HH':'mm':'ss'", CultureInfo.InvariantCulture)}", rollingInterval: RollingInterval.Day, outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u4}] [{ThreadId}] {SourceContext}: {Message:lj}{NewLine}{Exception}");
+			Log.Logger = loggerConfiguration.CreateLogger();
 			Console.CancelKeyPress += Quit.ConsoleShutdown;
 			ServiceCollection services = new();
 			_ = services.AddDbContext<Database>();
+			_ = services.AddLogging(loggingBuilder => loggingBuilder.AddSerilog(Log.Logger));
 			ServiceProvider = services.BuildServiceProvider();
 			_ = await ServiceProvider.GetService<Database>().Database.EnsureCreatedAsync();
 			DiscordConfiguration discordConfiguration = new()
@@ -36,10 +47,9 @@ namespace Tomoe
 				AutoReconnect = true,
 				Token = Config.Token,
 				TokenType = TokenType.Bot,
-				MinimumLogLevel = Config.LoggerConfig.Discord,
 				UseRelativeRatelimit = false,
 				MessageCacheSize = 512,
-				LoggerFactory = loggerProvider
+				LoggerFactory = ServiceProvider.GetService<ILoggerFactory>()
 			};
 
 			Client = new(discordConfiguration);
@@ -55,9 +65,7 @@ namespace Tomoe
 			Client.Ready += Commands.Listeners.OnReady.Handler;
 			await CommandService.Launch(Client, ServiceProvider);
 			await Client.StartAsync();
-			_logger.Info("Starting routines...");
 			Commands.Public.Assignments.StartRoutine();
-			_logger.Info("Started.");
 			await Task.Delay(-1);
 		}
 

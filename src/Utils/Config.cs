@@ -32,8 +32,6 @@ namespace Tomoe.Utils
 
 		public static async Task Init()
 		{
-			//TODO: Clean this up after serilogger is used.
-			//TODO: Use environment variables to find config file + Docker support
 			if (File.Exists(TokenFile))
 			{
 				try
@@ -42,12 +40,12 @@ namespace Tomoe.Utils
 				}
 				catch (JsonReaderException jsonException)
 				{
-					new Logger("Config").Critical($"Invalid JSONC on \"{TokenFile}\". {jsonException.Message}");
+					Console.WriteLine($"Invalid JSONC on \"{TokenFile}\". {jsonException.Message}");
 					Environment.Exit(1);
 				}
 				catch (JsonSerializationException typeException)
 				{
-					new Logger("Config").Critical($"Error resolving config option on \"{TokenFile}\" Make sure all the config options are valid. Error: {typeException.Message}");
+					Console.WriteLine($"Error resolving config option on \"{TokenFile}\" Make sure all the config options are valid. Error: {typeException.Message}");
 					Environment.Exit(1);
 				}
 
@@ -61,7 +59,7 @@ namespace Tomoe.Utils
 			{
 				WebClient webClient = new();
 				webClient.DownloadFile("https://github.com/OoLunar/Tomoe/blob/master/res/config.jsonc", "res/config.jsonc");
-				new Logger("Config").Critical($"The config file was downloaded. Please go fill out \"res/config.jsonc\". It is recommended to use \"res/config.jsonc.prod\" if you intend on contributing to Tomoe.");
+				Console.WriteLine($"The config file was downloaded. Please go fill out \"res/config.jsonc\". It is recommended to use \"res/config.jsonc.prod\" if you intend on contributing to Tomoe.");
 				Environment.Exit(1);
 			}
 		}

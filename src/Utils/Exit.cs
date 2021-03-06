@@ -1,24 +1,24 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
-
+using Serilog;
 using Tomoe.Db;
 
 namespace Tomoe.Utils
 {
 	public class Quit
 	{
-		private static readonly Logger _logger = new("Exit");
+		private static readonly ILogger _logger = Log.ForContext<Quit>();
 		public static async void ConsoleShutdown(object sender, ConsoleCancelEventArgs args)
 		{
 			Console.Write("\b\b");
-			_logger.Info("Shutting down...");
-			_logger.Info("Closing routines...");
+			_logger.Information("Shutting down...");
+			_logger.Information("Closing routines...");
 			Commands.Public.Assignments.Timer.Dispose();
-			_logger.Info("Closing Discord...");
+			_logger.Information("Closing Discord...");
 			await Program.Client.StopAsync();
-			_logger.Info("Closing database...");
+			_logger.Information("Closing database...");
 			_ = await Program.ServiceProvider.GetService<Database>().SaveChangesAsync();
-			_logger.Info("Goodbyte!");
+			_logger.Information("Goodbyte!");
 			Environment.Exit(0);
 		}
 	}

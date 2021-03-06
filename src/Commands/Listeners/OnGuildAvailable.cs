@@ -9,14 +9,14 @@ using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 
 using Tomoe.Db;
-using Tomoe.Utils;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Serilog;
 
 namespace Tomoe.Commands.Listeners
 {
 	public class GuildAvailable
 	{
-		private static readonly Logger _logger = new("Commands.Listeners.GuildAvailable");
+		private static readonly ILogger _logger = Log.ForContext<GuildAvailable>();
 
 		public static async Task Handler(DiscordClient _client, GuildCreateEventArgs eventArgs)
 		{
@@ -61,7 +61,7 @@ namespace Tomoe.Commands.Listeners
 						}
 					}
 				}
-			_logger.Info($"\"{eventArgs.Guild.Name}\" ({eventArgs.Guild.Id}) is ready! Handling {eventArgs.Guild.MemberCount} members.");
+			_logger.Information($"\"{eventArgs.Guild.Name}\" ({eventArgs.Guild.Id}) is ready! Handling {eventArgs.Guild.MemberCount} members.");
 		}
 	}
 }

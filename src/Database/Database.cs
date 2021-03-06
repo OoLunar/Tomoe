@@ -1,8 +1,11 @@
 using System;
 using System.Linq;
+
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+
 using Npgsql;
-using Tomoe.Utils;
 
 namespace Tomoe.Db
 {
@@ -14,7 +17,6 @@ namespace Tomoe.Db
 
 		protected override void OnConfiguring(DbContextOptionsBuilder options)
 		{
-			LoggerProvider loggerProvider = new();
 			NpgsqlConnectionStringBuilder connectionBuilder = new();
 			connectionBuilder.ApplicationName = "Tomoe";
 			connectionBuilder.Database = "tomoe";
@@ -23,7 +25,7 @@ namespace Tomoe.Db
 			connectionBuilder.Username = "tomoe_discord_bot";
 			_ = options.UseNpgsql(connectionBuilder.ToString());
 			_ = options.EnableSensitiveDataLogging(true);
-			_ = options.UseLoggerFactory(loggerProvider);
+			_ = options.UseLoggerFactory(Program.ServiceProvider.GetService<ILoggerFactory>());
 		}
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{

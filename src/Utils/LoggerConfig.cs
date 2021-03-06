@@ -3,19 +3,20 @@ using System.Text.Json;
 using Microsoft.Extensions.Logging;
 
 using Newtonsoft.Json;
+using Serilog.Events;
 
 namespace Tomoe.Utils
 {
 	internal class LoggerConfig
 	{
 		[JsonProperty("tomoe")]
-		public readonly LogLevel Tomoe;
+		public readonly LogEventLevel Tomoe;
 
 		[JsonProperty("discord")]
-		public readonly LogLevel Discord;
+		public readonly LogEventLevel Discord;
 
 		[JsonProperty("database")]
-		public readonly LogLevel Database;
+		public readonly LogEventLevel Database;
 
 		[JsonProperty("show_commands_id")]
 		public readonly bool ShowId;
@@ -24,7 +25,7 @@ namespace Tomoe.Utils
 		public readonly bool SaveToFile;
 
 		[JsonConstructor]
-		public LoggerConfig(LogLevel tomoe = LogLevel.Information, LogLevel discord = LogLevel.Information, LogLevel database = LogLevel.Error, bool showId = false, bool saveToFile = false)
+		public LoggerConfig(LogEventLevel tomoe = LogEventLevel.Information, LogEventLevel discord = LogEventLevel.Information, LogEventLevel database = LogEventLevel.Error, bool showId = false, bool saveToFile = false)
 		{
 			Tomoe = tomoe;
 			Discord = discord;
