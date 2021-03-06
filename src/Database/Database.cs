@@ -1,10 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-
+using Newtonsoft.Json;
 using Npgsql;
 
 namespace Tomoe.Db
@@ -29,40 +31,55 @@ namespace Tomoe.Db
 		}
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
-			_ = modelBuilder.Entity<Guild>()
+
+			// Tried to use dynamic and T, neither worked. D:
+			// Create List<T> for each type.
+			ValueComparer valueComparerString = new ValueComparer<List<string>>(
+				(c1, c2) => c1.SequenceEqual(c2),
+				c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+				c => c.ToList()
+			);
+
+			ValueComparer valueComparerUlong = new ValueComparer<List<ulong>>(
+				(c1, c2) => c1.SequenceEqual(c2),
+				c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+				c => c.ToList()
+			);
+
+			modelBuilder.Entity<Guild>()
 			.Property(guild => guild.AllowedInvites)
 			.HasConversion(
-				allowedInvites => string.Join('\v', allowedInvites),
-				allowedInvites => allowedInvites.Split('\v', StringSplitOptions.RemoveEmptyEntries).ToList()
-			);
+				allowedInvites => JsonConvert.SerializeObject(allowedInvites),
+				allowedInvites => JsonConvert.DeserializeObject<List<string>>(allowedInvites)
+			).Metadata.SetValueComparer(valueComparerString);
 
-			_ = modelBuilder.Entity<Guild>()
+			modelBuilder.Entity<Guild>()
 			.Property(guild => guild.IgnoredChannels)
 			.HasConversion(
-				ignoredChannels => string.Join(';', ignoredChannels),
-				ignoredChannels => ignoredChannels.Split(';', StringSplitOptions.RemoveEmptyEntries).Cast<ulong>().ToList()
-			);
+				ignoredChannels => JsonConvert.SerializeObject(ignoredChannels),
+				ignoredChannels => JsonConvert.DeserializeObject<List<ulong>>(ignoredChannels)
+			).Metadata.SetValueComparer(valueComparerUlong);
 
-			_ = modelBuilder.Entity<Guild>()
+			modelBuilder.Entity<Guild>()
 			.Property(guild => guild.AdminRoles)
 			.HasConversion(
-				adminRoles => string.Join(';', adminRoles),
-				adminRoles => adminRoles.Split(';', StringSplitOptions.RemoveEmptyEntries).Cast<ulong>().ToList()
-			);
+				adminRoles => JsonConvert.SerializeObject(adminRoles),
+				adminRoles => JsonConvert.DeserializeObject<List<ulong>>(adminRoles)
+			).Metadata.SetValueComparer(valueComparerUlong);
 
-			_ = modelBuilder.Entity<GuildUser>()
+			modelBuilder.Entity<GuildUser>()
 			.Property(guildUser => guildUser.Roles)
 			.HasConversion(
-				roles => string.Join(';', roles),
-				roles => roles.Split(';', StringSplitOptions.RemoveEmptyEntries).Cast<ulong>().ToList()
-			);
+				roles => JsonConvert.SerializeObject(roles),
+				roles => JsonConvert.DeserializeObject<List<ulong>>(roles)
+			).Metadata.SetValueComparer(valueComparerUlong);
 
-			_ = modelBuilder.Entity<Strike>()
+			modelBuilder.Entity<Strike>()
 			.Property(strike => strike.Reasons)
 			.HasConversion(
-				reason => string.Join('\v', reason),
-				reason => reason.Split('\v', StringSplitOptions.RemoveEmptyEntries).ToList()
-			);
+				reasons => JsonConvert.SerializeObject(reasons),
+				reasons => JsonConvert.DeserializeObject<List<string>>(reasons)
+			).Metadata.SetValueComparer(valueComparerString);
 
 			_ = modelBuilder.Entity<Strike>()
 			.Property(strike => strike.Id)
