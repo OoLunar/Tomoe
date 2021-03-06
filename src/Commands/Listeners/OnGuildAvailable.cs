@@ -9,7 +9,6 @@ using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 
 using Tomoe.Db;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Serilog;
 
 namespace Tomoe.Commands.Listeners
@@ -37,30 +36,7 @@ namespace Tomoe.Commands.Listeners
 				guild.Users.Add(guildUser);
 			}
 
-			bool saved = false;
-			while (!saved)
-				try
-				{
-					_ = await database.SaveChangesAsync();
-					saved = true;
-				}
-				catch (DbUpdateConcurrencyException error)
-				{
-					foreach (EntityEntry entry in error.Entries)
-					{
-						if (entry.Entity is Guild)
-						{
-							if (entry.CurrentValues.GetValue<ulong>("Id") == guild.Id)
-							{
-								entry.OriginalValues.SetValues(entry.CurrentValues);
-							}
-							else
-							{
-								entry.OriginalValues.SetValues(entry.GetDatabaseValues());
-							}
-						}
-					}
-				}
+			_ = await database.SaveChangesAsync();
 			_logger.Information($"\"{eventArgs.Guild.Name}\" ({eventArgs.Guild.Id}) is ready! Handling {eventArgs.Guild.MemberCount} members.");
 		}
 	}

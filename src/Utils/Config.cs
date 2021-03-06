@@ -16,8 +16,11 @@ namespace Tomoe.Utils
 		[JsonProperty("discord_bot_prefix")]
 		public static string Prefix = ">>";
 
-		[JsonProperty("logger_config")]
+		[JsonProperty("logger")]
 		public static LoggerConfig Logger = new();
+
+		[JsonProperty("database")]
+		public static DatabaseConfig Database;
 
 		[JsonProperty("repository_link")]
 		public static string RepositoryLink = "https://github.com/OoLunar/Tomoe.git";
@@ -30,7 +33,8 @@ namespace Tomoe.Utils
 
 		private static readonly string TokenFile = File.Exists("res/config.jsonc.prod") ? "res/config.jsonc.prod" : "res/config.jsonc";
 
-		public static async Task Init()
+		//TODO: Rewrite as a constructor
+		public static void Init()
 		{
 			if (File.Exists(TokenFile))
 			{

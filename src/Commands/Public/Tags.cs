@@ -17,7 +17,7 @@ namespace Tomoe.Commands.Public
 		public Database Database { private get; set; }
 
 		[GroupCommand]
-		public async Task Get(CommandContext context, Tag tag) => Program.SendMessage(context, tag.Content);
+		public async Task Get(CommandContext context, Tag tag) => _ = await Program.SendMessage(context, tag.Content);
 
 		[Command("create")]
 		public async Task Create(CommandContext context, string name, [RemainingText] string content)

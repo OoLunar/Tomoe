@@ -7,7 +7,7 @@
 	"repository_link": "https://github.com/OoLunar/Tomoe.git",
 	/*An HTTPS link to have the user invite the bot.*/
 	"invite_link": "https://discord.com/oauth2/authorize?client_id=481314095723839508&permissions=8&scope=bot",
-	"logger_config": {
+	"logger": {
 		/* Options are:
 	     * - None
 	     * - Trace
@@ -22,5 +22,13 @@
 		"database": "Error",
 		"show_id": true,
 		"save_to_file": false
+	},
+	"database": {
+		"application_name": "Tomoe",
+		"database_name": "tomoe",
+		"host": "<some host>",
+		"password": "<some password>",
+		"username": "tomoe",
+		"port": 5432
 	}
 }

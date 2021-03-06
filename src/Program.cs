@@ -14,6 +14,9 @@ using Tomoe.Utils;
 using Serilog;
 using System.Globalization;
 using Microsoft.Extensions.Logging;
+using Npgsql;
+using Microsoft.EntityFrameworkCore;
+using Emzi0767.Utilities;
 
 namespace Tomoe
 {
@@ -26,7 +29,8 @@ namespace Tomoe
 
 		public static async Task MainAsync()
 		{
-			await Config.Init();
+			Config.Init();
+
 			string outputTemplate = Config.Logger.ShowId ? "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u4}] [{ThreadId}] {SourceContext}: {Message:lj}{NewLine}{Exception}" : "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u4}] {SourceContext}: {Message:lj}{NewLine}{Exception}";
 			LoggerConfiguration loggerConfiguration = new LoggerConfiguration()
 				.Enrich.WithThreadId()
@@ -36,12 +40,28 @@ namespace Tomoe
 				.WriteTo.Console(theme: LoggerTheme.Lunar, outputTemplate: outputTemplate);
 			if (Config.Logger.SaveToFile) _ = loggerConfiguration.WriteTo.File($"logs/{DateTime.Now.ToLocalTime().ToString("yyyy'-'MM'-'dd' 'HH':'mm':'ss'", CultureInfo.InvariantCulture)}", rollingInterval: RollingInterval.Day, outputTemplate: outputTemplate);
 			Log.Logger = loggerConfiguration.CreateLogger();
-			Console.CancelKeyPress += Quit.ConsoleShutdown;
+
 			ServiceCollection services = new();
-			_ = services.AddDbContext<Database>();
+			_ = services.AddDbContextPool<Database>(options =>
+			{
+				NpgsqlConnectionStringBuilder connectionBuilder = new();
+				connectionBuilder.ApplicationName = Config.Database.ApplicationName;
+				connectionBuilder.Database = Config.Database.DatabaseName;
+				connectionBuilder.Host = Config.Database.Host;
+				connectionBuilder.Password = Config.Database.Password;
+				connectionBuilder.Username = Config.Database.Username;
+				connectionBuilder.Port = Config.Database.Port;
+				_ = options.UseNpgsql(connectionBuilder.ToString());
+#if DEBUG
+				_ = options.EnableSensitiveDataLogging();
+				_ = options.EnableDetailedErrors();
+#endif
+				_ = options.UseLoggerFactory(ServiceProvider.GetService<ILoggerFactory>());
+			});
 			_ = services.AddLogging(loggingBuilder => loggingBuilder.AddSerilog(Log.Logger));
 			ServiceProvider = services.BuildServiceProvider();
 			_ = await ServiceProvider.GetService<Database>().Database.EnsureCreatedAsync();
+
 			DiscordConfiguration discordConfiguration = new()
 			{
 				AutoReconnect = true,
@@ -63,6 +83,7 @@ namespace Tomoe
 			Client.ChannelCreated += Commands.Listeners.ChannelCreated.Handler;
 			Client.MessageCreated += Commands.Listeners.MessageRecieved.Handler;
 			Client.Ready += Commands.Listeners.OnReady.Handler;
+			Console.CancelKeyPress += Quit.ConsoleShutdown;
 			await CommandService.Launch(Client, ServiceProvider);
 			await Client.StartAsync();
 			Commands.Public.Assignments.StartRoutine();

@@ -15,7 +15,7 @@ namespace Tomoe.Commands.Public
 			CommandContext newContext = context.CommandsNext.CreateContext(context.Message, context.Prefix, context.CommandsNext.RegisteredCommands[commandName], arguments);
 			for (int i = 0; i < repeatCount; i++)
 			{
-				_ = await Task.Run(async () => context.CommandsNext.ExecuteCommandAsync(newContext));
+				await Task.Run(async () => await context.CommandsNext.ExecuteCommandAsync(newContext));
 				await Task.Delay(TimeSpan.FromSeconds(2));
 			}
 		}

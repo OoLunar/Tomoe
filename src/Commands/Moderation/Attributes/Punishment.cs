@@ -68,7 +68,7 @@ namespace Tomoe.Commands.Moderation.Attributes
 			{
 				bool confirm = false;
 				DiscordMessage message = await Program.SendMessage(context, Constants.SelfPunishment);
-				_ = new Queue(message, context.User, new(async eventArgs =>
+				_ = new Queue(message, context.User, new(eventArgs =>
 				{
 					if (eventArgs.Emoji == Queue.ThumbsUp) confirm = true;
 					else if (eventArgs.Emoji == Queue.ThumbsDown)
@@ -76,6 +76,7 @@ namespace Tomoe.Commands.Moderation.Attributes
 						_ = message.ModifyAsync($"{Formatter.Strike(message.Content)}\n{Formatter.Bold("[Notice: Aborting...]")}");
 						confirm = false;
 					}
+					return Task.CompletedTask;
 				})).WaitForReaction();
 				return confirm;
 			}

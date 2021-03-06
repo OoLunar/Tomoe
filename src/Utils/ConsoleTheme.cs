@@ -8,6 +8,7 @@ namespace Tomoe.Utils
 {
 	public class LoggerTheme : ConsoleTheme
 	{
+		public const string AnsiStyleReset = "\x1b[0m";
 
 		public static AnsiConsoleTheme Lunar { get; } = new AnsiConsoleTheme(
 			new Dictionary<ConsoleThemeStyle, string>
@@ -32,7 +33,6 @@ namespace Tomoe.Utils
 		);
 
 		private readonly IReadOnlyDictionary<ConsoleThemeStyle, string> _styles;
-		public const string AnsiStyleReset = "\x1b[0m";
 
 		/// <summary>
 		/// Construct a theme given a set of styles.

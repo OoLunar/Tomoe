@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -6,6 +7,7 @@ using System.Threading.Tasks;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using Humanizer;
 
 namespace Tomoe.Commands.Public
 {
@@ -21,7 +23,7 @@ namespace Tomoe.Commands.Public
 			_ = botInfo.Append($"General Ping: {context.Client.Ping}ms\n");
 			_ = botInfo.Append($"Total shards: {Program.Client.ShardClients.Count}\n");
 			Process currentProcess = Process.GetCurrentProcess();
-			_ = botInfo.Append($"Total memory used: {currentProcess.PrivateMemorySize64 / 1024 / 1024}mb\n");
+			_ = botInfo.Append($"Total memory used: {Math.Round(currentProcess.PrivateMemorySize64.Bytes().Megabytes, 2)}mb\n");
 			_ = botInfo.Append($"Total threads open: {currentProcess.Threads.Count}");
 			embedBuilder.Description = botInfo.ToString();
 			currentProcess.Dispose();

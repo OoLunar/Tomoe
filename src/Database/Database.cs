@@ -4,10 +4,8 @@ using System.Linq;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+
 using Newtonsoft.Json;
-using Npgsql;
 
 namespace Tomoe.Db
 {
@@ -17,18 +15,8 @@ namespace Tomoe.Db
 		public DbSet<Strike> Strikes { get; set; }
 		public DbSet<Assignment> Assignments { get; set; }
 
-		protected override void OnConfiguring(DbContextOptionsBuilder options)
-		{
-			NpgsqlConnectionStringBuilder connectionBuilder = new();
-			connectionBuilder.ApplicationName = "Tomoe";
-			connectionBuilder.Database = "tomoe";
-			connectionBuilder.Host = "mail.forsaken-borders.net";
-			connectionBuilder.Password = "253ef055d412bf500ae9ce2f2de29ea96f71696734b91c49eae279d56489e299f6759095591e225b";
-			connectionBuilder.Username = "tomoe_discord_bot";
-			_ = options.UseNpgsql(connectionBuilder.ToString());
-			_ = options.EnableSensitiveDataLogging(true);
-			_ = options.UseLoggerFactory(Program.ServiceProvider.GetService<ILoggerFactory>());
-		}
+		public Database(DbContextOptions<Database> options) : base(options) { }
+
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
 
@@ -88,6 +76,8 @@ namespace Tomoe.Db
 			_ = modelBuilder.Entity<Tag>()
 			.Property(tag => tag.TagId)
 			.ValueGeneratedOnAdd();
+
+			base.OnModelCreating(modelBuilder);
 		}
 	}
 }
