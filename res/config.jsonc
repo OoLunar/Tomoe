@@ -7,8 +7,6 @@
 	"repository_link": "https://github.com/OoLunar/Tomoe.git",
 	/*An HTTPS link to have the user invite the bot.*/
 	"invite_link": "https://discord.com/oauth2/authorize?client_id=481314095723839508&permissions=8&scope=bot",
-	/*Whether to auto-update using the git library*/
-	"auto_update": true,
 	"logger_config": {
 		/* Options are:
 	     * - None
@@ -24,6 +22,5 @@
 		"database": "Error",
 		"show_commands_id": true,
 		"save_to_file": false
-	},
-	"db_filepath": "res/Tomoe.db"
+	}
 }
