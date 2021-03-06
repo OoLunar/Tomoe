@@ -20,7 +20,7 @@
 		"tomoe": "Debug",
 		"discord": "Information",
 		"database": "Error",
-		"show_commands_id": true,
+		"show_id": true,
 		"save_to_file": false
 	}
 }

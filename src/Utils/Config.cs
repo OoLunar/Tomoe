@@ -17,7 +17,7 @@ namespace Tomoe.Utils
 		public static string Prefix = ">>";
 
 		[JsonProperty("logger_config")]
-		public static LoggerConfig LoggerConfig = new();
+		public static LoggerConfig Logger = new();
 
 		[JsonProperty("repository_link")]
 		public static string RepositoryLink = "https://github.com/OoLunar/Tomoe.git";
@@ -49,7 +49,7 @@ namespace Tomoe.Utils
 					Environment.Exit(1);
 				}
 
-				if (LoggerConfig.SaveToFile && !Directory.Exists("log/"))
+				if (Logger.SaveToFile && !Directory.Exists("log/"))
 				{
 					//TODO: Try catch this after we transfer to serilogger.
 					_ = Directory.CreateDirectory("log/");

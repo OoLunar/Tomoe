@@ -18,7 +18,7 @@ namespace Tomoe.Utils
 		[JsonProperty("database")]
 		public readonly LogEventLevel Database;
 
-		[JsonProperty("show_commands_id")]
+		[JsonProperty("show_id")]
 		public readonly bool ShowId;
 
 		[JsonProperty("save_to_file")]

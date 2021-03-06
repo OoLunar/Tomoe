@@ -14,7 +14,6 @@ using Tomoe.Utils;
 using Serilog;
 using System.Globalization;
 using Microsoft.Extensions.Logging;
-using Serilog.Sinks.SystemConsole.Themes;
 
 namespace Tomoe
 {
@@ -28,13 +27,14 @@ namespace Tomoe
 		public static async Task MainAsync()
 		{
 			await Config.Init();
+			string outputTemplate = Config.Logger.ShowId ? "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u4}] [{ThreadId}] {SourceContext}: {Message:lj}{NewLine}{Exception}" : "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u4}] {SourceContext}: {Message:lj}{NewLine}{Exception}";
 			LoggerConfiguration loggerConfiguration = new LoggerConfiguration()
 				.Enrich.WithThreadId()
-				.MinimumLevel.Is(Config.LoggerConfig.Tomoe)
-				.MinimumLevel.Override("DSharpPlus", Config.LoggerConfig.Discord)
-				.MinimumLevel.Override("Microsoft", Config.LoggerConfig.Database)
-				.WriteTo.Console(theme: LoggerTheme.Lunar, outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u4}] [{ThreadId}] {SourceContext}: {Message:lj}{NewLine}{Exception}");
-			if (Config.LoggerConfig.SaveToFile) _ = loggerConfiguration.WriteTo.File($"logs/{DateTime.Now.ToLocalTime().ToString("yyyy'-'MM'-'dd' 'HH':'mm':'ss'", CultureInfo.InvariantCulture)}", rollingInterval: RollingInterval.Day, outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u4}] [{ThreadId}] {SourceContext}: {Message:lj}{NewLine}{Exception}");
+				.MinimumLevel.Is(Config.Logger.Tomoe)
+				.MinimumLevel.Override("DSharpPlus", Config.Logger.Discord)
+				.MinimumLevel.Override("Microsoft", Config.Logger.Database)
+				.WriteTo.Console(theme: LoggerTheme.Lunar, outputTemplate: outputTemplate);
+			if (Config.Logger.SaveToFile) _ = loggerConfiguration.WriteTo.File($"logs/{DateTime.Now.ToLocalTime().ToString("yyyy'-'MM'-'dd' 'HH':'mm':'ss'", CultureInfo.InvariantCulture)}", rollingInterval: RollingInterval.Day, outputTemplate: outputTemplate);
 			Log.Logger = loggerConfiguration.CreateLogger();
 			Console.CancelKeyPress += Quit.ConsoleShutdown;
 			ServiceCollection services = new();
