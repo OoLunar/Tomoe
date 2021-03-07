@@ -3,9 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
-
-using Microsoft.EntityFrameworkCore;
-
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
@@ -13,7 +10,7 @@ using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
-
+using Microsoft.EntityFrameworkCore;
 using Tomoe.Commands.Moderation.Attributes;
 using Tomoe.Db;
 
@@ -38,7 +35,7 @@ namespace Tomoe.Commands.Moderation
 			strike.VictimMessaged = false;
 			strike.CaseId = await Database.Strikes.CountAsync(strike => strike.GuildId == strike.GuildId) + 1;
 			_ = Database.Strikes.Add(strike);
-			DiscordMember guildVictim = victim.GetMember(context.Guild);
+			DiscordMember guildVictim = context.Guild.Members[victim.Id];
 			if (guildVictim != null && !guildVictim.IsBot) try
 				{
 					_ = await guildVictim.SendMessageAsync($"You've been given a strike by {Formatter.Bold(context.User.Mention)} from {Formatter.Bold(context.Guild.Name)}. Reason: {Formatter.BlockCode(Formatter.Strip(strikeReason))}");
@@ -142,7 +139,7 @@ namespace Tomoe.Commands.Moderation
 			strike.VictimId = victim.Id;
 			strike.VictimMessaged = false;
 			_ = database.Strikes.Add(strike);
-			DiscordMember guildVictim = victim.GetMember(discordGuild);
+			DiscordMember guildVictim = discordGuild.Members[victim.Id];
 			if (guildVictim != null && !guildVictim.IsBot) try
 				{
 					_ = await guildVictim.SendMessageAsync($"You've been given a strike by {Formatter.Bold(Program.Client.CurrentUser.Mention)} from {Formatter.Bold(discordGuild.Name)}. Reason: {Formatter.BlockCode(Formatter.Strip(strikeReason))}\nContext: {Formatter.EmbedlessUrl(strike.JumpLink)}");

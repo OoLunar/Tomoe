@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
@@ -30,14 +29,18 @@ namespace Tomoe.Commands.Moderation
 			}
 
 			bool sentDm = false;
-			DiscordMember guildVictim = victim.GetMember(context.Guild);
+			DiscordMember guildVictim = context.Guild.Members[victim.Id];
 			if (guildVictim != null)
 			{
-				try
+				if (!guildVictim.IsBot)
 				{
-					if (!guildVictim.IsBot) _ = await guildVictim.SendMessageAsync($"You've been tempmuted by {Formatter.Bold(context.User.Mention)} from {Formatter.Bold(context.Guild.Name)} for {Formatter.Bold(muteTime.ToString())}. Reason: {Formatter.BlockCode(Formatter.Strip(muteReason))}");
+					try
+					{
+						_ = await guildVictim.SendMessageAsync($"You've been tempmuted by {Formatter.Bold(context.User.Mention)} from {Formatter.Bold(context.Guild.Name)} for {Formatter.Bold(muteTime.ToString())}. Reason: {Formatter.BlockCode(Formatter.Strip(muteReason))}");
+						sentDm = true;
+					}
+					catch (UnauthorizedException) { }
 				}
-				catch (UnauthorizedException) { }
 				await guildVictim.GrantRoleAsync(muteRole, muteReason);
 			}
 

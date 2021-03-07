@@ -1,6 +1,5 @@
 using System.Linq;
 using System.Threading.Tasks;
-
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
@@ -28,7 +27,7 @@ namespace Tomoe.Commands.Moderation
 			}
 
 			bool sentDm = false;
-			DiscordMember guildVictim = victim.GetMember(context.Guild);
+			DiscordMember guildVictim = context.Guild.Members[victim.Id];
 			if (guildVictim != null)
 			{
 				try

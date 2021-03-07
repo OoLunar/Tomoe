@@ -1,9 +1,7 @@
 using System;
 using System.Threading.Tasks;
-
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
-
 using Tomoe.Commands.Listeners;
 
 namespace Tomoe.Types

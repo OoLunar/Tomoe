@@ -1,15 +1,12 @@
 using System.Linq;
 using System.Threading.Tasks;
-
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
-
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Tomoe.Commands.Moderation.Attributes;
 using Tomoe.Db;
 
@@ -21,7 +18,6 @@ namespace Tomoe.Commands.Moderation
 
 		[Command("guild_count")]
 		public async Task Guild(CommandContext context) => await Program.SendMessage(context, (await Database.Guilds.CountAsync()).ToString());
-
 
 		[Command("voiceban"), Description("Prevents the victim from joining voice channels. Good to use when someone is switching between channels or spamming unmutting and muting."), RequireBotPermissions(Permissions.ManageRoles), RequireUserPermissions(Permissions.MuteMembers), Aliases("voice_ban", "vb"), Punishment]
 		public async Task User(CommandContext context, DiscordUser victim, [RemainingText] string voiceBanReason = Constants.MissingReason)
@@ -36,7 +32,7 @@ namespace Tomoe.Commands.Moderation
 			}
 
 			bool sentDm = false;
-			DiscordMember guildVictim = victim.GetMember(context.Guild);
+			DiscordMember guildVictim = context.Guild.Members[victim.Id];
 			if (guildVictim != null)
 			{
 				try
@@ -66,7 +62,7 @@ namespace Tomoe.Commands.Moderation
 			DiscordRole voicebanRole = guild.VoiceBanRole.GetRole(context.Guild);
 			if (voicebanRole == null) return;
 
-			DiscordMember guildVictim = victim.GetMember(context.Guild);
+			DiscordMember guildVictim = context.Guild.Members[victim.Id];
 			if (guildVictim != null)
 			{
 				try

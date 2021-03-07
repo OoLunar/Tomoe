@@ -1,6 +1,6 @@
 bin/
 obj/
-log/
+logs/
 res/config.jsonc.prod
 res/*.db
 res/*.bak

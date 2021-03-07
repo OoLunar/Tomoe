@@ -1,13 +1,10 @@
 using System.Threading.Tasks;
-
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
-
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Tomoe.Db;
 
 namespace Tomoe.Utils
@@ -18,7 +15,7 @@ namespace Tomoe.Utils
 		{
 			CommandsNextExtension commandsNext = client.GetCommandsNext();
 			DiscordMessage message = eventArgs.Message;
-			int commandStart = message.GetStringPrefixLength(Config.Prefix);
+			int commandStart = message.GetStringPrefixLength(Program.Config.DiscordBotPrefix);
 
 			if (commandStart == -1)
 			{

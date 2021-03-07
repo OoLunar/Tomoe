@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
@@ -28,7 +27,7 @@ namespace Tomoe.Utils
 				{
 					IReadOnlyDictionary<int, CommandsNextExtension> commandsCollection = await discordClient.UseCommandsNextAsync(new CommandsNextConfiguration
 					{
-						StringPrefixes = new[] { Config.Prefix },
+						StringPrefixes = new[] { Program.Config.DiscordBotPrefix },
 						CaseSensitive = false,
 						EnableDms = true,
 						EnableDefaultHelp = false,

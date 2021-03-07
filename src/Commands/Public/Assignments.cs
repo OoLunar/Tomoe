@@ -4,9 +4,6 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Timers;
-
-using Microsoft.EntityFrameworkCore;
-
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
@@ -14,11 +11,11 @@ using DSharpPlus.Entities;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Enums;
 using DSharpPlus.Interactivity.Extensions;
-
+using Humanizer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Tomoe.Db;
 using Tomoe.Utils;
-using Microsoft.Extensions.DependencyInjection;
-using Humanizer;
 
 namespace Tomoe.Commands.Public
 {
@@ -97,27 +94,27 @@ namespace Tomoe.Commands.Public
 						switch (task.AssignmentType)
 						{
 							case AssignmentType.Reminder:
-								context = commandsNext.CreateContext(await channel.GetMessageAsync(task.MessageId), Config.Prefix, commandsNext.RegisteredCommands["remind"], null);
+								context = commandsNext.CreateContext(await channel.GetMessageAsync(task.MessageId), Program.Config.DiscordBotPrefix, commandsNext.RegisteredCommands["remind"], null);
 								_ = await Program.SendMessage(context, $"{task.SetAt.Humanize()}: {task.Content}");
 								_ = database.Assignments.Remove(task);
 								break;
 							case AssignmentType.TempBan:
-								context = commandsNext.CreateContext(await channel.GetMessageAsync(task.MessageId), Config.Prefix, commandsNext.RegisteredCommands["tempban"], null);
+								context = commandsNext.CreateContext(await channel.GetMessageAsync(task.MessageId), Program.Config.DiscordBotPrefix, commandsNext.RegisteredCommands["tempban"], null);
 								await Moderation.Unban.ByAssignment(context, await context.Client.GetUserAsync(task.UserId));
 								_ = database.Assignments.Remove(task);
 								break;
 							case AssignmentType.TempMute:
-								context = commandsNext.CreateContext(await channel.GetMessageAsync(task.MessageId), Config.Prefix, commandsNext.RegisteredCommands["tempmute"], null);
+								context = commandsNext.CreateContext(await channel.GetMessageAsync(task.MessageId), Program.Config.DiscordBotPrefix, commandsNext.RegisteredCommands["tempmute"], null);
 								await Moderation.Unmute.ByAssignment(context, await context.Client.GetUserAsync(task.UserId));
 								_ = database.Assignments.Remove(task);
 								break;
 							case AssignmentType.TempAntimeme:
-								context = commandsNext.CreateContext(await channel.GetMessageAsync(task.MessageId), Config.Prefix, commandsNext.RegisteredCommands["tempantimeme"], null);
+								context = commandsNext.CreateContext(await channel.GetMessageAsync(task.MessageId), Program.Config.DiscordBotPrefix, commandsNext.RegisteredCommands["tempantimeme"], null);
 								await Moderation.Promeme.ByAssignment(context, await context.Client.GetUserAsync(task.UserId));
 								_ = database.Assignments.Remove(task);
 								break;
 							case AssignmentType.TempVoiceBan:
-								context = commandsNext.CreateContext(await channel.GetMessageAsync(task.MessageId), Config.Prefix, commandsNext.RegisteredCommands["tempantimeme"], null);
+								context = commandsNext.CreateContext(await channel.GetMessageAsync(task.MessageId), Program.Config.DiscordBotPrefix, commandsNext.RegisteredCommands["tempantimeme"], null);
 								await Moderation.VoiceBan.ByAssignment(context, await context.Client.GetUserAsync(task.UserId));
 								_ = database.Assignments.Remove(task);
 								break;

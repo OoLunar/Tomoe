@@ -1,17 +1,14 @@
+using System;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-
-using Microsoft.EntityFrameworkCore;
-
 using DSharpPlus;
-using DSharpPlus.EventArgs;
-
-using Tomoe.Db;
-using System.Linq;
-using System;
 using DSharpPlus.Entities;
+using DSharpPlus.EventArgs;
 using DSharpPlus.Exceptions;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Tomoe.Db;
 
 namespace Tomoe.Commands.Listeners
 {
@@ -25,15 +22,17 @@ namespace Tomoe.Commands.Listeners
 			using IServiceScope scope = Program.ServiceProvider.CreateScope();
 			Database database = scope.ServiceProvider.GetService<Database>();
 			Guild guild = await database.Guilds.FirstOrDefaultAsync(guild => guild.Id == eventArgs.Guild.Id);
+			DiscordMember authorMember = eventArgs.Guild.Members[eventArgs.Author.Id];
 			if (guild == null
 				|| eventArgs.Author.IsBot
 				|| (eventArgs.Author.IsSystem.HasValue && eventArgs.Author.IsSystem.Value)
 				|| guild.IgnoredChannels.Contains(eventArgs.Channel.Id)
-				|| eventArgs.Author.GetMember(eventArgs.Guild).HasPermission(Permissions.ManageMessages)
-				|| eventArgs.Author.GetMember(eventArgs.Guild).HasPermission(Permissions.Administrator)
+				|| authorMember.HasPermission(Permissions.ManageMessages)
+				|| authorMember.HasPermission(Permissions.Administrator)
 				|| eventArgs.Guild.OwnerId == eventArgs.Author.Id
-				|| guild.AdminRoles.ConvertAll(role => role.ToString()).Intersect(eventArgs.Author.GetMember(eventArgs.Guild).Roles.ToList().ConvertAll(role => role.ToString())).Any()
+				|| guild.AdminRoles.ConvertAll(role => role.ToString()).Intersect(authorMember.Roles.ToList().ConvertAll(role => role.ToString())).Any()
 			) return;
+
 			int maxMentions = guild.MaxMentions;
 			int maxLines = guild.MaxLines;
 
@@ -61,8 +60,12 @@ namespace Tomoe.Commands.Listeners
 				{
 					CaptureCollection invites = messageInvites.Captures;
 					foreach (Capture capture in invites)
+					{
 						if (!guild.AllowedInvites.Contains(capture.Value))
+						{
 							await eventArgs.Message.DeleteAsync($"Invite {Formatter.InlineCode(capture.Value)} is not whitelisted.");
+						}
+					}
 				}
 			}
 		}

@@ -1,11 +1,9 @@
 using System.Threading.Tasks;
-
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
-
 using Tomoe.Commands.Moderation.Attributes;
 
 namespace Tomoe.Commands.Moderation
@@ -17,7 +15,7 @@ namespace Tomoe.Commands.Moderation
 		{
 			if (pruneDays < 7) pruneDays = 7;
 			bool sentDm = false;
-			DiscordMember guildVictim = victim.GetMember(context.Guild);
+			DiscordMember guildVictim = context.Guild.Members[victim.Id];
 			if (guildVictim != null && !guildVictim.IsBot) try
 				{
 					_ = await guildVictim.SendMessageAsync($"You've been banned by {Formatter.Bold(context.User.Mention)} from {Formatter.Bold(context.Guild.Name)}. Reason: {Formatter.BlockCode(Formatter.Strip(banReason))}");
@@ -34,7 +32,13 @@ namespace Tomoe.Commands.Moderation
 		[Command("ban")]
 		public async Task Group(CommandContext context, [Description("(Optional) Removed the victim's messages from the pass `x` days.")] int pruneDays = 7, [Description("(Optional) The reason why the people are being banned.")] string banReason = Constants.MissingReason, [Description("The people to be banned.")] params DiscordUser[] victims)
 		{
-			foreach (DiscordUser victim in victims) if (await Punishment.CheckUser(context, await context.Guild.GetMemberAsync(victim.Id))) await User(context, victim, pruneDays, banReason);
+			foreach (DiscordUser victim in victims)
+			{
+				if (await Punishment.CheckUser(context, await context.Guild.GetMemberAsync(victim.Id)))
+				{
+					await User(context, victim, pruneDays, banReason);
+				}
+			}
 		}
 
 		[Command("ban")]

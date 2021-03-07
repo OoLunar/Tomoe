@@ -1,11 +1,9 @@
 using System.Threading.Tasks;
-
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
-
 using Tomoe.Commands.Moderation.Attributes;
 
 namespace Tomoe.Commands.Moderation
@@ -29,7 +27,13 @@ namespace Tomoe.Commands.Moderation
 		[Command("kick"), RequireGuild]
 		public async Task Group(CommandContext context, [Description("(Optional) The reason why people are being kicked.")] string kickReason = Constants.MissingReason, [Description("The people to be kicked.")] params DiscordMember[] victims)
 		{
-			foreach (DiscordMember victim in victims) if (await Punishment.CheckUser(context, await context.Guild.GetMemberAsync(victim.Id))) await User(context, victim, kickReason);
+			foreach (DiscordMember victim in victims)
+			{
+				if (await Punishment.CheckUser(context, await context.Guild.GetMemberAsync(victim.Id)))
+				{
+					await User(context, victim, kickReason);
+				}
+			}
 		}
 
 		[Command("kick"), RequireGuild]

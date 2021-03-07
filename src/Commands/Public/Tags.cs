@@ -1,13 +1,10 @@
+using System.Linq;
 using System.Threading.Tasks;
-
-using Microsoft.EntityFrameworkCore;
-
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
-
+using Microsoft.EntityFrameworkCore;
 using Tomoe.Db;
-using System.Linq;
 
 namespace Tomoe.Commands.Public
 {

@@ -1,13 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
-
 using Tomoe.Commands.Moderation.Attributes;
 
 namespace Tomoe.Commands.Moderation
@@ -26,7 +24,7 @@ namespace Tomoe.Commands.Moderation
 			await context.Guild.UnbanMemberAsync(victim, unbanReason ?? Constants.MissingReason);
 
 			bool sentDm = true;
-			DiscordMember guildVictim = victim.GetMember(context.Guild);
+			DiscordMember guildVictim = context.Guild.Members[victim.Id];
 			if (guildVictim != null && !guildVictim.IsBot) try
 				{
 					_ = await guildVictim.SendMessageAsync($"You've been unbanned by {Formatter.Bold(context.User.Mention)} from {Formatter.Bold(context.Guild.Name)}. Reason: {Formatter.BlockCode(Formatter.Strip(unbanReason))}");

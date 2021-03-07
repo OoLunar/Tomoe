@@ -1,13 +1,6 @@
 using System.Threading.Tasks;
-
-using Microsoft.EntityFrameworkCore;
-
-using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
-using DSharpPlus.Entities;
-using DSharpPlus.Exceptions;
-
 using Tomoe.Commands.Moderation.Attributes;
 using Tomoe.Db;
 

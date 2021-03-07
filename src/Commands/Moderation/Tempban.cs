@@ -1,12 +1,10 @@
 using System;
 using System.Threading.Tasks;
-
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
-
 using Tomoe.Commands.Moderation.Attributes;
 using Tomoe.Db;
 
@@ -19,14 +17,17 @@ namespace Tomoe.Commands.Moderation
 		public async Task User(CommandContext context, DiscordUser victim, ExpandedTimeSpan banTime, int pruneDays = 7, [RemainingText] string banReason = Constants.MissingReason)
 		{
 			if (pruneDays < 7) pruneDays = 7;
-
 			bool sentDm = false;
-			DiscordMember guildVictim = victim.GetMember(context.Guild);
-			if (guildVictim != null && !guildVictim.IsBot) try
+			DiscordMember guildVictim = context.Guild.Members[victim.Id];
+			if (guildVictim != null && !guildVictim.IsBot)
+			{
+				try
 				{
 					_ = await guildVictim.SendMessageAsync($"You've been tempbanned by {Formatter.Bold(context.User.Mention)} from {Formatter.Bold(context.Guild.Name)} for {Formatter.Bold(banTime.ToString())}. Reason: {Formatter.BlockCode(Formatter.Strip(banReason))}");
+					sentDm = true;
 				}
 				catch (UnauthorizedException) { }
+			}
 			await context.Guild.BanMemberAsync(victim.Id, pruneDays, banReason);
 
 			Assignment assignment = new();

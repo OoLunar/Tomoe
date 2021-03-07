@@ -1,10 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-
 using DSharpPlus;
 using DSharpPlus.EventArgs;
-
 using Tomoe.Types;
 
 namespace Tomoe.Commands.Listeners

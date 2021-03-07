@@ -1,17 +1,12 @@
 using System.Linq;
 using System.Threading.Tasks;
-
-using Microsoft.EntityFrameworkCore;
-
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
-using DSharpPlus.Exceptions;
-
 using Humanizer;
-
-using Tomoe.Db;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Tomoe.Db;
 
 namespace Tomoe
 {
@@ -19,11 +14,6 @@ namespace Tomoe
 	{
 		public static string GetCommonName(this DiscordMember guildMember) => guildMember == null ? null : guildMember.Nickname ?? guildMember.Username;
 		public static DiscordRole GetRole(this ulong roleId, DiscordGuild guild) => roleId != 0 ? guild.GetRole(roleId) : null;
-		public static DiscordMember GetMember(this DiscordUser user, DiscordGuild guild)
-		{
-			try { return guild.GetMemberAsync(user.Id).GetAwaiter().GetResult(); }
-			catch (NotFoundException) { return null; }
-		}
 
 		public static DiscordEmbedBuilder GenerateDefaultEmbed(this DiscordEmbedBuilder embedBuilder, CommandContext context, string title = null)
 		{
