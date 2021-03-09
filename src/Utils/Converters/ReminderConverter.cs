@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Tomoe.Db;
 
-namespace Tomoe
+namespace Tomoe.Utils.Converters
 {
 	public class ReminderConverter : IArgumentConverter<Assignment>
 	{

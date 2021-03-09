@@ -7,43 +7,70 @@ using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
-using DSharpPlus.Exceptions;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Tomoe.Commands.Moderation.Attributes;
 using Tomoe.Db;
+using Tomoe.Utils.Converters;
 
 namespace Tomoe.Commands.Moderation
 {
-	[Group("strike"), Description("Gives a strike/warning to the specified victim."), RequireUserPermissions(Permissions.KickMembers), Aliases("warn", "add"), Punishment, ModuleLifespan(ModuleLifespan.Transient)]
+	[Group("strike"), RequireGuild]
 	public class Strikes : BaseCommandModule
 	{
 		public Database Database { private get; set; }
 
-		[GroupCommand]
-		public async Task Add(CommandContext context, DiscordUser victim, [RemainingText] string strikeReason = Constants.MissingReason)
+		[GroupCommand, RequireUserPermissions(Permissions.KickMembers), Description("Adds a strike to the victim."), Punishment(false)]
+		public async Task ByUser(CommandContext context, DiscordUser victim, [RemainingText] string muteReason = Constants.MissingReason)
 		{
+			// Test if the guild is in the database. Bot owner might've removed it on accident, and we don't want the bot to fail completely if the guild is missing.
+			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
+			if (guild == null)
+			{
+				_ = await Program.SendMessage(context, Constants.GuildNotInDatabase);
+				return;
+			}
+
+			DiscordMember guildVictim = await victim.Id.GetMember(context.Guild);
+
+			// Get databaseVictim or create it if they don't exist
+			GuildUser databaseVictim = guild.Users.FirstOrDefault(user => user.Id == victim.Id);
+			if (databaseVictim == null)
+			{
+				databaseVictim = new(victim.Id);
+				if (guildVictim != null)
+				{
+					databaseVictim.Roles = guildVictim.Roles.Except(new[] { context.Guild.EveryoneRole }).Select(role => role.Id).ToList();
+				}
+			}
+
+			// If the user is in the guild, assign the muted role
+			bool sentDm = false;
+			if (guildVictim != null && !guildVictim.IsBot)
+			{
+				try
+				{
+					_ = await guildVictim.SendMessageAsync($"You've been given a strike from {Formatter.Bold(context.Guild.Name)}. Reason: {Formatter.BlockCode(Formatter.Strip(muteReason))}Context: {context.Message.JumpLink}");
+					sentDm = true;
+				}
+				catch (Exception) { }
+			}
+
 			Strike strike = new();
-			strike.CreatedAt = DateTime.UtcNow;
-			strike.Dropped = false;
 			strike.GuildId = context.Guild.Id;
 			strike.IssuerId = context.User.Id;
-			strike.JumpLink = context.Message.JumpLink;
-			strike.Reasons.Add(strikeReason.Trim());
+			strike.JumpLinks.Add(context.Message.JumpLink);
+			strike.Reasons.Add(muteReason);
 			strike.VictimId = victim.Id;
-			strike.VictimMessaged = false;
-			strike.CaseId = await Database.Strikes.CountAsync(strike => strike.GuildId == strike.GuildId) + 1;
+			strike.VictimMessaged = sentDm;
 			_ = Database.Strikes.Add(strike);
-			DiscordMember guildVictim = context.Guild.Members[victim.Id];
-			if (guildVictim != null && !guildVictim.IsBot) try
-				{
-					_ = await guildVictim.SendMessageAsync($"You've been given a strike by {Formatter.Bold(context.User.Mention)} from {Formatter.Bold(context.Guild.Name)}. Reason: {Formatter.BlockCode(Formatter.Strip(strikeReason))}");
-					strike.VictimMessaged = true;
-				}
-				catch (UnauthorizedException) { }
 			_ = await Database.SaveChangesAsync();
-			_ = await Program.SendMessage(context, $"Case #{strike.CaseId}, {victim.Mention} has been striked{(strike.VictimMessaged ? '.' : " (Failed to DM).")} This is strike #{Database.Strikes.Count(strike => strike.VictimId == context.User.Id && !strike.Dropped) + 1}. Reason: {Formatter.BlockCode(Formatter.Strip(strikeReason))}", null, new UserMention(victim.Id));
+
+			if (guild.ProgressiveStrikes) await ProgressiveStrike(context.Guild, victim, strike);
+
+			_ = await Program.SendMessage(context, $"{victim.Mention} has been striked{(sentDm ? '.' : " (Failed to dm).")}");
 		}
 
 		[Command("check"), Description("Gets the users past history"), RequireUserPermissions(Permissions.KickMembers), Aliases("history", "list")]
@@ -58,11 +85,11 @@ namespace Tomoe.Commands.Moderation
 				IconUrl = victim.AvatarUrl
 			};
 
-			Strike[] pastStrikes = await Database.Strikes.Where(strike => strike.GuildId == context.Guild.Id && strike.VictimId == victim.Id).ToArrayAsync();
+			Strike[] pastStrikes = await Database.Strikes.Where(strike => strike.GuildId == context.Guild.Id && strike.VictimId == victim.Id).OrderBy(strike => strike.Id).ToArrayAsync();
 			if (pastStrikes.Length == 0) _ = await Program.SendMessage(context, "No previous strikes have been found!");
 			else
 			{
-				foreach (Strike strike in pastStrikes) embedBuilder.Description += $"Case #{strike.Id} [on {strike.CreatedAt.ToString("MMM' 'dd', 'yyyy' 'HH':'mm':'ss", CultureInfo.InvariantCulture)}, Issued by {(await context.Client.GetUserAsync(strike.IssuerId)).Mention}]({strike.JumpLink}) {(strike.Dropped ? "(Dropped)" : null)}\n";
+				foreach (Strike strike in pastStrikes) embedBuilder.Description += $"Case #{strike.Id} [on {strike.CreatedAt.ToString("MMM' 'dd', 'yyyy' 'HH':'mm':'ss", CultureInfo.InvariantCulture)}, Issued by {(await context.Client.GetUserAsync(strike.IssuerId)).Mention}]({strike.JumpLinks.First()}) {(strike.Dropped ? "(Dropped)" : null)}\n";
 				_ = await Program.SendMessage(context, null, embedBuilder.Build());
 			}
 		}
@@ -70,6 +97,7 @@ namespace Tomoe.Commands.Moderation
 		[Command("drop"), Description("Drops a strike."), Punishment(false), Aliases("pardon")]
 		public async Task Drop(CommandContext context, Strike strike, [RemainingText] string pardonReason = Constants.MissingReason)
 		{
+			// Attach because strike gets detached when handed off from converter
 			_ = Database.Strikes.Attach(strike);
 			if (strike.Dropped)
 			{
@@ -78,16 +106,22 @@ namespace Tomoe.Commands.Moderation
 			}
 			strike.Dropped = true;
 			strike.Reasons.Add("Drop Reason: " + pardonReason.Trim());
+			strike.JumpLinks.Add(context.Message.JumpLink);
 			strike.VictimMessaged = false;
-			DiscordMember guildVictim = await context.Guild.GetMemberAsync(strike.VictimId);
-			if (guildVictim != null && !guildVictim.IsBot) try
+
+			DiscordMember guildVictim = await strike.VictimId.GetMember(context.Guild);
+			if (guildVictim != null && !guildVictim.IsBot)
+			{
+				try
 				{
-					_ = await guildVictim.SendMessageAsync($"Strike #{strike.Id} has been dropped by {Formatter.Bold(context.User.Mention)} from {Formatter.Bold(context.Guild.Name)}. Reason: {Formatter.BlockCode(Formatter.Strip(pardonReason))}\nContext: {strike.JumpLink}");
+					_ = await guildVictim.SendMessageAsync($"You've been given a strike from {Formatter.Bold(context.Guild.Name)}. Reason: {Formatter.BlockCode(Formatter.Strip(pardonReason))}Context: {context.Message.JumpLink}");
 					strike.VictimMessaged = true;
 				}
-				catch (UnauthorizedException) { }
+				catch (Exception) { }
+			}
+
 			_ = await Database.SaveChangesAsync();
-			_ = await Program.SendMessage(context, $"Case #{strike.Id} has been dropped, <@{strike.VictimId}> has been pardoned{(strike.Dropped ? '.' : " (Failed to DM).")} Reason: {Formatter.BlockCode(Formatter.Strip(pardonReason))}", null, new UserMention(strike.VictimId));
+			_ = await Program.SendMessage(context, $"Case #{strike.Id} has been dropped, <@{strike.VictimId}> has been pardoned{(strike.Dropped ? '.' : " (Failed to DM).")}", null, new UserMention(strike.VictimId));
 		}
 
 		[Command("info"), Description("Gives info about a strike."), Punishment, Aliases("lookup")]
@@ -96,18 +130,17 @@ namespace Tomoe.Commands.Moderation
 			DiscordUser victim = await context.Client.GetUserAsync(strike.VictimId);
 			DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder().GenerateDefaultEmbed(context);
 			embedBuilder.Title = $"Case #{strike.Id}";
+			embedBuilder.Description += $"Issued At: {strike.CreatedAt}\n";
+			embedBuilder.Description += $"Issued By: <@{strike.IssuerId}>\n";
+			embedBuilder.Description += $"Victim: <@{strike.VictimId}>\n";
+			embedBuilder.Description += $"Victim Messaged: {strike.VictimMessaged}\n";
+			embedBuilder.Description += $"Dropped: {(strike.Dropped ? "Yes" : "No")}\n";
 			embedBuilder.Author = new()
 			{
 				Name = victim.Username,
 				IconUrl = victim.AvatarUrl,
 				Url = victim.AvatarUrl
 			};
-			embedBuilder.Description += $"Issued At: {strike.CreatedAt}\n";
-			embedBuilder.Description += $"Issued By: <@{strike.IssuerId}>\n";
-			embedBuilder.Description += $"Victim: <@{strike.VictimId}>\n";
-			embedBuilder.Description += $"Victim Messaged: {strike.VictimMessaged}\n";
-			embedBuilder.Description += $"Dropped: {(strike.Dropped ? "Yes" : "No")}\n";
-			embedBuilder.Description += Formatter.MaskedUrl("Jumplink", strike.JumpLink, strike.JumpLink.ToString()) + '\n';
 			InteractivityExtension interactivity = context.Client.GetInteractivity();
 			List<Page> pages = new();
 			for (int i = 0; i < strike.Reasons.Count; i++)
@@ -117,7 +150,7 @@ namespace Tomoe.Commands.Moderation
 					pages.Add(new(null, embedBuilder));
 					_ = embedBuilder.ClearFields();
 				}
-				_ = embedBuilder.AddField(i == 0 ? $"Reason 1 (Original)" : $"Reason {i + 1}", strike.Reasons[i], true);
+				_ = embedBuilder.AddField(i == 0 ? $"Reason 1 (Original)" : $"Reason {i + 1}", Formatter.MaskedUrl(strike.Reasons[i], strike.JumpLinks[i]), true);
 			}
 			if (pages.Count == 0) _ = await Program.SendMessage(context, null, embedBuilder);
 			else
@@ -127,26 +160,100 @@ namespace Tomoe.Commands.Moderation
 			}
 		}
 
-		public static async Task Automated(DiscordGuild discordGuild, Database database, DiscordUser victim, Uri jumplink, string strikeReason = Constants.MissingReason)
+		public static async Task ByProgram(DiscordGuild discordGuild, DiscordUser victim, Uri jumplink, string muteReason = Constants.MissingPermissions)
 		{
+			using IServiceScope scope = Program.ServiceProvider.CreateScope();
+			Database database = scope.ServiceProvider.GetService<Database>();
+			// Test if the guild is in the database. Bot owner might've removed it on accident, and we don't want the bot to fail completely if the guild is missing.
+			Guild guild = await database.Guilds.FirstOrDefaultAsync(guild => guild.Id == discordGuild.Id);
+			if (guild == null) return;
+
+			DiscordMember guildVictim = await victim.Id.GetMember(discordGuild);
+
+			// Get databaseVictim or create it if they don't exist
+			GuildUser databaseVictim = guild.Users.FirstOrDefault(user => user.Id == victim.Id);
+			if (databaseVictim == null)
+			{
+				databaseVictim = new(victim.Id);
+				if (guildVictim != null)
+				{
+					databaseVictim.Roles = guildVictim.Roles.Except(new[] { discordGuild.EveryoneRole }).Select(role => role.Id).ToList();
+				}
+			}
+
+			// If the user is in the guild, assign the muted role
+			bool sentDm = false;
+			if (guildVictim != null && !guildVictim.IsBot)
+			{
+				try
+				{
+					_ = await guildVictim.SendMessageAsync($"You've been given a strike from {Formatter.Bold(discordGuild.Name)}. Reason: {Formatter.BlockCode(Formatter.Strip(muteReason))}Context: {jumplink}");
+					sentDm = true;
+				}
+				catch (Exception) { }
+			}
+
 			Strike strike = new();
-			strike.CreatedAt = DateTime.UtcNow;
-			strike.Dropped = false;
 			strike.GuildId = discordGuild.Id;
 			strike.IssuerId = Program.Client.CurrentUser.Id;
-			strike.JumpLink = jumplink;
-			strike.Reasons.Add(strikeReason.Trim());
+			strike.JumpLinks.Add(jumplink);
+			strike.Reasons.Add(muteReason);
 			strike.VictimId = victim.Id;
-			strike.VictimMessaged = false;
+			strike.VictimMessaged = sentDm;
 			_ = database.Strikes.Add(strike);
-			DiscordMember guildVictim = discordGuild.Members[victim.Id];
-			if (guildVictim != null && !guildVictim.IsBot) try
-				{
-					_ = await guildVictim.SendMessageAsync($"You've been given a strike by {Formatter.Bold(Program.Client.CurrentUser.Mention)} from {Formatter.Bold(discordGuild.Name)}. Reason: {Formatter.BlockCode(Formatter.Strip(strikeReason))}\nContext: {Formatter.EmbedlessUrl(strike.JumpLink)}");
-					strike.VictimMessaged = true;
-				}
-				catch (UnauthorizedException) { }
 			_ = await database.SaveChangesAsync();
+
+			if (guild.ProgressiveStrikes) await ProgressiveStrike(discordGuild, victim, strike);
 		}
+
+		public static async Task ProgressiveStrike(DiscordGuild discordGuild, DiscordUser victim, Strike strike)
+		{
+			using IServiceScope scope = Program.ServiceProvider.CreateScope();
+			Database database = scope.ServiceProvider.GetService<Database>();
+
+			Guild guild = await database.Guilds.FirstOrDefaultAsync(guild => guild.Id == discordGuild.Id);
+			if (guild == null) return;
+
+			int totalStrikeCount = await database.Strikes.CountAsync(strike => strike.VictimId == victim.Id);
+			if (!guild.Punishments.TryGetValue(totalStrikeCount, out ProgressiveStrike progressiveStrike)) return;
+			switch (progressiveStrike.Punishment)
+			{
+				case Moderation.ProgressiveStrike.PunishmentOption.Ban:
+					await Ban.ByProgram(discordGuild, victim, strike.JumpLinks.Last(), $"Reached progressive strike #{totalStrikeCount}");
+					break;
+				case Moderation.ProgressiveStrike.PunishmentOption.Kick:
+					await Kick.ByProgram(discordGuild, await victim.Id.GetMember(discordGuild), strike.JumpLinks.Last(), $"Reached progressive strike #{totalStrikeCount}");
+					break;
+				case Moderation.ProgressiveStrike.PunishmentOption.Mute:
+					await Mute.ByProgram(discordGuild, victim, strike.JumpLinks.Last(), "");
+					break;
+				case Moderation.ProgressiveStrike.PunishmentOption.Antimeme:
+					await Antimeme.ByProgram(discordGuild, victim, strike.JumpLinks.Last(), "");
+					break;
+				case Moderation.ProgressiveStrike.PunishmentOption.Voiceban:
+					await Voiceban.ByProgram(discordGuild, victim, strike.JumpLinks.Last(), "");
+					break;
+				default: throw new NotImplementedException();
+			}
+		}
+	}
+
+	public class ProgressiveStrike
+	{
+		public enum PunishmentOption
+		{
+			Ban,
+			Tempban,
+			Kick,
+			Mute,
+			Tempmute,
+			Antimeme,
+			Tempantimeme,
+			Voiceban,
+			Tempvoiceban
+		}
+
+		public PunishmentOption Punishment { get; private set; }
+		public ExpandedTimeSpan TimeSpan { get; private set; }
 	}
 }

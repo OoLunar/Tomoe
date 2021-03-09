@@ -11,6 +11,7 @@ using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
 using Serilog;
 using Tomoe.Commands.Moderation.Attributes;
+using Tomoe.Utils.Converters;
 
 // Copied from https://github.com/TheRealHona/DSharpPlusBotTemplate/blob/main/TemplateDiscordBot/Services/CommandService.cs
 // Go take a look at their project!
@@ -46,6 +47,7 @@ namespace Tomoe.Utils
 						commands.RegisterConverter(new ExpandedTimeSpanConverter());
 						commands.RegisterConverter(new StrikeConverter());
 						commands.RegisterConverter(new TagConverter());
+						commands.RegisterConverter(new RoleActionConverter());
 						commands.RegisterCommands(Assembly.GetEntryAssembly());
 						commands.CommandErrored += CommandErrored;
 					}

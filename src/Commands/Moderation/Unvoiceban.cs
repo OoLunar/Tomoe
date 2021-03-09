@@ -12,11 +12,11 @@ using Tomoe.Db;
 
 namespace Tomoe.Commands.Moderation
 {
-	public class Voiceban : BaseCommandModule
+	public class Unvoiceban : BaseCommandModule
 	{
 		public Database Database { private get; set; }
-		[Command("voiceban"), RequireGuild, RequireBotPermissions(Permissions.ManageRoles), RequireUserPermissions(Permissions.ManageMessages), Aliases("voice_ban", "vb"), Description("Grants the victim the `Voicebanned` role, which prevents them from connecting to voice channels."), Punishment(false)]
-		public async Task ByUser(CommandContext context, DiscordUser victim, [RemainingText] string voicebanReason = Constants.MissingReason)
+		[Command("unvoiceban"), RequireGuild, RequireBotPermissions(Permissions.ManageRoles), RequireUserPermissions(Permissions.ManageMessages), Aliases("unvoice_ban", "unvb"), Description("Removes the `Voicebanned` role from the victim, allowing them to join voice channels again."), Punishment(false)]
+		public async Task ByUser(CommandContext context, DiscordUser victim, [RemainingText] string unvoicebanReason = Constants.MissingReason)
 		{
 			// Test if the guild is in the database. Bot owner might've removed it on accident, and we don't want the bot to fail completely if the guild is missing.
 			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
@@ -46,43 +46,30 @@ namespace Tomoe.Commands.Moderation
 					databaseVictim.Roles = guildVictim.Roles.Except(new[] { context.Guild.EveryoneRole }).Select(role => role.Id).ToList();
 				}
 			}
-			databaseVictim.IsVoicebanned = true;
+			databaseVictim.IsVoicebanned = false;
 
 			// If the user is in the guild, assign the voicebanned role
 			bool sentDm = false;
 			if (guildVictim != null)
 			{
-				await guildVictim.GrantRoleAsync(voicebanRole, voicebanReason);
+				await guildVictim.RevokeRoleAsync(voicebanRole, unvoicebanReason);
 				// If the user isn't a bot, attempt to dm them to make them aware of their punishment
 				if (!guildVictim.IsBot)
 				{
 					try
 					{
-						_ = await guildVictim.SendMessageAsync($"You've been voicebanned from {Formatter.Bold(context.Guild.Name)}. Reason: {Formatter.BlockCode(Formatter.Strip(voicebanReason))}Context: {context.Message.JumpLink}\nNote: A voiceban prevents you from connecting to voice channels.");
+						_ = await guildVictim.SendMessageAsync($"You've been unvoicebanned from {Formatter.Bold(context.Guild.Name)}. Reason: {Formatter.BlockCode(Formatter.Strip(unvoicebanReason))}Context: {context.Message.JumpLink}");
 						sentDm = true;
 					}
 					catch (Exception) { }
 				}
 			}
 
-			if (guild.ProgressiveStrikes)
-			{
-				Strike strike = new();
-				strike.GuildId = context.Guild.Id;
-				strike.IssuerId = context.User.Id;
-				strike.JumpLinks.Add(context.Message.JumpLink);
-				strike.Reasons.Add(voicebanReason);
-				strike.VictimId = victim.Id;
-				strike.VictimMessaged = sentDm;
-				_ = Database.Strikes.Add(strike);
-				_ = await Database.SaveChangesAsync();
-				await Strikes.ProgressiveStrike(context.Guild, victim, strike);
-			}
-
-			_ = await Program.SendMessage(context, $"{victim.Mention} has been voicebanned{(sentDm ? '.' : " (Failed to dm).")}");
+			_ = await Database.SaveChangesAsync();
+			_ = await Program.SendMessage(context, $"{victim.Mention} has been unvoicebanned{(sentDm ? '.' : " (Failed to dm).")}");
 		}
 
-		public static async Task ByProgram(DiscordGuild discordGuild, DiscordUser victim, Uri jumplink, string voicebanReason = Constants.MissingPermissions)
+		public static async Task ByProgram(DiscordGuild discordGuild, DiscordUser victim, Uri jumplink, string unvoicebanReason = Constants.MissingPermissions)
 		{
 			using IServiceScope scope = Program.ServiceProvider.CreateScope();
 			Database database = scope.ServiceProvider.GetService<Database>();
@@ -106,38 +93,24 @@ namespace Tomoe.Commands.Moderation
 					databaseVictim.Roles = guildVictim.Roles.Except(new[] { discordGuild.EveryoneRole }).Select(role => role.Id).ToList();
 				}
 			}
-			databaseVictim.IsVoicebanned = true;
+			databaseVictim.IsVoicebanned = false;
 
-			// If the user is in the guild, assign the muted role
-			bool sentDm = false;
+			// If the user is in the guild, assign the voicebanned role
 			if (guildVictim != null)
 			{
-				await guildVictim.GrantRoleAsync(voicebanRole, voicebanReason);
+				await guildVictim.RevokeRoleAsync(voicebanRole, unvoicebanReason);
 				// If the user isn't a bot, attempt to dm them to make them aware of their punishment
 				if (!guildVictim.IsBot)
 				{
 					try
 					{
-						_ = await guildVictim.SendMessageAsync($"You've been voicebanned from {Formatter.Bold(discordGuild.Name)}. Reason: {Formatter.BlockCode(Formatter.Strip(voicebanReason))}Context: {jumplink}\nNote: A voiceban prevents you from connecting to voice channels.");
-						sentDm = true;
+						_ = await guildVictim.SendMessageAsync($"You've been unvoicebanned from {Formatter.Bold(discordGuild.Name)}. Reason: {Formatter.BlockCode(Formatter.Strip(unvoicebanReason))}Context: {jumplink}");
 					}
 					catch (Exception) { }
 				}
 			}
 
-			if (guild.ProgressiveStrikes)
-			{
-				Strike strike = new();
-				strike.GuildId = discordGuild.Id;
-				strike.IssuerId = Program.Client.CurrentUser.Id;
-				strike.JumpLinks.Add(jumplink);
-				strike.Reasons.Add(voicebanReason);
-				strike.VictimId = victim.Id;
-				strike.VictimMessaged = sentDm;
-				_ = database.Strikes.Add(strike);
-				_ = await database.SaveChangesAsync();
-				await Strikes.ProgressiveStrike(discordGuild, victim, strike);
-			}
+			_ = await database.SaveChangesAsync();
 		}
 	}
 }

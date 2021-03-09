@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Newtonsoft.Json;
+using Tomoe.Commands.Moderation;
 
 namespace Tomoe.Db
 {
@@ -17,63 +18,81 @@ namespace Tomoe.Db
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
-
 			// Tried to use dynamic and T, neither worked. D:
 			// Create List<T> for each type.
-			ValueComparer valueComparerString = new ValueComparer<List<string>>(
-				(c1, c2) => c1.SequenceEqual(c2),
-				c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
-				c => c.ToList()
-			);
-
 			ValueComparer valueComparerUlong = new ValueComparer<List<ulong>>(
 				(c1, c2) => c1.SequenceEqual(c2),
 				c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
 				c => c.ToList()
 			);
 
-			modelBuilder.Entity<Guild>()
-			.Property(guild => guild.AllowedInvites)
-			.HasConversion(
-				allowedInvites => JsonConvert.SerializeObject(allowedInvites),
-				allowedInvites => JsonConvert.DeserializeObject<List<string>>(allowedInvites)
-			).Metadata.SetValueComparer(valueComparerString);
+			ValueComparer valueComparerUri = new ValueComparer<List<Uri>>(
+				(c1, c2) => c1.SequenceEqual(c2),
+				c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+				c => c.ToList()
+			);
+
+			ValueComparer valueComparerGuildUser = new ValueComparer<List<GuildUser>>(
+				(c1, c2) => c1.SequenceEqual(c2),
+				c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+				c => c.ToList()
+			);
+
+			ValueComparer valueComparerDictionary = new ValueComparer<Dictionary<int, ProgressiveStrike>>(
+				(c1, c2) => c1.SequenceEqual(c2),
+				c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+				c => c.ToDictionary(m => m.Key, m => m.Value)
+			);
 
 			modelBuilder.Entity<Guild>()
 			.Property(guild => guild.IgnoredChannels)
 			.HasConversion(
-				ignoredChannels => JsonConvert.SerializeObject(ignoredChannels),
-				ignoredChannels => JsonConvert.DeserializeObject<List<ulong>>(ignoredChannels)
+				ignoredChannels => JsonSerializer.Serialize(ignoredChannels, default),
+				ignoredChannels => JsonSerializer.Deserialize<List<ulong>>(ignoredChannels, default)
 			).Metadata.SetValueComparer(valueComparerUlong);
 
 			modelBuilder.Entity<Guild>()
 			.Property(guild => guild.AdminRoles)
 			.HasConversion(
-				adminRoles => JsonConvert.SerializeObject(adminRoles),
-				adminRoles => JsonConvert.DeserializeObject<List<ulong>>(adminRoles)
+				adminRoles => JsonSerializer.Serialize(adminRoles, default),
+				adminRoles => JsonSerializer.Deserialize<List<ulong>>(adminRoles, default)
 			).Metadata.SetValueComparer(valueComparerUlong);
+
+			modelBuilder.Entity<Guild>()
+			.Property(guild => guild.Users)
+			.HasConversion(
+				guildUsers => JsonSerializer.Serialize(guildUsers, default),
+				guildUsers => JsonSerializer.Deserialize<List<GuildUser>>(guildUsers, default)
+			).Metadata.SetValueComparer(valueComparerGuildUser);
 
 			modelBuilder.Entity<GuildUser>()
 			.Property(guildUser => guildUser.Roles)
 			.HasConversion(
-				roles => JsonConvert.SerializeObject(roles),
-				roles => JsonConvert.DeserializeObject<List<ulong>>(roles)
+				roles => JsonSerializer.Serialize(roles, default),
+				roles => JsonSerializer.Deserialize<List<ulong>>(roles, default)
 			).Metadata.SetValueComparer(valueComparerUlong);
-
-			modelBuilder.Entity<Strike>()
-			.Property(strike => strike.Reasons)
-			.HasConversion(
-				reasons => JsonConvert.SerializeObject(reasons),
-				reasons => JsonConvert.DeserializeObject<List<string>>(reasons)
-			).Metadata.SetValueComparer(valueComparerString);
 
 			_ = modelBuilder.Entity<Strike>()
 			.Property(strike => strike.Id)
 			.ValueGeneratedOnAdd();
 
+			modelBuilder.Entity<Strike>()
+			.Property(strike => strike.JumpLinks)
+			.HasConversion(
+				jumplinks => JsonSerializer.Serialize(jumplinks, default),
+				jumplinks => JsonSerializer.Deserialize<List<Uri>>(jumplinks, default)
+			).Metadata.SetValueComparer(valueComparerUri);
+
 			_ = modelBuilder.Entity<Tag>()
 			.Property(tag => tag.TagId)
 			.ValueGeneratedOnAdd();
+
+			modelBuilder.Entity<Guild>()
+			.Property(guild => guild.Punishments)
+			.HasConversion(
+				progressivePunishments => JsonSerializer.Serialize(progressivePunishments, default),
+				progressivePunishments => JsonSerializer.Deserialize<Dictionary<int, ProgressiveStrike>>(progressivePunishments, default)
+			).Metadata.SetValueComparer(valueComparerDictionary);
 
 			base.OnModelCreating(modelBuilder);
 		}

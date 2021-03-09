@@ -9,11 +9,10 @@ namespace Tomoe.Db
 		[Key]
 		public int Id { get; internal set; }
 		public ulong GuildId { get; internal set; }
-		public int CaseId { get; internal set; }
 		public ulong IssuerId { get; internal set; }
 		public ulong VictimId { get; internal set; }
 		public List<string> Reasons { get; internal set; } = new();
-		public Uri JumpLink { get; internal set; }
+		public List<Uri> JumpLinks { get; internal set; } = new();
 		public bool VictimMessaged { get; internal set; }
 		public bool Dropped { get; internal set; }
 		public DateTime CreatedAt { get; internal set; } = DateTime.UtcNow;

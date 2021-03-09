@@ -4,7 +4,7 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Converters;
 using DSharpPlus.Entities;
 
-namespace Tomoe
+namespace Tomoe.Utils.Converters
 {
 	public class ImageFormatConverter : IArgumentConverter<ImageFormat>
 	{

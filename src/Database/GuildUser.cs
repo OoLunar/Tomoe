@@ -10,7 +10,7 @@ namespace Tomoe.Db
 		public List<ulong> Roles { get; internal set; } = new();
 		public bool IsMuted { get; internal set; }
 		public bool IsAntimemed { get; internal set; }
-		public bool IsVoiceBanned { get; internal set; }
+		public bool IsVoicebanned { get; internal set; }
 
 		public GuildUser(ulong id) => Id = id;
 	}

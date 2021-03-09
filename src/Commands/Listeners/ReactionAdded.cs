@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.EventArgs;
-using Tomoe.Types;
+using Tomoe.Utils.Types;
 
 namespace Tomoe.Commands.Listeners
 {
@@ -11,6 +11,7 @@ namespace Tomoe.Commands.Listeners
 	{
 		internal static readonly List<Queue> QueueList = new();
 
+		// TODO: Rewrite this with timeouts, maybe consider using interactivity.
 		public static async Task Handler(DiscordClient _client, MessageReactionAddEventArgs eventArgs)
 		{
 			// Call ToList to create a clone, which prevents https://stackoverflow.com/questions/33703494/foreach-collection-was-modified-enumeration-operation-may-not-execute
@@ -22,7 +23,7 @@ namespace Tomoe.Commands.Listeners
 				{
 					if (queue.Type == Queue.ReactionType.Confirmation)
 					{
-						if (eventArgs.Emoji == Queue.ThumbsUp || eventArgs.Emoji == Queue.ThumbsDown)
+						if (eventArgs.Emoji == Constants.ThumbsUp || eventArgs.Emoji == Constants.ThumbsDown)
 						{
 							await queue.Action.Invoke(eventArgs);
 							_ = QueueList.Remove(queue);

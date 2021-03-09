@@ -1,3 +1,5 @@
+using DSharpPlus.Entities;
+
 namespace Tomoe
 {
 	public class Constants
@@ -10,7 +12,12 @@ namespace Tomoe
 		public const string GuildOwner = "**[Denied: Cannot execute actions on the guild owner!]**";
 		public const string MissingPermissions = "**[Denied: Missing permissions.]**";
 		public const string NotAGuild = "**[Denied: Guild command.]**";
-		public const string SelfAction = "**[Denied: Cannot execute on myself.]**";
+		public const string SelfBotAction = "**[Denied: Cannot execute on myself.]**";
 		public const string Hierarchy = "**[Denied: Prevented by hierarchy.]**";
+		public const string GuildNotInDatabase = "**[Error: Failed to execute command because the guild is not in the database!]**";
+
+		// Not constants, but they got no where else to go.
+		public static readonly DiscordEmoji ThumbsUp = DiscordEmoji.FromUnicode(Program.Client.ShardClients[0], "👍");
+		public static readonly DiscordEmoji ThumbsDown = DiscordEmoji.FromUnicode(Program.Client.ShardClients[0], "👎");
 	}
 }

@@ -18,13 +18,13 @@ namespace Tomoe.Commands.Listeners
 			if (guild != null)
 			{
 				DiscordRole muteRole = guild.MuteRole.GetRole(eventArgs.Guild);
-				if (muteRole != null) await Moderation.Config.FixPermissions(eventArgs.Channel, muteRole, Moderation.Config.PermissionType.Mute);
+				if (muteRole != null) await Moderation.Config.FixPermissions(eventArgs.Channel, Moderation.Config.RoleAction.Mute, muteRole);
 
 				DiscordRole antimemeRole = guild.AntimemeRole.GetRole(eventArgs.Guild);
-				if (antimemeRole != null) await Moderation.Config.FixPermissions(eventArgs.Channel, antimemeRole, Moderation.Config.PermissionType.Antimeme);
+				if (antimemeRole != null) await Moderation.Config.FixPermissions(eventArgs.Channel, Moderation.Config.RoleAction.Antimeme, antimemeRole);
 
-				DiscordRole voiceBanRole = guild.VoiceBanRole.GetRole(eventArgs.Guild);
-				if (voiceBanRole != null) await Moderation.Config.FixPermissions(eventArgs.Channel, voiceBanRole, Moderation.Config.PermissionType.VoiceBan);
+				DiscordRole voicebanRole = guild.VoicebanRole.GetRole(eventArgs.Guild);
+				if (voicebanRole != null) await Moderation.Config.FixPermissions(eventArgs.Channel, Moderation.Config.RoleAction.Voiceban, voicebanRole);
 			}
 		}
 	}

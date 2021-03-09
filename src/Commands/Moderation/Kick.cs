@@ -1,42 +1,94 @@
+using System;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
-using DSharpPlus.Exceptions;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Tomoe.Commands.Moderation.Attributes;
+using Tomoe.Db;
 
 namespace Tomoe.Commands.Moderation
 {
 	public class Kick : BaseCommandModule
 	{
-		[Command("kick"), Description("Kicks people from the guild, sending them off with a private message."), RequireGuild, RequireUserPermissions(Permissions.KickMembers), RequireBotPermissions(Permissions.KickMembers), Punishment]
-		public async Task User(CommandContext context, [Description("The person to be kicked.")] DiscordMember victim, [Description("(Optional) The reason why the person is being kicked."), RemainingText] string kickReason = Constants.MissingReason)
+		public Database Database { private get; set; }
+		[Command("kick"), RequireGuild, RequireUserPermissions(Permissions.BanMembers), RequireBotPermissions(Permissions.BanMembers), Aliases("boot", "yeet"), Description("Kicks the victim from the guild, sending them off with a dm."), Punishment(true)]
+		public async Task ByUser(CommandContext context, DiscordMember victim, [RemainingText] string kickReason = Constants.MissingReason)
 		{
+			// Test if the guild is in the database. Bot owner might've removed it on accident, and we don't want the bot to fail completely if the guild is missing.
+			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
+			if (guild == null)
+			{
+				_ = await Program.SendMessage(context, Constants.GuildNotInDatabase);
+				return;
+			}
+
+			// If the user is in the guild, and if the user isn't a bot, attempt to dm them to make them aware of their punishment
 			bool sentDm = false;
-			if (victim != null && !victim.IsBot) try
+			if (victim != null && !victim.IsBot)
+			{
+				try
 				{
-					_ = await victim.SendMessageAsync($"You've been kicked by {Formatter.Bold(context.User.Mention)} from {Formatter.Bold(context.Guild.Name)}. Reason: {Formatter.BlockCode(Formatter.Strip(kickReason))}");
+					_ = await victim.SendMessageAsync($"You've been kicked from {Formatter.Bold(context.Guild.Name)}. Reason: {Formatter.BlockCode(Formatter.Strip(kickReason))}Context: {context.Message.JumpLink}");
 					sentDm = true;
 				}
-				catch (UnauthorizedException) { }
+				catch (Exception) { }
+			}
+
 			await victim.RemoveAsync(kickReason);
-			_ = await Program.SendMessage(context, $"{victim.Mention} has been kicked{(sentDm ? '.' : " (Failed to DM).")} Reason: {Formatter.BlockCode(Formatter.Strip(kickReason))}", null, new UserMention(victim.Id));
+
+			if (guild.ProgressiveStrikes)
+			{
+				Strike strike = new();
+				strike.GuildId = context.Guild.Id;
+				strike.IssuerId = context.User.Id;
+				strike.JumpLinks.Add(context.Message.JumpLink);
+				strike.Reasons.Add(kickReason);
+				strike.VictimId = victim.Id;
+				strike.VictimMessaged = sentDm;
+				_ = Database.Strikes.Add(strike);
+				_ = await Database.SaveChangesAsync();
+				await Strikes.ProgressiveStrike(context.Guild, victim, strike);
+			}
+
+			_ = await Program.SendMessage(context, $"{victim.Mention} has been kicked{(sentDm ? '.' : " (Failed to dm).")}");
 		}
 
-		[Command("kick"), RequireGuild]
-		public async Task Group(CommandContext context, [Description("(Optional) The reason why people are being kicked.")] string kickReason = Constants.MissingReason, [Description("The people to be kicked.")] params DiscordMember[] victims)
+		public static async Task ByProgram(DiscordGuild discordGuild, DiscordMember victim, Uri jumplink, [RemainingText] string kickReason = Constants.MissingReason)
 		{
-			foreach (DiscordMember victim in victims)
+			using IServiceScope scope = Program.ServiceProvider.CreateScope();
+			Database database = scope.ServiceProvider.GetService<Database>();
+			// If the user is in the guild, and if the user isn't a bot, attempt to dm them to make them aware of their punishment
+			bool sentDm = false;
+			if (victim != null && !victim.IsBot)
 			{
-				if (await Punishment.CheckUser(context, await context.Guild.GetMemberAsync(victim.Id)))
+				try
 				{
-					await User(context, victim, kickReason);
+					_ = await victim.SendMessageAsync($"You've been kicked from {Formatter.Bold(discordGuild.Name)}. Reason: {Formatter.BlockCode(Formatter.Strip(kickReason))}Context: {jumplink}");
+					sentDm = true;
 				}
+				catch (Exception) { }
+			}
+
+			await victim.RemoveAsync(kickReason);
+
+			// Test if the guild is in the database. Bot owner might've removed it on accident, and we don't want the bot to fail completely if the guild is missing.
+			Guild guild = await database.Guilds.FirstOrDefaultAsync(guild => guild.Id == discordGuild.Id);
+			if (guild != null && guild.ProgressiveStrikes)
+			{
+				Strike strike = new();
+				strike.GuildId = discordGuild.Id;
+				strike.IssuerId = Program.Client.CurrentUser.Id;
+				strike.JumpLinks.Add(jumplink);
+				strike.Reasons.Add(kickReason);
+				strike.VictimId = victim.Id;
+				strike.VictimMessaged = sentDm;
+				_ = database.Strikes.Add(strike);
+				_ = await database.SaveChangesAsync();
+				await Strikes.ProgressiveStrike(discordGuild, victim, strike);
 			}
 		}
-
-		[Command("kick"), RequireGuild]
-		public async Task Group(CommandContext context, [Description("The people to be kicked.")] params DiscordMember[] victims) => await Group(context, default, victims);
 	}
 }

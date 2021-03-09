@@ -13,6 +13,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Npgsql;
+using Npgsql.EntityFrameworkCore;
 using Serilog;
 using Tomoe.Db;
 using Tomoe.Utils;
@@ -22,7 +23,7 @@ namespace Tomoe
 	public class Program
 	{
 		public static DiscordShardedClient Client { get; private set; }
-		public static Config Config { get; private set; }
+		public static Utils.Configs.Config Config { get; private set; }
 		public static IServiceProvider ServiceProvider { get; private set; }
 
 		public static void Main() => MainAsync().ConfigureAwait(false).GetAwaiter().GetResult();
@@ -55,7 +56,7 @@ namespace Tomoe
 				Environment.Exit(1);
 			}
 			// Prefer JsonSerializer.DeserializeAsync over JsonSerializer.Deserialize due to being able to send the stream directly.
-			Config = await JsonSerializer.DeserializeAsync<Config>(File.OpenRead(tokenFile));
+			Config = await JsonSerializer.DeserializeAsync<Utils.Configs.Config>(File.OpenRead(tokenFile), new() { IncludeFields = true, AllowTrailingCommas = true, ReadCommentHandling = JsonCommentHandling.Skip, PropertyNameCaseInsensitive = true });
 
 			// Setup Logger
 			// Follow the Config.Logger.ShowId option.
@@ -66,7 +67,7 @@ namespace Tomoe
 				// Per library settings.
 				.MinimumLevel.Override("DSharpPlus", Config.Logger.Discord)
 				.MinimumLevel.Override("Microsoft.EntityFrameworkCore", Config.Logger.Database)
-				// Use custom theme because the default one stinks imo
+				// Use custom theme because the default one stinks
 				.WriteTo.Console(theme: LoggerTheme.Lunar, outputTemplate: outputTemplate);
 			if (Config.Logger.SaveToFile) _ = loggerConfiguration.WriteTo.File($"logs/{DateTime.Now.ToLocalTime().ToString("yyyy'-'MM'-'dd' 'HH':'mm':'ss", CultureInfo.InvariantCulture)}", rollingInterval: RollingInterval.Day, outputTemplate: outputTemplate);
 			Log.Logger = loggerConfiguration.CreateLogger();
@@ -84,10 +85,11 @@ namespace Tomoe
 				connectionBuilder.Username = Config.Database.Username;
 				connectionBuilder.Port = Config.Database.Port;
 				_ = options.UseNpgsql(connectionBuilder.ToString());
+				_ = options.UseSnakeCaseNamingConvention(CultureInfo.InvariantCulture);
 				_ = options.EnableSensitiveDataLogging();
 				_ = options.EnableDetailedErrors();
 				_ = options.UseLoggerFactory(ServiceProvider.GetService<ILoggerFactory>());
-			});
+			}, ServiceLifetime.Transient);
 			_ = services.AddLogging(loggingBuilder => loggingBuilder.AddSerilog(Log.Logger));
 			ServiceProvider = services.BuildServiceProvider();
 			_ = await ServiceProvider.GetService<Database>().Database.EnsureCreatedAsync();
@@ -118,7 +120,7 @@ namespace Tomoe
 			Console.CancelKeyPress += Quit.ConsoleShutdown;
 			await CommandService.Launch(Client, ServiceProvider);
 			await Client.StartAsync();
-			Commands.Public.Assignments.StartRoutine();
+			//Commands.Public.Assignments.StartRoutine();
 			await Task.Delay(-1);
 		}
 

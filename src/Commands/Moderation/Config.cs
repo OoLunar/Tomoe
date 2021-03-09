@@ -1,473 +1,477 @@
 using System.Linq;
-using System.Text.RegularExpressions;
+using System.Text;
 using System.Threading.Tasks;
-
-using Microsoft.EntityFrameworkCore;
-
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
-
-using Humanizer;
-
+using DSharpPlus.Interactivity;
+using DSharpPlus.Interactivity.Enums;
+using DSharpPlus.Interactivity.Extensions;
+using Microsoft.EntityFrameworkCore;
 using Tomoe.Db;
-using Tomoe.Types;
+using Tomoe.Utils.Types;
 
 namespace Tomoe.Commands.Moderation
 {
-
-	[Group("config")]
+	[Group("config"), RequireGuild]
 	public class Config : BaseCommandModule
 	{
-		public Database Database { private get; set; }
-		#region MuteCommand
-
-		[Command("mute"), Description("Sets up or assigns the mute role."), RequireUserPermissions(Permissions.ManageGuild), RequireGuild]
-		public async Task Mute(CommandContext context, DiscordRole muteRole)
-		{
-			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
-			if (guild == null)
-			{
-				_ = await Program.SendMessage(context, Formatter.Bold("[Error: Failed to set mute role, guild is not in the database!]"));
-				return;
-			}
-
-			DiscordRole previousMuteRole = guild.MuteRole.GetRole(context.Guild);
-			if (previousMuteRole == null)
-			{
-				guild.MuteRole = muteRole.Id;
-				await FixPermissions(context.Guild, muteRole, PermissionType.Mute);
-				_ = await Program.SendMessage(context, $"{muteRole.Mention} is now set as the mute role.");
-
-				return;
-			}
-
-			DiscordMessage discordMessage = await Program.SendMessage(context, $"Previous mute role was {previousMuteRole.Mention}. Do you want to overwrite it with {muteRole.Mention}?");
-			_ = new Queue(discordMessage, context.User, new(async eventArgs =>
-			{
-				if (eventArgs.Emoji == Queue.ThumbsUp)
-				{
-					guild.MuteRole = muteRole.Id;
-					_ = await discordMessage.ModifyAsync($"{Formatter.Strike(discordMessage.Content)}\n{Formatter.Bold("[Notice: Fixing role permissions...]")}");
-					await FixPermissions(context.Guild, muteRole, PermissionType.Mute);
-					_ = await discordMessage.ModifyAsync($"{muteRole.Mention} is now set as the mute role.");
-				}
-				else if (eventArgs.Emoji == Queue.ThumbsDown)
-				{
-					_ = await discordMessage.ModifyAsync($"{Formatter.Strike(discordMessage.Content)}\n{Formatter.Bold("[Notice: Fixing role permissions...]")}");
-					await FixPermissions(context.Guild, previousMuteRole, PermissionType.Mute);
-					_ = await discordMessage.ModifyAsync($"{Formatter.Strike(discordMessage.Content)}\n{Formatter.Bold("[Notice: Mute role has not been changed.]")}");
-				}
-			}));
-		}
-
-
-		[Command("mute"), RequireUserPermissions(Permissions.ManageGuild), RequireBotPermissions(Permissions.ManageRoles), RequireGuild]
-		public async Task Mute(CommandContext context)
-		{
-			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
-			if (guild == null)
-			{
-				_ = await Program.SendMessage(context, Formatter.Bold("[Error: Failed to set mute role, guild is not in the database!]"));
-				return;
-			}
-
-			DiscordRole previousMuteRole = guild.MuteRole.GetRole(context.Guild);
-			if (previousMuteRole == null) // Should only be executed if there was no previous mute role id, or if the role cannot be found.
-			{
-				await CreateRole(context.Guild, null, PermissionType.Mute);
-				return;
-			}
-
-			DiscordMessage discordMessage = await Program.SendMessage(context, $"Previous mute role was {previousMuteRole.Mention}. Do you want to overwrite it?");
-			_ = new Queue(discordMessage, context.User, new(async eventArgs =>
-			{
-				if (eventArgs.Emoji == Queue.ThumbsUp) await CreateRole(context.Guild, discordMessage, PermissionType.Mute);
-				else if (eventArgs.Emoji == Queue.ThumbsDown)
-				{
-					await FixPermissions(context.Guild, previousMuteRole, PermissionType.Mute);
-					_ = await Program.SendMessage(context, $"Roles were left untouched.");
-				}
-			}));
-		}
-
-		#endregion MuteCommand
-		#region AntimemeCommand
-
-		[Command("antimeme"), Description("Sets up or assigns the antimeme role."), RequireUserPermissions(Permissions.ManageGuild), RequireGuild, Aliases("anti_meme", "nomeme", "no_meme", "memeban", "meme_ban")]
-		public async Task Antimeme(CommandContext context, DiscordRole antimemeRole)
-		{
-			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
-			if (guild == null)
-			{
-				_ = await Program.SendMessage(context, Formatter.Bold("[Error: Failed to set antimeme role, guild is not in the database!]"));
-				return;
-			}
-
-			DiscordRole previousAntimemeRole = guild.AntimemeRole.GetRole(context.Guild);
-			if (previousAntimemeRole == null)
-			{
-				guild.AntimemeRole = antimemeRole.Id;
-				await FixPermissions(context.Guild, antimemeRole, PermissionType.Antimeme);
-				_ = await Program.SendMessage(context, $"{antimemeRole.Mention} is now set as the antimeme role.");
-				return;
-			}
-
-			DiscordMessage discordMessage = await Program.SendMessage(context, $"Previous antimeme role was {previousAntimemeRole.Mention}. Do you want to overwrite it with {antimemeRole.Mention}?");
-			_ = new Queue(discordMessage, context.User, new(async eventArgs =>
-			{
-				if (eventArgs.Emoji == Queue.ThumbsUp)
-				{
-					guild.AntimemeRole = antimemeRole.Id;
-					_ = await discordMessage.ModifyAsync($"{Formatter.Strike(discordMessage.Content)}\n{Formatter.Bold("[Notice: Fixing role permissions...]")}");
-					await FixPermissions(context.Guild, antimemeRole, PermissionType.Antimeme);
-					_ = await discordMessage.ModifyAsync($"{antimemeRole.Mention} is now set as the antimeme role.");
-				}
-				else if (eventArgs.Emoji == Queue.ThumbsDown)
-				{
-					_ = await discordMessage.ModifyAsync($"{Formatter.Strike(discordMessage.Content)}\n{Formatter.Bold("[Notice: Fixing role permissions...]")}");
-					await FixPermissions(context.Guild, antimemeRole, PermissionType.Antimeme);
-					_ = await discordMessage.ModifyAsync($"{Formatter.Strike(discordMessage.Content)}\n{Formatter.Bold("[Notice: Antimeme role has not been changed.]")}");
-				}
-			}));
-		}
-
-		[Command("antimeme"), RequireUserPermissions(Permissions.ManageGuild), RequireBotPermissions(Permissions.ManageRoles), RequireGuild]
-		public async Task Antimeme(CommandContext context)
-		{
-			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
-			if (guild == null)
-			{
-				_ = await Program.SendMessage(context, Formatter.Bold("[Error: Failed to set antimeme role, guild is not in the database!]"));
-				return;
-			}
-
-			DiscordRole previousAntimemeRole = guild.AntimemeRole.GetRole(context.Guild);
-			if (previousAntimemeRole == null) // Should only be executed if there was no previous mute role id, or if the role cannot be found.
-			{
-				await CreateRole(context.Guild, null, PermissionType.Antimeme);
-				return;
-			}
-
-			DiscordMessage discordMessage = await Program.SendMessage(context, $"Previous antimeme role was {previousAntimemeRole.Mention}. Do you want to overwrite it?");
-			_ = new Queue(discordMessage, context.User, new(async eventArgs =>
-			{
-				if (eventArgs.Emoji == Queue.ThumbsUp) await CreateRole(context.Guild, discordMessage, PermissionType.Antimeme);
-				else if (eventArgs.Emoji == Queue.ThumbsDown)
-				{
-					await FixPermissions(context.Guild, previousAntimemeRole, PermissionType.Antimeme);
-					_ = await Program.SendMessage(context, $"Roles were left untouched.");
-				}
-			}));
-		}
-
-		#endregion AntimemeCommand
-		#region VoiceBanCommand
-
-		[Command("voiceban"), Description("Sets up or assigns the voiceban role."), RequireUserPermissions(Permissions.ManageGuild), RequireGuild, Aliases("voice_ban", "vb")]
-		public async Task VoiceBan(CommandContext context, DiscordRole voiceBanRole)
-		{
-			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
-			if (guild == null)
-			{
-				_ = await Program.SendMessage(context, Formatter.Bold("[Error: Failed to set voiceban role, guild is not in the database!]"));
-				return;
-			}
-
-			DiscordRole previousVoiceBanRole = guild.VoiceBanRole.GetRole(context.Guild);
-			if (previousVoiceBanRole == null)
-			{
-				guild.VoiceBanRole = voiceBanRole.Id;
-				await FixPermissions(context.Guild, voiceBanRole, PermissionType.VoiceBan);
-				_ = await Program.SendMessage(context, $"{voiceBanRole.Mention} is now set as the voiceban role.");
-				return;
-			}
-
-			DiscordMessage discordMessage = await Program.SendMessage(context, $"Previous voiceban role was {previousVoiceBanRole.Mention}. Do you want to overwrite it with {voiceBanRole.Mention}?");
-			_ = new Queue(discordMessage, context.User, new(async eventArgs =>
-			{
-				if (eventArgs.Emoji == Queue.ThumbsUp)
-				{
-					guild.VoiceBanRole = voiceBanRole.Id;
-					_ = await discordMessage.ModifyAsync($"{Formatter.Strike(discordMessage.Content)}\n{Formatter.Bold("[Notice: Fixing role permissions...]")}");
-					await FixPermissions(context.Guild, voiceBanRole, PermissionType.VoiceBan);
-					_ = await discordMessage.ModifyAsync($"{voiceBanRole.Mention} is now set as the voiceban role.");
-				}
-				else if (eventArgs.Emoji == Queue.ThumbsDown)
-				{
-					_ = await discordMessage.ModifyAsync($"{Formatter.Strike(discordMessage.Content)}\n{Formatter.Bold("[Notice: Fixing role permissions...]")}");
-					await FixPermissions(context.Guild, voiceBanRole, PermissionType.VoiceBan);
-					_ = await discordMessage.ModifyAsync($"{Formatter.Strike(discordMessage.Content)}\n{Formatter.Bold("[Notice: Voiceban role has not been changed.]")}");
-				}
-			}));
-		}
-
-		[Command("voiceban"), RequireUserPermissions(Permissions.ManageGuild), RequireBotPermissions(Permissions.ManageRoles), RequireGuild]
-		public async Task VoiceBan(CommandContext context)
-		{
-			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
-			if (guild == null)
-			{
-				_ = await Program.SendMessage(context, Formatter.Bold("[Error: Failed to set voiceban role, guild is not in the database!]"));
-				return;
-			}
-
-			DiscordRole previousVoiceBanRole = guild.VoiceBanRole.GetRole(context.Guild);
-			if (previousVoiceBanRole == null)
-			{
-				await CreateRole(context.Guild, null, PermissionType.VoiceBan);
-				return;
-			}
-
-			DiscordMessage discordMessage = await Program.SendMessage(context, $"Previous voiceban role was {previousVoiceBanRole.Mention}. Do you want to overwrite it?");
-			_ = new Queue(discordMessage, context.User, new(async eventArgs =>
-			{
-				if (eventArgs.Emoji == Queue.ThumbsUp) await CreateRole(context.Guild, discordMessage, PermissionType.VoiceBan);
-				else if (eventArgs.Emoji == Queue.ThumbsDown)
-				{
-					await FixPermissions(context.Guild, previousVoiceBanRole, PermissionType.VoiceBan);
-					_ = await Program.SendMessage(context, $"Roles were left untouched.");
-				}
-			}));
-		}
-
-		#endregion VoiceBanCommand
-
-		public async Task CreateRole(DiscordGuild discordGuild, DiscordMessage message, PermissionType permissionType)
-		{
-			if (message == null) message = await message.ModifyAsync($"Creating {permissionType.Humanize()} role...");
-			Guild databaseGuild;
-			DiscordRole role = null;
-			switch (permissionType)
-			{
-				case PermissionType.Mute:
-					databaseGuild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == discordGuild.Id);
-					role = await discordGuild.CreateRoleAsync("Muted", Permissions.None, DiscordColor.Gray, false, false, "Allows people to be muted.");
-					databaseGuild.MuteRole = role.Id;
-					break;
-				case PermissionType.Antimeme:
-					databaseGuild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == discordGuild.Id);
-					role = await discordGuild.CreateRoleAsync("Antimemed", Permissions.None, DiscordColor.Gray, false, false, "Allows people to meme no longer.");
-					databaseGuild.AntimemeRole = role.Id;
-					break;
-				case PermissionType.VoiceBan:
-					databaseGuild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == discordGuild.Id);
-					role = await discordGuild.CreateRoleAsync("Voicebanned", Permissions.None, DiscordColor.Gray, false, false, "Allows people to be banned from voice channels.");
-					databaseGuild.VoiceBanRole = role.Id;
-					break;
-			}
-			message = await message.ModifyAsync($"{Formatter.Strike(message.Content)}\nFixing channel permissions...");
-			await FixPermissions(discordGuild, role, permissionType);
-			_ = await message.ModifyAsync($"{Formatter.Strike(message.Content)}\nDone! {permissionType.Humanize()} role is now {role.Mention}!");
-		}
-
-		public static async Task FixPermissions(DiscordChannel channel, DiscordRole role, PermissionType permissionType)
-		{
-			Permissions textChannelPerms = permissionType switch
-			{
-				PermissionType.Mute => Permissions.SendMessages | Permissions.AddReactions,
-				PermissionType.Antimeme => Permissions.AttachFiles | Permissions.AddReactions | Permissions.EmbedLinks | Permissions.UseExternalEmojis,
-				PermissionType.VoiceBan => Permissions.None,
-				_ => Permissions.None
-			};
-
-			Permissions voiceChannelPerms = permissionType switch
-			{
-				PermissionType.Mute => Permissions.Speak | Permissions.Stream,
-				PermissionType.Antimeme => Permissions.Stream | Permissions.UseVoiceDetection,
-				PermissionType.VoiceBan => Permissions.UseVoice,
-				_ => Permissions.None
-			};
-
-			Permissions categoryPerms = textChannelPerms | voiceChannelPerms;
-
-			switch (channel.Type)
-			{
-				case ChannelType.Voice:
-					await channel.AddOverwriteAsync(role, Permissions.None, voiceChannelPerms, "Disallows users to connect to the voicechat.");
-					break;
-				case ChannelType.Category:
-					await channel.AddOverwriteAsync(role, Permissions.None, categoryPerms, "Disallows users to connect to the voicechannels.");
-					break;
-				default:
-					await channel.AddOverwriteAsync(role, Permissions.None, textChannelPerms, $"Configuring permissions for {permissionType.Humanize()} role.");
-					break;
-			}
-		}
-
-		public static async Task FixPermissions(DiscordGuild guild, DiscordRole role, PermissionType permissionType)
-		{
-			foreach (DiscordChannel channel in guild.Channels.Values)
-			{
-				await FixPermissions(channel, role, permissionType);
-				await Task.Delay(50);
-			}
-		}
-
-		public enum PermissionType
+		public enum RoleAction
 		{
 			Mute,
 			Antimeme,
-			VoiceBan
+			Voiceban
 		}
 
-		[Command("anti_invite"), RequireUserPermissions(Permissions.ManageGuild), RequireGuild, Aliases("antiinvite", "antinvite")]
-		public async Task AntiInvite(CommandContext context, bool isEnabled = true)
+		public Database Database { private get; set; }
+
+		[GroupCommand]
+		public async Task ShowConfig(CommandContext context)
 		{
 			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
 			if (guild == null)
 			{
-				_ = await Program.SendMessage(context, Formatter.Bold("[Error: Failed to activate anti-invite, guild is not in the database!]"));
+				_ = await Program.SendMessage(context, Constants.GuildNotInDatabase);
 				return;
 			}
 
-			guild.AntiInvite = isEnabled;
-			_ = await Program.SendMessage(context, "Anti-Invite is now enabled!");
+			StringBuilder stringBuilder = new();
+			_ = stringBuilder.Append($"Mute Role: {guild.MuteRole.GetRole(context.Guild)?.Mention ?? "Not set"}\n\n");
+			_ = stringBuilder.Append($"Antimeme Role: {guild.AntimemeRole.GetRole(context.Guild)?.Mention ?? "Not set"}\n\n");
+			_ = stringBuilder.Append($"Voiceban Role: {guild.VoicebanRole.GetRole(context.Guild)?.Mention ?? "Not set"}\n\n");
+			string roleMentions = string.Join(", ", guild.AdminRoles.Select(role => role.GetRole(context.Guild)).OrderBy(role => role.Position).Select(role => role.Mention));
+			_ = stringBuilder.Append($"Admin Roles: {(roleMentions == string.Empty ? "None set" : roleMentions)}\n\n");
+			string allowedInvites = string.Join(", ", guild.AllowedInvites.OrderBy(invite => invite).Select(invite => $"discord.gg/{invite}"));
+			_ = stringBuilder.Append($"Allowed Invites: {(allowedInvites == string.Empty ? "None set" : allowedInvites)}\n\n");
+			_ = stringBuilder.Append($"AntiInvite: {(guild.AntiInvite ? "Enabled" : "Disabled")}\n\n");
+			_ = stringBuilder.Append($"AutoDehoist: {(guild.AutoDehoist ? "Enabled" : "Disabled")}\n\n");
+			string channelMentions = string.Join(", ", guild.IgnoredChannels.Select(channel => channel.GetRole(context.Guild)).OrderBy(channel => channel.Position).Select(channel => channel.Mention));
+			_ = stringBuilder.Append($"Ignored Channels: {(channelMentions == string.Empty ? "None set" : roleMentions)}\n\n");
+			_ = stringBuilder.Append($"Max Lines: {guild.MaxLines}\n\n");
+			_ = stringBuilder.Append($"Max Mentions: {guild.MaxMentions}\n\n");
+			_ = stringBuilder.Append($"Progressive Strikes: {(guild.ProgressiveStrikes ? "Enabled" : "Disabled")}\n\n");
+			string progressiveStrikesAction = string.Join(", ", guild.Punishments.Select(element => $"Strike #{element.Key} => {element.Value}"));
+			_ = stringBuilder.Append($"Progressive Strikes Actions: {(progressiveStrikesAction == string.Empty ? "None set" : progressiveStrikesAction)}\n\n");
+			_ = stringBuilder.Append($"Automod Strikes: {guild.StrikeAutomod}\n\n");
+			InteractivityExtension interactivity = context.Client.GetInteractivity();
+			Page[] pages = interactivity.GeneratePagesInEmbed(stringBuilder.ToString(), SplitType.Line, new DiscordEmbedBuilder().GenerateDefaultEmbed(context, $"Config For {context.Guild.Name}")).ToArray();
+			if (pages.Length == 1)
+			{
+				_ = await Program.SendMessage(context, null, pages[0].Embed);
+			}
+			else
+			{
+				await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, pages);
+			}
 		}
 
-		[Command("allow_invite"), RequireUserPermissions(Permissions.ManageMessages), RequireGuild, Aliases("allowinvite", "add_invite", "addinvite")]
-		public async Task AllowInvite(CommandContext context, string invite)
+		[GroupCommand, RequireUserPermissions(Permissions.ManageRoles), RequireBotPermissions(Permissions.ManageChannels)]
+		public async Task Roles(CommandContext context, RoleAction roleAction, DiscordRole role)
 		{
-			string capture = Listeners.MessageRecieved.InviteRegex.Match(invite.Trim()).Captures.FirstOrDefault()?.Value;
-			if (capture != null)
+			// Test if the guild is in the database. Bot owner might've removed it on accident, and we don't want the bot to fail completely if the guild is missing.
+			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
+			if (guild == null)
 			{
-				Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
-				if (guild == null)
+				_ = await Program.SendMessage(context, Constants.GuildNotInDatabase);
+				return;
+			}
+
+			// GetRole is used in case the role id is 0 (default value) and will either return the Discord role or null
+			DiscordRole databaseRole = roleAction switch
+			{
+				RoleAction.Mute => guild.MuteRole.GetRole(context.Guild),
+				RoleAction.Antimeme => guild.AntimemeRole.GetRole(context.Guild),
+				RoleAction.Voiceban => guild.VoicebanRole.GetRole(context.Guild),
+				_ => null
+			};
+
+			// Check to see if a previous role has been set
+			if (databaseRole != null)
+			{
+				DiscordMessage confirmRoleOverride = await Program.SendMessage(context, Formatter.Bold($"[Notice: {roleAction} role has already been set. Override it with {role.Mention}?"));
+				await new Queue(confirmRoleOverride, context.User, new(async eventArgs =>
 				{
-					_ = await Program.SendMessage(context, Formatter.Bold("[Error: Failed to add invite, guild is not in the database!]"));
-					return;
+					if (eventArgs.Emoji == Constants.ThumbsUp)
+					{
+						confirmRoleOverride = await confirmRoleOverride.ModifyAsync(Formatter.Strike(Formatter.Strip(confirmRoleOverride.Content)) + "\nSaving role to database...");
+						switch (roleAction)
+						{
+							case RoleAction.Mute:
+								guild.MuteRole = role.Id;
+								break;
+							case RoleAction.Antimeme:
+								guild.AntimemeRole = role.Id;
+								break;
+							case RoleAction.Voiceban:
+								guild.VoicebanRole = role.Id;
+								break;
+							default: break;
+						}
+						_ = await Database.SaveChangesAsync();
+						confirmRoleOverride = await confirmRoleOverride.ModifyAsync(Formatter.Strike(Formatter.Strip(confirmRoleOverride.Content)) + "\nFixing role permissions...");
+						FixPermissions(context.Guild, roleAction, role);
+						confirmRoleOverride = await confirmRoleOverride.ModifyAsync(Formatter.Strike(Formatter.Strip(confirmRoleOverride.Content)) + $"\nRole {role.Mention} is now set as the {roleAction} role!");
+					}
+					else if (eventArgs.Emoji == Constants.ThumbsDown)
+					{
+						_ = await confirmRoleOverride.ModifyAsync(Formatter.Strike(Formatter.Strip(confirmRoleOverride.Content)) + '\n' + Formatter.Bold("[Notice: Aborting!]"));
+					}
+				})).WaitForReaction();
+				return;
+			}
+			else
+			{
+				DiscordMessage confirmRoleOverride = await Program.SendMessage(context, $"Setting {role.Mention} as {roleAction} role...");
+				confirmRoleOverride = await confirmRoleOverride.ModifyAsync(Formatter.Strike(Formatter.Strip(confirmRoleOverride.Content)) + "\nSaving role to database...");
+				switch (roleAction)
+				{
+					case RoleAction.Mute:
+						guild.MuteRole = role.Id;
+						break;
+					case RoleAction.Antimeme:
+						guild.AntimemeRole = role.Id;
+						break;
+					case RoleAction.Voiceban:
+						guild.VoicebanRole = role.Id;
+						break;
+					default: break;
 				}
-
-				guild.AllowedInvites.Add(capture);
-				_ = await Program.SendMessage(context, $"Invite code {Formatter.InlineCode(capture)} added!");
-			}
-			else
-			{
-				_ = await Program.SendMessage(context, $"Invite code {Formatter.InlineCode(capture)} is not an invite!");
+				_ = await Database.SaveChangesAsync();
+				confirmRoleOverride = await confirmRoleOverride.ModifyAsync(Formatter.Strike(Formatter.Strip(confirmRoleOverride.Content)) + "\nFixing role permissions...");
+				FixPermissions(context.Guild, roleAction, role);
+				confirmRoleOverride = await confirmRoleOverride.ModifyAsync(Formatter.Strike(Formatter.Strip(confirmRoleOverride.Content)) + $"\nRole {role.Mention} is now set as the {roleAction} role!");
 			}
 		}
 
-		[Command("remove_invite"), RequireUserPermissions(Permissions.ManageMessages), RequireGuild, Aliases("removeinvite", "delete_invite", "deleteinvite", "del_invite", "delinvite")]
-		public async Task RemoveInvite(CommandContext context, string invite)
+		[GroupCommand, RequireUserPermissions(Permissions.ManageRoles), RequireBotPermissions(Permissions.ManageChannels | Permissions.ManageRoles)]
+		public async Task Roles(CommandContext context, RoleAction roleAction)
 		{
-			string capture = Listeners.MessageRecieved.InviteRegex.Match(invite.Trim()).Captures.FirstOrDefault()?.Value;
-			if (capture != null)
+			// Test if the guild is in the database. Bot owner might've removed it on accident, and we don't want the bot to fail completely if the guild is missing.
+			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
+			if (guild == null)
 			{
-				Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
-				bool removed = guild.AllowedInvites.Remove(capture);
-				_ = await Program.SendMessage(context, $"Invite code {Formatter.InlineCode(capture)} {(removed ? "has been removed!" : "is not whitelisted!")}");
+				_ = await Program.SendMessage(context, Constants.GuildNotInDatabase);
+				return;
+			}
+
+			// GetRole is used in case the role id is 0 (default value) and will either return the Discord role or null
+			DiscordRole databaseRole = roleAction switch
+			{
+				RoleAction.Mute => guild.MuteRole.GetRole(context.Guild),
+				RoleAction.Antimeme => guild.AntimemeRole.GetRole(context.Guild),
+				RoleAction.Voiceban => guild.VoicebanRole.GetRole(context.Guild),
+				_ => null
+			};
+
+			// Check to see if a previous role has been set
+			if (databaseRole != null)
+			{
+				_ = await Program.SendMessage(context, Formatter.Bold($"[Notice: {roleAction} role is already set!]"));
+				return;
 			}
 			else
 			{
-				_ = await Program.SendMessage(context, $"Invite code {Formatter.InlineCode(capture)} is not an invite!");
+				// Get the correct rolename for those pesky grammar elitests.
+				string rolename = roleAction switch
+				{
+					RoleAction.Mute => "Muted",
+					RoleAction.Antimeme => "Antimemed",
+					RoleAction.Voiceban => "Voicebanned",
+					_ => "Unknown"
+				};
+				DiscordMessage progressMessage = await Program.SendMessage(context, $"Creating role {rolename}...");
+				DiscordRole role = await context.Guild.CreateRoleAsync(rolename, Permissions.None, DiscordColor.Gray, false, false, $"Creating {roleAction} role.");
+				progressMessage = await progressMessage.ModifyAsync(Formatter.Strike(Formatter.Strip(progressMessage.Content)) + "\nSaving role to database...");
+				// Save the role to the database
+				switch (roleAction)
+				{
+					case RoleAction.Mute:
+						guild.MuteRole = role.Id;
+						break;
+					case RoleAction.Antimeme:
+						guild.AntimemeRole = role.Id;
+						break;
+					case RoleAction.Voiceban:
+						guild.VoicebanRole = role.Id;
+						break;
+					default: break;
+				}
+				_ = await Database.SaveChangesAsync();
+				progressMessage = await progressMessage.ModifyAsync(Formatter.Strike(Formatter.Strip(progressMessage.Content)) + "\nFixing role permissions...");
+				FixPermissions(context.Guild, roleAction, role);
+				progressMessage = await progressMessage.ModifyAsync(Formatter.Strike(Formatter.Strip(progressMessage.Content)) + $"\nRole {role.Mention} is now set as the {roleAction} role!");
 			}
 		}
 
-		[Command("max_lines"), RequireUserPermissions(Permissions.ManageMessages), RequireGuild, Aliases("maxlines", "max_line", "maxline")]
+		[Command("anti_invite"), Aliases("antiinvite", "antinvite", "remove_invites", "removeinvites"), RequireUserPermissions(Permissions.ManageMessages), Description("Determines whether invites should be allowed to be posted or not.")]
+		public async Task AntiInvite(CommandContext context)
+		{
+			// Test if the guild is in the database. Bot owner might've removed it on accident, and we don't want the bot to fail completely if the guild is missing.
+			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
+			if (guild == null)
+			{
+				_ = await Program.SendMessage(context, Constants.GuildNotInDatabase);
+				return;
+			}
+
+			guild.AntiInvite = !guild.AntiInvite;
+			_ = await Database.SaveChangesAsync();
+			_ = await Program.SendMessage(context, $"Invites will now be {(guild.AntiInvite ? "removed" : "kept")} when posted.");
+		}
+
+		[Command("auto_dehoist"), Aliases("autodehoist", "dehoist"), RequireUserPermissions(Permissions.ManageNicknames), Description("Determines whether nicknames should be allowed at the top of the list or not.")]
+		public async Task AutoDehoist(CommandContext context)
+		{
+			// Test if the guild is in the database. Bot owner might've removed it on accident, and we don't want the bot to fail completely if the guild is missing.
+			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
+			if (guild == null)
+			{
+				_ = await Program.SendMessage(context, Constants.GuildNotInDatabase);
+				return;
+			}
+
+			guild.AutoDehoist = !guild.AutoDehoist;
+			_ = await Database.SaveChangesAsync();
+			_ = await Program.SendMessage(context, $"Hoisted nicknames will now be {(guild.AntiInvite ? $"renamed to {Formatter.InlineCode("dehoisted")}" : "kept")}.");
+		}
+
+		[Command("max_lines"), Aliases("maxlines", "max_line", "maxline"), RequireUserPermissions(Permissions.ManageMessages), Description("Sets the limit on the max newlines allowed on messages.")]
 		public async Task MaxLines(CommandContext context, int maxLineCount)
 		{
+			// Test if the guild is in the database. Bot owner might've removed it on accident, and we don't want the bot to fail completely if the guild is missing.
 			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
 			if (guild == null)
 			{
-				_ = await Program.SendMessage(context, Formatter.Bold("[Error: Failed to remove invite, guild is not in the database!]"));
+				_ = await Program.SendMessage(context, Constants.GuildNotInDatabase);
 				return;
 			}
-
 			guild.MaxLines = maxLineCount;
-			_ = await Program.SendMessage(context, "Max line count successfully updated!");
+			_ = await Database.SaveChangesAsync();
+			_ = await Program.SendMessage(context, $"The maximum lines allowed in a message is now {maxLineCount}.");
 		}
 
-		[Command("max_mentions"), RequireUserPermissions(Permissions.ManageMessages), RequireGuild, Aliases("maxmentions", "max_mention", "maxmention")]
+		[Command("max_mentions"), Aliases("maxmentions"), RequireUserPermissions(Permissions.ManageMessages), Description("Sets the maximum mentions allowed in a message. User pings and role pings are added together for the total ping count, which determines if the user gets a strike or not.")]
 		public async Task MaxMentions(CommandContext context, int maxMentionCount)
 		{
+			// Test if the guild is in the database. Bot owner might've removed it on accident, and we don't want the bot to fail completely if the guild is missing.
 			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
 			if (guild == null)
 			{
-				_ = await Program.SendMessage(context, Formatter.Bold("[Error: Failed to set max mentions count, guild is not in the database!]"));
+				_ = await Program.SendMessage(context, Constants.GuildNotInDatabase);
 				return;
 			}
-
 			guild.MaxMentions = maxMentionCount;
-			_ = await Program.SendMessage(context, "Max mention count successfully updated!");
+			_ = await Database.SaveChangesAsync();
+			_ = await Program.SendMessage(context, $"The maximum mentions allowed in a message is now {maxMentionCount}.");
 		}
 
-		[Command("ignore_channel"), RequireUserPermissions(Permissions.ManageChannels), RequireGuild, Aliases("ignorechannel", "hide_channel", "hidechannel")]
-		public async Task IgnoreChannel(CommandContext context, DiscordChannel channel)
+		[Command("add_invite"), Aliases("addinvite", "allow_invite", "allowinvite"), RequireUserPermissions(Permissions.ManageMessages), Description("Adds a Discord invite to the whitelist. Only effective if `anti_invite` is enabled.")]
+		public async Task AddInvite(CommandContext context, DiscordInvite discordInvite)
 		{
+			// Test if the guild is in the database. Bot owner might've removed it on accident, and we don't want the bot to fail completely if the guild is missing.
 			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
 			if (guild == null)
 			{
-				_ = await Program.SendMessage(context, Formatter.Bold("[Error: Failed to ignore the channel, guild is not in the database!]"));
+				_ = await Program.SendMessage(context, Constants.GuildNotInDatabase);
 				return;
 			}
 
-			if (guild.IgnoredChannels.Contains(channel.Id)) _ = await Program.SendMessage(context, $"Channel {channel.Mention} was already ignored!");
+			if (guild.AllowedInvites.Contains(discordInvite.Code))
+			{
+				_ = await Program.SendMessage(context, $"Invite discord.gg/{discordInvite.Code} was already whitelisted!");
+			}
 			else
 			{
-				guild.IgnoredChannels.Add(channel.Id);
-				_ = await Program.SendMessage(context, $"Channel {channel.Mention} is now ignored!");
+				guild.AllowedInvites.Add(discordInvite.Code);
+				_ = await Database.SaveChangesAsync();
+				_ = await Program.SendMessage(context, $"Invite discord.gg/{discordInvite.Code} is now whitelisted.");
 			}
 		}
 
-		[Command("unignore_channel"), RequireUserPermissions(Permissions.ManageChannels), RequireGuild, Aliases("unignorechannel", "see_channel", "seechannel")]
-		public async Task UnignoreChannel(CommandContext context, DiscordChannel channel)
+		[Command("remove_invite"), Aliases("removeinvite", "delete_invite", "deleteinvite"), RequireUserPermissions(Permissions.ManageMessages), Description("Removes an invite from the whitelist. Only effective if `anti_invite` is enabled.")]
+		public async Task RemoveInvite(CommandContext context, DiscordInvite discordInvite)
 		{
+			// Test if the guild is in the database. Bot owner might've removed it on accident, and we don't want the bot to fail completely if the guild is missing.
 			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
 			if (guild == null)
 			{
-				_ = await Program.SendMessage(context, Formatter.Bold("[Error: Failed to unignore the channel, guild is not in the database!]"));
+				_ = await Program.SendMessage(context, Constants.GuildNotInDatabase);
 				return;
 			}
 
-			bool removed = guild.IgnoredChannels.Remove(channel.Id);
-			_ = await Program.SendMessage(context, $"Channel {channel.Mention} {(removed ? "has been removed!" : "is not whitelisted!")}");
-		}
-
-		[Command("add_admin"), RequireUserPermissions(Permissions.ManageRoles), RequireGuild, Aliases("admin", "staff", "add_staff", "addadmin", "addstaff")]
-		public async Task AdminRole(CommandContext context, DiscordRole role)
-		{
-			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
-			if (guild == null)
+			if (guild.AllowedInvites.Remove(discordInvite.Code))
 			{
-				_ = await Program.SendMessage(context, Formatter.Bold("[Error: Failed to add the admin, guild is not in the database!]"));
-				return;
+				_ = await Database.SaveChangesAsync();
+				_ = await Program.SendMessage(context, "Invite has been removed from the whitelist.");
 			}
-
-			if (!guild.AdminRoles.Contains(role.Id)) _ = await Program.SendMessage(context, $"Role {role.Mention} was already admin!");
 			else
 			{
-				guild.AdminRoles.Add(role.Id);
-				_ = await Program.SendMessage(context, $"Channel {role.Mention} is now admin!");
+				_ = await Program.SendMessage(context, "Invite was not whitelisted!");
 			}
 		}
 
-		[Command("remove_admin"), RequireUserPermissions(Permissions.ManageChannels), RequireGuild, Aliases("removeadmin", "remove_staff", "removestaff", "unadmin", "unstaff")]
-		public async Task RemoveAdmin(CommandContext context, DiscordChannel channel)
+		[Command("ignore_channel"), Aliases("ignorechannel", "hide_channel", "hidechannel"), RequireUserPermissions(Permissions.ManageChannels), Description("Prevents the bot from reading messages and executing commands in the specified channel.")]
+		public async Task IgnoreChannel(CommandContext context, DiscordChannel discordChannel)
 		{
+			// Test if the guild is in the database. Bot owner might've removed it on accident, and we don't want the bot to fail completely if the guild is missing.
 			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
 			if (guild == null)
 			{
-				_ = await Program.SendMessage(context, Formatter.Bold("[Error: Failed to remove the admin, guild is not in the database!]"));
+				_ = await Program.SendMessage(context, Constants.GuildNotInDatabase);
 				return;
 			}
 
-			bool removed = guild.IgnoredChannels.Remove(channel.Id);
-			_ = await Program.SendMessage(context, $"Channel {channel.Mention} {(removed ? "has been removed!" : "is not whitelisted!")}");
+			if (guild.IgnoredChannels.Contains(discordChannel.Id))
+			{
+				_ = await Program.SendMessage(context, $"Invite discord.gg/{discordChannel.Mention} was already whitelisted!");
+			}
+			else
+			{
+				guild.IgnoredChannels.Add(discordChannel.Id);
+				_ = await Database.SaveChangesAsync();
+				_ = await Program.SendMessage(context, $"Invite discord.gg/{discordChannel.Mention} is now whitelisted.");
+			}
 		}
 
-		[Command("strike_automod"), RequireUserPermissions(Permissions.KickMembers), RequireGuild, Aliases("strikeautomod", "punish_automod", "punishautomod")]
-		public async Task StrikeAutoMod(CommandContext context, bool enabled)
+		[Command("unignore_channel"), Aliases("unignorechannel", "show_channel", "showchannel"), RequireUserPermissions(Permissions.ManageChannels), Description("Allows the bot to see messages and execute commands in the specified channel.")]
+		public async Task UnignoreChannel(CommandContext context, DiscordChannel discordChannel)
 		{
+			// Test if the guild is in the database. Bot owner might've removed it on accident, and we don't want the bot to fail completely if the guild is missing.
 			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
 			if (guild == null)
 			{
-				_ = await Program.SendMessage(context, Formatter.Bold("[Error: Failed to change automod mode, guild is not in the database!]"));
+				_ = await Program.SendMessage(context, Constants.GuildNotInDatabase);
 				return;
 			}
 
-			guild.StrikeAutomod = enabled;
-			_ = await Program.SendMessage(context, "Automod now gives out strikes!");
+			if (guild.IgnoredChannels.Remove(discordChannel.Id))
+			{
+				_ = await Database.SaveChangesAsync();
+				_ = await Program.SendMessage(context, "The channel is now shown.");
+			}
+			else
+			{
+				_ = await Program.SendMessage(context, "The channel wasn't hidden!");
+			}
+		}
+
+		[Command("add_admin"), Aliases("addadmin", "add_staff", "addstaff", "admin", "staff"), RequireUserPermissions(Permissions.ManageGuild), Description("Adds the specified role to the staff list. Staff roles are exempt from all automoderation.")]
+		public async Task AddAdmin(CommandContext context, DiscordRole discordRole)
+		{
+			// Test if the guild is in the database. Bot owner might've removed it on accident, and we don't want the bot to fail completely if the guild is missing.
+			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
+			if (guild == null)
+			{
+				_ = await Program.SendMessage(context, Constants.GuildNotInDatabase);
+				return;
+			}
+
+			if (guild.AdminRoles.Contains(discordRole.Id))
+			{
+				_ = await Program.SendMessage(context, $"The role {discordRole.Mention} was already on the staff list!");
+			}
+			else
+			{
+				guild.AdminRoles.Add(discordRole.Id);
+				_ = await Database.SaveChangesAsync();
+				_ = await Program.SendMessage(context, $"The role {discordRole.Mention} is now considered staff.");
+			}
+		}
+
+		[Command("remove_admin"), Aliases("removeadmin", "remove_staff", "removestaff", "unadmin", "unstaff"), RequireUserPermissions(Permissions.ManageGuild), Description("Removes the specified role from the staff list.")]
+		public async Task RemoveAdmin(CommandContext context, DiscordRole discordRole)
+		{
+			// Test if the guild is in the database. Bot owner might've removed it on accident, and we don't want the bot to fail completely if the guild is missing.
+			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
+			if (guild == null)
+			{
+				_ = await Program.SendMessage(context, Constants.GuildNotInDatabase);
+				return;
+			}
+
+			if (guild.AdminRoles.Remove(discordRole.Id))
+			{
+				_ = await Database.SaveChangesAsync();
+				_ = await Program.SendMessage(context, "The role is no longer considered staff.");
+			}
+			else
+			{
+				_ = await Program.SendMessage(context, "The role wasn't on the staff list!");
+			}
+		}
+
+		[Command("strike_automod"), Aliases("strikeautomod", "auto_strike", "autostrike"), RequireUserPermissions(Permissions.ManageMessages), Description("Determines whether automod should add a strike to the victim.")]
+		public async Task StrikeAutomod(CommandContext context)
+		{
+			// Test if the guild is in the database. Bot owner might've removed it on accident, and we don't want the bot to fail completely if the guild is missing.
+			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
+			if (guild == null)
+			{
+				_ = await Program.SendMessage(context, Constants.GuildNotInDatabase);
+				return;
+			}
+
+			guild.StrikeAutomod = !guild.StrikeAutomod;
+			_ = await Database.SaveChangesAsync();
+			_ = await Program.SendMessage(context, $"Automod will {(guild.AntiInvite ? "now" : "no longer")} issue strikes.");
+		}
+
+		[Command("progressive_strikes"), Aliases("progressivestrikes", "auto_punishments", "autopunishments"), RequireUserPermissions(Permissions.ManageMessages), Description("Determines whether punishments should lead into other punishments depending on the total amount of strikes the victim has already accumulated.")]
+		public async Task ProgressiveStrikes(CommandContext context)
+		{
+			// Test if the guild is in the database. Bot owner might've removed it on accident, and we don't want the bot to fail completely if the guild is missing.
+			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
+			if (guild == null)
+			{
+				_ = await Program.SendMessage(context, Constants.GuildNotInDatabase);
+				return;
+			}
+
+			guild.StrikeAutomod = !guild.StrikeAutomod;
+			_ = await Database.SaveChangesAsync();
+			_ = await Program.SendMessage(context, $"Progressive punishments will {(guild.AntiInvite ? "now" : "no longer")} be in service.");
+		}
+
+		public static void FixPermissions(DiscordGuild discordGuild, RoleAction roleAction, DiscordRole role) => discordGuild.Channels.Values.ToList().ForEach(async channel => await FixPermissions(channel, roleAction, role));
+		public static async Task FixPermissions(DiscordChannel discordChannel, RoleAction roleAction, DiscordRole role)
+		{
+			Permissions textChannelPerms = roleAction switch
+			{
+				RoleAction.Mute => Permissions.SendMessages | Permissions.AddReactions,
+				RoleAction.Antimeme => Permissions.AttachFiles | Permissions.AddReactions | Permissions.EmbedLinks | Permissions.UseExternalEmojis,
+				RoleAction.Voiceban => Permissions.None,
+				_ => Permissions.None
+			};
+			Permissions voiceChannelPerms = roleAction switch
+			{
+				RoleAction.Mute => Permissions.Speak | Permissions.Stream,
+				RoleAction.Antimeme => Permissions.Stream | Permissions.UseVoiceDetection,
+				RoleAction.Voiceban => Permissions.UseVoice,
+				_ => Permissions.None
+			};
+			Permissions categoryPerms = textChannelPerms | voiceChannelPerms;
+
+			string auditLogReason = roleAction switch
+			{
+				RoleAction.Mute => "Configuring permissions for mute role. Preventing role from sending messages, reacting to messages and speaking in voice channels.",
+				RoleAction.Antimeme => "Configuring permissions for antimeme role. Preventing role from reacting to messages, embedding links and uploading files. In voice channels, preventing role from streaming and forcing push-to-talk.",
+				RoleAction.Voiceban => "Configuring permissions for voiceban role. Preventing role from connecting to voice channels.",
+				_ => "Not configuring unknown role action."
+			};
+
+			switch (discordChannel.Type)
+			{
+				case ChannelType.Voice:
+					await discordChannel.AddOverwriteAsync(role, Permissions.None, voiceChannelPerms, auditLogReason);
+					break;
+				case ChannelType.Category:
+					await discordChannel.AddOverwriteAsync(role, Permissions.None, categoryPerms, auditLogReason);
+					break;
+				default:
+					await discordChannel.AddOverwriteAsync(role, Permissions.None, textChannelPerms, auditLogReason);
+					break;
+			}
 		}
 	}
 }

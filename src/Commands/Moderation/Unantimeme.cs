@@ -12,11 +12,11 @@ using Tomoe.Db;
 
 namespace Tomoe.Commands.Moderation
 {
-	public class Antimeme : BaseCommandModule
+	public class Unantimeme : BaseCommandModule
 	{
 		public Database Database { private get; set; }
-		[Command("antimeme"), RequireGuild, RequireBotPermissions(Permissions.ManageRoles), RequireUserPermissions(Permissions.ManageMessages), Aliases("anti_meme", "memeban", "meme_ban", "nomeme", "no_meme"), Description("Grants the victim the `Antimeme` role, which prevents them from reacting to messages, embedding links and uploading files. The voice channels, this prevents the victim from streaming and they must use push-to-talk. The intention of this role is to prevent abuse of Discord's rich messaging features, or when someone is being really annoying by conversating with every known method except with messages."), Punishment(false)]
-		public async Task Byuser(CommandContext context, DiscordUser victim, [RemainingText] string antimemeReason = Constants.MissingReason)
+		[Command("unantimeme"), RequireGuild, RequireBotPermissions(Permissions.ManageRoles), RequireUserPermissions(Permissions.ManageMessages), Aliases("unanti_meme", "unmemeban", "unmeme_ban", "unnomeme", "unno_meme", "promeme"), Description("Removes the `Antimeme` role from the victim, allowing them to react to messages, send embeds, upload files, stream to voice channels, and removes the push-to-talk restriction."), Punishment(false)]
+		public async Task ByUser(CommandContext context, DiscordUser victim, [RemainingText] string unantimemeReason = Constants.MissingReason)
 		{
 			// Test if the guild is in the database. Bot owner might've removed it on accident, and we don't want the bot to fail completely if the guild is missing.
 			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
@@ -46,43 +46,30 @@ namespace Tomoe.Commands.Moderation
 					databaseVictim.Roles = guildVictim.Roles.Except(new[] { context.Guild.EveryoneRole }).Select(role => role.Id).ToList();
 				}
 			}
-			databaseVictim.IsAntimemed = true;
+			databaseVictim.IsAntimemed = false;
 
-			// If the user is in the guild, assign the antimeme role
+			// If the user is in the guild, assign the antimemed role
 			bool sentDm = false;
 			if (guildVictim != null)
 			{
-				await guildVictim.GrantRoleAsync(antimemeRole, antimemeReason);
+				await guildVictim.RevokeRoleAsync(antimemeRole, unantimemeReason);
 				// If the user isn't a bot, attempt to dm them to make them aware of their punishment
 				if (!guildVictim.IsBot)
 				{
 					try
 					{
-						_ = await guildVictim.SendMessageAsync($"You've been antimemed from {Formatter.Bold(context.Guild.Name)}. Reason: {Formatter.BlockCode(Formatter.Strip(antimemeReason))}Context: {context.Message.JumpLink}\nNote: Antimeme prevents you from reacting to messages, sending embeds, uploading files, streaming to voice channels, and adds the push-to-talk restriction to voice channels.");
+						_ = await guildVictim.SendMessageAsync($"You've been unantimemed from {Formatter.Bold(context.Guild.Name)}. Reason: {Formatter.BlockCode(Formatter.Strip(unantimemeReason))}Context: {context.Message.JumpLink}");
 						sentDm = true;
 					}
 					catch (Exception) { }
 				}
 			}
 
-			if (guild.ProgressiveStrikes)
-			{
-				Strike strike = new();
-				strike.GuildId = context.Guild.Id;
-				strike.IssuerId = context.User.Id;
-				strike.JumpLinks.Add(context.Message.JumpLink);
-				strike.Reasons.Add(antimemeReason);
-				strike.VictimId = victim.Id;
-				strike.VictimMessaged = sentDm;
-				_ = Database.Strikes.Add(strike);
-				_ = await Database.SaveChangesAsync();
-				await Strikes.ProgressiveStrike(context.Guild, victim, strike);
-			}
-
-			_ = await Program.SendMessage(context, $"{victim.Mention} has been antimemed{(sentDm ? '.' : " (Failed to dm).")}");
+			_ = await Database.SaveChangesAsync();
+			_ = await Program.SendMessage(context, $"{victim.Mention} has been unantimemed{(sentDm ? '.' : " (Failed to dm).")}");
 		}
 
-		public static async Task ByProgram(DiscordGuild discordGuild, DiscordUser victim, Uri jumplink, string antimemeReason = Constants.MissingPermissions)
+		public static async Task ByProgram(DiscordGuild discordGuild, DiscordUser victim, Uri jumplink, string unantimemeReason = Constants.MissingPermissions)
 		{
 			using IServiceScope scope = Program.ServiceProvider.CreateScope();
 			Database database = scope.ServiceProvider.GetService<Database>();
@@ -106,38 +93,24 @@ namespace Tomoe.Commands.Moderation
 					databaseVictim.Roles = guildVictim.Roles.Except(new[] { discordGuild.EveryoneRole }).Select(role => role.Id).ToList();
 				}
 			}
-			databaseVictim.IsVoicebanned = true;
+			databaseVictim.IsAntimemed = false;
 
-			// If the user is in the guild, assign the muted role
-			bool sentDm = false;
+			// If the user is in the guild, assign the antimemed role
 			if (guildVictim != null)
 			{
-				await guildVictim.GrantRoleAsync(antimemeRole, antimemeReason);
+				await guildVictim.RevokeRoleAsync(antimemeRole, unantimemeReason);
 				// If the user isn't a bot, attempt to dm them to make them aware of their punishment
 				if (!guildVictim.IsBot)
 				{
 					try
 					{
-						_ = await guildVictim.SendMessageAsync($"You've been antimemed from {Formatter.Bold(discordGuild.Name)}. Reason: {Formatter.BlockCode(Formatter.Strip(antimemeReason))}Context: {jumplink}\nNote: Antimeme prevents you from reacting to messages, sending embeds, uploading files, streaming to voice channels, and adds the push-to-talk restriction to voice channels.");
-						sentDm = true;
+						_ = await guildVictim.SendMessageAsync($"You've been unantimemed from {Formatter.Bold(discordGuild.Name)}. Reason: {Formatter.BlockCode(Formatter.Strip(unantimemeReason))}Context: {jumplink}");
 					}
 					catch (Exception) { }
 				}
 			}
 
-			if (guild.ProgressiveStrikes)
-			{
-				Strike strike = new();
-				strike.GuildId = discordGuild.Id;
-				strike.IssuerId = Program.Client.CurrentUser.Id;
-				strike.JumpLinks.Add(jumplink);
-				strike.Reasons.Add(antimemeReason);
-				strike.VictimId = victim.Id;
-				strike.VictimMessaged = sentDm;
-				_ = database.Strikes.Add(strike);
-				_ = await database.SaveChangesAsync();
-				await Strikes.ProgressiveStrike(discordGuild, victim, strike);
-			}
+			_ = await database.SaveChangesAsync();
 		}
 	}
 }

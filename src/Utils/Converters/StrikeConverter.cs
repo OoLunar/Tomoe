@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Tomoe.Db;
 
-namespace Tomoe
+namespace Tomoe.Utils.Converters
 {
 	public class StrikeConverter : IArgumentConverter<Strike>
 	{
@@ -23,7 +23,8 @@ namespace Tomoe
 				_ = await Program.SendMessage(context, $"{Formatter.InlineCode(value)} is not a valid strike id!");
 				return Optional.FromNoValue<Strike>();
 			}
-			Strike strike = await database.Strikes.FirstOrDefaultAsync(strike => strike.Id == strikeId && strike.GuildId == context.Guild.Id);
+			Strike strike = await database.Strikes.AsNoTracking().FirstOrDefaultAsync(strike => strike.Id == strikeId && strike.GuildId == context.Guild.Id);
+			database.Dispose();
 			if (strike == null)
 			{
 				_ = await Program.SendMessage(context, $"Strike #{strikeId} not found!");

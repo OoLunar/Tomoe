@@ -4,7 +4,7 @@ using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using Tomoe.Commands.Listeners;
 
-namespace Tomoe.Types
+namespace Tomoe.Utils.Types
 {
 	public class Queue : IDisposable
 	{
@@ -14,9 +14,6 @@ namespace Tomoe.Types
 			Custom,
 			Confirmation
 		}
-
-		public static readonly DiscordEmoji ThumbsUp = DiscordEmoji.FromUnicode(Program.Client.ShardClients[0], "👍");
-		public static readonly DiscordEmoji ThumbsDown = DiscordEmoji.FromUnicode(Program.Client.ShardClients[0], "👎");
 
 		public DiscordMessage Message { get; private set; }
 		public DiscordUser User { get; private set; }
@@ -30,9 +27,9 @@ namespace Tomoe.Types
 			User = user;
 			Type = ReactionType.Confirmation;
 			Action = action;
-			message.DeleteAllReactionsAsync("Adding confirmation emoji's.").GetAwaiter().GetResult();
-			message.CreateReactionAsync(ThumbsUp).GetAwaiter().GetResult();
-			message.CreateReactionAsync(ThumbsDown).GetAwaiter().GetResult();
+			message.DeleteAllReactionsAsync("Adding confirmation emojis...").GetAwaiter().GetResult();
+			message.CreateReactionAsync(Constants.ThumbsUp).GetAwaiter().GetResult();
+			message.CreateReactionAsync(Constants.ThumbsDown).GetAwaiter().GetResult();
 			ReactionAdded.QueueList.Add(this);
 		}
 
@@ -55,6 +52,7 @@ namespace Tomoe.Types
 
 		public void Dispose()
 		{
+			_ = ReactionAdded.QueueList.Remove(this);
 			Message = null;
 			User = null;
 			Emojis = null;

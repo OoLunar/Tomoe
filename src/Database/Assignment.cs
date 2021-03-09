@@ -7,10 +7,10 @@ namespace Tomoe.Db
 	public enum AssignmentType
 	{
 		Reminder,
-		TempBan,
-		TempMute,
-		TempAntimeme,
-		TempVoiceBan
+		Tempban,
+		Tempmute,
+		Tempantimeme,
+		Tempvoiceban
 	}
 
 	public class Assignment
