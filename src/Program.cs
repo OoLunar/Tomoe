@@ -68,7 +68,7 @@ namespace Tomoe
 				.MinimumLevel.Override("Microsoft.EntityFrameworkCore", Config.Logger.Database)
 				// Use custom theme because the default one stinks
 				.WriteTo.Console(theme: LoggerTheme.Lunar, outputTemplate: outputTemplate);
-			if (Config.Logger.SaveToFile) _ = loggerConfiguration.WriteTo.File($"logs/{DateTime.Now.ToLocalTime().ToString("yyyy'-'MM'-'dd' 'HH':'mm':'ss", CultureInfo.InvariantCulture)}", rollingInterval: RollingInterval.Day, outputTemplate: outputTemplate);
+			if (Config.Logger.SaveToFile) _ = loggerConfiguration.WriteTo.File($"logs/{DateTime.Now.ToLocalTime().ToString("yyyy'-'MM'-'dd' 'HH':'mm':'ss", CultureInfo.InvariantCulture)}.log", rollingInterval: RollingInterval.Day, outputTemplate: outputTemplate);
 			Log.Logger = loggerConfiguration.CreateLogger();
 
 			// Setup services
