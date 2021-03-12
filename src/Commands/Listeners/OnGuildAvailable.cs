@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
 using DSharpPlus;
-using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,15 +22,6 @@ namespace Tomoe.Commands.Listeners
 				guild = new(eventArgs.Guild.Id);
 				_ = database.Guilds.Add(guild);
 				_ = await database.SaveChangesAsync();
-			}
-			else
-			{
-				DiscordRole muteRole = guild.MuteRole.GetRole(eventArgs.Guild);
-				DiscordRole antimemeRole = guild.AntimemeRole.GetRole(eventArgs.Guild);
-				DiscordRole voicebanRole = guild.VoicebanRole.GetRole(eventArgs.Guild);
-				if (muteRole != null) Moderation.Config.FixPermissions(eventArgs.Guild, Moderation.Config.RoleAction.Mute, muteRole);
-				if (antimemeRole != null) Moderation.Config.FixPermissions(eventArgs.Guild, Moderation.Config.RoleAction.Antimeme, antimemeRole);
-				if (voicebanRole != null) Moderation.Config.FixPermissions(eventArgs.Guild, Moderation.Config.RoleAction.Voiceban, voicebanRole);
 			}
 			_logger.Information($"\"{eventArgs.Guild.Name}\" ({eventArgs.Guild.Id}) is ready! Handling {eventArgs.Guild.MemberCount} members.");
 		}

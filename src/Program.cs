@@ -13,7 +13,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Npgsql;
-using Npgsql.EntityFrameworkCore;
 using Serilog;
 using Tomoe.Db;
 using Tomoe.Utils;
@@ -117,10 +116,10 @@ namespace Tomoe
 			Client.ChannelCreated += Commands.Listeners.ChannelCreated.Handler;
 			Client.MessageCreated += Commands.Listeners.MessageRecieved.Handler;
 			Client.Ready += Commands.Listeners.OnReady.Handler;
+			Client.GuildDownloadCompleted += Commands.Public.Assignments.StartRoutine;
 			Console.CancelKeyPress += Quit.ConsoleShutdown;
 			await CommandService.Launch(Client, ServiceProvider);
 			await Client.StartAsync();
-			//Commands.Public.Assignments.StartRoutine();
 			await Task.Delay(-1);
 		}
 
@@ -156,6 +155,10 @@ namespace Tomoe
 			catch (UnauthorizedException)
 			{
 				return await context.Member.SendMessageAsync(messageBuilder);
+			}
+			catch (Exception)
+			{
+				throw;
 			}
 		}
 	}

@@ -254,6 +254,6 @@ namespace Tomoe.Commands.Moderation
 		}
 
 		public PunishmentOption Punishment { get; private set; }
-		public ExpandedTimeSpan TimeSpan { get; private set; }
+		public TimeSpan TimeSpan { get; private set; }
 	}
 }

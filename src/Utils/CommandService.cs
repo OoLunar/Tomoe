@@ -44,10 +44,10 @@ namespace Tomoe.Utils
 					foreach (CommandsNextExtension commands in commandsCollection.Values)
 					{
 						commands.RegisterConverter(new ImageFormatConverter());
-						commands.RegisterConverter(new ExpandedTimeSpanConverter());
 						commands.RegisterConverter(new StrikeConverter());
 						commands.RegisterConverter(new TagConverter());
 						commands.RegisterConverter(new RoleActionConverter());
+						commands.RegisterConverter(new AssignmentConverter());
 						commands.RegisterCommands(Assembly.GetEntryAssembly());
 						commands.CommandErrored += CommandErrored;
 					}

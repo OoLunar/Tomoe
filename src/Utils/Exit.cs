@@ -13,7 +13,7 @@ namespace Tomoe.Utils
 			Console.Write("\b\b");
 			_logger.Information("Shutting down...");
 			_logger.Information("Closing routines...");
-			Commands.Public.Assignments.Timer.Dispose();
+			await Commands.Public.Assignments.Dispose();
 			_logger.Information("Closing Discord...");
 			await Program.Client.StopAsync();
 			_logger.Information("Closing database...");

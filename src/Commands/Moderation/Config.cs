@@ -14,7 +14,7 @@ using Tomoe.Utils.Types;
 
 namespace Tomoe.Commands.Moderation
 {
-	[Group("config"), RequireGuild]
+	[Group("config"), RequireGuild, Description("Shows and changes settings for the guild.")]
 	public class Config : BaseCommandModule
 	{
 		public enum RoleAction
@@ -26,7 +26,7 @@ namespace Tomoe.Commands.Moderation
 
 		public Database Database { private get; set; }
 
-		[GroupCommand]
+		[GroupCommand, Description("Shows the guild's current config.")]
 		public async Task ShowConfig(CommandContext context)
 		{
 			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
@@ -66,8 +66,8 @@ namespace Tomoe.Commands.Moderation
 			}
 		}
 
-		[GroupCommand, RequireUserPermissions(Permissions.ManageRoles), RequireBotPermissions(Permissions.ManageChannels)]
-		public async Task Roles(CommandContext context, RoleAction roleAction, DiscordRole role)
+		[GroupCommand, RequireUserPermissions(Permissions.ManageRoles), RequireBotPermissions(Permissions.ManageChannels), Description("Designates which role should be used for which action. Will additionally change role/channel permissions for said action.")]
+		public async Task Roles(CommandContext context, [Description("Either `Mute`, `Antimeme` or `Voiceban`. Case insensitive.")] RoleAction roleAction, [Description("Which role should be used for the `roleAction`.")] DiscordRole discordRole)
 		{
 			// Test if the guild is in the database. Bot owner might've removed it on accident, and we don't want the bot to fail completely if the guild is missing.
 			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
@@ -87,31 +87,32 @@ namespace Tomoe.Commands.Moderation
 			};
 
 			// Check to see if a previous role has been set
-			if (databaseRole != null)
+			if (databaseRole != null && databaseRole.Id != discordRole.Id)
 			{
-				DiscordMessage confirmRoleOverride = await Program.SendMessage(context, Formatter.Bold($"[Notice: {roleAction} role has already been set. Override it with {role.Mention}?"));
+				DiscordMessage confirmRoleOverride = await Program.SendMessage(context, Formatter.Bold($"[Notice: {roleAction} role has already been set. Override it with {discordRole.Mention}?"));
 				await new Queue(confirmRoleOverride, context.User, new(async eventArgs =>
 				{
 					if (eventArgs.Emoji == Constants.ThumbsUp)
 					{
-						confirmRoleOverride = await confirmRoleOverride.ModifyAsync(Formatter.Strike(Formatter.Strip(confirmRoleOverride.Content)) + "\nSaving role to database...");
+						Checklist checklist = new(confirmRoleOverride, "Saving role id to database...", "Override channel permissions for role...");
 						switch (roleAction)
 						{
 							case RoleAction.Mute:
-								guild.MuteRole = role.Id;
+								guild.MuteRole = discordRole.Id;
 								break;
 							case RoleAction.Antimeme:
-								guild.AntimemeRole = role.Id;
+								guild.AntimemeRole = discordRole.Id;
 								break;
 							case RoleAction.Voiceban:
-								guild.VoicebanRole = role.Id;
+								guild.VoicebanRole = discordRole.Id;
 								break;
 							default: break;
 						}
 						_ = await Database.SaveChangesAsync();
-						confirmRoleOverride = await confirmRoleOverride.ModifyAsync(Formatter.Strike(Formatter.Strip(confirmRoleOverride.Content)) + "\nFixing role permissions...");
-						FixPermissions(context.Guild, roleAction, role);
-						confirmRoleOverride = await confirmRoleOverride.ModifyAsync(Formatter.Strike(Formatter.Strip(confirmRoleOverride.Content)) + $"\nRole {role.Mention} is now set as the {roleAction} role!");
+						await checklist.Check();
+						FixPermissions(context.Guild, roleAction, discordRole);
+						await checklist.Finalize($"Role {discordRole.Mention} is now set as the {roleAction} role!");
+						checklist.Dispose();
 					}
 					else if (eventArgs.Emoji == Constants.ThumbsDown)
 					{
@@ -122,30 +123,31 @@ namespace Tomoe.Commands.Moderation
 			}
 			else
 			{
-				DiscordMessage confirmRoleOverride = await Program.SendMessage(context, $"Setting {role.Mention} as {roleAction} role...");
-				confirmRoleOverride = await confirmRoleOverride.ModifyAsync(Formatter.Strike(Formatter.Strip(confirmRoleOverride.Content)) + "\nSaving role to database...");
+				Checklist checklist = new(context, "Saving role id to database...", "Override channel permissions for role...");
+
 				switch (roleAction)
 				{
 					case RoleAction.Mute:
-						guild.MuteRole = role.Id;
+						guild.MuteRole = discordRole.Id;
 						break;
 					case RoleAction.Antimeme:
-						guild.AntimemeRole = role.Id;
+						guild.AntimemeRole = discordRole.Id;
 						break;
 					case RoleAction.Voiceban:
-						guild.VoicebanRole = role.Id;
+						guild.VoicebanRole = discordRole.Id;
 						break;
 					default: break;
 				}
 				_ = await Database.SaveChangesAsync();
-				confirmRoleOverride = await confirmRoleOverride.ModifyAsync(Formatter.Strike(Formatter.Strip(confirmRoleOverride.Content)) + "\nFixing role permissions...");
-				FixPermissions(context.Guild, roleAction, role);
-				confirmRoleOverride = await confirmRoleOverride.ModifyAsync(Formatter.Strike(Formatter.Strip(confirmRoleOverride.Content)) + $"\nRole {role.Mention} is now set as the {roleAction} role!");
+				await checklist.Check();
+				FixPermissions(context.Guild, roleAction, discordRole);
+				await checklist.Finalize($"Role {discordRole.Mention} is now set as the {roleAction} role!");
+				checklist.Dispose();
 			}
 		}
 
-		[GroupCommand, RequireUserPermissions(Permissions.ManageRoles), RequireBotPermissions(Permissions.ManageChannels | Permissions.ManageRoles)]
-		public async Task Roles(CommandContext context, RoleAction roleAction)
+		[GroupCommand, RequireUserPermissions(Permissions.ManageRoles), RequireBotPermissions(Permissions.ManageChannels | Permissions.ManageRoles), Description("Creates and assigns the proper permissions for the `roleAction`. Creating the role should be preferred so other previous channel overwrites/role permissions do not interfere with the role's purpose.")]
+		public async Task Roles(CommandContext context, [Description("Either `Mute`, `Antimeme` or `Voiceban`. Case insensitive.")] RoleAction roleAction)
 		{
 			// Test if the guild is in the database. Bot owner might've removed it on accident, and we don't want the bot to fail completely if the guild is missing.
 			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
@@ -180,10 +182,9 @@ namespace Tomoe.Commands.Moderation
 					RoleAction.Voiceban => "Voicebanned",
 					_ => "Unknown"
 				};
-				DiscordMessage progressMessage = await Program.SendMessage(context, $"Creating role {rolename}...");
+				Checklist checklist = new(context, $"Creating role {Formatter.InlineCode(rolename)}...", "Saving role id to database...", "Override channel permissions for role...");
 				DiscordRole role = await context.Guild.CreateRoleAsync(rolename, Permissions.None, DiscordColor.Gray, false, false, $"Creating {roleAction} role.");
-				progressMessage = await progressMessage.ModifyAsync(Formatter.Strike(Formatter.Strip(progressMessage.Content)) + "\nSaving role to database...");
-				// Save the role to the database
+				await checklist.Check();
 				switch (roleAction)
 				{
 					case RoleAction.Mute:
@@ -198,9 +199,10 @@ namespace Tomoe.Commands.Moderation
 					default: break;
 				}
 				_ = await Database.SaveChangesAsync();
-				progressMessage = await progressMessage.ModifyAsync(Formatter.Strike(Formatter.Strip(progressMessage.Content)) + "\nFixing role permissions...");
+				await checklist.Check();
 				FixPermissions(context.Guild, roleAction, role);
-				progressMessage = await progressMessage.ModifyAsync(Formatter.Strike(Formatter.Strip(progressMessage.Content)) + $"\nRole {role.Mention} is now set as the {roleAction} role!");
+				await checklist.Finalize($"Role {role.Mention} is now set as the {roleAction} role!");
+				checklist.Dispose();
 			}
 		}
 
@@ -237,7 +239,7 @@ namespace Tomoe.Commands.Moderation
 		}
 
 		[Command("max_lines"), Aliases("maxlines", "max_line", "maxline"), RequireUserPermissions(Permissions.ManageMessages), Description("Sets the limit on the max newlines allowed on messages.")]
-		public async Task MaxLines(CommandContext context, int maxLineCount)
+		public async Task MaxLines(CommandContext context, [Description("The maximum amount of lines allowed in a message.")] int maxLineCount)
 		{
 			// Test if the guild is in the database. Bot owner might've removed it on accident, and we don't want the bot to fail completely if the guild is missing.
 			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
@@ -252,7 +254,7 @@ namespace Tomoe.Commands.Moderation
 		}
 
 		[Command("max_mentions"), Aliases("maxmentions"), RequireUserPermissions(Permissions.ManageMessages), Description("Sets the maximum mentions allowed in a message. User pings and role pings are added together for the total ping count, which determines if the user gets a strike or not.")]
-		public async Task MaxMentions(CommandContext context, int maxMentionCount)
+		public async Task MaxMentions(CommandContext context, [Description("The maximum amount of role and user pings allowed in a message.")] int maxMentionCount)
 		{
 			// Test if the guild is in the database. Bot owner might've removed it on accident, and we don't want the bot to fail completely if the guild is missing.
 			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
@@ -267,7 +269,7 @@ namespace Tomoe.Commands.Moderation
 		}
 
 		[Command("add_invite"), Aliases("addinvite", "allow_invite", "allowinvite"), RequireUserPermissions(Permissions.ManageMessages), Description("Adds a Discord invite to the whitelist. Only effective if `anti_invite` is enabled.")]
-		public async Task AddInvite(CommandContext context, DiscordInvite discordInvite)
+		public async Task AddInvite(CommandContext context, [Description("The Discord invite to whitelist.")] DiscordInvite discordInvite)
 		{
 			// Test if the guild is in the database. Bot owner might've removed it on accident, and we don't want the bot to fail completely if the guild is missing.
 			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
@@ -290,7 +292,7 @@ namespace Tomoe.Commands.Moderation
 		}
 
 		[Command("remove_invite"), Aliases("removeinvite", "delete_invite", "deleteinvite"), RequireUserPermissions(Permissions.ManageMessages), Description("Removes an invite from the whitelist. Only effective if `anti_invite` is enabled.")]
-		public async Task RemoveInvite(CommandContext context, DiscordInvite discordInvite)
+		public async Task RemoveInvite(CommandContext context, [Description("The Discord invite to whitelist.")] DiscordInvite discordInvite)
 		{
 			// Test if the guild is in the database. Bot owner might've removed it on accident, and we don't want the bot to fail completely if the guild is missing.
 			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
@@ -312,7 +314,7 @@ namespace Tomoe.Commands.Moderation
 		}
 
 		[Command("ignore_channel"), Aliases("ignorechannel", "hide_channel", "hidechannel"), RequireUserPermissions(Permissions.ManageChannels), Description("Prevents the bot from reading messages and executing commands in the specified channel.")]
-		public async Task IgnoreChannel(CommandContext context, DiscordChannel discordChannel)
+		public async Task IgnoreChannel(CommandContext context, [Description("The Discord channel to ignore.")] DiscordChannel discordChannel)
 		{
 			// Test if the guild is in the database. Bot owner might've removed it on accident, and we don't want the bot to fail completely if the guild is missing.
 			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
@@ -335,7 +337,7 @@ namespace Tomoe.Commands.Moderation
 		}
 
 		[Command("unignore_channel"), Aliases("unignorechannel", "show_channel", "showchannel"), RequireUserPermissions(Permissions.ManageChannels), Description("Allows the bot to see messages and execute commands in the specified channel.")]
-		public async Task UnignoreChannel(CommandContext context, DiscordChannel discordChannel)
+		public async Task UnignoreChannel(CommandContext context, [Description("The Discord invite to unignore.")] DiscordChannel discordChannel)
 		{
 			// Test if the guild is in the database. Bot owner might've removed it on accident, and we don't want the bot to fail completely if the guild is missing.
 			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
@@ -357,7 +359,7 @@ namespace Tomoe.Commands.Moderation
 		}
 
 		[Command("add_admin"), Aliases("addadmin", "add_staff", "addstaff", "admin", "staff"), RequireUserPermissions(Permissions.ManageGuild), Description("Adds the specified role to the staff list. Staff roles are exempt from all automoderation.")]
-		public async Task AddAdmin(CommandContext context, DiscordRole discordRole)
+		public async Task AddAdmin(CommandContext context, [Description("The Discord role to set as admin.")] DiscordRole discordRole)
 		{
 			// Test if the guild is in the database. Bot owner might've removed it on accident, and we don't want the bot to fail completely if the guild is missing.
 			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
@@ -380,7 +382,7 @@ namespace Tomoe.Commands.Moderation
 		}
 
 		[Command("remove_admin"), Aliases("removeadmin", "remove_staff", "removestaff", "unadmin", "unstaff"), RequireUserPermissions(Permissions.ManageGuild), Description("Removes the specified role from the staff list.")]
-		public async Task RemoveAdmin(CommandContext context, DiscordRole discordRole)
+		public async Task RemoveAdmin(CommandContext context, [Description("The Discord role to remove from admin.")] DiscordRole discordRole)
 		{
 			// Test if the guild is in the database. Bot owner might've removed it on accident, and we don't want the bot to fail completely if the guild is missing.
 			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
@@ -433,8 +435,21 @@ namespace Tomoe.Commands.Moderation
 			_ = await Program.SendMessage(context, $"Progressive punishments will {(guild.AntiInvite ? "now" : "no longer")} be in service.");
 		}
 
-		public static void FixPermissions(DiscordGuild discordGuild, RoleAction roleAction, DiscordRole role) => discordGuild.Channels.Values.ToList().ForEach(async channel => await FixPermissions(channel, roleAction, role));
-		public static async Task FixPermissions(DiscordChannel discordChannel, RoleAction roleAction, DiscordRole role)
+		/// <summary>
+		/// Fixes a <see cref="DiscordRole"/>'s <see cref="Permissions"/> for the entire <paramref name="discordGuild"/> to ensure that the <paramref name="discordRole"/> works as intended.
+		/// </summary>
+		/// <param name="discordGuild">The <see cref="DiscordGuild"/> in question.</param>
+		/// <param name="roleAction">The <see cref="RoleAction"/> determines which set of <see cref="Permissions"/> to use.</param>
+		/// <param name="discordRole">The <see cref="DiscordRole"/> whose <see cref="Permissions"/> should be fixed.</param>
+		public static void FixPermissions(DiscordGuild discordGuild, RoleAction roleAction, DiscordRole discordRole) => discordGuild.Channels.Values.ToList().ForEach(async channel => await FixPermissions(channel, roleAction, discordRole));
+
+		/// <summary>
+		/// Fixes a <see cref="DiscordRole"/>'s <see cref="Permissions"/> for a specific <paramref name="discordChannel"/> to ensure that the <paramref name="discordRole"/> works as intended.
+		/// </summary>
+		/// <param name="discordChannel">The <see cref="DiscordChannel"/> in question.</param>
+		/// <param name="roleAction">The <see cref="RoleAction"/> determines which set of <see cref="Permissions"/> to use.</param>
+		/// <param name="discordRole">The <see cref="DiscordRole"/> whose <see cref="Permissions"/> should be fixed.</param>
+		public static async Task FixPermissions(DiscordChannel discordChannel, RoleAction roleAction, DiscordRole discordRole)
 		{
 			Permissions textChannelPerms = roleAction switch
 			{
@@ -463,13 +478,13 @@ namespace Tomoe.Commands.Moderation
 			switch (discordChannel.Type)
 			{
 				case ChannelType.Voice:
-					await discordChannel.AddOverwriteAsync(role, Permissions.None, voiceChannelPerms, auditLogReason);
+					await discordChannel.AddOverwriteAsync(discordRole, Permissions.None, voiceChannelPerms, auditLogReason);
 					break;
 				case ChannelType.Category:
-					await discordChannel.AddOverwriteAsync(role, Permissions.None, categoryPerms, auditLogReason);
+					await discordChannel.AddOverwriteAsync(discordRole, Permissions.None, categoryPerms, auditLogReason);
 					break;
 				default:
-					await discordChannel.AddOverwriteAsync(role, Permissions.None, textChannelPerms, auditLogReason);
+					await discordChannel.AddOverwriteAsync(discordRole, Permissions.None, textChannelPerms, auditLogReason);
 					break;
 			}
 		}

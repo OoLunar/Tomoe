@@ -87,6 +87,10 @@ namespace Tomoe.Db
 			.Property(tag => tag.TagId)
 			.ValueGeneratedOnAdd();
 
+			_ = modelBuilder.Entity<Assignment>()
+			.Property(assignment => assignment.Id)
+			.ValueGeneratedOnAdd();
+
 			modelBuilder.Entity<Guild>()
 			.Property(guild => guild.Punishments)
 			.HasConversion(
