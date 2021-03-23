@@ -12,6 +12,11 @@ namespace Tomoe.Commands.Listeners
 {
 	public class GuildCreated
 	{
+		/// <summary>
+		/// Adds the guild to the database, or fixes channel permissions for the punishment roles.
+		/// </summary>
+		/// <param name="_client">Unused <see cref="DiscordClient"/>.</param>
+		/// <param name="eventArgs">Used to get the guild id, punishment roles and to fix channel permissions.</param>
 		public static async Task Handler(DiscordClient _client, GuildCreateEventArgs eventArgs)
 		{
 			using IServiceScope scope = Program.ServiceProvider.CreateScope();

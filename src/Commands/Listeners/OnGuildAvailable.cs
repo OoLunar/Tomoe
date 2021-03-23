@@ -12,6 +12,12 @@ namespace Tomoe.Commands.Listeners
 	{
 		private static readonly ILogger _logger = Log.ForContext<GuildAvailable>();
 
+		/// <summary>
+		/// Used to add the guild to the database and log when the guild is available.
+		/// </summary>
+		/// <param name="_client">Unused <see cref="DiscordClient"/>.</param>
+		/// <param name="eventArgs">Used to get the guild id and guild name.</param>
+		/// <returns></returns>
 		public static async Task Handler(DiscordClient _client, GuildCreateEventArgs eventArgs)
 		{
 			using IServiceScope scope = Program.ServiceProvider.CreateScope();

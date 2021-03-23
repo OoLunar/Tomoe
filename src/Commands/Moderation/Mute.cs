@@ -15,6 +15,7 @@ namespace Tomoe.Commands.Moderation
 	public class Mute : BaseCommandModule
 	{
 		public Database Database { private get; set; }
+
 		[Command("mute"), RequireGuild, RequireBotPermissions(Permissions.ManageRoles), RequireUserPermissions(Permissions.ManageMessages), Aliases("silence", "shut", "zip"), Description("Grants the victim the `Muted` role, which prevents them from sending messages, reacting to messages and speaking in voice channels."), Punishment(false)]
 		public async Task ByUser(CommandContext context, DiscordUser victim, [RemainingText] string muteReason = Constants.MissingReason)
 		{

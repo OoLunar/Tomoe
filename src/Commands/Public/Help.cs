@@ -29,8 +29,12 @@ namespace Tomoe.Commands.Public
 				DiscordEmbedBuilder embed = new DiscordEmbedBuilder().GenerateDefaultEmbed(context, $"{section} Commands");
 				embed.Description = "Note that all commands are [cAsE iNsEnSiTiVe](https://en.wiktionary.org/wiki/case_insensitive#Adjective). All commands have PascalCase and snake_case varients.";
 				foreach (Command command in context.CommandsNext.RegisteredCommands.Values.Distinct())
+				{
 					if (command.Module.ModuleType.FullName.StartsWith($"Tomoe.Commands.{section}", true, CultureInfo.InvariantCulture) && !command.IsHidden)
-						_ = embed.AddField(command.Name.Titleize(), command.Description.Truncate(50, "...") ?? "No description was found. Open up a [Github Issue](https://github.com/OoLunar/Tomoe/issues/new?assignees=OoLunar&labels=bug%2C+documentation%2C+enhancement&template=missing-command-description.md&title=%5BMissing+Command+Description%5D) about this please!", true);
+					{
+						_ = embed.AddField(command.Name.Titleize(), command.Description.Truncate(75, "...") ?? "No description was found. Open up a [Github Issue](https://github.com/OoLunar/Tomoe/issues/new?assignees=OoLunar&labels=bug%2C+documentation%2C+enhancement&template=missing-command-description.md&title=%5BMissing+Command+Description%5D) about this please!", true);
+					}
+				}
 				embedSections.Add(new Page($"{context.User.Mention}:", embed));
 			}
 			InteractivityExtension interactivity = context.Client.GetInteractivity();
@@ -69,7 +73,12 @@ namespace Tomoe.Commands.Public
 				_ = mainHelpEmbed.AddField("Section", entryAssembly.GetTypes().First(type => type.FullName == command.Module.ModuleType.FullName).FullName.Split('.')[2], true);
 				List<Page> overloads = new();
 
-				if (commandGroup != null) _ = mainHelpEmbed.AddField("Subcommands", string.Join(", ", commandGroup.Children.Select(child => child.Name)));
+				if (commandGroup != null)
+				{
+					string[] subCommandNames = commandGroup.Children.Select(child => child.Name).ToArray();
+					if (subCommandNames == Array.Empty<string>()) subCommandNames = new[] { "No subcommands!" };
+					_ = mainHelpEmbed.AddField("Subcommands", string.Join(", ", subCommandNames));
+				}
 
 				StringBuilder commandUsage = new();
 				if (command.Overloads.Count == 0) // No overload, put the usage on the main embed.

@@ -13,6 +13,7 @@ namespace Tomoe.Db
 		public DbSet<Guild> Guilds { get; set; }
 		public DbSet<Strike> Strikes { get; set; }
 		public DbSet<Assignment> Assignments { get; set; }
+		public DbSet<ModLog> ModLogs { get; set; }
 
 		public Database(DbContextOptions<Database> options) : base(options) { }
 
@@ -42,6 +43,12 @@ namespace Tomoe.Db
 				(c1, c2) => c1.SequenceEqual(c2),
 				c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
 				c => c.ToDictionary(m => m.Key, m => m.Value)
+			);
+
+			ValueComparer valueComparerReactionRole = new ValueComparer<List<ReactionRole>>(
+				(c1, c2) => c1.SequenceEqual(c2),
+				c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+				c => c.ToList()
 			);
 
 			modelBuilder.Entity<Guild>()
@@ -91,12 +98,23 @@ namespace Tomoe.Db
 			.Property(assignment => assignment.Id)
 			.ValueGeneratedOnAdd();
 
+			_ = modelBuilder.Entity<Guild>()
+			.Property(guild => guild.ReactionRoles)
+			.ValueGeneratedNever();
+
 			modelBuilder.Entity<Guild>()
 			.Property(guild => guild.Punishments)
 			.HasConversion(
 				progressivePunishments => JsonSerializer.Serialize(progressivePunishments, default),
 				progressivePunishments => JsonSerializer.Deserialize<Dictionary<int, ProgressiveStrike>>(progressivePunishments, default)
 			).Metadata.SetValueComparer(valueComparerDictionary);
+
+			modelBuilder.Entity<Guild>()
+			.Property(guild => guild.ReactionRoles)
+			.HasConversion(
+				reactionRoles => JsonSerializer.Serialize(reactionRoles, default),
+				reactionRoles => JsonSerializer.Deserialize<List<ReactionRole>>(reactionRoles, default)
+			).Metadata.SetValueComparer(valueComparerReactionRole);
 
 			base.OnModelCreating(modelBuilder);
 		}

@@ -1,4 +1,6 @@
+using System;
 using System.Text.Json.Serialization;
+using Tomoe.Utils.Converters;
 
 namespace Tomoe.Utils.Configs
 {
@@ -15,6 +17,9 @@ namespace Tomoe.Utils.Configs
 
 		[JsonPropertyName("invite_link")]
 		public string InviteLink;
+
+		[JsonPropertyName("reaction_timeout"), JsonConverter(typeof(JsonTimeSpanConverter))]
+		public TimeSpan ReactionTimeout;
 
 		[JsonPropertyName("logger")]
 		public Logger Logger;

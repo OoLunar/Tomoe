@@ -1,14 +1,13 @@
 using System;
 using System.Threading.Tasks;
 using DSharpPlus.Entities;
-using DSharpPlus.EventArgs;
 using Tomoe.Commands.Listeners;
 
 namespace Tomoe.Utils.Types
 {
 	public class Queue : IDisposable
 	{
-		public delegate Task ReactionHandler(MessageReactionAddEventArgs eventArgs);
+		public delegate Task ReactionHandler(QueueEventArgs eventArgs);
 		public enum ReactionType
 		{
 			Custom,
@@ -20,6 +19,7 @@ namespace Tomoe.Utils.Types
 		public DiscordEmoji[] Emojis { get; private set; }
 		public ReactionHandler Action { get; private set; }
 		public ReactionType Type { get; private set; }
+		public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
 
 		public Queue(DiscordMessage message, DiscordUser user, ReactionHandler action)
 		{

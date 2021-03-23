@@ -13,16 +13,15 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Tomoe.Commands.Moderation.Attributes;
 using Tomoe.Db;
-using Tomoe.Utils.Converters;
 
 namespace Tomoe.Commands.Moderation
 {
-	[Group("strike"), RequireGuild]
+	[Group("strike"), RequireGuild, Punishment(false)]
 	public class Strikes : BaseCommandModule
 	{
 		public Database Database { private get; set; }
 
-		[GroupCommand, RequireUserPermissions(Permissions.KickMembers), Description("Adds a strike to the victim."), Punishment(false)]
+		[GroupCommand, RequireUserPermissions(Permissions.KickMembers), Description("Adds a strike to the victim.")]
 		public async Task ByUser(CommandContext context, DiscordUser victim, [RemainingText] string muteReason = Constants.MissingReason)
 		{
 			// Test if the guild is in the database. Bot owner might've removed it on accident, and we don't want the bot to fail completely if the guild is missing.
@@ -94,7 +93,7 @@ namespace Tomoe.Commands.Moderation
 			}
 		}
 
-		[Command("drop"), Description("Drops a strike."), Punishment(false), Aliases("pardon")]
+		[Command("drop"), Description("Drops a strike."), Aliases("pardon")]
 		public async Task Drop(CommandContext context, Strike strike, [RemainingText] string pardonReason = Constants.MissingReason)
 		{
 			// Attach because strike gets detached when handed off from converter
@@ -114,7 +113,36 @@ namespace Tomoe.Commands.Moderation
 			{
 				try
 				{
-					_ = await guildVictim.SendMessageAsync($"You've been given a strike from {Formatter.Bold(context.Guild.Name)}. Reason: {Formatter.BlockCode(Formatter.Strip(pardonReason))}Context: {context.Message.JumpLink}");
+					_ = await guildVictim.SendMessageAsync($"Strike #{strike.Id} has been dropped from {Formatter.Bold(context.Guild.Name)}. Reason: {Formatter.BlockCode(Formatter.Strip(pardonReason))}Context: {context.Message.JumpLink}");
+					strike.VictimMessaged = true;
+				}
+				catch (Exception) { }
+			}
+
+			_ = await Database.SaveChangesAsync();
+			_ = await Program.SendMessage(context, $"Case #{strike.Id} has been dropped, <@{strike.VictimId}> has been pardoned{(strike.Dropped ? '.' : " (Failed to DM).")}", null, new UserMention(strike.VictimId));
+		}
+
+		[Command("drop")]
+		public async Task Drop(CommandContext context, DiscordUser discordUser, [RemainingText] string pardonReason = Constants.MissingReason)
+		{
+			Strike strike = await Database.Strikes.LastOrDefaultAsync(strike => strike.VictimId == discordUser.Id && !strike.Dropped);
+			if (strike == null)
+			{
+				_ = await Program.SendMessage(context, $"**[Error: {discordUser.Mention} has no strikes that can be dropped!]**");
+				return;
+			}
+			strike.Dropped = true;
+			strike.Reasons.Add("Drop Reason: " + pardonReason.Trim());
+			strike.JumpLinks.Add(context.Message.JumpLink);
+			strike.VictimMessaged = false;
+
+			DiscordMember guildVictim = await strike.VictimId.GetMember(context.Guild);
+			if (guildVictim != null && !guildVictim.IsBot)
+			{
+				try
+				{
+					_ = await guildVictim.SendMessageAsync($"Strike #{strike.Id} has been dropped from {Formatter.Bold(context.Guild.Name)}. Reason: {Formatter.BlockCode(Formatter.Strip(pardonReason))}Context: {context.Message.JumpLink}");
 					strike.VictimMessaged = true;
 				}
 				catch (Exception) { }

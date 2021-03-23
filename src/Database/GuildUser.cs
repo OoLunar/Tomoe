@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
@@ -11,6 +12,7 @@ namespace Tomoe.Db
 		public bool IsMuted { get; internal set; }
 		public bool IsAntimemed { get; internal set; }
 		public bool IsVoicebanned { get; internal set; }
+		public DateTime JoinedAt { get; internal set; }
 
 		public GuildUser(ulong id) => Id = id;
 	}

@@ -10,6 +10,12 @@ namespace Tomoe.Commands.Listeners
 {
 	public class GuildMemberUpdated
 	{
+		/// <summary>
+		/// Updates the users roles for role persistance.
+		/// </summary>
+		/// <param name="_client">Unused <see cref="DiscordClient"/>.</param>
+		/// <param name="eventArgs">Used to update the roles on the database.</param>
+		/// <returns></returns>
 		public static async Task Handler(DiscordClient _client, GuildMemberUpdateEventArgs eventArgs)
 		{
 			using IServiceScope scope = Program.ServiceProvider.CreateScope();

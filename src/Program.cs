@@ -108,6 +108,7 @@ namespace Tomoe
 			Client = new(discordConfiguration);
 			Client.MessageCreated += CommandHandler.Handler;
 			Client.MessageReactionAdded += Commands.Listeners.ReactionAdded.Handler;
+			Client.MessageReactionAdded += Commands.Listeners.ReactionRoles.Handler;
 			Client.GuildCreated += Commands.Listeners.GuildCreated.Handler;
 			Client.GuildAvailable += Commands.Listeners.GuildAvailable.Handler;
 			Client.GuildMemberAdded += Commands.Listeners.GuildMemberAdded.Handler;

@@ -10,6 +10,12 @@ namespace Tomoe.Commands.Listeners
 {
 	public class ChannelCreated
 	{
+		/// <summary>
+		/// Overrides channel permissions for the guild's punishment roles, if configured.
+		/// </summary>
+		/// <param name="_client">Unused <see cref="DiscordClient"/>.</param>
+		/// <param name="eventArgs">ChannelCreateEventArgs that are used to retrieve the guild and the channel.</param>
+		/// <returns></returns>
 		public static async Task Handler(DiscordClient _client, ChannelCreateEventArgs eventArgs)
 		{
 			using IServiceScope scope = Program.ServiceProvider.CreateScope();

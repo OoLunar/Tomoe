@@ -92,7 +92,11 @@ namespace Tomoe.Commands.Moderation
 				DiscordMessage confirmRoleOverride = await Program.SendMessage(context, Formatter.Bold($"[Notice: {roleAction} role has already been set. Override it with {discordRole.Mention}?"));
 				await new Queue(confirmRoleOverride, context.User, new(async eventArgs =>
 				{
-					if (eventArgs.Emoji == Constants.ThumbsUp)
+					if (eventArgs.TimedOut || eventArgs.MessageReactionAddEventArgs.Emoji == Constants.ThumbsDown)
+					{
+						_ = await confirmRoleOverride.ModifyAsync(Formatter.Strike(Formatter.Strip(confirmRoleOverride.Content)) + '\n' + Formatter.Bold("[Notice: Aborting!]"));
+					}
+					else if (eventArgs.MessageReactionAddEventArgs.Emoji == Constants.ThumbsUp)
 					{
 						Checklist checklist = new(confirmRoleOverride, "Saving role id to database...", "Override channel permissions for role...");
 						switch (roleAction)
@@ -113,10 +117,6 @@ namespace Tomoe.Commands.Moderation
 						FixPermissions(context.Guild, roleAction, discordRole);
 						await checklist.Finalize($"Role {discordRole.Mention} is now set as the {roleAction} role!");
 						checklist.Dispose();
-					}
-					else if (eventArgs.Emoji == Constants.ThumbsDown)
-					{
-						_ = await confirmRoleOverride.ModifyAsync(Formatter.Strike(Formatter.Strip(confirmRoleOverride.Content)) + '\n' + Formatter.Bold("[Notice: Aborting!]"));
 					}
 				})).WaitForReaction();
 				return;

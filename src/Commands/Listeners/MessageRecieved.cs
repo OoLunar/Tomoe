@@ -16,6 +16,12 @@ namespace Tomoe.Commands.Listeners
 	{
 		public static readonly Regex InviteRegex = new(@"disc(?:ord)?(?:(?:app)?\.com\/invite|(?:\.gg))\/([A-z0-9-]{2,})", RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.IgnoreCase);
 
+		/// <summary>
+		/// Handles max lines, max mentions and anti-invite.
+		/// </summary>
+		/// <param name="client">Used to grab guild settings and the user id.</param>
+		/// <param name="eventArgs">Used to grab the guild, remove the message if required and potentionally strike the user.</param>
+		/// <returns></returns>
 		public static async Task Handler(DiscordClient client, MessageCreateEventArgs eventArgs)
 		{
 			if (eventArgs.Author.Id == client.CurrentUser.Id
