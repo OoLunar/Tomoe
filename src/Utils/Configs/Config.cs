@@ -15,9 +15,6 @@ namespace Tomoe.Utils.Configs
 		[JsonPropertyName("repository_link")]
 		public string RepositoryLink;
 
-		[JsonPropertyName("invite_link")]
-		public string InviteLink;
-
 		[JsonPropertyName("reaction_timeout"), JsonConverter(typeof(JsonTimeSpanConverter))]
 		public TimeSpan ReactionTimeout;
 

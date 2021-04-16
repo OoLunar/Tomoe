@@ -1,3 +1,6 @@
+# This is the public branch
+All commands here are just the public commands. It's the currently hosted version of Tomoe, and does not contain any of the moderation commands. Moderation commands will come later, **thus making most of the README obsolete.**
+
 # How to setup Tomoe
 
 If you wish to host Tomoe yourself, skip on down to prerequisites. If you just want Tomoe to join your guild: https://discord.com/api/oauth2/authorize?client_id=481314095723839508&permissions=8&scope=bot

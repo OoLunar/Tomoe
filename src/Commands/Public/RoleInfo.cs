@@ -57,6 +57,11 @@ namespace Tomoe.Commands.Public
 							if (roleUsers.Length < 992) _ = roleUsers.Append($"{member.Mention} "); // Max embed length is 1024. Max username length is 32. 1024 - 32 = 992.
 						}
 					}
+					string permissions = role.Permissions.ToPermissionString();
+					if (string.IsNullOrEmpty(permissions.Trim()))
+					{
+						permissions = "None.";
+					}
 					_ = embed.AddField(Formatter.Bold("Members"), roleUsers.Length == 0 ? "None" : roleUsers.ToString());
 					StringBuilder roleInfo = new();
 					_ = roleInfo.Append($"Id: {Formatter.Bold(role.Id.ToString(CultureInfo.InvariantCulture))}\n");
@@ -67,7 +72,7 @@ namespace Tomoe.Commands.Public
 					_ = roleInfo.Append($"Mentionable: {Formatter.Bold(role.IsMentionable.ToString())}\n");
 					_ = roleInfo.Append($"Hoisted: {Formatter.Bold(role.IsHoisted.ToString())}\n");
 					_ = roleInfo.Append($"Managed: {Formatter.Bold(role.IsManaged.ToString())}\n");
-					_ = roleInfo.Append($"Permissions: {Formatter.Bold(role.Permissions.ToPermissionString())}\n");
+					_ = roleInfo.Append($"Permissions: {Formatter.Bold(permissions)}\n");
 					_ = roleInfo.Append($"Member Count: {Formatter.Bold(roleMemberCount.ToString(CultureInfo.InvariantCulture))}");
 					embed.Description = roleInfo.ToString();
 					embeds.Add(new(null, embed));
@@ -94,6 +99,11 @@ namespace Tomoe.Commands.Public
 				}
 			}
 			_ = embed.AddField(Formatter.Bold("Members"), roleUsers.Length == 0 ? "None" : roleUsers.ToString());
+			string permissions = role.Permissions.ToPermissionString();
+			if (string.IsNullOrEmpty(permissions.Trim()))
+			{
+				permissions = "None.";
+			}
 			StringBuilder roleInfo = new();
 			_ = roleInfo.Append($"Id: {Formatter.Bold(role.Id.ToString(CultureInfo.InvariantCulture))}\n");
 			_ = roleInfo.Append($"Name: {Formatter.Bold(role.Name.ToString())}\n");
@@ -103,7 +113,7 @@ namespace Tomoe.Commands.Public
 			_ = roleInfo.Append($"Mentionable: {Formatter.Bold(role.IsMentionable.ToString())}\n");
 			_ = roleInfo.Append($"Hoisted: {Formatter.Bold(role.IsHoisted.ToString())}\n");
 			_ = roleInfo.Append($"Managed: {Formatter.Bold(role.IsManaged.ToString())}\n");
-			_ = roleInfo.Append($"Permissions: {Formatter.Bold(role.Permissions.ToPermissionString())}\n");
+			_ = roleInfo.Append($"Permissions: {Formatter.Bold(permissions)}\n");
 			_ = roleInfo.Append($"Member Count: {Formatter.Bold(roleMemberCount.ToString(CultureInfo.InvariantCulture))}");
 			embed.Description = roleInfo.ToString();
 			_ = await Program.SendMessage(context, null, embed.Build());
