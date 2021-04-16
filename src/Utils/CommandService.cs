@@ -10,7 +10,6 @@ using DSharpPlus.CommandsNext.Exceptions;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
 using Serilog;
-using Tomoe.Commands.Moderation.Attributes;
 using Tomoe.Utils.Converters;
 
 // Copied from https://github.com/TheRealHona/DSharpPlusBotTemplate/blob/main/TemplateDiscordBot/Services/CommandService.cs
@@ -44,11 +43,6 @@ namespace Tomoe.Utils
 					foreach (CommandsNextExtension commands in commandsCollection.Values)
 					{
 						commands.RegisterConverter(new ImageFormatConverter());
-						commands.RegisterConverter(new StrikeConverter());
-						commands.RegisterConverter(new TagConverter());
-						commands.RegisterConverter(new RoleActionConverter());
-						commands.RegisterConverter(new AssignmentConverter());
-						commands.RegisterConverter(new ModLogConverter());
 						commands.RegisterCommands(Assembly.GetEntryAssembly());
 						commands.CommandErrored += CommandErrored;
 					}
@@ -74,7 +68,6 @@ namespace Tomoe.Utils
 						_ = await Program.SendMessage(args.Context, Constants.NotAGuild);
 						args.Handled = true;
 					}
-					else if (error.FailedChecks.OfType<Punishment>() != null) args.Handled = true;
 					else if (error.FailedChecks.OfType<RequireUserPermissionsAttribute>() != null)
 					{
 						_ = await Program.SendMessage(args.Context, Constants.MissingPermissions);

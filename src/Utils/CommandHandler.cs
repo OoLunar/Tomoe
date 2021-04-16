@@ -5,7 +5,6 @@ using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Tomoe.Commands.Moderation;
 using Tomoe.Db;
 
 namespace Tomoe.Utils
@@ -33,11 +32,9 @@ namespace Tomoe.Utils
 			CommandContext context = commandsNext.CreateContext(message, prefix, command, args);
 			Database Database = Program.ServiceProvider.GetService<Database>();
 			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
-			if (guild != null && guild.IgnoredChannels.Contains(context.Channel.Id)) return;
 			await eventArgs.Channel.TriggerTypingAsync();
 			_ = Task.Run(async () => await commandsNext.ExecuteCommandAsync(context));
 
-			await ModBook.Add(context, $"Executed `{context.Command.Name}` command.", DiscordEvent.None, ModAction.CommandExecuted);
 			return;
 		}
 	}
