@@ -14,6 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Npgsql;
 using Serilog;
+using Tomoe.Commands.Listeners;
 using Tomoe.Db;
 using Tomoe.Utils;
 
@@ -83,7 +84,10 @@ namespace Tomoe
 				connectionBuilder.Password = Config.Database.Password;
 				connectionBuilder.Username = Config.Database.Username;
 				connectionBuilder.Port = Config.Database.Port;
-				_ = options.UseNpgsql(connectionBuilder.ToString());
+				_ = options.UseNpgsql(connectionBuilder.ToString(), options =>
+				{
+					_ = options.EnableRetryOnFailure();
+				});
 				_ = options.UseSnakeCaseNamingConvention(CultureInfo.InvariantCulture);
 				_ = options.EnableSensitiveDataLogging();
 				_ = options.EnableDetailedErrors();
@@ -101,12 +105,17 @@ namespace Tomoe
 				TokenType = TokenType.Bot,
 				UseRelativeRatelimit = true,
 				MessageCacheSize = 512,
-				LoggerFactory = ServiceProvider.GetService<ILoggerFactory>()
+				LoggerFactory = ServiceProvider.GetService<ILoggerFactory>(),
+				Intents = DiscordIntents.All
 			};
 
 			// Setup event listeners
 			Client = new(discordConfiguration);
 			Client.MessageCreated += CommandHandler.Handler;
+			Client.GuildAvailable += GuildAvailable.Handler;
+			Client.GuildDownloadCompleted += GuildDownloadCompleted.Handler;
+			Client.MessageReactionAdded += MessageReactionAdded.Handler;
+			Client.MessageReactionRemoved += MessageReactionRemoved.Handler;
 			Console.CancelKeyPress += Quit.ConsoleShutdown;
 			await CommandService.Launch(Client, ServiceProvider);
 			await Client.StartAsync();

@@ -31,7 +31,6 @@ namespace Tomoe.Utils
 
 			CommandContext context = commandsNext.CreateContext(message, prefix, command, args);
 			Database Database = Program.ServiceProvider.GetService<Database>();
-			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
 			await eventArgs.Channel.TriggerTypingAsync();
 			_ = Task.Run(async () => await commandsNext.ExecuteCommandAsync(context));
 

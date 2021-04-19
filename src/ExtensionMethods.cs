@@ -39,5 +39,24 @@ namespace Tomoe
 		}
 
 		public static string GetCommonName(this DiscordMember guildMember) => guildMember == null ? null : guildMember.Nickname ?? guildMember.Username;
+
+		/// <summary>
+		/// Attempts to retrieve the DiscordMember from cache, then the API if the cache does not have the member.
+		/// </summary>
+		/// <param name="discordGuild">The guild to get the DiscordMember from.</param>
+		/// <param name="discordUserId">The id to search for in the DiscordGuild.</param>
+		/// <returns>The DiscordMember from the DiscordGuild</returns>
+		public static async Task<DiscordMember> GetMember(this ulong discordUserId, DiscordGuild discordGuild)
+		{
+			try
+			{
+				return discordGuild.Members.Values.FirstOrDefault(member => member.Id == discordUserId) ?? await discordGuild.GetMemberAsync(discordUserId);
+			}
+			catch (Exception)
+			{
+				// Exceptions are not our problem
+				throw;
+			}
+		}
 	}
 }
