@@ -3,24 +3,20 @@ using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Serilog;
 using Tomoe.Db;
 
 namespace Tomoe.Commands.Listeners
 {
-	public class MessageReactionAdded
+	public class ReactionRoleRemoved
 	{
-		private static readonly ILogger _logger = Log.ForContext<GuildAvailable>();
-
 		/// <summary>
 		/// Used to add the guild to the database and log when the guild is available.
 		/// </summary>
 		/// <param name="_client">Unused <see cref="DiscordClient"/>.</param>
 		/// <param name="eventArgs">Used to get the guild id and guild name.</param>
 		/// <returns></returns>
-		public static async Task Handler(DiscordClient _client, MessageReactionAddEventArgs eventArgs)
+		public static async Task Handler(DiscordClient _client, MessageReactionRemoveEventArgs eventArgs)
 		{
 			if (eventArgs.User.IsBot)
 			{
@@ -43,7 +39,7 @@ namespace Tomoe.Commands.Listeners
 				_ = await database.SaveChangesAsync();
 				return;
 			}
-			await (await eventArgs.User.Id.GetMember(eventArgs.Guild)).GrantRoleAsync(discordRole);
+			await (await eventArgs.User.Id.GetMember(eventArgs.Guild)).RevokeRoleAsync(discordRole);
 		}
 	}
 }
