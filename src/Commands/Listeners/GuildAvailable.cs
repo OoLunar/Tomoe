@@ -1,10 +1,7 @@
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.EventArgs;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Serilog;
-using Tomoe.Db;
 
 namespace Tomoe.Commands.Listeners
 {

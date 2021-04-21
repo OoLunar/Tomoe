@@ -3,9 +3,6 @@ using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Tomoe.Db;
 
 namespace Tomoe.Utils
 {
@@ -30,7 +27,6 @@ namespace Tomoe.Utils
 			if (command == null) return;
 
 			CommandContext context = commandsNext.CreateContext(message, prefix, command, args);
-			Database Database = Program.ServiceProvider.GetService<Database>();
 			await eventArgs.Channel.TriggerTypingAsync();
 			_ = Task.Run(async () => await commandsNext.ExecuteCommandAsync(context));
 

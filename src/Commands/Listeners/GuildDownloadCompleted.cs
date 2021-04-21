@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Entities;
@@ -10,7 +9,7 @@ namespace Tomoe.Commands.Listeners
 	public class GuildDownloadCompleted
 	{
 		private static readonly ILogger _logger = Log.ForContext<GuildDownloadCompleted>();
-		internal static int MemberCount = 0;
+		internal static int MemberCount;
 
 		/// <summary>
 		/// Changes the bot status whenever everything is ready.

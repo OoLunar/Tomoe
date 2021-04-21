@@ -133,7 +133,7 @@ namespace Tomoe
 		/// <returns>The DiscordMessage sent</returns>
 		public static async Task<DiscordMessage> SendMessage(CommandContext context, string content = null, DiscordEmbed embed = null, params IMention[] mentions)
 		{
-			if (content == null && embed == null) throw new ArgumentNullException(nameof(content), "Either content or embed needs to hold a value.");
+			if (content is null && embed is null) throw new ArgumentNullException(nameof(content), "Either content or embed needs to hold a value.");
 
 			// Ping the person who invoked the command, and whoever else is required
 			List<IMention> mentionList = new();
