@@ -111,10 +111,18 @@ namespace Tomoe
 
 			// Setup event listeners
 			Client = new(discordConfiguration);
-			Client.MessageCreated += CommandHandler.Handler;
-			Client.MessageCreated += AutoReactionListener.Handler;
+
+			Client.ChannelCreated += ChannelCreated.Handler;
 			Client.GuildAvailable += GuildAvailable.Handler;
+			Client.GuildCreated += GuildCreated.Handler;
 			Client.GuildDownloadCompleted += GuildDownloadCompleted.Handler;
+			Client.GuildMemberAdded += GuildMemberAdded.Handler;
+			Client.GuildMemberRemoved += GuildMemberRemoved.Handler;
+			Client.GuildMemberUpdated += GuildMemberUpdated.Handler;
+			Client.MessageCreated += AutoReactionListener.Handler;
+			Client.MessageCreated += CommandHandler.Handler;
+			Client.MessageCreated += MessageRecieved.Handler;
+			Client.MessageReactionAdded += ReactionAdded.Handler;
 			Client.MessageReactionAdded += ReactionRoleAdded.Handler;
 			Client.MessageReactionRemoved += ReactionRoleRemoved.Handler;
 			Console.CancelKeyPress += Quit.ConsoleShutdown;
