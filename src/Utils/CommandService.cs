@@ -12,6 +12,7 @@ using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
 using Serilog;
 using Tomoe.Utils.Converters;
+using Tomoe.Utils.Exceptions;
 
 // Copied from https://github.com/TheRealHona/DSharpPlusBotTemplate/blob/main/TemplateDiscordBot/Services/CommandService.cs
 // Go take a look at their project!
@@ -78,6 +79,7 @@ namespace Tomoe.Utils
 						args.Handled = true;
 					}
 				}
+				else if (args.Exception is HierarchyException) _ = await Program.SendMessage(args.Context, $"**[Denied: Their hierarchy is the same as or higher than yours. You don't have enough power over them.]**");
 				else if (args.Exception is NotImplementedException) _ = await Program.SendMessage(args.Context, $"{args.Command.Name} hasn't been implemented yet!");
 				else if (args.Exception is ArgumentException) args.Handled = true;
 				else

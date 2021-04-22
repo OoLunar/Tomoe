@@ -5,6 +5,7 @@ using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using Tomoe.Utils.Exceptions;
 using Tomoe.Utils.Types;
 
 namespace Tomoe.Commands.Moderation.Attributes
@@ -60,8 +61,7 @@ namespace Tomoe.Commands.Moderation.Attributes
 						DiscordMember discordMember = await discordUser.Id.GetMember(context.Guild);
 						if (discordMember.Hierarchy >= context.Member.Hierarchy || discordMember.Id == context.Guild.OwnerId)
 						{
-							_ = await Program.SendMessage(context, $"**[Denied: {discordUser.Mention}'s hierarchy is the same as or higher than your hierarchy. You don't have enough power over them.]**");
-							canExecute = false;
+							throw new HierarchyException();
 						}
 					}
 				}

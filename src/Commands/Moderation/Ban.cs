@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
@@ -15,6 +16,12 @@ namespace Tomoe.Commands.Moderation
 		[Command("ban"), RequireGuild, RequireUserPermissions(Permissions.BanMembers), RequireBotPermissions(Permissions.BanMembers), Aliases("fuck_off", "fuckoff"), Description("Permanently bans the victim from the guild, sending them off with a dm."), Punishment(false)]
 		public async Task ByUser(CommandContext context, DiscordUser victim, [RemainingText] string banReason = Constants.MissingReason)
 		{
+			if ((await context.Guild.GetBansAsync()).FirstOrDefault(ban => ban.User.Id == victim.Id) != null)
+			{
+				_ = await Program.SendMessage(context, Formatter.Bold($"[Error]: {victim.Mention} is already banned!"));
+				return;
+			}
+
 			bool sentDm = await ByProgram(context.Guild, victim, context.User, context.Message.JumpLink, banReason);
 			_ = await Program.SendMessage(context, $"{victim.Mention} has been banned{(sentDm ? '.' : " (Failed to dm).")}");
 		}
