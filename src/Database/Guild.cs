@@ -20,7 +20,7 @@ namespace Tomoe.Db
 		public ulong Id { get; internal set; }
 		public ulong MuteRole { get; internal set; }
 		public ulong VoicebanRole { get; internal set; }
-		public bool ShowPermissionErrors { get; internal set; }
+		public bool ShowPermissionErrors { get; internal set; } = true;
 
 		public GuildConfig(ulong id) => Id = id;
 	}

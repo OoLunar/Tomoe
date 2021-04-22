@@ -10,7 +10,10 @@ using DSharpPlus.CommandsNext.Converters;
 using DSharpPlus.CommandsNext.Exceptions;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Serilog;
+using Tomoe.Db;
 using Tomoe.Utils.Converters;
 using Tomoe.Utils.Exceptions;
 
@@ -65,6 +68,10 @@ namespace Tomoe.Utils
 			// No need to log when a command isn't found
 			if (!(args.Exception is CommandNotFoundException) && !args.Handled)
 			{
+				using IServiceScope scope = Program.ServiceProvider.CreateScope();
+				Database database = scope.ServiceProvider.GetService<Database>();
+				GuildConfig guildConfig = await database.GuildConfigs.FirstOrDefaultAsync(guildConfig => guildConfig.Id == args.Context.Guild.Id) ?? new(args.Context.Guild.Id);
+				if (!guildConfig.ShowPermissionErrors) return;
 				if (args.Exception is ChecksFailedException)
 				{
 					ChecksFailedException error = args.Exception as ChecksFailedException;

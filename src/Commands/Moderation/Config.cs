@@ -348,6 +348,17 @@ namespace Tomoe.Commands.Moderation
 			await ModLogs.Record(context, $"Config Strike Automod.", $"{context.User.Mention} has made automod {(guildConfig.StrikeAutomod ? "start" : "stop")} issuing strikes.");
 		}
 
+		[Command("show_error"), Aliases("error_show", "show_errors", "error_shows", "showerror", "errorshow", "showserrors", "showerrors"), RequireUserPermissions(Permissions.ManageMessages), Description("Determines whether automod should add a strike to the victim.")]
+		public async Task ShowPermissionErrors(CommandContext context)
+		{
+			GuildConfig guildConfig = await Database.GuildConfigs.FirstOrDefaultAsync(guildConfig => guildConfig.Id == context.Guild.Id) ?? new(context.Guild.Id);
+
+			guildConfig.ShowPermissionErrors = !guildConfig.ShowPermissionErrors;
+			_ = await Database.SaveChangesAsync();
+			_ = await Program.SendMessage(context, $"Errors will {(guildConfig.ShowPermissionErrors ? "now" : "no longer")} show when the user doesn't have the correct permissions.");
+			await ModLogs.Record(context, $"Config Show Errors", $"{context.User.Mention} has made permission errors {(guildConfig.ShowPermissionErrors ? "start" : "stop")} showing.");
+		}
+
 		[Command("progressive_strikes"), Aliases("progressivestrikes", "auto_punishments", "autopunishments"), RequireUserPermissions(Permissions.ManageMessages), Description("Determines whether punishments should lead into other punishments depending on the total amount of strikes the victim has already accumulated.")]
 		public async Task ProgressiveStrikes(CommandContext context)
 		{

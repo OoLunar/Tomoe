@@ -1,9 +1,13 @@
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using DSharpPlus.Interactivity;
+using DSharpPlus.Interactivity.Extensions;
 using Tomoe.Db;
 
 namespace Tomoe.Commands.Moderation
@@ -31,6 +35,29 @@ namespace Tomoe.Commands.Moderation
 			_ = await Database.SaveChangesAsync();
 			await ModLogs.Record(context, "Autoreaction Create", $"{context.User.Mention} has created an autoreaction with emoji {emoji} on channel {channel.Mention}.");
 			_ = await Program.SendMessage(context, $"From here on out, every message in {channel.Mention} will have the {emoji} reaction added to it!");
+		}
+
+		[Command("list"), Description("Shows all the current auto reactions for a channel."), Aliases("show", "ls")]
+		public async Task List(CommandContext context, DiscordChannel channel)
+		{
+			StringBuilder stringBuilder = new();
+			foreach (AutoReaction autoReaction in Database.AutoReactions.Where(autoReaction => autoReaction.ChannelId == channel.Id && autoReaction.GuildId == context.Guild.Id))
+			{
+				_ = stringBuilder.AppendLine($"{DiscordEmoji.FromName(context.Client, autoReaction.EmojiName, true)}");
+			}
+
+			DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder().GenerateDefaultEmbed(context, $"Autoreactions in channel {channel.Mention}");
+			if (stringBuilder.Length <= 2000)
+			{
+				embedBuilder.Description = stringBuilder.ToString();
+				_ = await Program.SendMessage(context, null, embedBuilder.Build());
+			}
+			else
+			{
+				InteractivityExtension interactivity = context.Client.GetInteractivity();
+				IEnumerable<Page> pages = interactivity.GeneratePagesInEmbed(stringBuilder.ToString(), DSharpPlus.Interactivity.Enums.SplitType.Line, embedBuilder);
+				await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, pages);
+			}
 		}
 
 		[Command("remove"), Description("Removes an autoreaction from a channel."), Aliases("rm", "delete", "del")]
