@@ -54,5 +54,7 @@ namespace Tomoe
 				throw;
 			}
 		}
+
+		public static DiscordRole GetRole(this ulong roleId, DiscordGuild guild) => roleId != 0 ? guild.GetRole(roleId) : null;
 	}
 }

@@ -5,21 +5,21 @@ namespace Tomoe.Utils.Configs
 	public class Database
 	{
 		[JsonPropertyName("application_name")]
-		public string ApplicationName { get; internal set; }
+		public string ApplicationName { get; set; }
 
 		[JsonPropertyName("database_name")]
-		public string DatabaseName { get; internal set; }
+		public string DatabaseName { get; set; }
 
 		[JsonPropertyName("host")]
-		public string Host { get; internal set; }
+		public string Host { get; set; }
 
 		[JsonPropertyName("password")]
-		public string Password { get; internal set; }
+		public string Password { get; set; }
 
 		[JsonPropertyName("username")]
-		public string Username { get; internal set; }
+		public string Username { get; set; }
 
 		[JsonPropertyName("port")]
-		public int Port { get; internal set; }
+		public int Port { get; set; }
 	}
 }

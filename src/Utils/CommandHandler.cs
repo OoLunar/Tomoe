@@ -3,6 +3,8 @@ using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
+using Tomoe.Commands.Moderation;
+using Tomoe.Db;
 
 namespace Tomoe.Utils
 {
@@ -30,6 +32,7 @@ namespace Tomoe.Utils
 			await eventArgs.Channel.TriggerTypingAsync();
 			_ = Task.Run(async () => await commandsNext.ExecuteCommandAsync(context));
 
+			await ModLogs.Record(context);
 			return;
 		}
 	}

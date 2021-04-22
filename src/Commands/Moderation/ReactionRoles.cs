@@ -7,7 +7,7 @@ using DSharpPlus.Entities;
 using Microsoft.Extensions.DependencyInjection;
 using Tomoe.Db;
 
-namespace Tomoe.Commands.Public
+namespace Tomoe.Commands.Moderation
 {
 	[Group("reaction_roles"), Description("Assigns a role to the user(s) who react to a certain message."), Aliases("rr", "reaction_role", "reactionroles", "reactionrole"), RequireUserPermissions(Permissions.ManageRoles | Permissions.ManageMessages)]
 	public class ReactionRoles : BaseCommandModule

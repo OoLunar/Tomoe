@@ -6,21 +6,12 @@ namespace Tomoe.Db
 	{
 		public DbSet<ReactionRole> ReactionRoles { get; set; }
 		public DbSet<AutoReaction> AutoReactions { get; set; }
+		public DbSet<ModLog> ModLogs { get; set; }
+		public DbSet<CommandUsage> CommandUsages { get; set; }
+		public DbSet<Strike> Strikes { get; set; }
+		public DbSet<GuildUser> GuildUsers { get; set; }
+		public DbSet<GuildConfig> GuildConfigs { get; set; }
 
 		public Database(DbContextOptions<Database> options) : base(options) { }
-
-		protected override void OnModelCreating(ModelBuilder modelBuilder)
-		{
-			_ = modelBuilder
-			.Entity<ReactionRole>()
-			.Property(e => e.Id)
-			.ValueGeneratedOnAdd();
-
-			_ = modelBuilder
-			.Entity<AutoReaction>()
-			.Property(e => e.Id)
-			.ValueGeneratedOnAdd();
-
-		}
 	}
 }
