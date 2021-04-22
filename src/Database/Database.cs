@@ -13,5 +13,20 @@ namespace Tomoe.Db
 		public DbSet<GuildConfig> GuildConfigs { get; set; }
 
 		public Database(DbContextOptions<Database> options) : base(options) { }
+
+		protected override void OnModelCreating(ModelBuilder modelBuilder)
+		{
+			_ = modelBuilder.Entity<GuildUser>()
+		   	.Property(b => b.Roles)
+		   	.HasColumnType("bigint[]");
+
+			_ = modelBuilder.Entity<GuildConfig>()
+		   	.Property(b => b.AdminRoles)
+		   	.HasColumnType("bigint[]");
+
+			_ = modelBuilder.Entity<GuildConfig>()
+		   	.Property(b => b.IgnoredChannels)
+		   	.HasColumnType("bigint[]");
+		}
 	}
 }

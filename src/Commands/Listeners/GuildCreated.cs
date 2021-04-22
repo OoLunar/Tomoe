@@ -45,7 +45,8 @@ namespace Tomoe.Commands.Listeners
 			{
 				DiscordMember member = eventArgs.Guild.Members[memberId];
 				GuildUser guildUser = new(memberId);
-				guildUser.Roles = member.Roles.Except(new[] { eventArgs.Guild.EveryoneRole }).Select(role => role.Id).ToList();
+				guildUser.Roles.AddRange(member.Roles.Except(new[] { eventArgs.Guild.EveryoneRole }).Select(role => role.Id));
+				guildUser.JoinedAt = member.JoinedAt.DateTime;
 				updatedGuildUsers.Add(guildUser);
 			}
 			// If the updated guild user count isn't zero, save the new users to the database. An exception will be thrown if nothing new is added.

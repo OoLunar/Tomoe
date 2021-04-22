@@ -28,9 +28,27 @@ namespace Tomoe.Commands.Public
 				return;
 			}
 			else
+			{
 				foreach (DiscordRole role in context.Guild.Roles.Values)
+				{
 					if (role.Name.ToLowerInvariant() == roleName || role.Name.Contains(roleName))
+					{
 						rolesInQuestion.Add(role);
+					}
+				}
+			}
+
+			// If no roles were found, try to do an "autocomplete" sort of thing.
+			if (rolesInQuestion.Count == 0)
+			{
+				foreach (DiscordRole role in context.Guild.Roles.Values)
+				{
+					if (role.Name.StartsWith(roleName, true, CultureInfo.InvariantCulture))
+					{
+						rolesInQuestion.Add(role);
+					}
+				}
+			}
 
 			if (rolesInQuestion.Count == 0) _ = await Program.SendMessage(context, Formatter.Bold($"[Error: There was no role called \"{roleName}\"]")); // No role was found. Inform the user.
 			else if (rolesInQuestion.Count == 1) await Overload(context, rolesInQuestion[0]);
@@ -109,7 +127,7 @@ namespace Tomoe.Commands.Public
 			_ = roleInfo.Append($"Name: {Formatter.Bold(role.Name.ToString())}\n");
 			_ = roleInfo.Append($"Creation Timestamp: {Formatter.Bold(role.CreationTimestamp.ToString(CultureInfo.InvariantCulture))}\n");
 			_ = roleInfo.Append($"Position: {Formatter.Bold(role.Position.ToString(CultureInfo.InvariantCulture))}\n");
-			_ = roleInfo.Append($"Color: {Formatter.Bold(role.Color.ToString())}");
+			_ = roleInfo.Append($"Color: {Formatter.Bold(role.Color.ToString())}\n");
 			_ = roleInfo.Append($"Mentionable: {Formatter.Bold(role.IsMentionable.ToString())}\n");
 			_ = roleInfo.Append($"Hoisted: {Formatter.Bold(role.IsHoisted.ToString())}\n");
 			_ = roleInfo.Append($"Managed: {Formatter.Bold(role.IsManaged.ToString())}\n");

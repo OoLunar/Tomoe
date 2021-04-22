@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.CommandsNext.Converters;
 using DSharpPlus.CommandsNext.Exceptions;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
@@ -43,6 +44,9 @@ namespace Tomoe.Utils
 					foreach (CommandsNextExtension commands in commandsCollection.Values)
 					{
 						commands.RegisterConverter(new ImageFormatConverter());
+						commands.RegisterConverter(new RoleActionConverter());
+						commands.RegisterConverter(new TimeSpanConverter());
+						commands.RegisterConverter(new StrikeConverter());
 						commands.RegisterCommands(Assembly.GetEntryAssembly());
 						commands.CommandErrored += CommandErrored;
 					}

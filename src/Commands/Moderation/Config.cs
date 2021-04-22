@@ -29,7 +29,7 @@ namespace Tomoe.Commands.Moderation
 		[GroupCommand, Description("Shows the guild's current config.")]
 		public async Task ShowConfig(CommandContext context)
 		{
-			GuildConfig guildConfig = await Database.GuildConfigs.Where(guildConfig => guildConfig.Id == context.Guild.Id).DefaultIfEmpty(new GuildConfig(context.Guild.Id)).SingleAsync();
+			GuildConfig guildConfig = await Database.GuildConfigs.FirstOrDefaultAsync(guildConfig => guildConfig.Id == context.Guild.Id) ?? new(context.Guild.Id);
 			StringBuilder stringBuilder = new();
 			_ = stringBuilder.Append($"Mute Role: {guildConfig.MuteRole.GetRole(context.Guild)?.Mention ?? "Not set"}\n");
 			_ = stringBuilder.Append($"Antimeme Role: {guildConfig.AntimemeRole.GetRole(context.Guild)?.Mention ?? "Not set"}\n");
@@ -46,7 +46,9 @@ namespace Tomoe.Commands.Moderation
 			_ = stringBuilder.Append($"Max Mentions: {guildConfig.MaxMentions}\n");
 			_ = stringBuilder.Append($"Automod Strikes: {guildConfig.StrikeAutomod}\n");
 			InteractivityExtension interactivity = context.Client.GetInteractivity();
-			Page[] pages = interactivity.GeneratePagesInEmbed(stringBuilder.ToString(), SplitType.Line, new DiscordEmbedBuilder().GenerateDefaultEmbed(context, $"Config For {context.Guild.Name}")).ToArray();
+			DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder().GenerateDefaultEmbed(context, $"Config For ");
+			embedBuilder.Title += ' ' + context.Guild.Name;
+			Page[] pages = interactivity.GeneratePagesInEmbed(stringBuilder.ToString(), SplitType.Line, embedBuilder).ToArray();
 			if (pages.Length == 1)
 			{
 				_ = await Program.SendMessage(context, null, pages[0].Embed);
@@ -60,7 +62,7 @@ namespace Tomoe.Commands.Moderation
 		[GroupCommand, RequireUserPermissions(Permissions.ManageRoles), RequireBotPermissions(Permissions.ManageChannels), Description("Designates which role should be used for which action. Will additionally change role/channel permissions for said action.")]
 		public async Task Roles(CommandContext context, [Description("Either `Mute`, `Antimeme` or `Voiceban`. Case insensitive.")] RoleAction roleAction, [Description("Which role should be used for the `roleAction`.")] DiscordRole discordRole)
 		{
-			GuildConfig guildConfig = await Database.GuildConfigs.Where(guildConfig => guildConfig.Id == context.Guild.Id).DefaultIfEmpty(new GuildConfig(context.Guild.Id)).SingleAsync();
+			GuildConfig guildConfig = await Database.GuildConfigs.FirstOrDefaultAsync(guildConfig => guildConfig.Id == context.Guild.Id) ?? new(context.Guild.Id);
 
 			// GetRole is used in case the role id is 0 (default value) and will either return the Discord role or null
 			DiscordRole databaseRole = roleAction switch
@@ -102,7 +104,7 @@ namespace Tomoe.Commands.Moderation
 						FixPermissions(context.Guild, roleAction, discordRole);
 						await checklist.Finalize($"Role {discordRole.Mention} is now set as the {roleAction} role!");
 						checklist.Dispose();
-						await ModLogs.Record(context.Guild.Id, $"Config {roleAction} Change.", $"{context.User.Mention} has the {roleAction} role to {discordRole.Mention}");
+						await ModLogs.Record(context, $"Config {roleAction} Change.", $"{context.User.Mention} has the {roleAction} role to {discordRole.Mention}");
 					}
 				})).WaitForReaction();
 				return;
@@ -129,14 +131,14 @@ namespace Tomoe.Commands.Moderation
 				FixPermissions(context.Guild, roleAction, discordRole);
 				await checklist.Finalize($"Role {discordRole.Mention} is now set as the {roleAction} role!");
 				checklist.Dispose();
-				await ModLogs.Record(context.Guild.Id, $"Config {roleAction} Change.", $"{context.User.Mention} has the {roleAction} role to {discordRole.Mention}");
+				await ModLogs.Record(context, $"Config {roleAction} Change.", $"{context.User.Mention} has the {roleAction} role to {discordRole.Mention}");
 			}
 		}
 
 		[GroupCommand, RequireUserPermissions(Permissions.ManageRoles), RequireBotPermissions(Permissions.ManageChannels | Permissions.ManageRoles), Description("Creates and assigns the proper permissions for the `roleAction`. Creating the role should be preferred so other previous channel overwrites/role permissions do not interfere with the role's purpose.")]
 		public async Task Roles(CommandContext context, [Description("Either `Mute`, `Antimeme` or `Voiceban`. Case insensitive.")] RoleAction roleAction)
 		{
-			GuildConfig guildConfig = await Database.GuildConfigs.Where(guildConfig => guildConfig.Id == context.Guild.Id).DefaultIfEmpty(new GuildConfig(context.Guild.Id)).SingleAsync();
+			GuildConfig guildConfig = await Database.GuildConfigs.FirstOrDefaultAsync(guildConfig => guildConfig.Id == context.Guild.Id) ?? new(context.Guild.Id);
 
 			// GetRole is used in case the role id is 0 (default value) and will either return the Discord role or null
 			DiscordRole databaseRole = roleAction switch
@@ -184,56 +186,56 @@ namespace Tomoe.Commands.Moderation
 				FixPermissions(context.Guild, roleAction, role);
 				await checklist.Finalize($"Role {role.Mention} is now set as the {roleAction} role!");
 				checklist.Dispose();
-				await ModLogs.Record(context.Guild.Id, $"Config {roleAction} Change.", $"{context.User.Mention} has the {roleAction} role to {role.Mention}");
+				await ModLogs.Record(context, $"Config {roleAction} Change.", $"{context.User.Mention} has the {roleAction} role to {role.Mention}");
 			}
 		}
 
 		[Command("anti_invite"), Aliases("antiinvite", "antinvite", "remove_invites", "removeinvites"), RequireUserPermissions(Permissions.ManageMessages), Description("Determines whether invites should be allowed to be posted or not.")]
 		public async Task AntiInvite(CommandContext context)
 		{
-			GuildConfig guildConfig = await Database.GuildConfigs.Where(guildConfig => guildConfig.Id == context.Guild.Id).DefaultIfEmpty(new GuildConfig(context.Guild.Id)).SingleAsync();
+			GuildConfig guildConfig = await Database.GuildConfigs.FirstOrDefaultAsync(guildConfig => guildConfig.Id == context.Guild.Id) ?? new(context.Guild.Id);
 
 			guildConfig.AntiInvite = !guildConfig.AntiInvite;
 			_ = await Database.SaveChangesAsync();
-			await ModLogs.Record(context.Guild.Id, $"Config AntiInvite Change.", $"{context.User.Mention} has changed the AntiInvite policy to {guildConfig.AntiInvite}");
+			await ModLogs.Record(context, $"Config AntiInvite Change.", $"{context.User.Mention} has changed the AntiInvite policy to {guildConfig.AntiInvite}");
 			_ = await Program.SendMessage(context, $"Invites will now be {(guildConfig.AntiInvite ? "removed" : "kept")} when posted.");
 		}
 
 		[Command("auto_dehoist"), Aliases("autodehoist", "dehoist"), RequireUserPermissions(Permissions.ManageNicknames), Description("Determines whether nicknames should be allowed at the top of the list or not.")]
 		public async Task AutoDehoist(CommandContext context)
 		{
-			GuildConfig guildConfig = await Database.GuildConfigs.Where(guildConfig => guildConfig.Id == context.Guild.Id).DefaultIfEmpty(new GuildConfig(context.Guild.Id)).SingleAsync();
+			GuildConfig guildConfig = await Database.GuildConfigs.FirstOrDefaultAsync(guildConfig => guildConfig.Id == context.Guild.Id) ?? new(context.Guild.Id);
 
 			guildConfig.AutoDehoist = !guildConfig.AutoDehoist;
 			_ = await Database.SaveChangesAsync();
-			await ModLogs.Record(context.Guild.Id, $"Config AutoDehoist Change.", $"{context.User.Mention} has changed the AutoDehoist policy to {guildConfig.AutoDehoist}");
-			_ = await Program.SendMessage(context, $"Hoisted nicknames will now be {(guildConfig.AntiInvite ? $"renamed to {Formatter.InlineCode("dehoisted")}" : "kept")}.");
+			await ModLogs.Record(context, $"Config AutoDehoist Change.", $"{context.User.Mention} has changed the AutoDehoist policy to {guildConfig.AutoDehoist}");
+			_ = await Program.SendMessage(context, $"Hoisted nicknames will now be {(guildConfig.AutoDehoist ? $"renamed to {Formatter.InlineCode("dehoisted")}" : "kept")}.");
 		}
 
 		[Command("max_lines"), Aliases("maxlines", "max_line", "maxline"), RequireUserPermissions(Permissions.ManageMessages), Description("Sets the limit on the max newlines allowed on messages.")]
 		public async Task MaxLines(CommandContext context, [Description("The maximum amount of lines allowed in a message.")] int maxLineCount)
 		{
-			GuildConfig guildConfig = await Database.GuildConfigs.Where(guildConfig => guildConfig.Id == context.Guild.Id).DefaultIfEmpty(new GuildConfig(context.Guild.Id)).SingleAsync();
+			GuildConfig guildConfig = await Database.GuildConfigs.FirstOrDefaultAsync(guildConfig => guildConfig.Id == context.Guild.Id) ?? new(context.Guild.Id);
 			guildConfig.MaxLines = maxLineCount;
 			_ = await Database.SaveChangesAsync();
-			await ModLogs.Record(context.Guild.Id, $"Config MaxLines Change.", $"{context.User.Mention} has changed the max lines count to {guildConfig.MaxLines}");
+			await ModLogs.Record(context, $"Config MaxLines Change.", $"{context.User.Mention} has changed the max lines count to {guildConfig.MaxLines}");
 			_ = await Program.SendMessage(context, $"The maximum lines allowed in a message is now {maxLineCount}.");
 		}
 
 		[Command("max_mentions"), Aliases("maxmentions"), RequireUserPermissions(Permissions.ManageMessages), Description("Sets the maximum mentions allowed in a message. User pings and role pings are added together for the total ping count, which determines if the user gets a strike or not.")]
 		public async Task MaxMentions(CommandContext context, [Description("The maximum amount of role and user pings allowed in a message.")] int maxMentionCount)
 		{
-			GuildConfig guildConfig = await Database.GuildConfigs.Where(guildConfig => guildConfig.Id == context.Guild.Id).DefaultIfEmpty(new GuildConfig(context.Guild.Id)).SingleAsync();
+			GuildConfig guildConfig = await Database.GuildConfigs.FirstOrDefaultAsync(guildConfig => guildConfig.Id == context.Guild.Id) ?? new(context.Guild.Id);
 			guildConfig.MaxMentions = maxMentionCount;
 			_ = await Database.SaveChangesAsync();
-			await ModLogs.Record(context.Guild.Id, $"Config MaxMentions Change.", $"{context.User.Mention} has changed the max mentions count to {guildConfig.AntiInvite}");
+			await ModLogs.Record(context, $"Config MaxMentions Change.", $"{context.User.Mention} has changed the max mentions count to {guildConfig.AntiInvite}");
 			_ = await Program.SendMessage(context, $"The maximum mentions allowed in a message is now {maxMentionCount}.");
 		}
 
 		[Command("add_invite"), Aliases("addinvite", "allow_invite", "allowinvite"), RequireUserPermissions(Permissions.ManageMessages), Description("Adds a Discord invite to the whitelist. Only effective if `anti_invite` is enabled.")]
 		public async Task AddInvite(CommandContext context, [Description("The Discord invite to whitelist.")] DiscordInvite discordInvite)
 		{
-			GuildConfig guildConfig = await Database.GuildConfigs.Where(guildConfig => guildConfig.Id == context.Guild.Id).DefaultIfEmpty(new GuildConfig(context.Guild.Id)).SingleAsync();
+			GuildConfig guildConfig = await Database.GuildConfigs.FirstOrDefaultAsync(guildConfig => guildConfig.Id == context.Guild.Id) ?? new(context.Guild.Id);
 
 			if (guildConfig.AllowedInvites.Contains(discordInvite.Code))
 			{
@@ -245,13 +247,13 @@ namespace Tomoe.Commands.Moderation
 				_ = await Database.SaveChangesAsync();
 				_ = await Program.SendMessage(context, $"Invite discord.gg/{discordInvite.Code} is now whitelisted.");
 			}
-			await ModLogs.Record(context.Guild.Id, $"Config Invite Added.", $"{context.User.Mention} has added the invite `discord.gg/{discordInvite.Code}` to the invite whitelist.");
+			await ModLogs.Record(context, $"Config Invite Added.", $"{context.User.Mention} has added the invite `discord.gg/{discordInvite.Code}` to the invite whitelist.");
 		}
 
 		[Command("remove_invite"), Aliases("removeinvite", "delete_invite", "deleteinvite"), RequireUserPermissions(Permissions.ManageMessages), Description("Removes an invite from the whitelist. Only effective if `anti_invite` is enabled.")]
 		public async Task RemoveInvite(CommandContext context, [Description("The Discord invite to whitelist.")] DiscordInvite discordInvite)
 		{
-			GuildConfig guildConfig = await Database.GuildConfigs.Where(guildConfig => guildConfig.Id == context.Guild.Id).DefaultIfEmpty(new GuildConfig(context.Guild.Id)).SingleAsync();
+			GuildConfig guildConfig = await Database.GuildConfigs.FirstOrDefaultAsync(guildConfig => guildConfig.Id == context.Guild.Id) ?? new(context.Guild.Id);
 
 			if (guildConfig.AllowedInvites.Remove(discordInvite.Code))
 			{
@@ -262,13 +264,13 @@ namespace Tomoe.Commands.Moderation
 			{
 				_ = await Program.SendMessage(context, "Invite was not whitelisted!");
 			}
-			await ModLogs.Record(context.Guild.Id, $"Config Invite Removed.", $"{context.User.Mention} has removed the invite `discord.gg/{discordInvite.Code}` from the invite whitelist.");
+			await ModLogs.Record(context, $"Config Invite Removed.", $"{context.User.Mention} has removed the invite `discord.gg/{discordInvite.Code}` from the invite whitelist.");
 		}
 
 		[Command("ignore_channel"), Aliases("ignorechannel", "hide_channel", "hidechannel"), RequireUserPermissions(Permissions.ManageChannels), Description("Prevents the bot from reading messages and executing commands in the specified channel.")]
 		public async Task IgnoreChannel(CommandContext context, [Description("The Discord channel to ignore.")] DiscordChannel discordChannel)
 		{
-			GuildConfig guildConfig = await Database.GuildConfigs.Where(guildConfig => guildConfig.Id == context.Guild.Id).DefaultIfEmpty(new GuildConfig(context.Guild.Id)).SingleAsync();
+			GuildConfig guildConfig = await Database.GuildConfigs.FirstOrDefaultAsync(guildConfig => guildConfig.Id == context.Guild.Id) ?? new(context.Guild.Id);
 
 			if (guildConfig.IgnoredChannels.Contains(discordChannel.Id))
 			{
@@ -280,13 +282,13 @@ namespace Tomoe.Commands.Moderation
 				_ = await Database.SaveChangesAsync();
 				_ = await Program.SendMessage(context, $"Invite discord.gg/{discordChannel.Mention} is now whitelisted.");
 			}
-			await ModLogs.Record(context.Guild.Id, $"Config Channel Ignored.", $"{context.User.Mention} has added the channel {discordChannel.Mention} to the channel ignore list.");
+			await ModLogs.Record(context, $"Config Channel Ignored.", $"{context.User.Mention} has added the channel {discordChannel.Mention} to the channel ignore list.");
 		}
 
 		[Command("unignore_channel"), Aliases("unignorechannel", "show_channel", "showchannel"), RequireUserPermissions(Permissions.ManageChannels), Description("Allows the bot to see messages and execute commands in the specified channel.")]
 		public async Task UnignoreChannel(CommandContext context, [Description("The Discord invite to unignore.")] DiscordChannel discordChannel)
 		{
-			GuildConfig guildConfig = await Database.GuildConfigs.Where(guildConfig => guildConfig.Id == context.Guild.Id).DefaultIfEmpty(new GuildConfig(context.Guild.Id)).SingleAsync();
+			GuildConfig guildConfig = await Database.GuildConfigs.FirstOrDefaultAsync(guildConfig => guildConfig.Id == context.Guild.Id) ?? new(context.Guild.Id);
 
 			if (guildConfig.IgnoredChannels.Remove(discordChannel.Id))
 			{
@@ -297,13 +299,13 @@ namespace Tomoe.Commands.Moderation
 			{
 				_ = await Program.SendMessage(context, "The channel wasn't hidden!");
 			}
-			await ModLogs.Record(context.Guild.Id, $"Config Channel Ignored.", $"{context.User.Mention} has removed the channel {discordChannel.Mention} from the channel ignore list.");
+			await ModLogs.Record(context, $"Config Channel Ignored.", $"{context.User.Mention} has removed the channel {discordChannel.Mention} from the channel ignore list.");
 		}
 
 		[Command("add_admin"), Aliases("addadmin", "add_staff", "addstaff", "admin", "staff"), RequireUserPermissions(Permissions.ManageGuild), Description("Adds the specified role to the staff list. Staff roles are exempt from all automoderation.")]
 		public async Task AddAdmin(CommandContext context, [Description("The Discord role to set as admin.")] DiscordRole discordRole)
 		{
-			GuildConfig guildConfig = await Database.GuildConfigs.Where(guildConfig => guildConfig.Id == context.Guild.Id).DefaultIfEmpty(new GuildConfig(context.Guild.Id)).SingleAsync();
+			GuildConfig guildConfig = await Database.GuildConfigs.FirstOrDefaultAsync(guildConfig => guildConfig.Id == context.Guild.Id) ?? new(context.Guild.Id);
 
 			if (guildConfig.AdminRoles.Contains(discordRole.Id))
 			{
@@ -315,13 +317,13 @@ namespace Tomoe.Commands.Moderation
 				_ = await Database.SaveChangesAsync();
 				_ = await Program.SendMessage(context, $"The role {discordRole.Mention} is now considered staff.");
 			}
-			await ModLogs.Record(context.Guild.Id, $"Config Admin Added.", $"{context.User.Mention} has added the role {discordRole} to the admin list.");
+			await ModLogs.Record(context, $"Config Admin Added.", $"{context.User.Mention} has added the role {discordRole} to the admin list.");
 		}
 
 		[Command("remove_admin"), Aliases("removeadmin", "remove_staff", "removestaff", "unadmin", "unstaff"), RequireUserPermissions(Permissions.ManageGuild), Description("Removes the specified role from the staff list.")]
 		public async Task RemoveAdmin(CommandContext context, [Description("The Discord role to remove from admin.")] DiscordRole discordRole)
 		{
-			GuildConfig guildConfig = await Database.GuildConfigs.Where(guildConfig => guildConfig.Id == context.Guild.Id).DefaultIfEmpty(new GuildConfig(context.Guild.Id)).SingleAsync();
+			GuildConfig guildConfig = await Database.GuildConfigs.FirstOrDefaultAsync(guildConfig => guildConfig.Id == context.Guild.Id) ?? new(context.Guild.Id);
 
 			if (guildConfig.AdminRoles.Remove(discordRole.Id))
 			{
@@ -332,24 +334,24 @@ namespace Tomoe.Commands.Moderation
 			{
 				_ = await Program.SendMessage(context, "The role wasn't on the staff list!");
 			}
-			await ModLogs.Record(context.Guild.Id, $"Config Admin Removed.", $"{context.User.Mention} has removed the role {discordRole} from the admin list.");
+			await ModLogs.Record(context, $"Config Admin Removed.", $"{context.User.Mention} has removed the role {discordRole} from the admin list.");
 		}
 
-		[Command("strike_automod"), Aliases("strikeautomod", "auto_strike", "autostrike"), RequireUserPermissions(Permissions.ManageMessages), Description("Determines whether automod should add a strike to the victim.")]
+		[Command("strike_automod"), Aliases("strikeautomod", "auto_strike", "autostrike", "automod_strikes", "auto_mod_strikes", "auto_modstrikes", "automod_strike", "auto_mod_strike", "auto_modstrike"), RequireUserPermissions(Permissions.ManageMessages), Description("Determines whether automod should add a strike to the victim.")]
 		public async Task StrikeAutomod(CommandContext context)
 		{
-			GuildConfig guildConfig = await Database.GuildConfigs.Where(guildConfig => guildConfig.Id == context.Guild.Id).DefaultIfEmpty(new GuildConfig(context.Guild.Id)).SingleAsync();
+			GuildConfig guildConfig = await Database.GuildConfigs.FirstOrDefaultAsync(guildConfig => guildConfig.Id == context.Guild.Id) ?? new(context.Guild.Id);
 
 			guildConfig.StrikeAutomod = !guildConfig.StrikeAutomod;
 			_ = await Database.SaveChangesAsync();
 			_ = await Program.SendMessage(context, $"Automod will {(guildConfig.StrikeAutomod ? "now" : "no longer")} issue strikes.");
-			await ModLogs.Record(context.Guild.Id, $"Config Strike Automod.", $"{context.User.Mention} has made automod {(guildConfig.StrikeAutomod ? "start" : "stop")} issuing strikes.");
+			await ModLogs.Record(context, $"Config Strike Automod.", $"{context.User.Mention} has made automod {(guildConfig.StrikeAutomod ? "start" : "stop")} issuing strikes.");
 		}
 
 		[Command("progressive_strikes"), Aliases("progressivestrikes", "auto_punishments", "autopunishments"), RequireUserPermissions(Permissions.ManageMessages), Description("Determines whether punishments should lead into other punishments depending on the total amount of strikes the victim has already accumulated.")]
 		public async Task ProgressiveStrikes(CommandContext context)
 		{
-			GuildConfig guildConfig = await Database.GuildConfigs.Where(guildConfig => guildConfig.Id == context.Guild.Id).DefaultIfEmpty(new GuildConfig(context.Guild.Id)).SingleAsync();
+			GuildConfig guildConfig = await Database.GuildConfigs.FirstOrDefaultAsync(guildConfig => guildConfig.Id == context.Guild.Id) ?? new(context.Guild.Id);
 			_ = await Program.SendMessage(context, "Progressive strikes are temporarily disabled.");
 
 			//Should be progressive strike here.
@@ -360,23 +362,23 @@ namespace Tomoe.Commands.Moderation
 		[Command("add_prefix"), Aliases("addprefix", "add_guild_prefix", "addguildprefix"), RequireUserPermissions(Permissions.ManageGuild), Description("Set's the prefix that the bot responds to.")]
 		public async Task AddPrefix(CommandContext context, string prefix)
 		{
-			GuildConfig guildConfig = await Database.GuildConfigs.Where(guildConfig => guildConfig.Id == context.Guild.Id).DefaultIfEmpty(new GuildConfig(context.Guild.Id)).SingleAsync();
+			GuildConfig guildConfig = await Database.GuildConfigs.FirstOrDefaultAsync(guildConfig => guildConfig.Id == context.Guild.Id) ?? new(context.Guild.Id);
 
 			guildConfig.Prefixes.Add(prefix);
 			_ = await Database.SaveChangesAsync();
 			_ = await Program.SendMessage(context, $"Added \"{prefix}\" as a prefix!");
-			await ModLogs.Record(context.Guild.Id, $"Config Prefix Added.", $"{context.User.Mention} has added `{prefix}` to the prefix list.");
+			await ModLogs.Record(context, $"Config Prefix Added.", $"{context.User.Mention} has added `{prefix}` to the prefix list.");
 		}
 
 		[Command("remove_prefix"), Aliases("removeprefix", "remove_guild_prefix", "removeguildprefix"), RequireUserPermissions(Permissions.ManageGuild), Description("Set's the prefix that the bot responds to.")]
 		public async Task RemovePrefix(CommandContext context, string prefix)
 		{
-			GuildConfig guildConfig = await Database.GuildConfigs.Where(guildConfig => guildConfig.Id == context.Guild.Id).DefaultIfEmpty(new GuildConfig(context.Guild.Id)).SingleAsync();
+			GuildConfig guildConfig = await Database.GuildConfigs.FirstOrDefaultAsync(guildConfig => guildConfig.Id == context.Guild.Id) ?? new(context.Guild.Id);
 
 			if (guildConfig.Prefixes.Remove(prefix))
 			{
 				_ = await Program.SendMessage(context, $"Removed the \"{prefix}\" prefix!");
-				await ModLogs.Record(context.Guild.Id, $"Config Prefix Removed.", $"{context.User.Mention} has removed `{prefix}` from the prefix list.");
+				await ModLogs.Record(context, $"Config Prefix Removed.", $"{context.User.Mention} has removed `{prefix}` from the prefix list.");
 			}
 			else
 			{
