@@ -16,7 +16,6 @@ namespace Tomoe.Commands.Listeners
 		/// </summary>
 		/// <param name="client">Used to change the bot's status.</param>
 		/// <param name="_eventArgs">Unused <see cref="ReadyEventArgs"/>.</param>
-		/// <returns></returns>
 		public static async Task Handler(DiscordClient client, GuildDownloadCompletedEventArgs eventArgs)
 		{
 			_logger.Information($"Ready! Handling {eventArgs.Guilds.Count} guilds and {MemberCount} guild members");

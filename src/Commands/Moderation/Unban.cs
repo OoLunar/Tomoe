@@ -16,24 +16,11 @@ namespace Tomoe.Commands.Moderation
 		[Command("unban"), RequireGuild, RequireUserPermissions(Permissions.BanMembers), RequireBotPermissions(Permissions.BanMembers), Aliases("fuck_come_back", "fuck_comeback", "fuckcome_back"), Description("Unbans the victim from the guild, allowing them to rejoin."), Punishment(false)]
 		public async Task ByUser(CommandContext context, DiscordUser victim, [RemainingText] string unbanReason = Constants.MissingReason)
 		{
-			await context.Guild.UnbanMemberAsync(victim.Id, unbanReason);
-			DiscordMember guildVictim = await victim.Id.GetMember(context.Guild);
-
-			// If the user is in the guild, and if the user isn't a bot, attempt to dm them to make them aware of their punishment
-			bool sentDm = false;
-			if (guildVictim != null && !guildVictim.IsBot)
-			{
-				try
-				{
-					_ = await guildVictim.SendMessageAsync($"You've been unbanned from {Formatter.Bold(context.Guild.Name)}. Reason: {Formatter.BlockCode(Formatter.Strip(unbanReason))}Context: {context.Message.JumpLink}");
-					sentDm = true;
-				}
-				catch (Exception) { }
-			}
+			bool sentDm = await ByProgram(context.Guild, victim, context.Message.JumpLink, unbanReason);
 			_ = await Program.SendMessage(context, $"{victim.Mention} has been unbanned{(sentDm ? '.' : " (Failed to dm).")}");
 		}
 
-		public static async Task ByProgram(DiscordGuild discordGuild, DiscordUser victim, Uri jumplink, [RemainingText] string unbanReason = Constants.MissingReason)
+		public static async Task<bool> ByProgram(DiscordGuild discordGuild, DiscordUser victim, Uri jumplink, [RemainingText] string unbanReason = Constants.MissingReason)
 		{
 			await discordGuild.UnbanMemberAsync(victim.Id, unbanReason);
 
@@ -42,14 +29,18 @@ namespace Tomoe.Commands.Moderation
 			DiscordMember guildVictim = await victim.Id.GetMember(discordGuild);
 
 			// If the user is in the guild, and if the user isn't a bot, attempt to dm them to make them aware of their punishment
+			bool sentDm = false;
 			if (guildVictim != null && !guildVictim.IsBot)
 			{
 				try
 				{
 					_ = await guildVictim.SendMessageAsync($"You've been unbanned from {Formatter.Bold(discordGuild.Name)}. Reason: {Formatter.BlockCode(Formatter.Strip(unbanReason))}Context: {jumplink}");
+					sentDm = true;
 				}
 				catch (Exception) { }
 			}
+
+			return sentDm;
 		}
 	}
 }

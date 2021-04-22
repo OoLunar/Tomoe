@@ -32,7 +32,7 @@ namespace Tomoe.Utils
 			await eventArgs.Channel.TriggerTypingAsync();
 			_ = Task.Run(async () => await commandsNext.ExecuteCommandAsync(context));
 
-			await ModLogs.Record(context);
+			await ModLogs.CommandUsage(context);
 			return;
 		}
 	}

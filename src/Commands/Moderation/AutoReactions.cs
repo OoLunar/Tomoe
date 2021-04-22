@@ -4,7 +4,6 @@ using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
-using Microsoft.Extensions.DependencyInjection;
 using Tomoe.Db;
 
 namespace Tomoe.Commands.Moderation
@@ -30,6 +29,7 @@ namespace Tomoe.Commands.Moderation
 			autoReaction.EmojiName = emoji.Id == 0 ? emoji.GetDiscordName() : emoji.Id.ToString();
 			_ = Database.AutoReactions.Add(autoReaction);
 			_ = await Database.SaveChangesAsync();
+			await ModLogs.Record(context, "Autoreaction Create", $"{context.User.Mention} has created an autoreaction with emoji {emoji} on channel {channel.Mention}.");
 			_ = await Program.SendMessage(context, $"From here on out, every message in {channel.Mention} will have the {emoji} reaction added to it!");
 		}
 
@@ -41,6 +41,7 @@ namespace Tomoe.Commands.Moderation
 			{
 				_ = Database.AutoReactions.Remove(autoReaction);
 				_ = await Database.SaveChangesAsync();
+				await ModLogs.Record(context, "Autoreaction Remove", $"{context.User.Mention} has removed an autoreaction with emoji {emoji} on channel {channel.Mention}.");
 				_ = await Program.SendMessage(context, $"Auto reaction {emoji} on {channel.Mention} has been removed!");
 				return;
 			}

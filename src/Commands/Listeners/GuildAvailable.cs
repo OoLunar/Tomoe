@@ -14,7 +14,6 @@ namespace Tomoe.Commands.Listeners
 		/// </summary>
 		/// <param name="_client">Unused <see cref="DiscordClient"/>.</param>
 		/// <param name="eventArgs">Used to get the guild id and guild name.</param>
-		/// <returns></returns>
 		public static Task Handler(DiscordClient _client, GuildCreateEventArgs eventArgs)
 		{
 			GuildDownloadCompleted.MemberCount += eventArgs.Guild.MemberCount;

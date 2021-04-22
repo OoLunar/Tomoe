@@ -146,23 +146,12 @@ namespace Tomoe.Commands.Moderation
 
 		public static async Task<bool> ByProgram(DiscordGuild discordGuild, DiscordUser victim, ulong issuerId, Uri jumplink, string muteReason = Constants.MissingPermissions)
 		{
-			using IServiceScope scope = Program.ServiceProvider.CreateScope();
-			Database database = scope.ServiceProvider.GetService<Database>();
-
-			// Test if the guild is in the database. Bot owner might've removed it on accident, and we don't want the bot to fail completely if the guild is missing.
-			GuildConfig guildConfig = await database.GuildConfigs.FirstOrDefaultAsync(guild => guild.Id == discordGuild.Id);
 			DiscordMember guildVictim = await victim.Id.GetMember(discordGuild);
 
-			// Get databaseVictim or create it if they don't exist
-			GuildUser databaseVictim = database.GuildUsers.FirstOrDefault(user => user.UserId == victim.Id && user.GuildId == discordGuild.Id);
-			if (databaseVictim == null)
-			{
-				databaseVictim = new(victim.Id);
-				if (guildVictim != null)
-				{
-					databaseVictim.Roles = guildVictim.Roles.Except(new[] { discordGuild.EveryoneRole }).Select(role => role.Id).ToList();
-				}
-			}
+			using IServiceScope scope = Program.ServiceProvider.CreateScope();
+			Database database = scope.ServiceProvider.GetService<Database>();
+			GuildConfig guildConfig = await database.GuildConfigs.Where(guildConfig => guildConfig.Id == discordGuild.Id).DefaultIfEmpty(new GuildConfig(discordGuild.Id)).SingleAsync();
+			GuildUser databaseVictim = await database.GuildUsers.Where(guildUser => guildUser.UserId == victim.Id && guildUser.GuildId == discordGuild.Id).DefaultIfEmpty(new GuildUser(victim.Id)).SingleAsync();
 
 			// If the user is in the guild, assign the muted role
 			bool sentDm = false;
@@ -186,7 +175,6 @@ namespace Tomoe.Commands.Moderation
 			_ = database.Strikes.Add(strike);
 			_ = await database.SaveChangesAsync();
 
-			if (guildConfig != null && guildConfig.ProgressiveStrikes) await ProgressiveStrike(discordGuild, victim, strike);
 			return sentDm;
 		}
 

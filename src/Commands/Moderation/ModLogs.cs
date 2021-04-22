@@ -49,7 +49,7 @@ namespace Tomoe.Commands.Moderation
 			_ = await database.SaveChangesAsync();
 		}
 
-		public static async Task Record(CommandContext context)
+		public static async Task CommandUsage(CommandContext context)
 		{
 			using IServiceScope scope = Program.ServiceProvider.CreateScope();
 			Database database = scope.ServiceProvider.GetService<Database>();

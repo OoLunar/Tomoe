@@ -10,27 +10,27 @@ namespace Tomoe.Commands.Listeners
 {
 	public class ReactionRoleRemoved
 	{
-		/// <summary>
-		/// Used to add the guild to the database and log when the guild is available.
-		/// </summary>
-		/// <param name="_client">Unused <see cref="DiscordClient"/>.</param>
-		/// <param name="eventArgs">Used to get the guild id and guild name.</param>
-		/// <returns></returns>
-		public static async Task Handler(DiscordClient _client, MessageReactionRemoveEventArgs eventArgs)
+		public static async Task Handler(DiscordClient client, MessageReactionRemoveEventArgs eventArgs)
 		{
-			if (eventArgs.User.IsBot)
+			if (eventArgs.User.Id == client.CurrentUser.Id)
 			{
 				return;
 			}
-			string emojiName = eventArgs.Emoji.Id == 0 ? eventArgs.Emoji.GetDiscordName() : eventArgs.Emoji.Id.ToString();
-
 			using IServiceScope scope = Program.ServiceProvider.CreateScope();
 			Database database = scope.ServiceProvider.GetService<Database>();
-			ReactionRole reactionRole = database.ReactionRoles.FirstOrDefault(databaseReactionRole => databaseReactionRole.GuildId == eventArgs.Guild.Id && databaseReactionRole.MessageId == eventArgs.Message.Id && databaseReactionRole.EmojiName == (eventArgs.Emoji.Id == 0 ? eventArgs.Emoji.GetDiscordName() : eventArgs.Emoji.Id.ToString()));
+
+			string emojiName = eventArgs.Emoji.Id == 0 ? eventArgs.Emoji.GetDiscordName() : eventArgs.Emoji.Id.ToString();
+			ReactionRole reactionRole = database.ReactionRoles.FirstOrDefault(databaseReactionRole
+				=> databaseReactionRole.GuildId == eventArgs.Guild.Id
+				&& databaseReactionRole.MessageId == eventArgs.Message.Id
+				&& databaseReactionRole.EmojiName == emojiName
+			);
+			// Reaction role doesn't exist, meaning it's just a random reaction.
 			if (reactionRole == null)
 			{
 				return;
 			}
+
 			DiscordRole discordRole = eventArgs.Guild.GetRole(reactionRole.RoleId);
 			// if the discord role has been removed, remove the reaction role from the database.
 			if (discordRole == null)
@@ -39,6 +39,8 @@ namespace Tomoe.Commands.Listeners
 				_ = await database.SaveChangesAsync();
 				return;
 			}
+
+			// Get the user and remove their reaction role.
 			await (await eventArgs.User.Id.GetMember(eventArgs.Guild)).RevokeRoleAsync(discordRole);
 		}
 	}

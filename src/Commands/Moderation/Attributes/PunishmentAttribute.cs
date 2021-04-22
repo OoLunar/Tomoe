@@ -28,7 +28,6 @@ namespace Tomoe.Commands.Moderation.Attributes
 		/// </summary>
 		/// <param name="context">Used to get the user's id, mentioned users and their hierarchy if the guild is not null.</param>
 		/// <param name="help">If the command is being executed for the help menu.</param>
-		/// <returns></returns>
 		public override async Task<bool> ExecuteCheckAsync(CommandContext context, bool help)
 		{
 			if (help) return true;
