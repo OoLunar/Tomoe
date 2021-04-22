@@ -144,7 +144,7 @@ namespace Tomoe.Commands.Moderation
 			}
 		}
 
-		public static async Task<bool> ByProgram(DiscordGuild discordGuild, DiscordUser victim, ulong issuerId, Uri jumplink, string muteReason = Constants.MissingPermissions)
+		public static async Task<bool> ByProgram(DiscordGuild discordGuild, DiscordUser victim, ulong issuerId, Uri jumplink, string strikeReason = Constants.MissingPermissions)
 		{
 			DiscordMember guildVictim = await victim.Id.GetMember(discordGuild);
 
@@ -159,7 +159,7 @@ namespace Tomoe.Commands.Moderation
 			{
 				try
 				{
-					_ = await guildVictim.SendMessageAsync($"You've been given a strike from {Formatter.Bold(discordGuild.Name)}. Reason: {Formatter.BlockCode(Formatter.Strip(muteReason))}Context: {jumplink}");
+					_ = await guildVictim.SendMessageAsync($"You've been given a strike from {Formatter.Bold(discordGuild.Name)}. Reason: {Formatter.BlockCode(Formatter.Strip(strikeReason))}Context: {jumplink}");
 					sentDm = true;
 				}
 				catch (Exception) { }
@@ -169,12 +169,13 @@ namespace Tomoe.Commands.Moderation
 			strike.GuildId = discordGuild.Id;
 			strike.IssuerId = issuerId;
 			strike.JumpLinks.Add(jumplink);
-			strike.Reasons.Add(muteReason);
+			strike.Reasons.Add(strikeReason);
 			strike.VictimId = victim.Id;
 			strike.VictimMessaged = sentDm;
 			_ = database.Strikes.Add(strike);
 			_ = await database.SaveChangesAsync();
 
+			await ModLogs.Record(discordGuild.Id, "Strike", $"{victim.Mention} has been striked{(sentDm ? '.' : " (Failed to dm).")} Reason: {strikeReason}");
 			return sentDm;
 		}
 

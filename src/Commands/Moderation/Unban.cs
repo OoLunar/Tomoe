@@ -40,6 +40,7 @@ namespace Tomoe.Commands.Moderation
 				catch (Exception) { }
 			}
 
+			await ModLogs.Record(discordGuild.Id, "Unban", $"{victim.Mention} has been striked{(sentDm ? '.' : " (Failed to dm).")} Reason: {unbanReason}");
 			return sentDm;
 		}
 	}

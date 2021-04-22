@@ -80,6 +80,15 @@ namespace Tomoe.Commands.Moderation
 				}
 			}
 
+			string rolename = roleAction switch
+			{
+				RoleAction.Mute => "muted",
+				RoleAction.Antimeme => "antimemed",
+				RoleAction.Voiceban => "voicebanned",
+				_ => "punished"
+			};
+
+			await ModLogs.Record(discordGuild.Id, roleAction.ToString(), $"{victim.Mention} has been {rolename}{(sentDm ? '.' : " (Failed to dm).")} Reason: {punishReason}");
 			return sentDm;
 		}
 	}
