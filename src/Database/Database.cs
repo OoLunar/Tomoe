@@ -12,6 +12,7 @@ namespace Tomoe.Db
 		public DbSet<Strike> Strikes { get; set; }
 		public DbSet<GuildUser> GuildUsers { get; set; }
 		public DbSet<GuildConfig> GuildConfigs { get; set; }
+		public DbSet<Tag> Tags { get; set; }
 
 		public Database(DbContextOptions<Database> options) : base(options) { }
 

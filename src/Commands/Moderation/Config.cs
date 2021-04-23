@@ -9,6 +9,7 @@ using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Enums;
 using DSharpPlus.Interactivity.Extensions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Tomoe.Db;
 using Tomoe.Utils.Types;
 
@@ -244,6 +245,7 @@ namespace Tomoe.Commands.Moderation
 			else
 			{
 				guildConfig.AllowedInvites.Add(discordInvite.Code);
+				Database.Entry(guildConfig).State = EntityState.Modified;
 				_ = await Database.SaveChangesAsync();
 				_ = await Program.SendMessage(context, $"Invite discord.gg/{discordInvite.Code} is now whitelisted.");
 			}
@@ -257,14 +259,15 @@ namespace Tomoe.Commands.Moderation
 
 			if (guildConfig.AllowedInvites.Remove(discordInvite.Code))
 			{
+				Database.Entry(guildConfig).State = EntityState.Modified;
 				_ = await Database.SaveChangesAsync();
 				_ = await Program.SendMessage(context, "Invite has been removed from the whitelist.");
+				await ModLogs.Record(context, $"Config Invite Removed.", $"{context.User.Mention} has removed the invite `discord.gg/{discordInvite.Code}` from the invite whitelist.");
 			}
 			else
 			{
 				_ = await Program.SendMessage(context, "Invite was not whitelisted!");
 			}
-			await ModLogs.Record(context, $"Config Invite Removed.", $"{context.User.Mention} has removed the invite `discord.gg/{discordInvite.Code}` from the invite whitelist.");
 		}
 
 		[Command("ignore_channel"), Aliases("ignorechannel", "hide_channel", "hidechannel"), RequireUserPermissions(Permissions.ManageChannels), Description("Prevents the bot from reading messages and executing commands in the specified channel.")]
@@ -279,6 +282,7 @@ namespace Tomoe.Commands.Moderation
 			else
 			{
 				guildConfig.IgnoredChannels.Add(discordChannel.Id);
+				Database.Entry(guildConfig).State = EntityState.Modified;
 				_ = await Database.SaveChangesAsync();
 				_ = await Program.SendMessage(context, $"Invite discord.gg/{discordChannel.Mention} is now whitelisted.");
 			}
@@ -292,6 +296,7 @@ namespace Tomoe.Commands.Moderation
 
 			if (guildConfig.IgnoredChannels.Remove(discordChannel.Id))
 			{
+				Database.Entry(guildConfig).State = EntityState.Modified;
 				_ = await Database.SaveChangesAsync();
 				_ = await Program.SendMessage(context, "The channel is now shown.");
 			}
@@ -314,10 +319,11 @@ namespace Tomoe.Commands.Moderation
 			else
 			{
 				guildConfig.AdminRoles.Add(discordRole.Id);
+				Database.Entry(guildConfig).State = EntityState.Modified;
 				_ = await Database.SaveChangesAsync();
+				await ModLogs.Record(context, $"Config Admin Added.", $"{context.User.Mention} has added the role {discordRole} to the admin list.");
 				_ = await Program.SendMessage(context, $"The role {discordRole.Mention} is now considered staff.");
 			}
-			await ModLogs.Record(context, $"Config Admin Added.", $"{context.User.Mention} has added the role {discordRole} to the admin list.");
 		}
 
 		[Command("remove_admin"), Aliases("removeadmin", "remove_staff", "removestaff", "unadmin", "unstaff"), RequireUserPermissions(Permissions.ManageGuild), Description("Removes the specified role from the staff list.")]
@@ -327,6 +333,7 @@ namespace Tomoe.Commands.Moderation
 
 			if (guildConfig.AdminRoles.Remove(discordRole.Id))
 			{
+				Database.Entry(guildConfig).State = EntityState.Modified;
 				_ = await Database.SaveChangesAsync();
 				_ = await Program.SendMessage(context, "The role is no longer considered staff.");
 			}
@@ -376,6 +383,7 @@ namespace Tomoe.Commands.Moderation
 			GuildConfig guildConfig = await Database.GuildConfigs.FirstOrDefaultAsync(guildConfig => guildConfig.Id == context.Guild.Id) ?? new(context.Guild.Id);
 
 			guildConfig.Prefixes.Add(prefix);
+			Database.Entry(guildConfig).State = EntityState.Modified;
 			_ = await Database.SaveChangesAsync();
 			_ = await Program.SendMessage(context, $"Added \"{prefix}\" as a prefix!");
 			await ModLogs.Record(context, $"Config Prefix Added.", $"{context.User.Mention} has added `{prefix}` to the prefix list.");
@@ -388,14 +396,15 @@ namespace Tomoe.Commands.Moderation
 
 			if (guildConfig.Prefixes.Remove(prefix))
 			{
-				_ = await Program.SendMessage(context, $"Removed the \"{prefix}\" prefix!");
+				Database.Entry(guildConfig).State = EntityState.Modified;
+				_ = await Database.SaveChangesAsync();
 				await ModLogs.Record(context, $"Config Prefix Removed.", $"{context.User.Mention} has removed `{prefix}` from the prefix list.");
+				_ = await Program.SendMessage(context, $"Removed the \"{prefix}\" prefix!");
 			}
 			else
 			{
 				_ = await Program.SendMessage(context, $"\"{prefix}\" was never a prefix!");
 			}
-			_ = await Database.SaveChangesAsync();
 		}
 
 

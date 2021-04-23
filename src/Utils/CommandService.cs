@@ -51,6 +51,7 @@ namespace Tomoe.Utils
 						commands.RegisterConverter(new RoleActionConverter());
 						commands.RegisterConverter(new TimeSpanConverter());
 						commands.RegisterConverter(new StrikeConverter());
+						commands.RegisterConverter(new TagConverter());
 						commands.RegisterCommands(Assembly.GetEntryAssembly());
 						commands.CommandErrored += CommandErrored;
 					}
