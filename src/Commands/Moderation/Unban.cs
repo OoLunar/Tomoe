@@ -13,7 +13,7 @@ namespace Tomoe.Commands.Moderation
 	{
 		public Database Database { private get; set; }
 		[Command("unban"), RequireGuild, RequireUserPermissions(Permissions.BanMembers), RequireBotPermissions(Permissions.BanMembers), Aliases("fuck_come_back", "fuck_comeback", "fuckcome_back"), Description("Unbans the victim from the guild, allowing them to rejoin."), Punishment(false)]
-		public async Task ByUser(CommandContext context, DiscordUser victim, [RemainingText] string unbanReason = Constants.MissingReason)
+		public async Task ByUser(CommandContext context, [Description("Who to unban.")] DiscordUser victim, [Description("Why is the vicitm being unbanned."), RemainingText] string unbanReason = Constants.MissingReason)
 		{
 			bool sentDm = await ByProgram(context.Guild, victim, context.Message.JumpLink, unbanReason);
 			_ = await Program.SendMessage(context, $"{victim.Mention} has been unbanned{(sentDm ? '.' : " (Failed to dm).")}");

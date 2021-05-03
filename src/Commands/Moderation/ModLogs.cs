@@ -8,13 +8,12 @@ using Tomoe.Db;
 
 namespace Tomoe.Commands.Moderation
 {
-	[Group("modlog"), Description("Logs something to the modlog."), Aliases("mod_log", "log", "ml"), RequireUserPermissions(Permissions.ManageMessages)]
 	public class ModLogs : BaseCommandModule
 	{
-		[GroupCommand]
-		public async Task Overload(CommandContext context, string action, [RemainingText] string reason = Constants.MissingReason)
+		[Command("modlog"), Description("Logs something to the modlog."), Aliases("mod_log", "log", "ml", "mod_logs", "modlogs", "mls"), RequireUserPermissions(Permissions.ManageMessages)]
+		public async Task Overload(CommandContext context, [Description("What's the main thing being recorded? I.E `New Staff` or `New Announcement`")] string mainEvent, [Description("More details on what's being recorded."), RemainingText] string reason = Constants.MissingReason)
 		{
-			await Record(context, action, reason);
+			await Record(context, mainEvent, reason);
 			_ = await Program.SendMessage(context, "Successfully recorded event into the ModLog.");
 		}
 

@@ -11,7 +11,7 @@ namespace Tomoe.Commands.Moderation
 	public class Kick : BaseCommandModule
 	{
 		[Command("kick"), RequireGuild, RequireUserPermissions(Permissions.BanMembers), RequireBotPermissions(Permissions.BanMembers), Aliases("boot", "yeet"), Description("Kicks the victim from the guild, sending them off with a dm."), Punishment(true)]
-		public async Task ByUser(CommandContext context, DiscordUser victim, [RemainingText] string kickReason = Constants.MissingReason)
+		public async Task ByUser(CommandContext context, [Description("Who to remove from the guild.")] DiscordUser victim, [Description("Why is the victim being removed from the guild?"), RemainingText] string kickReason = Constants.MissingReason)
 		{
 			DiscordMember guildVictim = await victim.Id.GetMember(context.Guild);
 			_ = guildVictim == null

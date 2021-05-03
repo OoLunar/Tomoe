@@ -13,7 +13,7 @@ namespace Tomoe.Commands.Moderation
 	public class Ban : BaseCommandModule
 	{
 		[Command("ban"), RequireGuild, RequireUserPermissions(Permissions.BanMembers), RequireBotPermissions(Permissions.BanMembers), Aliases("fuck_off", "fuckoff"), Description("Permanently bans the victim from the guild, sending them off with a dm."), Punishment(false)]
-		public async Task ByUser(CommandContext context, DiscordUser victim, [RemainingText] string banReason = Constants.MissingReason)
+		public async Task ByUser(CommandContext context, [Description("Who to ban.")] DiscordUser victim, [Description("Why is the victim being banned?"), RemainingText] string banReason = Constants.MissingReason)
 		{
 			try
 			{

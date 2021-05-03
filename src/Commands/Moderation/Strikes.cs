@@ -16,7 +16,7 @@ using Tomoe.Db;
 
 namespace Tomoe.Commands.Moderation
 {
-	[Group("strike"), RequireGuild]
+	[Group("strike"), RequireGuild, Description("Assigns a strike to a specific individual."), Aliases("warn")]
 	public class Strikes : BaseCommandModule
 	{
 		public Database Database { private get; set; }
@@ -38,22 +38,23 @@ namespace Tomoe.Commands.Moderation
 			return strike.VictimMessaged;
 		}
 
-		[GroupCommand, Description("Assigns a strike to a specific individual.")]
-		public async Task ByUser(CommandContext context, DiscordUser discordUser, [RemainingText] string strikeReason = Constants.MissingReason)
+		[GroupCommand]
+		public async Task ByUser(CommandContext context, [Description("Who's being striked.")] DiscordUser victim, [Description("Why is the victim being striked."), RemainingText] string strikeReason = Constants.MissingReason)
 		{
 			// CommandHandler will handle the HierarchyException that ExecuteCheckAsync throws.
 			if (await new Punishment(false).ExecuteCheckAsync(context, false))
 			{
-				_ = await Program.SendMessage(context, $"{discordUser.Mention} has been striked{(await ByProgram(context, discordUser, strikeReason) ? '.' : "(failed to dm.)")}");
+				_ = await Program.SendMessage(context, $"{victim.Mention} has been striked{(await ByProgram(context, victim, strikeReason) ? '.' : "(failed to dm.)")}");
 			}
 		}
 
 		[Command("drop"), Description("Drops a strike from the user's record."), Aliases("pardon", "remove")]
-		public async Task Drop(CommandContext context, Strike strike, [RemainingText] string dropReason = Constants.MissingReason)
+		public async Task Drop(CommandContext context, [Description("The strike to drop.")] Strike strike, [Description("Why is the strike being dropped."), RemainingText] string dropReason = Constants.MissingReason)
 		{
 			if (strike.Dropped)
 			{
 				_ = await Program.SendMessage(context, $"Strike #{strike.LogId} is already dropped!");
+				return;
 			}
 
 			if (!await new Punishment(false).ExecuteCheckAsync(context, false))
@@ -72,16 +73,16 @@ namespace Tomoe.Commands.Moderation
 		}
 
 		[Command("drop")]
-		public async Task Drop(CommandContext context, DiscordUser discordUser, [RemainingText] string dropReason = Constants.MissingReason)
+		public async Task Drop(CommandContext context, [Description("Who to get the last strike from.")] DiscordUser victim, [Description("Why is the strike being dropped."), RemainingText] string dropReason = Constants.MissingReason)
 		{
 			if (!await new Punishment(false).ExecuteCheckAsync(context, false))
 			{
 				return;
 			}
-			Strike strike = Database.Strikes.AsNoTracking().LastOrDefault(strike => strike.VictimId == discordUser.Id && strike.GuildId == context.Guild.Id);
+			Strike strike = Database.Strikes.AsNoTracking().LastOrDefault(strike => strike.VictimId == victim.Id && strike.GuildId == context.Guild.Id);
 			if (strike == null)
 			{
-				_ = await Program.SendMessage(context, $"{discordUser.Mention} doesn't have any strikes!");
+				_ = await Program.SendMessage(context, $"{victim.Mention} doesn't have any strikes!");
 			}
 			else
 			{
@@ -89,7 +90,7 @@ namespace Tomoe.Commands.Moderation
 			}
 		}
 		[Command("info"), Description("Gives info about a strike."), Aliases("lookup")]
-		public async Task Info(CommandContext context, Strike strike)
+		public async Task Info(CommandContext context, [Description("Which strike to get information on.")] Strike strike)
 		{
 			DiscordUser victim = await context.Client.GetUserAsync(strike.VictimId);
 			DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder().GenerateDefaultEmbed(context);
@@ -125,7 +126,7 @@ namespace Tomoe.Commands.Moderation
 		}
 
 		[Command("check"), Description("Gets the users past history"), Aliases("history", "list")]
-		public async Task Check(CommandContext context, DiscordUser victim)
+		public async Task Check(CommandContext context, [Description("The victim to get the history on.")] DiscordUser victim)
 		{
 			DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder().GenerateDefaultEmbed(context);
 			embedBuilder.Title = $"{victim.Username}'s Past History";

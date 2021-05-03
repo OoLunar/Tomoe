@@ -40,7 +40,10 @@ namespace Tomoe.Utils
 					_ = await database.SaveChangesAsync();
 				}
 				// Guild exists, check to see it's not executing in an ignored channel.
-				else if (guildConfig.IgnoredChannels.Contains(eventArgs.Channel.Id)) return;
+				else if (guildConfig.IgnoredChannels.Contains(eventArgs.Channel.Id))
+				{
+					return;
+				}
 
 				// Iterate through each prefix and try to see if said prefix was used.
 				// Add the default bot prefix and the guild prefixes together into a new list for less code

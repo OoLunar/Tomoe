@@ -18,7 +18,7 @@ namespace Tomoe.Commands.Moderation
 		public Database Database { private get; set; }
 
 		[GroupCommand]
-		public async Task Overload(CommandContext context, DiscordChannel channel, DiscordEmoji emoji)
+		public async Task Overload(CommandContext context, [Description("The channel to react in.")] DiscordChannel channel, [Description("The emoji to react with.")] DiscordEmoji emoji)
 		{
 			AutoReaction autoReaction = Database.AutoReactions.FirstOrDefault(autoReaction => autoReaction.GuildId == context.Guild.Id && autoReaction.ChannelId == channel.Id && autoReaction.EmojiName == (emoji.Id == 0 ? emoji.GetDiscordName() : emoji.Id.ToString()));
 			if (autoReaction != null)
@@ -38,7 +38,7 @@ namespace Tomoe.Commands.Moderation
 		}
 
 		[Command("list"), Description("Shows all the current auto reactions for a channel."), Aliases("show", "ls")]
-		public async Task List(CommandContext context, DiscordChannel channel)
+		public async Task List(CommandContext context, [Description("Lists all autoreactions for the specified channel.")] DiscordChannel channel)
 		{
 			StringBuilder stringBuilder = new();
 			foreach (AutoReaction autoReaction in Database.AutoReactions.Where(autoReaction => autoReaction.ChannelId == channel.Id && autoReaction.GuildId == context.Guild.Id))
@@ -61,7 +61,7 @@ namespace Tomoe.Commands.Moderation
 		}
 
 		[Command("remove"), Description("Removes an autoreaction from a channel."), Aliases("rm", "delete", "del")]
-		public async Task Remove(CommandContext context, DiscordChannel channel, DiscordEmoji emoji)
+		public async Task Remove(CommandContext context, [Description("The channel to remove the autoreaction from.")] DiscordChannel channel, [Description("The emoji to stop autoreacting with.")] DiscordEmoji emoji)
 		{
 			AutoReaction autoReaction = Database.AutoReactions.FirstOrDefault(autoReaction => autoReaction.GuildId == context.Guild.Id && autoReaction.ChannelId == channel.Id && autoReaction.EmojiName == (emoji.Id == 0 ? emoji.GetDiscordName() : emoji.Id.ToString()));
 			if (autoReaction != null)

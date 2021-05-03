@@ -18,7 +18,7 @@ namespace Tomoe.Commands.Moderation
 		public Database Database { private get; set; }
 
 		[GroupCommand]
-		public async Task ByMessage(CommandContext context, DiscordMessage message, DiscordEmoji emoji, DiscordRole role)
+		public async Task ByMessage(CommandContext context, [Description("The message to put a reaction role on.")] DiscordMessage message, [Description("The emoji that's with the role.")] DiscordEmoji emoji, [Description("The role to assign to the user.")] DiscordRole role)
 		{
 			ReactionRole reactionRole = new();
 			reactionRole.EmojiName = emoji.Id == 0 ? emoji.GetDiscordName() : emoji.Id.ToString();
@@ -41,7 +41,7 @@ namespace Tomoe.Commands.Moderation
 		}
 
 		[GroupCommand]
-		public async Task ByReply(CommandContext context, DiscordEmoji emoji, DiscordRole role)
+		public async Task ByReply(CommandContext context, [Description("The emoji that's with the role.")] DiscordEmoji emoji, [Description("The role to assign to the user.")] DiscordRole role)
 		{
 			if (context.Message.ReferencedMessage != null)
 			{
@@ -49,15 +49,15 @@ namespace Tomoe.Commands.Moderation
 			}
 			else
 			{
-				_ = await Program.SendMessage(context, Formatter.Bold("[Error]: Message required."));
+				_ = await Program.SendMessage(context, Formatter.Bold("[Error]: Message reply required."));
 			}
 		}
 
 		[Command("last"), Description("Assigns a role to the user(s) who react to the last message in the channel."), Aliases("last_message", "lastmessage")]
-		public async Task LastMessage(CommandContext context, DiscordChannel channel, DiscordEmoji emoji, DiscordRole role) => await ByMessage(context, (await channel.GetMessagesAsync(1))[0], emoji, role);
+		public async Task LastMessage(CommandContext context, [Description("Which channel to get the last message from.")] DiscordChannel channel, [Description("The emoji that's with the role.")] DiscordEmoji emoji, [Description("The role to assign to the user.")] DiscordRole role) => await ByMessage(context, (await channel.GetMessagesAsync(1))[0], emoji, role);
 
 		[Command("fix"), Description("Adds Tomoe's reactions back onto previous reaction role messages."), Aliases("repair", "rereact")]
-		public async Task Fix(CommandContext context, DiscordChannel channel)
+		public async Task Fix(CommandContext context, [Description("Gets all reaction roles in this channel.")] DiscordChannel channel)
 		{
 			bool fixedReactions = false;
 			foreach (ReactionRole reactionRole in Database.ReactionRoles.Where(reactionRole => reactionRole.GuildId == context.Guild.Id && reactionRole.ChannelId == channel.Id))
@@ -72,7 +72,7 @@ namespace Tomoe.Commands.Moderation
 		}
 
 		[Command("list"), Description("Shows all the current reaction roles on a message"), Aliases("show", "ls")]
-		public async Task List(CommandContext context, DiscordMessage message)
+		public async Task List(CommandContext context, [Description("Gets all reaction roles on this message.")] DiscordMessage message)
 		{
 			StringBuilder stringBuilder = new();
 			foreach (ReactionRole reactionRole in Database.ReactionRoles.Where(reactionRole => reactionRole.MessageId == message.Id && reactionRole.GuildId == context.Guild.Id))
@@ -96,7 +96,7 @@ namespace Tomoe.Commands.Moderation
 		}
 
 		[Command("remove"), Description("Deletes a reaction role from a message."), Aliases("delete", "rm", "del")]
-		public async Task Remove(CommandContext context, DiscordMessage message, DiscordEmoji emoji)
+		public async Task Remove(CommandContext context, [Description("Which message to remove the reaction role from.")] DiscordMessage message, [Description("The emoji that's with the role.")] DiscordEmoji emoji)
 		{
 			ReactionRole databaseReactionRole = Database.ReactionRoles.FirstOrDefault(databaseReactionRole => databaseReactionRole.GuildId == context.Guild.Id && databaseReactionRole.MessageId == message.Id && databaseReactionRole.EmojiName == (emoji.Id == 0 ? emoji.GetDiscordName() : emoji.Id.ToString()));
 			if (databaseReactionRole != null)
