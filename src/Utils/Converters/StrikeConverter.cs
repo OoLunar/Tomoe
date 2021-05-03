@@ -23,7 +23,7 @@ namespace Tomoe.Utils.Converters
 				_ = await Program.SendMessage(context, $"{Formatter.InlineCode(value)} is not a valid strike id!");
 				return Optional.FromNoValue<Strike>();
 			}
-			Strike strike = await database.Strikes.AsNoTracking().FirstOrDefaultAsync(strike => strike.Id == strikeId && strike.GuildId == context.Guild.Id);
+			Strike strike = await database.Strikes.AsNoTracking().FirstOrDefaultAsync(strike => strike.LogId == strikeId && strike.GuildId == context.Guild.Id);
 			database.Dispose();
 			if (strike == null)
 			{

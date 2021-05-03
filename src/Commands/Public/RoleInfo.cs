@@ -28,9 +28,27 @@ namespace Tomoe.Commands.Public
 				return;
 			}
 			else
+			{
 				foreach (DiscordRole role in context.Guild.Roles.Values)
+				{
 					if (role.Name.ToLowerInvariant() == roleName || role.Name.Contains(roleName))
+					{
 						rolesInQuestion.Add(role);
+					}
+				}
+			}
+
+			// If no roles were found, try to do an "autocomplete" sort of thing.
+			if (rolesInQuestion.Count == 0)
+			{
+				foreach (DiscordRole role in context.Guild.Roles.Values)
+				{
+					if (role.Name.StartsWith(roleName, true, CultureInfo.InvariantCulture))
+					{
+						rolesInQuestion.Add(role);
+					}
+				}
+			}
 
 			if (rolesInQuestion.Count == 0) _ = await Program.SendMessage(context, Formatter.Bold($"[Error: There was no role called \"{roleName}\"]")); // No role was found. Inform the user.
 			else if (rolesInQuestion.Count == 1) await Overload(context, rolesInQuestion[0]);
@@ -57,6 +75,11 @@ namespace Tomoe.Commands.Public
 							if (roleUsers.Length < 992) _ = roleUsers.Append($"{member.Mention} "); // Max embed length is 1024. Max username length is 32. 1024 - 32 = 992.
 						}
 					}
+					string permissions = role.Permissions.ToPermissionString();
+					if (string.IsNullOrEmpty(permissions.Trim()))
+					{
+						permissions = "None.";
+					}
 					_ = embed.AddField(Formatter.Bold("Members"), roleUsers.Length == 0 ? "None" : roleUsers.ToString());
 					StringBuilder roleInfo = new();
 					_ = roleInfo.Append($"Id: {Formatter.Bold(role.Id.ToString(CultureInfo.InvariantCulture))}\n");
@@ -67,7 +90,7 @@ namespace Tomoe.Commands.Public
 					_ = roleInfo.Append($"Mentionable: {Formatter.Bold(role.IsMentionable.ToString())}\n");
 					_ = roleInfo.Append($"Hoisted: {Formatter.Bold(role.IsHoisted.ToString())}\n");
 					_ = roleInfo.Append($"Managed: {Formatter.Bold(role.IsManaged.ToString())}\n");
-					_ = roleInfo.Append($"Permissions: {Formatter.Bold(role.Permissions.ToPermissionString())}\n");
+					_ = roleInfo.Append($"Permissions: {Formatter.Bold(permissions)}\n");
 					_ = roleInfo.Append($"Member Count: {Formatter.Bold(roleMemberCount.ToString(CultureInfo.InvariantCulture))}");
 					embed.Description = roleInfo.ToString();
 					embeds.Add(new(null, embed));
@@ -94,16 +117,21 @@ namespace Tomoe.Commands.Public
 				}
 			}
 			_ = embed.AddField(Formatter.Bold("Members"), roleUsers.Length == 0 ? "None" : roleUsers.ToString());
+			string permissions = role.Permissions.ToPermissionString();
+			if (string.IsNullOrEmpty(permissions.Trim()))
+			{
+				permissions = "None.";
+			}
 			StringBuilder roleInfo = new();
 			_ = roleInfo.Append($"Id: {Formatter.Bold(role.Id.ToString(CultureInfo.InvariantCulture))}\n");
 			_ = roleInfo.Append($"Name: {Formatter.Bold(role.Name.ToString())}\n");
 			_ = roleInfo.Append($"Creation Timestamp: {Formatter.Bold(role.CreationTimestamp.ToString(CultureInfo.InvariantCulture))}\n");
 			_ = roleInfo.Append($"Position: {Formatter.Bold(role.Position.ToString(CultureInfo.InvariantCulture))}\n");
-			_ = roleInfo.Append($"Color: {Formatter.Bold(role.Color.ToString())}");
+			_ = roleInfo.Append($"Color: {Formatter.Bold(role.Color.ToString())}\n");
 			_ = roleInfo.Append($"Mentionable: {Formatter.Bold(role.IsMentionable.ToString())}\n");
 			_ = roleInfo.Append($"Hoisted: {Formatter.Bold(role.IsHoisted.ToString())}\n");
 			_ = roleInfo.Append($"Managed: {Formatter.Bold(role.IsManaged.ToString())}\n");
-			_ = roleInfo.Append($"Permissions: {Formatter.Bold(role.Permissions.ToPermissionString())}\n");
+			_ = roleInfo.Append($"Permissions: {Formatter.Bold(permissions)}\n");
 			_ = roleInfo.Append($"Member Count: {Formatter.Bold(roleMemberCount.ToString(CultureInfo.InvariantCulture))}");
 			embed.Description = roleInfo.ToString();
 			_ = await Program.SendMessage(context, null, embed.Build());

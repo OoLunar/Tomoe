@@ -1,90 +1,113 @@
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
-using Microsoft.EntityFrameworkCore;
+using DSharpPlus.Interactivity;
+using DSharpPlus.Interactivity.Extensions;
 using Tomoe.Db;
 
 namespace Tomoe.Commands.Moderation
 {
-	[Group("reaction_roles"), RequireGuild, Description("Allows assigning and removing reaction roles to a message."), RequireBotPermissions(Permissions.ManageRoles), RequireUserPermissions(Permissions.AddReactions | Permissions.ManageMessages | Permissions.ManageRoles), Aliases("reactionroles", "rr")]
+	[Group("reaction_roles"), Description("Assigns a role to the user(s) who react to a certain message."), Aliases("rr", "reaction_role", "reactionroles", "reactionrole"), RequireUserPermissions(Permissions.ManageRoles | Permissions.ManageMessages)]
 	public class ReactionRoles : BaseCommandModule
 	{
 		public Database Database { private get; set; }
 
-		[Command("add")]
-		public async Task Add(CommandContext context, DiscordEmoji discordEmoji, DiscordRole discordRole) => await Add(context, context.Message.ReferencedMessage, discordEmoji, discordRole);
-
-		[Command("add"), Aliases("assign")]
-		public async Task Add(CommandContext context, DiscordMessage discordMessage, DiscordEmoji discordEmoji, DiscordRole discordRole)
+		[GroupCommand]
+		public async Task ByMessage(CommandContext context, DiscordMessage message, DiscordEmoji emoji, DiscordRole role)
 		{
-			if (discordMessage == null)
+			ReactionRole reactionRole = new();
+			reactionRole.EmojiName = emoji.Id == 0 ? emoji.GetDiscordName() : emoji.Id.ToString();
+			reactionRole.GuildId = context.Guild.Id;
+			reactionRole.ChannelId = message.Channel.Id;
+			reactionRole.MessageId = message.Id;
+			reactionRole.RoleId = role.Id;
+
+			ReactionRole databaseReactionRole = Database.ReactionRoles.FirstOrDefault(databaseReactionRole => databaseReactionRole.GuildId == reactionRole.GuildId && databaseReactionRole.MessageId == reactionRole.MessageId && databaseReactionRole.EmojiName == reactionRole.EmojiName);
+			if (databaseReactionRole != null)
 			{
-				_ = await Program.SendMessage(context, Formatter.Bold("[Error: No message provided!]"));
+				_ = await Program.SendMessage(context, Formatter.Bold($"[Error]: Message {message.Id} already has the emoji {emoji} assigned to it!"));
 				return;
 			}
 
-			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
-			if (guild == null)
-			{
-				_ = await Program.SendMessage(context, Constants.GuildNotInDatabase);
-				return;
-			}
+			_ = Database.ReactionRoles.Add(reactionRole);
+			_ = await Database.SaveChangesAsync();
+			await message.CreateReactionAsync(emoji);
+			_ = await Program.SendMessage(context, $"Reaction role created! When someone reacts with {emoji} on <{message.JumpLink}>, they'll be given the {role.Mention} role.");
+		}
 
-			if (discordRole.Position >= context.Guild.CurrentMember.Hierarchy)
+		[GroupCommand]
+		public async Task ByReply(CommandContext context, DiscordEmoji emoji, DiscordRole role)
+		{
+			if (context.Message.ReferencedMessage != null)
 			{
-				_ = await Program.SendMessage(context, Formatter.Bold($"[Error: Failed to create reaction role, cannot assign {discordRole.Mention} role.]"));
-				return;
-			}
-
-			ReactionRole reactionRole = guild.ReactionRoles.FirstOrDefault(rr => rr.MessageId == discordMessage.Id && (rr.IsDefaultEmoji ? (rr.EmojiName == discordEmoji.Name) : (rr.EmojiId == discordEmoji.Id)));
-			if (reactionRole != null)
-			{
-				_ = await Program.SendMessage(context, $"Emoji {discordEmoji} is already in use on message {discordMessage.JumpLink}! Find a different emoji.");
-				return;
-			}
-
-			reactionRole = new();
-			reactionRole.RoleId = discordRole.Id;
-			reactionRole.MessageId = discordMessage.Id;
-			if (discordEmoji.Id == 0)
-			{
-				reactionRole.EmojiName = discordEmoji.Name;
-				reactionRole.IsDefaultEmoji = true;
+				await ByMessage(context, context.Message.ReferencedMessage, emoji, role);
 			}
 			else
 			{
-				reactionRole.EmojiId = discordEmoji.Id;
+				_ = await Program.SendMessage(context, Formatter.Bold("[Error]: Message required."));
 			}
-
-			guild.ReactionRoles.Add(reactionRole);
-			await discordMessage.CreateReactionAsync(discordEmoji);
-			_ = await Database.SaveChangesAsync();
-			_ = await Program.SendMessage(context, $"Role {discordRole.Mention} will now be assigned whenever someone reacts with {discordEmoji} on {Formatter.EmbedlessUrl(discordMessage.JumpLink)}.");
 		}
 
-		[Command("remove"), Aliases("unassign")]
-		public async Task Remove(CommandContext context, DiscordMessage discordMessage, DiscordEmoji discordEmoji)
+		[Command("last"), Description("Assigns a role to the user(s) who react to the last message in the channel."), Aliases("last_message", "lastmessage")]
+		public async Task LastMessage(CommandContext context, DiscordChannel channel, DiscordEmoji emoji, DiscordRole role) => await ByMessage(context, (await channel.GetMessagesAsync(1))[0], emoji, role);
+
+		[Command("fix"), Description("Adds Tomoe's reactions back onto previous reaction role messages."), Aliases("repair", "rereact")]
+		public async Task Fix(CommandContext context, DiscordChannel channel)
 		{
-			Guild guild = await Database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
-			if (guild == null)
+			bool fixedReactions = false;
+			foreach (ReactionRole reactionRole in Database.ReactionRoles.Where(reactionRole => reactionRole.GuildId == context.Guild.Id && reactionRole.ChannelId == channel.Id))
 			{
-				_ = await Program.SendMessage(context, Constants.GuildNotInDatabase);
-				return;
+				DiscordMessage message = await channel.GetMessageAsync(reactionRole.MessageId);
+				await message.CreateReactionAsync(DiscordEmoji.FromName(context.Client, reactionRole.EmojiName, true));
+				fixedReactions = true;
 			}
-			ReactionRole reactionRole = guild.ReactionRoles.FirstOrDefault(rr => rr.MessageId == discordMessage.Id && (rr.IsDefaultEmoji ? (rr.EmojiName == discordEmoji.Name) : (rr.EmojiId == discordEmoji.Id)));
-			if (reactionRole == null)
+			_ = fixedReactions
+				? await Program.SendMessage(context, "Successfully fixed Tomoe's reactions!")
+				: await Program.SendMessage(context, Formatter.Bold($"[Error]: Failed to fix reactions or no reaction roles were found in channel {channel.Mention}"));
+		}
+
+		[Command("list"), Description("Shows all the current reaction roles on a message"), Aliases("show", "ls")]
+		public async Task List(CommandContext context, DiscordMessage message)
+		{
+			StringBuilder stringBuilder = new();
+			foreach (ReactionRole reactionRole in Database.ReactionRoles.Where(reactionRole => reactionRole.MessageId == message.Id && reactionRole.GuildId == context.Guild.Id))
 			{
-				_ = await Program.SendMessage(context, $"Reaction role with emoji {discordEmoji} on message {Formatter.EmbedlessUrl(discordMessage.JumpLink)} could not be found.");
-				return;
+				_ = stringBuilder.AppendLine($"{DiscordEmoji.FromName(context.Client, reactionRole.EmojiName, true)} => {context.Guild.GetRole(reactionRole.RoleId).Mention}");
 			}
 
-			await discordMessage.DeleteOwnReactionAsync(discordEmoji);
-			_ = guild.ReactionRoles.Remove(reactionRole);
-			_ = await Database.SaveChangesAsync();
-			_ = await Program.SendMessage(context, "Reaction role successfully removed!");
+			DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder().GenerateDefaultEmbed(context, $"Reaction Roles on Message");
+			embedBuilder.Title += ' ' + context.Message.JumpLink.ToString();
+			if (stringBuilder.Length <= 2000)
+			{
+				embedBuilder.Description = stringBuilder.ToString();
+				_ = await Program.SendMessage(context, null, embedBuilder.Build());
+			}
+			else
+			{
+				InteractivityExtension interactivity = context.Client.GetInteractivity();
+				IEnumerable<Page> pages = interactivity.GeneratePagesInEmbed(stringBuilder.ToString(), DSharpPlus.Interactivity.Enums.SplitType.Line, embedBuilder);
+				await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, pages);
+			}
+		}
+
+		[Command("remove"), Description("Deletes a reaction role from a message."), Aliases("delete", "rm", "del")]
+		public async Task Remove(CommandContext context, DiscordMessage message, DiscordEmoji emoji)
+		{
+			ReactionRole databaseReactionRole = Database.ReactionRoles.FirstOrDefault(databaseReactionRole => databaseReactionRole.GuildId == context.Guild.Id && databaseReactionRole.MessageId == message.Id && databaseReactionRole.EmojiName == (emoji.Id == 0 ? emoji.GetDiscordName() : emoji.Id.ToString()));
+			if (databaseReactionRole != null)
+			{
+				_ = Database.ReactionRoles.Remove(databaseReactionRole);
+				_ = await Program.SendMessage(context, $"Reaction role with {emoji} on <{message.JumpLink}>, will no longer be given the <@&{databaseReactionRole.RoleId}> role.");
+			}
+			else
+			{
+				_ = await Program.SendMessage(context, Formatter.Bold($"[Error]: No reaction role was found with {emoji} on message <{message.JumpLink}>"));
+			}
 		}
 	}
 }

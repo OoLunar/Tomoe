@@ -30,39 +30,40 @@ namespace Tomoe.Commands.Listeners
 				|| eventArgs.Author.IsBot
 				|| (eventArgs.Author.IsSystem.HasValue && eventArgs.Author.IsSystem.Value)
 			) return;
+			DiscordMember authorMember = await eventArgs.Author.Id.GetMember(eventArgs.Guild);
+
 			using IServiceScope scope = Program.ServiceProvider.CreateScope();
 			Database database = scope.ServiceProvider.GetService<Database>();
-			Guild guild = await database.Guilds.FirstOrDefaultAsync(guild => guild.Id == eventArgs.Guild.Id);
-			DiscordMember authorMember = await eventArgs.Author.Id.GetMember(eventArgs.Guild);
-			if (guild == null
-				|| guild.IgnoredChannels.Contains(eventArgs.Channel.Id)
+			GuildConfig guildConfig = await database.GuildConfigs.FirstOrDefaultAsync(guild => guild.Id == eventArgs.Guild.Id);
+			if (guildConfig != null
+				|| guildConfig.IgnoredChannels.Contains(eventArgs.Channel.Id)
 				|| authorMember.HasPermission(Permissions.ManageMessages)
 			  	|| authorMember.HasPermission(Permissions.Administrator)
 			  	|| eventArgs.Guild.OwnerId == eventArgs.Author.Id
-			  	|| guild.AdminRoles.ConvertAll(role => role.ToString()).Intersect(authorMember.Roles.ToList().ConvertAll(role => role.ToString())).Any()
+			  	|| guildConfig.AdminRoles.ConvertAll(role => role.ToString()).Intersect(authorMember.Roles.ToList().ConvertAll(role => role.ToString())).Any()
 		  	) return;
 
-			int maxMentions = guild.MaxMentions;
-			int maxLines = guild.MaxLines;
+			int maxMentions = guildConfig.MaxMentions;
+			int maxLines = guildConfig.MaxLines;
 
 			if (maxMentions > -1 && eventArgs.MentionedUsers.Count + eventArgs.MentionedRoles.Count > maxMentions)
 			{
 				await eventArgs.Message.DeleteAsync("Exceeded max mentions count.");
 				DiscordMessage message = await eventArgs.Message.RespondAsync($"{eventArgs.Author.Mention}: Message deleted due to it exceeding the max mention count. Please refrain from spamming pings.");
-				if (guild.StrikeAutomod) await Moderation.Strikes.ByProgram(eventArgs.Guild, eventArgs.Author, message.JumpLink, "Exceeded max mentions count. Please refrain from mass pinging.");
+				//TODO: Autostrikes
 			}
 
 			if (maxLines > -1 && eventArgs.Message.Content.Split('\n').Length > maxLines)
 			{
 				await eventArgs.Message.DeleteAsync("Exceeded max line count.");
 				DiscordMessage message = await eventArgs.Message.RespondAsync($"{eventArgs.Author.Mention}: Message deleted due to it exceeding the max lines count. Please refrain from spamming chat.");
-				if (guild.StrikeAutomod) await Moderation.Strikes.ByProgram(eventArgs.Guild, eventArgs.Author, message.JumpLink, "Exceeded max line count. Please refrain from spamming new lines.");
+				//TODO: Autostrikes
 				await Task.Delay(TimeSpan.FromSeconds(5));
 				try { await message.DeleteAsync("Timed message"); }
 				catch (NotFoundException) { }
 			}
 
-			if (guild.AntiInvite)
+			if (guildConfig.AntiInvite)
 			{
 				Match messageInvites = InviteRegex.Match(eventArgs.Message.Content);
 				if (messageInvites.Success)
@@ -70,7 +71,7 @@ namespace Tomoe.Commands.Listeners
 					CaptureCollection invites = messageInvites.Captures;
 					foreach (Capture capture in invites)
 					{
-						if (!guild.AllowedInvites.Contains(capture.Value))
+						if (!guildConfig.AllowedInvites.Contains(capture.Value))
 						{
 							await eventArgs.Message.DeleteAsync($"Invite {Formatter.InlineCode(capture.Value)} is not whitelisted.");
 						}

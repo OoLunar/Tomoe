@@ -25,7 +25,6 @@ namespace Tomoe.Commands.Listeners
 				QueueEventArgs queueEventArgs = new();
 				queueEventArgs.MessageReactionAddEventArgs = eventArgs;
 				if (eventArgs.User.Id == Program.Client.CurrentUser.Id) continue;
-				/*
 				else if ((queue.CreatedAt + Program.Config.ReactionTimeout) > DateTime.UtcNow)
 				{
 					// When invoking, the delegate should be checking if the queue had timed out or not.
@@ -34,7 +33,6 @@ namespace Tomoe.Commands.Listeners
 					_ = QueueList.Remove(queue);
 					queue.Dispose();
 				}
-				*/
 				else if (queue.User.Id != eventArgs.User.Id) await eventArgs.Message.DeleteReactionAsync(eventArgs.Emoji, eventArgs.User, "Not the correct user.");
 				else
 				{

@@ -21,23 +21,26 @@ namespace Tomoe.Commands.Listeners
 		{
 			using IServiceScope scope = Program.ServiceProvider.CreateScope();
 			Database database = scope.ServiceProvider.GetService<Database>();
-			Guild guild = await database.Guilds.FirstOrDefaultAsync(guild => guild.Id == eventArgs.Guild.Id);
+			GuildConfig guild = await database.GuildConfigs.FirstOrDefaultAsync(guild => guild.Id == eventArgs.Guild.Id);
 			if (guild != null)
 			{
-				GuildUser user = guild.Users.FirstOrDefault(user => user.Id == eventArgs.Member.Id);
+				GuildUser user = database.GuildUsers.FirstOrDefault(user => user.UserId == eventArgs.Member.Id && user.GuildId == eventArgs.Guild.Id);
 				if (user != null)
 				{
 					foreach (ulong roleId in user.Roles)
 					{
 						DiscordRole role = eventArgs.Guild.GetRole(roleId);
-						if (role == null) continue;
-						await eventArgs.Member.GrantRoleAsync(role, "Persistent Roles.");
+						if (role != null)
+						{
+							await eventArgs.Member.GrantRoleAsync(role, "Persistent Roles.");
+						}
 					}
 				}
 				else
 				{
 					user = new(eventArgs.Member.Id);
-					guild.Users.Add(user);
+					_ = database.GuildUsers.Add(user);
+					_ = await database.SaveChangesAsync();
 				}
 			}
 		}

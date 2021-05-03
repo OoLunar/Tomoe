@@ -7,24 +7,21 @@ namespace Tomoe.Utils.Configs
 	public class Config
 	{
 		[JsonPropertyName("discord_api_token")]
-		public string DiscordApiToken;
+		public string DiscordApiToken { get; set; }
 
 		[JsonPropertyName("discord_bot_prefix")]
-		public string DiscordBotPrefix;
+		public string DiscordBotPrefix { get; set; }
 
 		[JsonPropertyName("repository_link")]
-		public string RepositoryLink;
-
-		[JsonPropertyName("invite_link")]
-		public string InviteLink;
+		public string RepositoryLink { get; set; }
 
 		[JsonPropertyName("reaction_timeout"), JsonConverter(typeof(JsonTimeSpanConverter))]
-		public TimeSpan ReactionTimeout;
+		public TimeSpan ReactionTimeout { get; set; }
 
 		[JsonPropertyName("logger")]
-		public Logger Logger;
+		public Logger Logger { get; set; }
 
 		[JsonPropertyName("database")]
-		public Database Database;
+		public Database Database { get; set; }
 	}
 }

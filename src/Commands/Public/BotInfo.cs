@@ -1,6 +1,5 @@
 using System;
 using System.Diagnostics;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DSharpPlus.CommandsNext;
@@ -18,7 +17,7 @@ namespace Tomoe.Commands.Public
 			DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder().GenerateDefaultEmbed(context, "General Bot Info");
 			StringBuilder botInfo = new();
 			_ = botInfo.Append($"Currently in {context.Client.Guilds.Count} guilds\n");
-			_ = botInfo.Append($"Handling around {context.Client.Guilds.Values.SelectMany(g => g.Members.Keys).Count()} guild members\n");
+			_ = botInfo.Append($"Handling around {Listeners.GuildDownloadCompleted.MemberCount} guild members\n");
 			_ = botInfo.Append($"General Ping: {context.Client.Ping}ms\n");
 			_ = botInfo.Append($"Total shards: {Program.Client.ShardClients.Count}\n");
 			Process currentProcess = Process.GetCurrentProcess();

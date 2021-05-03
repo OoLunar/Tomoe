@@ -20,16 +20,16 @@ namespace Tomoe.Commands.Listeners
 		{
 			using IServiceScope scope = Program.ServiceProvider.CreateScope();
 			Database database = scope.ServiceProvider.GetService<Database>();
-			Guild guild = await database.Guilds.FirstOrDefaultAsync(guild => guild.Id == eventArgs.Guild.Id);
-			if (guild != null)
+			GuildConfig guildConfig = await database.GuildConfigs.FirstOrDefaultAsync(guild => guild.Id == eventArgs.Guild.Id);
+			if (guildConfig != null)
 			{
-				DiscordRole muteRole = guild.MuteRole.GetRole(eventArgs.Guild);
+				DiscordRole muteRole = guildConfig.MuteRole.GetRole(eventArgs.Guild);
 				if (muteRole != null) await Moderation.Config.FixPermissions(eventArgs.Channel, Moderation.Config.RoleAction.Mute, muteRole);
 
-				DiscordRole antimemeRole = guild.AntimemeRole.GetRole(eventArgs.Guild);
+				DiscordRole antimemeRole = guildConfig.AntimemeRole.GetRole(eventArgs.Guild);
 				if (antimemeRole != null) await Moderation.Config.FixPermissions(eventArgs.Channel, Moderation.Config.RoleAction.Antimeme, antimemeRole);
 
-				DiscordRole voicebanRole = guild.VoicebanRole.GetRole(eventArgs.Guild);
+				DiscordRole voicebanRole = guildConfig.VoicebanRole.GetRole(eventArgs.Guild);
 				if (voicebanRole != null) await Moderation.Config.FixPermissions(eventArgs.Channel, Moderation.Config.RoleAction.Voiceban, voicebanRole);
 			}
 		}

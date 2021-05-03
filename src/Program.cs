@@ -14,6 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Npgsql;
 using Serilog;
+using Tomoe.Commands.Listeners;
 using Tomoe.Db;
 using Tomoe.Utils;
 
@@ -80,10 +81,16 @@ namespace Tomoe
 				connectionBuilder.ApplicationName = Config.Database.ApplicationName;
 				connectionBuilder.Database = Config.Database.DatabaseName;
 				connectionBuilder.Host = Config.Database.Host;
-				connectionBuilder.Password = Config.Database.Password;
 				connectionBuilder.Username = Config.Database.Username;
 				connectionBuilder.Port = Config.Database.Port;
-				_ = options.UseNpgsql(connectionBuilder.ToString());
+				if (!string.IsNullOrEmpty(Config.Database.Password))
+				{
+					connectionBuilder.Password = Config.Database.Password;
+				}
+				_ = options.UseNpgsql(connectionBuilder.ToString(), options =>
+				{
+					_ = options.EnableRetryOnFailure();
+				});
 				_ = options.UseSnakeCaseNamingConvention(CultureInfo.InvariantCulture);
 				_ = options.EnableSensitiveDataLogging();
 				_ = options.EnableDetailedErrors();
@@ -101,23 +108,26 @@ namespace Tomoe
 				TokenType = TokenType.Bot,
 				UseRelativeRatelimit = true,
 				MessageCacheSize = 512,
-				LoggerFactory = ServiceProvider.GetService<ILoggerFactory>()
+				LoggerFactory = ServiceProvider.GetService<ILoggerFactory>(),
+				Intents = DiscordIntents.All
 			};
 
 			// Setup event listeners
 			Client = new(discordConfiguration);
+
+			Client.ChannelCreated += ChannelCreated.Handler;
+			Client.GuildAvailable += GuildAvailable.Handler;
+			Client.GuildCreated += GuildCreated.Handler;
+			Client.GuildDownloadCompleted += GuildDownloadCompleted.Handler;
+			Client.GuildMemberAdded += GuildMemberAdded.Handler;
+			Client.GuildMemberRemoved += GuildMemberRemoved.Handler;
+			Client.GuildMemberUpdated += GuildMemberUpdated.Handler;
+			Client.MessageCreated += AutoReactionListener.Handler;
 			Client.MessageCreated += CommandHandler.Handler;
-			Client.MessageReactionAdded += Commands.Listeners.ReactionAdded.Handler;
-			Client.MessageReactionAdded += Commands.Listeners.ReactionRoles.Handler;
-			Client.GuildCreated += Commands.Listeners.GuildCreated.Handler;
-			Client.GuildAvailable += Commands.Listeners.GuildAvailable.Handler;
-			Client.GuildMemberAdded += Commands.Listeners.GuildMemberAdded.Handler;
-			Client.GuildMemberUpdated += Commands.Listeners.GuildMemberUpdated.Handler;
-			Client.GuildMemberRemoved += Commands.Listeners.GuildMemberRemoved.Handler;
-			Client.ChannelCreated += Commands.Listeners.ChannelCreated.Handler;
-			Client.MessageCreated += Commands.Listeners.MessageRecieved.Handler;
-			Client.Ready += Commands.Listeners.OnReady.Handler;
-			Client.GuildDownloadCompleted += Commands.Public.Assignments.StartRoutine;
+			Client.MessageCreated += MessageRecieved.Handler;
+			Client.MessageReactionAdded += ReactionAdded.Handler;
+			Client.MessageReactionAdded += ReactionRoleAdded.Handler;
+			Client.MessageReactionRemoved += ReactionRoleRemoved.Handler;
 			Console.CancelKeyPress += Quit.ConsoleShutdown;
 			await CommandService.Launch(Client, ServiceProvider);
 			await Client.StartAsync();
@@ -134,7 +144,7 @@ namespace Tomoe
 		/// <returns>The DiscordMessage sent</returns>
 		public static async Task<DiscordMessage> SendMessage(CommandContext context, string content = null, DiscordEmbed embed = null, params IMention[] mentions)
 		{
-			if (content == null && embed == null) throw new ArgumentNullException(nameof(content), "Either content or embed needs to hold a value.");
+			if (content is null && embed is null) throw new ArgumentNullException(nameof(content), "Either content or embed needs to hold a value.");
 
 			// Ping the person who invoked the command, and whoever else is required
 			List<IMention> mentionList = new();

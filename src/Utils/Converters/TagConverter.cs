@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
@@ -14,20 +13,13 @@ namespace Tomoe.Utils.Converters
 	{
 		public async Task<Optional<Tag>> ConvertAsync(string value, CommandContext context)
 		{
-			value = value.Trim().ToLowerInvariant();
-			using IServiceScope scope = context.Services.CreateScope();
+			using IServiceScope scope = Program.ServiceProvider.CreateScope();
 			Database database = scope.ServiceProvider.GetService<Database>();
-			Guild guild = await database.Guilds.FirstOrDefaultAsync(guild => guild.Id == context.Guild.Id);
-			if (guild == null)
-			{
-				_ = await Program.SendMessage(context, Formatter.Bold("[Error: Failed to get tag, guild is not in the database!]"));
-				return Optional.FromNoValue<Tag>();
-			}
+			Tag tag = await database.Tags.AsNoTracking().FirstOrDefaultAsync(tag => tag.Name == value.ToLowerInvariant().Trim() && tag.GuildId == context.Guild.Id);
 
-			Tag tag = guild.Tags.FirstOrDefault(tag => tag.Name == value || tag.AliasTo == value);
 			if (tag == null)
 			{
-				_ = await Program.SendMessage(context, $"Tag {Formatter.InlineCode(value)} not found!");
+				_ = await Program.SendMessage(context, Formatter.Bold($"[Error]: Tag `{value.ToLowerInvariant()}` not found."));
 				return Optional.FromNoValue<Tag>();
 			}
 

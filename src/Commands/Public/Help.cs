@@ -28,7 +28,7 @@ namespace Tomoe.Commands.Public
 				if (section.ToLowerInvariant() == "listeners") continue;
 				DiscordEmbedBuilder embed = new DiscordEmbedBuilder().GenerateDefaultEmbed(context, $"{section} Commands");
 				embed.Description = "Note that all commands are [cAsE iNsEnSiTiVe](https://en.wiktionary.org/wiki/case_insensitive#Adjective). All commands have PascalCase and snake_case varients.";
-				foreach (Command command in context.CommandsNext.RegisteredCommands.Values.Distinct())
+				foreach (Command command in context.CommandsNext.RegisteredCommands.Values.Distinct().OrderBy(command => command.QualifiedName))
 				{
 					if (command.Module.ModuleType.FullName.StartsWith($"Tomoe.Commands.{section}", true, CultureInfo.InvariantCulture) && !command.IsHidden)
 					{
@@ -75,7 +75,7 @@ namespace Tomoe.Commands.Public
 
 				if (commandGroup != null)
 				{
-					string[] subCommandNames = commandGroup.Children.Select(child => child.Name).ToArray();
+					string[] subCommandNames = commandGroup.Children.Select(child => child.Name).OrderBy(child => child).ToArray();
 					if (subCommandNames == Array.Empty<string>()) subCommandNames = new[] { "No subcommands!" };
 					_ = mainHelpEmbed.AddField("Subcommands", string.Join(", ", subCommandNames));
 				}

@@ -1,10 +1,13 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using Humanizer;
 
 namespace Tomoe.Commands.Public
 {
@@ -17,34 +20,32 @@ namespace Tomoe.Commands.Public
 			embedBuilder.Title = context.Guild.Name;
 			embedBuilder.Url = context.Guild.IconUrl;
 			embedBuilder.Footer = new() { IconUrl = context.Guild.BannerUrl };
-			StringBuilder guildInfo = new();
-			_ = guildInfo.Append($"AFK Channel: {context.Guild.AfkChannel?.Mention ?? "Not set"}\n");
-			_ = guildInfo.Append($"AFK Timeout: {TimeSpan.FromSeconds(context.Guild.AfkTimeout).TotalMinutes} minutes\n");
-			_ = guildInfo.Append($"Channel Count: {context.Guild.Channels.Where((channel, _) => !channel.Value.IsCategory).ToArray().Length}\n");
-			_ = guildInfo.Append($"Created At: {context.Guild.CreationTimestamp}\n");
-			_ = guildInfo.Append($"Description: {context.Guild.Description ?? "Not set"}\n");
-			_ = guildInfo.Append($"Emoji Count: {context.Guild.Emojis.Count}\n");
-			_ = guildInfo.Append($"Explicit Content Filter: {context.Guild.ExplicitContentFilter}\n");
-			string features = string.Join(", ", context.Guild.Features);
-			_ = guildInfo.Append($"Features: {(string.IsNullOrWhiteSpace(features) ? "None" : features)}\n");
-			_ = guildInfo.Append($"Icon url: {(context.Guild.IconUrl == null ? "No icon set!" : $"[Link to image]({context.Guild.IconUrl.Replace(".jpg", ".png?size=1024")})")}\n");
-			_ = guildInfo.Append($"Id: {context.Guild.Id}\n");
-			_ = guildInfo.Append($"Is Large: {context.Guild.IsLarge}\n");
-			_ = guildInfo.Append($"Max Members: {context.Guild.MaxMembers}\n");
-			_ = guildInfo.Append($"Member Count: {context.Guild.MemberCount}\n");
-			_ = guildInfo.Append($"MFA Level: {context.Guild.MfaLevel}\n");
-			_ = guildInfo.Append($"Name: {context.Guild.Name}\n");
-			_ = guildInfo.Append($"Owner: {context.Guild.Owner.Mention}\n");
-			_ = guildInfo.Append($"Preferred Locale: {context.Guild.PreferredLocale}\n");
-			_ = guildInfo.Append($"Premium Subscription Count: {context.Guild.PremiumSubscriptionCount}\n");
-			_ = guildInfo.Append($"Premium Tier: {context.Guild.PremiumTier}\n");
-			_ = guildInfo.Append($"Role Count: {context.Guild.Roles.Count}\n");
-			_ = guildInfo.Append($"Rules Channel: {context.Guild.RulesChannel?.Mention ?? "Not set"}\n");
-			_ = guildInfo.Append($"Splash Url: {context.Guild.SplashUrl ?? "Not set"}\n");
-			_ = guildInfo.Append($"Vanity Url: {context.Guild.VanityUrlCode ?? "Not set"}\n");
-			_ = guildInfo.Append($"Verification Level: {context.Guild.VerificationLevel}\n");
-			_ = guildInfo.Append($"Voice Region: {context.Guild.VoiceRegion.Name}");
-			embedBuilder.Description = guildInfo.ToString();
+			_ = embedBuilder.AddField($"AFK Channel", context.Guild.AfkChannel?.Mention ?? "Not set", true);
+			_ = embedBuilder.AddField($"AFK Timeout", TimeSpan.FromSeconds(context.Guild.AfkTimeout).TotalMinutes + " minutes", true);
+			_ = embedBuilder.AddField($"Channel Count", context.Guild.Channels.Where((channel, _) => !channel.Value.IsCategory).Count().ToMetric(), true);
+			_ = embedBuilder.AddField($"Created At", context.Guild.CreationTimestamp.UtcDateTime.ToOrdinalWords(), true);
+			_ = embedBuilder.AddField($"Description", context.Guild.Description ?? "Not set", true);
+			_ = embedBuilder.AddField($"Emoji Count", context.Guild.Emojis.Count.ToMetric(), true);
+			string features = string.Join(", ", context.Guild.Features.Select(feature => feature.ToLowerInvariant().Titleize()));
+			_ = embedBuilder.AddField($"Features", string.IsNullOrWhiteSpace(features) ? "None" : features);
+			_ = embedBuilder.AddField($"Explicit Content Filter", context.Guild.ExplicitContentFilter.ToString(), true);
+			_ = embedBuilder.AddField($"Icon url", context.Guild.IconUrl == null ? "No icon set!" : Formatter.MaskedUrl("Link to image", new(context.Guild.IconUrl.Replace(".jpg", ".png?size=1024"))), true);
+			_ = embedBuilder.AddField($"Id", context.Guild.Id.ToString(), true);
+			_ = embedBuilder.AddField($"Is Large", context.Guild.IsLarge.ToString(), true);
+			_ = embedBuilder.AddField($"Max Members", context.Guild.MaxMembers.HasValue ? context.Guild.MaxMembers.Value.ToMetric() : "Unknown", true);
+			_ = embedBuilder.AddField($"Member Count", context.Guild.MemberCount.ToMetric(), true);
+			_ = embedBuilder.AddField($"MFA Level", context.Guild.MfaLevel.ToString(), true);
+			_ = embedBuilder.AddField($"Name", context.Guild.Name, true);
+			_ = embedBuilder.AddField($"Owner", context.Guild.Owner.Mention, true);
+			_ = embedBuilder.AddField($"Preferred Locale", context.Guild.PreferredLocale, true);
+			_ = embedBuilder.AddField($"Premium Subscription Count", context.Guild.PremiumSubscriptionCount.HasValue ? context.Guild.PremiumSubscriptionCount.Value.ToMetric() : "None", true);
+			_ = embedBuilder.AddField($"Premium Tier", context.Guild.PremiumTier.Humanize(), true);
+			_ = embedBuilder.AddField($"Role Count", context.Guild.Roles.Count.ToMetric(), true);
+			_ = embedBuilder.AddField($"Rules Channel", context.Guild.RulesChannel?.Mention ?? "Not set", true);
+			_ = embedBuilder.AddField($"Splash Url", Formatter.MaskedUrl("Link to image", new(context.Guild.SplashUrl.Replace(".jpg", ".png?size=1024"))) ?? "Not set", true);
+			_ = embedBuilder.AddField($"Vanity Url", context.Guild.VanityUrlCode ?? "Not set", true);
+			_ = embedBuilder.AddField($"Verification Level", context.Guild.VerificationLevel.ToString(), true);
+			_ = embedBuilder.AddField($"Voice Region", context.Guild.VoiceRegion.Name, true);
 			embedBuilder.Thumbnail = new()
 			{
 				Url = context.Guild.IconUrl.Replace(".jpg", ".png?&size=1024")
