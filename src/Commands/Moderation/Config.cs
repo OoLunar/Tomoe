@@ -44,7 +44,7 @@ namespace Tomoe.Commands.Moderation
 			_ = stringBuilder.Append($"Ignored Channels: {(channelMentions == string.Empty ? "None set" : roleMentions)}\n");
 			_ = stringBuilder.Append($"Max Lines: {guildConfig.MaxLines}\n");
 			_ = stringBuilder.Append($"Max Mentions: {guildConfig.MaxMentions}\n");
-			_ = stringBuilder.Append($"Automod Strikes: {guildConfig.StrikeAutomod}\n");
+			_ = stringBuilder.Append($"Automod Strikes: {guildConfig.AutoStrikes}\n");
 			InteractivityExtension interactivity = context.Client.GetInteractivity();
 			DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder().GenerateDefaultEmbed(context, $"Config For ");
 			embedBuilder.Title += ' ' + context.Guild.Name;
@@ -201,6 +201,17 @@ namespace Tomoe.Commands.Moderation
 			_ = await Program.SendMessage(context, $"Invites will now be {(guildConfig.AntiInvite ? "removed" : "kept")} when posted.");
 		}
 
+		[Command("delete_bad_messages"), Aliases("deletebadmessages", "delete_badmessages", "deletebad_messages", "bad_messages", "badmessages"), RequireUserPermissions(Permissions.ManageMessages), Description("Determines whether invites should be allowed to be posted or not.")]
+		public async Task DeleteBadMessages(CommandContext context)
+		{
+			GuildConfig guildConfig = await Database.GuildConfigs.FirstOrDefaultAsync(guildConfig => guildConfig.Id == context.Guild.Id) ?? new(context.Guild.Id);
+
+			guildConfig.DeleteBadMessages = !guildConfig.AntiInvite;
+			_ = await Database.SaveChangesAsync();
+			await ModLogs.Record(context, $"Config DeleteBadMessages Change.", $"{context.User.Mention} has changed the DeleteBadMessage policy to {guildConfig.DeleteBadMessages}");
+			_ = await Program.SendMessage(context, $"Bad messages will now be {(guildConfig.DeleteBadMessages ? "removed" : "kept")} when posted.");
+		}
+
 		[Command("auto_dehoist"), Aliases("autodehoist", "dehoist"), RequireUserPermissions(Permissions.ManageNicknames), Description("Determines whether nicknames should be allowed at the top of the list or not.")]
 		public async Task AutoDehoist(CommandContext context)
 		{
@@ -348,10 +359,10 @@ namespace Tomoe.Commands.Moderation
 		{
 			GuildConfig guildConfig = await Database.GuildConfigs.FirstOrDefaultAsync(guildConfig => guildConfig.Id == context.Guild.Id) ?? new(context.Guild.Id);
 
-			guildConfig.StrikeAutomod = !guildConfig.StrikeAutomod;
+			guildConfig.AutoStrikes = !guildConfig.AutoStrikes;
 			_ = await Database.SaveChangesAsync();
-			_ = await Program.SendMessage(context, $"Automod will {(guildConfig.StrikeAutomod ? "now" : "no longer")} issue strikes.");
-			await ModLogs.Record(context, $"Config Strike Automod.", $"{context.User.Mention} has made automod {(guildConfig.StrikeAutomod ? "start" : "stop")} issuing strikes.");
+			_ = await Program.SendMessage(context, $"Automod will {(guildConfig.AutoStrikes ? "now" : "no longer")} issue strikes.");
+			await ModLogs.Record(context, $"Config Strike Automod.", $"{context.User.Mention} has made automod {(guildConfig.AutoStrikes ? "start" : "stop")} issuing strikes.");
 		}
 
 		[Command("show_error"), Aliases("error_show", "show_errors", "error_shows", "showerror", "errorshow", "showserrors", "showerrors"), RequireUserPermissions(Permissions.ManageMessages), Description("Determines whether automod should add a strike to the victim.")]

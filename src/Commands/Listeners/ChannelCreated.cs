@@ -18,6 +18,11 @@ namespace Tomoe.Commands.Listeners
 		/// <returns></returns>
 		public static async Task Handler(DiscordClient _client, ChannelCreateEventArgs eventArgs)
 		{
+			if (eventArgs.Guild == null)
+			{
+				return;
+			}
+
 			using IServiceScope scope = Program.ServiceProvider.CreateScope();
 			Database database = scope.ServiceProvider.GetService<Database>();
 			GuildConfig guildConfig = await database.GuildConfigs.FirstOrDefaultAsync(guild => guild.Id == eventArgs.Guild.Id);

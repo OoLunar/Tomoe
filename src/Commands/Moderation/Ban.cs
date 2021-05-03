@@ -34,7 +34,7 @@ namespace Tomoe.Commands.Moderation
 		{
 			bool sentDm = await (await victim.Id.GetMember(discordGuild)).TryDmMember($"You've been banned from {Formatter.Bold(discordGuild.Name)}. Reason: {Formatter.BlockCode(Formatter.Strip(banReason))}Context: {jumplink}");
 			await discordGuild.BanMemberAsync(victim.Id, 0, banReason);
-			await ModLogs.Record(discordGuild.Id, "Ban", $"{victim.Mention} has been banned{(sentDm ? '.' : " (Failed to dm).")} by {issuer.Mention} Reason: {banReason}");
+			await ModLogs.Record(discordGuild.Id, "Ban", $"{victim.Mention} has been banned by {issuer.Mention}{(sentDm ? '.' : " (Failed to dm).")} Reason: {banReason}");
 			return sentDm;
 		}
 	}

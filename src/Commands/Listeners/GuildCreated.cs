@@ -6,12 +6,15 @@ using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Serilog;
 using Tomoe.Db;
 
 namespace Tomoe.Commands.Listeners
 {
 	public class GuildCreated
 	{
+		private static readonly ILogger _logger = Log.ForContext<GuildCreated>();
+
 		/// <summary>
 		/// Adds the guild to the database, or fixes channel permissions for the punishment roles.
 		/// </summary>
@@ -56,6 +59,9 @@ namespace Tomoe.Commands.Listeners
 				database.GuildUsers.AddRange(updatedGuildUsers);
 				_ = await database.SaveChangesAsync();
 			}
+
+			GuildDownloadCompleted.MemberCount += eventArgs.Guild.MemberCount;
+			_logger.Information($"\"{eventArgs.Guild.Name}\" ({eventArgs.Guild.Id}) is ready! Handling {eventArgs.Guild.MemberCount} members.");
 		}
 	}
 }

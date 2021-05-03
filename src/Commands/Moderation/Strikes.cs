@@ -21,7 +21,7 @@ namespace Tomoe.Commands.Moderation
 	{
 		public Database Database { private get; set; }
 
-		public static async Task<bool> ByProgram(CommandContext context, DiscordUser discordUser, string strikeReason = Constants.MissingReason)
+		public static async Task<bool> ByProgram(CommandContext context, DiscordUser victim, string strikeReason = Constants.MissingReason)
 		{
 			using IServiceScope scope = Program.ServiceProvider.CreateScope();
 			Database database = scope.ServiceProvider.GetService<Database>();
@@ -30,11 +30,12 @@ namespace Tomoe.Commands.Moderation
 			strike.IssuerId = context.User.Id;
 			strike.JumpLinks.Add(context.Message.JumpLink.ToString());
 			strike.Reasons.Add(strikeReason);
-			strike.VictimId = discordUser.Id;
+			strike.VictimId = victim.Id;
 			strike.LogId = database.Strikes.Where(strike => strike.GuildId == context.Guild.Id).Count() + 1;
-			strike.VictimMessaged = await (await discordUser.Id.GetMember(context.Guild)).TryDmMember($"You've been given a strike by {context.User.Mention} from {Formatter.Bold(context.Guild.Name)}. Reason: {Formatter.BlockCode(Formatter.Strip(strikeReason))}Context: {context.Message.JumpLink}");
+			strike.VictimMessaged = await (await victim.Id.GetMember(context.Guild)).TryDmMember($"You've been given a strike by {context.User.Mention} from {Formatter.Bold(context.Guild.Name)}. Reason: {Formatter.BlockCode(Formatter.Strip(strikeReason))}Context: {context.Message.JumpLink}");
 			_ = database.Strikes.Add(strike);
 			_ = await database.SaveChangesAsync();
+			await ModLogs.Record(context, "New Strike", $"{victim.Mention} has been striked by {context.User.Mention}{(await ByProgram(context, victim, strikeReason) ? '.' : "(failed to dm.)")} Reason: {strikeReason}");
 			return strike.VictimMessaged;
 		}
 
@@ -144,6 +145,30 @@ namespace Tomoe.Commands.Moderation
 				foreach (Strike strike in pastStrikes) embedBuilder.Description += $"Case #{strike.LogId} [on {strike.CreatedAt.ToString("MMM' 'dd', 'yyyy' 'HH':'mm':'ss", CultureInfo.InvariantCulture)}, Issued by {(await context.Client.GetUserAsync(strike.IssuerId)).Mention}]({strike.JumpLinks.First()}) {(strike.Dropped ? "(Dropped)" : null)}\n";
 				_ = await Program.SendMessage(context, null, embedBuilder.Build());
 			}
+		}
+
+		[Command("restrike"), Description("Turns a dropped strike into a normal strike."), Aliases("reapply", "undrop")]
+		public async Task Restrike(CommandContext context, [Description("Which strike to restrike.")] Strike strike, [Description("Why is the strike being reapplied?"), RemainingText] string restrikeReason = Constants.MissingReason)
+		{
+			if (!strike.Dropped)
+			{
+				_ = await Program.SendMessage(context, $"Strike #{strike.LogId} isn't dropped!");
+				return;
+			}
+
+			if (!await new Punishment(false).ExecuteCheckAsync(context, false))
+			{
+				return;
+			}
+
+			strike.JumpLinks.Add(context.Message.JumpLink.ToString());
+			strike.Reasons.Add("Restrike Reason: " + restrikeReason);
+			strike.Dropped = false;
+			Database.Entry(strike).State = EntityState.Modified;
+			_ = await Database.SaveChangesAsync();
+			bool sentDm = await (await strike.VictimId.GetMember(context.Guild)).TryDmMember($"Strike #{strike.LogId} has been reapplied by {context.User.Mention} from {Formatter.Bold(context.Guild.Name)}. Reason: {Formatter.BlockCode(Formatter.Strip(restrikeReason))}Context: {context.Message.JumpLink}");
+			_ = await Program.SendMessage(context, $"Strike #{strike.LogId} has been reapplied{(sentDm ? '.' : "(failed to dm.)")}");
+			Database.Entry(strike).State = EntityState.Detached;
 		}
 	}
 }

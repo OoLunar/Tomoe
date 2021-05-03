@@ -23,7 +23,7 @@ namespace Tomoe.Commands.Moderation
 		{
 			bool sentDm = await victim.TryDmMember($"You've been kicked from {Formatter.Bold(discordGuild.Name)}. Reason: {Formatter.BlockCode(Formatter.Strip(kickReason))}Context: {jumplink}");
 			await victim.RemoveAsync(kickReason);
-			await ModLogs.Record(discordGuild.Id, "Kick", $"{victim.Mention} has been kicked{(sentDm ? '.' : " (Failed to dm).")} by {issuer.Mention}. Reason: {kickReason}");
+			await ModLogs.Record(discordGuild.Id, "Kick", $"{victim.Mention} has been kicked by {issuer.Mention}{(sentDm ? '.' : " (Failed to dm).")} Reason: {kickReason}");
 			return sentDm;
 		}
 	}

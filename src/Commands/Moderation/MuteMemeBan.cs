@@ -93,7 +93,7 @@ namespace Tomoe.Commands.Moderation
 			};
 
 			_ = await database.SaveChangesAsync();
-			await ModLogs.Record(discordGuild.Id, roleAction.ToString(), $"{victim.Mention} has been {rolename}{(sentDm ? '.' : " (Failed to dm).")} by {issuer.Mention} Reason: {punishReason}");
+			await ModLogs.Record(discordGuild.Id, roleAction.ToString(), $"{victim.Mention} has been {rolename} by {issuer.Mention}{(sentDm ? '.' : " (Failed to dm).")} Reason: {punishReason}");
 			return sentDm;
 		}
 	}

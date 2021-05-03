@@ -7,8 +7,9 @@ namespace Tomoe.Db
 	{
 		public bool AntiInvite { get; internal set; } = true;
 		public bool AutoDehoist { get; internal set; }
+		public bool DeleteBadMessages { get; internal set; }
 		public bool ProgressiveStrikes { get; internal set; } = true;
-		public bool StrikeAutomod { get; internal set; }
+		public bool AutoStrikes { get; internal set; }
 		public int MaxLines { get; internal set; } = 5;
 		public int MaxMentions { get; internal set; } = 5;
 		public List<string> AllowedInvites { get; internal set; } = new();
