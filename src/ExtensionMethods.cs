@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
+using DSharpPlus.Exceptions;
 using Humanizer;
 
 namespace Tomoe
@@ -14,28 +15,14 @@ namespace Tomoe
 		{
 			if (!string.IsNullOrEmpty(title)) embedBuilder.Title = title.Titleize();
 			embedBuilder.Color = new DiscordColor("#7b84d1");
-			if (context.Guild == null)
+			embedBuilder.Author = new()
 			{
-				embedBuilder.Author = new()
-				{
-					Name = context.User.Username,
-					IconUrl = context.User.AvatarUrl,
-					Url = context.User.AvatarUrl
-				};
-			}
-			else
-			{
-				embedBuilder.Author = new()
-				{
-					Name = context.Member.GetCommonName(),
-					IconUrl = context.Member.AvatarUrl,
-					Url = context.Member.AvatarUrl
-				};
-			}
+				Name = context.Guild == null ? context.User.Username : context.Member.DisplayName,
+				IconUrl = context.User.AvatarUrl,
+				Url = context.User.AvatarUrl
+			};
 			return embedBuilder;
 		}
-
-		public static string GetCommonName(this DiscordMember guildMember) => guildMember == null ? null : guildMember.Nickname ?? guildMember.Username;
 
 		/// <summary>
 		/// Attempts to retrieve the DiscordMember from cache, then the API if the cache does not have the member.
@@ -49,11 +36,31 @@ namespace Tomoe
 			{
 				return discordGuild.Members.Values.FirstOrDefault(member => member.Id == discordUserId) ?? await discordGuild.GetMemberAsync(discordUserId);
 			}
+			catch (NotFoundException)
+			{
+				return null;
+			}
 			catch (Exception)
 			{
 				// Exceptions are not our problem
 				throw;
 			}
+		}
+
+		public static async Task<bool> TryDmMember(this DiscordMember discordMember, string message)
+		{
+			// TODO: Get shared servers and try dming the member through there when dm's are off.
+			bool sentDm = false;
+			if (discordMember != null && !discordMember.IsBot)
+			{
+				try
+				{
+					_ = await discordMember.SendMessageAsync(message);
+					sentDm = true;
+				}
+				catch (Exception) { }
+			}
+			return sentDm;
 		}
 
 		public static DiscordRole GetRole(this ulong roleId, DiscordGuild guild) => roleId != 0 ? guild.GetRole(roleId) : null;

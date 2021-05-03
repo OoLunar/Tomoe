@@ -41,14 +41,28 @@ namespace Tomoe.Commands.Moderation
 				_ => "punished"
 			};
 
-
-			bool sentDm = await ByProgram(context.Guild, victim, context.User, punishReason, roleAction, discordRole, dmMessage);
+			bool sentDm;
+			try
+			{
+				sentDm = await ByProgram(context.Guild, victim, context.User, punishReason, roleAction, discordRole, dmMessage);
+			}
+			catch (ArgumentException error)
+			{
+				_ = await Program.SendMessage(context, error.Message);
+				return;
+			}
 			_ = await Program.SendMessage(context, $"{victim.Mention} has been {rolename}{(sentDm ? '.' : " (Failed to dm).")} Reason: ```\n{punishReason}```");
 		}
 
 		public static async Task<bool> ByProgram(DiscordGuild discordGuild, DiscordUser victim, DiscordUser issuer, string punishReason, RoleAction roleAction, DiscordRole discordRole, string dmMessage)
 		{
 			DiscordMember discordVictim = await victim.Id.GetMember(discordGuild);
+			bool sentDm = false;
+			if (discordVictim != null)
+			{
+				await discordVictim.GrantRoleAsync(discordRole, punishReason);
+				sentDm = await discordVictim.TryDmMember(dmMessage);
+			}
 
 			using IServiceScope scope = Program.ServiceProvider.CreateScope();
 			Database database = scope.ServiceProvider.GetService<Database>();
@@ -58,33 +72,16 @@ namespace Tomoe.Commands.Moderation
 			switch (roleAction)
 			{
 				case RoleAction.Antimeme:
-					databaseVictim.IsAntimemed = true;
+					databaseVictim.IsAntimemed = databaseVictim.IsAntimemed ? throw new ArgumentException(Formatter.Bold("[Error]: User is already antimemed.")) : true;
 					break;
 				case RoleAction.Mute:
-					databaseVictim.IsMuted = true;
+					databaseVictim.IsMuted = databaseVictim.IsMuted ? throw new ArgumentException(Formatter.Bold("[Error]: User is already muted.")) : true;
 					break;
 				case RoleAction.Voiceban:
-					databaseVictim.IsVoicebanned = true;
+					databaseVictim.IsVoicebanned = databaseVictim.IsVoicebanned ? throw new ArgumentException(Formatter.Bold("[Error]: User is already voicebanned.")) : true;
 					break;
 				default:
 					throw new ArgumentException("Unable to determine which punishment to set.");
-			}
-
-			// If the user is in the guild, assign the muted role
-			bool sentDm = false;
-			if (discordVictim != null)
-			{
-				await discordVictim.GrantRoleAsync(discordRole, punishReason);
-				// If the user isn't a bot, attempt to dm them to make them aware of their punishment
-				if (!discordVictim.IsBot)
-				{
-					try
-					{
-						_ = await discordVictim.SendMessageAsync(dmMessage);
-						sentDm = true;
-					}
-					catch (Exception) { }
-				}
 			}
 
 			string rolename = roleAction switch
@@ -96,7 +93,7 @@ namespace Tomoe.Commands.Moderation
 			};
 
 			_ = await database.SaveChangesAsync();
-			await ModLogs.Record(discordGuild.Id, roleAction.ToString(), $"{victim.Mention} has been {rolename}{(sentDm ? '.' : " (Failed to dm).")} Reason: {punishReason}");
+			await ModLogs.Record(discordGuild.Id, roleAction.ToString(), $"{victim.Mention} has been {rolename}{(sentDm ? '.' : " (Failed to dm).")} by {issuer.Mention} Reason: {punishReason}");
 			return sentDm;
 		}
 	}

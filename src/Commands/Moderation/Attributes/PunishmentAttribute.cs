@@ -1,10 +1,14 @@
 using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.CommandsNext.Converters;
 using DSharpPlus.Entities;
+using DSharpPlus.Exceptions;
 using Tomoe.Utils.Exceptions;
 using Tomoe.Utils.Types;
 
@@ -31,14 +35,45 @@ namespace Tomoe.Commands.Moderation.Attributes
 		/// <param name="help">If the command is being executed for the help menu.</param>
 		public override async Task<bool> ExecuteCheckAsync(CommandContext context, bool help)
 		{
-			if (help) return true;
+			if (help)
+			{
+				return true;
+			}
+			else if (context.Guild == null)
+			{
+				_ = await Program.SendMessage(context, Formatter.Bold($"[Error]: Command can only be used in a guild!"));
+				return false;
+			}
 			else if (context.Message.MentionedUsers.Contains(Program.Client.CurrentUser))
 			{
 				_ = await Program.SendMessage(context, Constants.SelfBotAction);
 				return false;
 			}
+			else if (context.Guild != null)
+			{
+				List<DiscordMember> discordMembers = new();
+				// Try using RawArguments when it isn't null
+				foreach (string arg in context.RawArgumentString.Split(' '))
+				{
+					if (ulong.TryParse(arg, NumberStyles.Integer, CultureInfo.InvariantCulture, out ulong discordUserId))
+					{
+						DiscordMember discordMember = await discordUserId.GetMember(context.Guild);
+						if (discordMember != null)
+						{
+							discordMembers.Add(discordMember);
+						}
+					}
+				}
+				discordMembers.AddRange(context.Message.MentionedUsers.Select(discordUser => (DiscordMember)discordUser));
 
-			bool canExecute = true;
+				foreach (DiscordMember discordMember in discordMembers)
+				{
+					if (discordMember.Hierarchy >= context.Member.Hierarchy || discordMember.Id == context.Guild.OwnerId)
+					{
+						throw new HierarchyException();
+					}
+				}
+			}
 
 			if (CanSelfPunish && context.Message.MentionedUsers.Contains(context.User))
 			{
@@ -51,22 +86,7 @@ namespace Tomoe.Commands.Moderation.Attributes
 					}
 				})).WaitForReaction();
 			}
-			else
-			{
-				// Did not put it in a seperate else if statement due to the possibility that the guild is not null but no hierarchy is preventing the command from being executed.
-				if (!context.Channel.IsPrivate && context.Guild != null)
-				{
-					foreach (DiscordUser discordUser in context.Message.MentionedUsers)
-					{
-						DiscordMember discordMember = await discordUser.Id.GetMember(context.Guild);
-						if (discordMember.Hierarchy >= context.Member.Hierarchy || discordMember.Id == context.Guild.OwnerId)
-						{
-							throw new HierarchyException();
-						}
-					}
-				}
-			}
-			return canExecute;
+			return true;
 		}
 
 		/// <summary>

@@ -1,5 +1,8 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace Tomoe.Db
 {
@@ -18,17 +21,32 @@ namespace Tomoe.Db
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
-			_ = modelBuilder.Entity<GuildUser>()
-		   	.Property(b => b.Roles)
-		   	.HasColumnType("bigint[]");
+			ValueComparer valueComparerUlong = new ValueComparer<List<ulong>>(
+				(c1, c2) => c1.SequenceEqual(c2),
+				c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+				c => c.ToList()
+			);
 
-			_ = modelBuilder.Entity<GuildConfig>()
-		   	.Property(b => b.AdminRoles)
-		   	.HasColumnType("bigint[]");
+			modelBuilder.Entity<GuildConfig>()
+			.Property(guild => guild.IgnoredChannels)
+			.HasConversion(
+				ignoredChannels => ignoredChannels.ConvertAll(s => s.ToString()),
+				ignoredChannels => ignoredChannels.ConvertAll(s => ulong.Parse(s))
+			);
 
-			_ = modelBuilder.Entity<GuildConfig>()
-		   	.Property(b => b.IgnoredChannels)
-		   	.HasColumnType("bigint[]");
+			modelBuilder.Entity<GuildConfig>()
+			.Property(guild => guild.AdminRoles)
+			.HasConversion(
+				adminRoles => adminRoles.ConvertAll(s => s.ToString()),
+				adminRoles => adminRoles.ConvertAll(s => ulong.Parse(s))
+			).Metadata.SetValueComparer(valueComparerUlong);
+
+			modelBuilder.Entity<GuildUser>()
+			.Property(guildUser => guildUser.Roles)
+			.HasConversion(
+				guildUser => guildUser.ConvertAll(s => s.ToString()),
+				guildUser => guildUser.ConvertAll(s => ulong.Parse(s))
+			).Metadata.SetValueComparer(valueComparerUlong);
 		}
 	}
 }

@@ -81,9 +81,12 @@ namespace Tomoe
 				connectionBuilder.ApplicationName = Config.Database.ApplicationName;
 				connectionBuilder.Database = Config.Database.DatabaseName;
 				connectionBuilder.Host = Config.Database.Host;
-				connectionBuilder.Password = Config.Database.Password;
 				connectionBuilder.Username = Config.Database.Username;
 				connectionBuilder.Port = Config.Database.Port;
+				if (!string.IsNullOrEmpty(Config.Database.Password))
+				{
+					connectionBuilder.Password = Config.Database.Password;
+				}
 				_ = options.UseNpgsql(connectionBuilder.ToString(), options =>
 				{
 					_ = options.EnableRetryOnFailure();

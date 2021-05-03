@@ -5,9 +5,8 @@ using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
-using Microsoft.Extensions.DependencyInjection;
+using DSharpPlus.Exceptions;
 using Tomoe.Commands.Moderation.Attributes;
-using Tomoe.Db;
 
 namespace Tomoe.Commands.Moderation
 {
@@ -16,34 +15,24 @@ namespace Tomoe.Commands.Moderation
 		[Command("ban"), RequireGuild, RequireUserPermissions(Permissions.BanMembers), RequireBotPermissions(Permissions.BanMembers), Aliases("fuck_off", "fuckoff"), Description("Permanently bans the victim from the guild, sending them off with a dm."), Punishment(false)]
 		public async Task ByUser(CommandContext context, DiscordUser victim, [RemainingText] string banReason = Constants.MissingReason)
 		{
-			if ((await context.Guild.GetBansAsync()).FirstOrDefault(ban => ban.User.Id == victim.Id) != null)
+			try
 			{
-				_ = await Program.SendMessage(context, Formatter.Bold($"[Error]: {victim.Mention} is already banned!"));
-				return;
+				if ((await context.Guild.GetBansAsync()).Any(guildUser => guildUser.User.Id == victim.Id))
+				{
+					_ = await Program.SendMessage(context, Formatter.Bold($"[Error]: {victim.Mention} is already banned!"));
+					return;
+				}
+				_ = await Program.SendMessage(context, $"{victim.Mention} has been banned{(await ByProgram(context.Guild, victim, context.User, context.Message.JumpLink, banReason) ? '.' : " (Failed to dm).")}");
 			}
-
-			bool sentDm = await ByProgram(context.Guild, victim, context.User, context.Message.JumpLink, banReason);
-			_ = await Program.SendMessage(context, $"{victim.Mention} has been banned{(sentDm ? '.' : " (Failed to dm).")}");
+			catch (UnauthorizedException)
+			{
+				_ = await Program.SendMessage(context, Formatter.Bold($"[Error]: I cannot ban {victim.Mention} due to permissions!"));
+			}
 		}
 
 		public static async Task<bool> ByProgram(DiscordGuild discordGuild, DiscordUser victim, DiscordUser issuer, Uri jumplink, [RemainingText] string banReason = Constants.MissingReason)
 		{
-			using IServiceScope scope = Program.ServiceProvider.CreateScope();
-			Database database = scope.ServiceProvider.GetService<Database>();
-			DiscordMember guildVictim = await victim.Id.GetMember(discordGuild);
-
-			// If the user is in the guild, and if the user isn't a bot, attempt to dm them to make them aware of their punishment
-			bool sentDm = false;
-			if (guildVictim != null && !guildVictim.IsBot)
-			{
-				try
-				{
-					_ = await guildVictim.SendMessageAsync($"You've been banned from {Formatter.Bold(discordGuild.Name)}. Reason: {Formatter.BlockCode(Formatter.Strip(banReason))}Context: {jumplink}");
-					sentDm = true;
-				}
-				catch (Exception) { }
-			}
-
+			bool sentDm = await (await victim.Id.GetMember(discordGuild)).TryDmMember($"You've been banned from {Formatter.Bold(discordGuild.Name)}. Reason: {Formatter.BlockCode(Formatter.Strip(banReason))}Context: {jumplink}");
 			await discordGuild.BanMemberAsync(victim.Id, 0, banReason);
 			await ModLogs.Record(discordGuild.Id, "Ban", $"{victim.Mention} has been banned{(sentDm ? '.' : " (Failed to dm).")} by {issuer.Mention} Reason: {banReason}");
 			return sentDm;

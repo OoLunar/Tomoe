@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using DSharpPlus;
@@ -14,6 +15,10 @@ namespace Tomoe.Utils
 		{
 			using IServiceScope scope = Program.ServiceProvider.CreateScope();
 			Database database = scope.ServiceProvider.GetService<Database>();
+			if (eventArgs.Guild == null)
+			{
+				return;
+			}
 			foreach (AutoReaction autoReaction in database.AutoReactions.Where(autoReaction => autoReaction.GuildId == eventArgs.Guild.Id && autoReaction.ChannelId == eventArgs.Channel.Id))
 			{
 				await eventArgs.Message.CreateReactionAsync(DiscordEmoji.FromName(client, autoReaction.EmojiName, true));

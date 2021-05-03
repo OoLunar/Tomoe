@@ -39,12 +39,13 @@ namespace Tomoe.Commands.Listeners
 			}
 
 			// Find new users by removing the database's current user list's through id's
-			List<ulong> newGuildIds = eventArgs.Guild.Members.Keys.Except(database.GuildUsers.Select(guildUser => guildUser.GuildId == eventArgs.Guild.Id ? guildUser.UserId : 0)).ToList();
+			List<ulong> newGuildIds = eventArgs.Guild.Members.Keys.Except(database.GuildUsers.Where(guildUser => guildUser.GuildId == eventArgs.Guild.Id).Select(guildUser => guildUser.UserId)).ToList();
 			List<GuildUser> updatedGuildUsers = new();
 			foreach (ulong memberId in newGuildIds)
 			{
 				DiscordMember member = eventArgs.Guild.Members[memberId];
 				GuildUser guildUser = new(memberId);
+				guildUser.GuildId = eventArgs.Guild.Id;
 				guildUser.Roles.AddRange(member.Roles.Except(new[] { eventArgs.Guild.EveryoneRole }).Select(role => role.Id));
 				guildUser.JoinedAt = member.JoinedAt.DateTime;
 				updatedGuildUsers.Add(guildUser);
