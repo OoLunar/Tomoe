@@ -37,7 +37,7 @@ docker-compose up -d
 
 ## What is Tomoe written in?
 
-99.7% C#, 0.03% Docker.
+99.7% C#, 0.30% Docker.
 
 ## What features does Tomoe have?
 
