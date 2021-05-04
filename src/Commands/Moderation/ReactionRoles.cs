@@ -9,6 +9,7 @@ using DSharpPlus.Entities;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
 using Tomoe.Db;
+using Tomoe.Utils.Types;
 
 namespace Tomoe.Commands.Moderation
 {
@@ -21,7 +22,7 @@ namespace Tomoe.Commands.Moderation
 		public async Task ByMessage(CommandContext context, [Description("The message to put a reaction role on.")] DiscordMessage message, [Description("The emoji that's with the role.")] DiscordEmoji emoji, [Description("The role to assign to the user.")] DiscordRole role)
 		{
 			ReactionRole reactionRole = new();
-			reactionRole.EmojiName = emoji.Id == 0 ? emoji.GetDiscordName() : emoji.Id.ToString();
+			reactionRole.EmojiName = emoji.GetDiscordName();
 			reactionRole.GuildId = context.Guild.Id;
 			reactionRole.ChannelId = message.Channel.Id;
 			reactionRole.MessageId = message.Id;
@@ -59,16 +60,51 @@ namespace Tomoe.Commands.Moderation
 		[Command("fix"), Description("Adds Tomoe's reactions back onto previous reaction role messages."), Aliases("repair", "rereact")]
 		public async Task Fix(CommandContext context, [Description("Gets all reaction roles in this channel.")] DiscordChannel channel)
 		{
-			bool fixedReactions = false;
-			foreach (ReactionRole reactionRole in Database.ReactionRoles.Where(reactionRole => reactionRole.GuildId == context.Guild.Id && reactionRole.ChannelId == channel.Id))
+			List<string> checklistItems = new();
+			List<DiscordEmoji> emojis = new();
+			ReactionRole[] reactionRoles = Database.ReactionRoles.Where(reactionRole => reactionRole.GuildId == context.Guild.Id && reactionRole.ChannelId == channel.Id).OrderBy(reactionRole => reactionRole.Id).ToArray();
+
+			if (reactionRoles.Length == 0)
 			{
-				DiscordMessage message = await channel.GetMessageAsync(reactionRole.MessageId);
-				await message.CreateReactionAsync(DiscordEmoji.FromName(context.Client, reactionRole.EmojiName, true));
-				fixedReactions = true;
+				_ = await Program.SendMessage(context, Formatter.Bold("[Error]: No reaction roles found!"));
+				return;
 			}
-			_ = fixedReactions
-				? await Program.SendMessage(context, "Successfully fixed Tomoe's reactions!")
-				: await Program.SendMessage(context, Formatter.Bold($"[Error]: Failed to fix reactions or no reaction roles were found in channel {channel.Mention}"));
+
+			foreach (ReactionRole reactionRole in reactionRoles)
+			{
+				DiscordEmoji emoji = DiscordEmoji.FromName(context.Client, reactionRole.EmojiName, true);
+				emojis.Add(emoji);
+				checklistItems.Add($"React to {reactionRole.MessageId} with {emoji}");
+				checklistItems.Add($"Assign <@&{reactionRole.RoleId}> to those who previously reacted.");
+			}
+
+			Checklist checklist = new(context, checklistItems.ToArray());
+
+			for (int i = 0; i < reactionRoles.Length; i++)
+			{
+				ReactionRole reactionRole = reactionRoles[i];
+				DiscordMessage message = await channel.GetMessageAsync(reactionRole.MessageId);
+				await message.CreateReactionAsync(emojis[i]);
+				await checklist.Check();
+				DiscordRole discordRole = context.Guild.GetRole(reactionRole.RoleId);
+				if (discordRole == null)
+				{
+					_ = Database.ReactionRoles.Remove(reactionRole);
+					_ = await Database.SaveChangesAsync();
+					await checklist.Fail();
+				}
+				foreach (DiscordUser discordUser in await message.GetReactionsAsync(emojis[i], 100000))
+				{
+					DiscordMember discordMember = await discordUser.Id.GetMember(context.Guild);
+					if (discordMember != null && !discordMember.Roles.Contains(discordRole))
+					{
+						await discordMember.GrantRoleAsync(discordRole);
+					}
+				}
+				await checklist.Check();
+			}
+			await checklist.Finalize("Reaction roles fixed! Everyone has recieved their roles!", false);
+			checklist.Dispose();
 		}
 
 		[Command("list"), Description("Shows all the current reaction roles on a message"), Aliases("show", "ls")]

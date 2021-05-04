@@ -30,7 +30,7 @@ namespace Tomoe.Commands.Moderation
 			autoReaction = new();
 			autoReaction.GuildId = context.Guild.Id;
 			autoReaction.ChannelId = channel.Id;
-			autoReaction.EmojiName = emoji.Id == 0 ? emoji.GetDiscordName() : emoji.Id.ToString();
+			autoReaction.EmojiName = emoji.GetDiscordName();
 			_ = Database.AutoReactions.Add(autoReaction);
 			_ = await Database.SaveChangesAsync();
 			await ModLogs.Record(context, "Autoreaction Create", $"{context.User.Mention} has created an autoreaction with emoji {emoji} on channel {channel.Mention}.");

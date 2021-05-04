@@ -19,11 +19,10 @@ namespace Tomoe.Commands.Listeners
 			using IServiceScope scope = Program.ServiceProvider.CreateScope();
 			Database database = scope.ServiceProvider.GetService<Database>();
 
-			string emojiName = eventArgs.Emoji.Id == 0 ? eventArgs.Emoji.GetDiscordName() : eventArgs.Emoji.Id.ToString();
 			ReactionRole reactionRole = database.ReactionRoles.FirstOrDefault(databaseReactionRole
 				=> databaseReactionRole.GuildId == eventArgs.Guild.Id
 				&& databaseReactionRole.MessageId == eventArgs.Message.Id
-				&& databaseReactionRole.EmojiName == emojiName
+				&& databaseReactionRole.EmojiName == eventArgs.Emoji.GetDiscordName()
 			);
 			// Reaction role doesn't exist, meaning it's just a random reaction.
 			if (reactionRole == null)

@@ -110,9 +110,12 @@ namespace Tomoe.Utils.Types
 		/// </code>
 		/// </example>
 		/// <param name="finalMessage">The final line to add to the <see cref="DiscordMessage"/>, prepended with a check emoji.</param>
-		public async Task Finalize(string finalMessage)
+		public async Task Finalize(string finalMessage, bool check = true)
 		{
-			await Check();
+			if (check)
+			{
+				await Check();
+			}
 			DiscordMessage = await DiscordMessage.ModifyAsync($"{DiscordMessage.Content}\n{Constants.Check} {finalMessage}");
 		}
 
