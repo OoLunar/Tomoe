@@ -1,6 +1,3 @@
-# This is the public branch
-All commands here are just the public commands. It's the currently hosted version of Tomoe, and does not contain any of the moderation commands. Moderation commands will come later, **thus making most of the README obsolete.**
-
 # How to setup Tomoe
 
 If you wish to host Tomoe yourself, skip on down to prerequisites. If you just want Tomoe to join your guild: https://discord.com/api/oauth2/authorize?client_id=481314095723839508&permissions=8&scope=bot
@@ -19,7 +16,7 @@ git clone https://github.com/OoLunar/Tomoe.git
 cd Tomoe
 dotnet restore --configfile /src/Nuget.Config
 ```
-Be sure to edit your config file.
+Be sure to edit your config file `res/config.jsonc`.
 ```bash
 dotnet run
 ```
@@ -40,7 +37,7 @@ docker-compose up -d
 
 ## What is Tomoe written in?
 
-99.8% C#, 0.02% Docker. Just like the sidebar on your right says.
+99.7% C#, 0.03% Docker.
 
 ## What features does Tomoe have?
 
@@ -48,43 +45,45 @@ As mentioned previously, Tomoe aims to be the #1 bot choice for Discord Moderati
 
 | Command | Implemented |
 |:-|:-:|
-| ban | ✅ |
-| kick | ✅ |
-| mute | ✅ |
-| antimeme | ✅ |
-| vc_ban | ✅ |
-| strike | ✅ |
-| strike history | ✅ |
-| pardon| ✅ |
-| temp_ban | ✅ |
-| temp_mute | ✅ |
-| temp_antimeme | ✅ |
-| temp_vc_ban | ❌ |
-| unban | ✅ |
-| unmute | ✅ |
-| promeme | ✅ |
-| unvc_ban | ❌ |
-| report | ❌ |
-| config mute | ✅ |
-| config antimeme | ✅ |
-| config logging | ❌ |
-| lock channel | ❌ |
-| lock server | ❌ |
-| lock bots | ❌ |
-| bot_info | ✅ |
-| flip | ✅ |
-| guild_icon | ✅ |
-| invite | ✅ |
-| pfp | ✅ |
-| raw | ✅ |
-| reminders | ✅ (kinda broken at the moment) |
-| reminders list | ✅ (kinda broken at the moment) |
-| reminders remove | ✅ (kinda broken at the moment) |
-| repo | ✅ |
-| role_info | ✅ |
-| server_info | ✅ |
-| support | ✅ |
-| tag | ❌ (Tags have been temporarily removed) |
+| Antimeme | ✅ |
+| Autoreact | ✅ |
+| Ban | ✅ |
+| Config | ✅ |
+| Kick | ✅ |
+| Logging | ❌ |
+| Lock | ❌ |
+| Modlog | ✅ |
+| Mute | ✅ |
+| Reaction Roles | ✅ |
+| Report | ❌ |
+| Strike | ✅ |
+| Tempantimeme | ❌ |
+| Tempban | ❌ |
+| Tempmute | ❌ |
+| Tempvoiceban | ❌ |
+| Unantimeme | ✅ |
+| Unban | ✅ |
+| Unmute | ✅ |
+| Unvoiceban | ✅ |
+| Voiceban | ✅ |
+| **Public commands** | - |
+| Bot Info | ✅ |
+| Flip | ✅ |
+| GuildIcon | ✅ |
+| Help | ✅ |
+| Invite | ✅ |
+| Member Count | ✅ |
+| Ping | ✅ |
+| Profile Picture | ✅ |
+| Raw | ✅ |
+| Reminders | ❌ |
+| Repeat | ✅ |
+| Repository | ✅ |
+| Role Info | ✅ |
+| Server Info | ✅ |
+| Support | ✅ | 
+| Tag | ✅ |
+| Time Of | ✅ |
 
 *Naming may change for simplicity. All commands are snake_case by default and have PascalCase aliases.
 
