@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using DSharpPlus.Entities;
 
 namespace Tomoe
@@ -20,7 +21,9 @@ namespace Tomoe
 		public static readonly DiscordEmoji ThumbsUp = DiscordEmoji.FromUnicode(Program.Client.ShardClients[0], "👍");
 		public static readonly DiscordEmoji ThumbsDown = DiscordEmoji.FromUnicode(Program.Client.ShardClients[0], "👎");
 		public static readonly DiscordEmoji Loading = DiscordEmoji.FromGuildEmote(Program.Client.ShardClients[0], 819460200141553704);
+		public static readonly DiscordEmoji NoPermission = DiscordEmoji.FromGuildEmote(Program.Client.ShardClients[0], 839866517616721920);
 		public static readonly DiscordEmoji Check = DiscordEmoji.FromUnicode(Program.Client.ShardClients[0], "✅");
 		public static readonly DiscordEmoji Failed = DiscordEmoji.FromUnicode(Program.Client.ShardClients[0], "❌");
+		public static readonly DiscordEmoji QuestionMark = DiscordEmoji.FromUnicode(Program.Client.ShardClients[0], "❓");
 	}
 }

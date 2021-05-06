@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
+using DSharpPlus.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 
@@ -16,11 +18,13 @@ namespace Tomoe.Db
 		public DbSet<GuildUser> GuildUsers { get; set; }
 		public DbSet<GuildConfig> GuildConfigs { get; set; }
 		public DbSet<Tag> Tags { get; set; }
+		public DbSet<Lock> Locks { get; set; }
 
 		public Database(DbContextOptions<Database> options) : base(options) { }
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
+			// Convert List<ulong> to List<string> due to weird behaviour of EFCore + Postgres
 			ValueComparer valueComparerUlong = new ValueComparer<List<ulong>>(
 				(c1, c2) => c1.SequenceEqual(c2),
 				c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),

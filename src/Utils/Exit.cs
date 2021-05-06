@@ -1,4 +1,5 @@
 using System;
+using DSharpPlus.Entities;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Tomoe.Db;
@@ -13,6 +14,7 @@ namespace Tomoe.Utils
 			Console.Write("\b\b");
 			_logger.Information("Shutting down...");
 			_logger.Information("Closing Discord...");
+			await Program.Client.UpdateStatusAsync(null, UserStatus.Offline);
 			await Program.Client.StopAsync();
 			_logger.Information("Closing database...");
 			_ = await Program.ServiceProvider.GetService<Database>().SaveChangesAsync();

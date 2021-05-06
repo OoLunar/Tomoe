@@ -5,6 +5,7 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using Tomoe.Commands.Moderation.Attributes;
+using Tomoe.Utils.Exceptions;
 
 namespace Tomoe.Commands.Moderation
 {
@@ -21,6 +22,11 @@ namespace Tomoe.Commands.Moderation
 
 		public static async Task<bool> ByProgram(DiscordGuild discordGuild, DiscordMember victim, DiscordUser issuer, Uri jumplink, [RemainingText] string kickReason = Constants.MissingReason)
 		{
+			if (victim.Hierarchy >= (await issuer.Id.GetMember(discordGuild)).Hierarchy)
+			{
+				throw new HierarchyException();
+			}
+
 			bool sentDm = await victim.TryDmMember($"You've been kicked from {Formatter.Bold(discordGuild.Name)}. Reason: {Formatter.BlockCode(Formatter.Strip(kickReason))}Context: {jumplink}");
 			await victim.RemoveAsync(kickReason);
 			await ModLogs.Record(discordGuild.Id, "Kick", $"{victim.Mention} has been kicked by {issuer.Mention}{(sentDm ? '.' : " (Failed to dm).")} Reason: {kickReason}");

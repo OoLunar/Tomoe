@@ -114,7 +114,6 @@ namespace Tomoe
 
 			// Setup event listeners
 			Client = new(discordConfiguration);
-
 			Client.ChannelCreated += ChannelCreated.Handler;
 			Client.GuildAvailable += GuildAvailable.Handler;
 			Client.GuildCreated += GuildCreated.Handler;

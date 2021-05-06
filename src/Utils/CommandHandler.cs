@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Exceptions;
 using DSharpPlus.EventArgs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -76,16 +77,33 @@ namespace Tomoe.Utils
 
 			string commandName = eventArgs.Message.Content[commandStart..];
 			Command command = commandsNext.FindCommand(commandName, out string args);
-			if (command == null) return;
+			if (command == null)
+			{
+				await eventArgs.Message.CreateReactionAsync(Constants.QuestionMark);
+				return;
+			};
 
 			CommandContext context = commandsNext.CreateContext(eventArgs.Message, prefix, command, args);
-			// Let the user know that the bot is executing the command.
-			await eventArgs.Message.CreateReactionAsync(Constants.Loading);
-			_ = Task.Run(async () => await commandsNext.ExecuteCommandAsync(context));
-			await eventArgs.Message.DeleteReactionAsync(Constants.Loading, context.Client.CurrentUser);
+			_ = Task.Run(async () => await ExecuteCommandAsync(context, command));
+			return;
+		}
+
+		public static async Task ExecuteCommandAsync(CommandContext context, Command command)
+		{
 			// Log that the command was executed.
 			await ModLogs.CommandUsage(context);
-			return;
+			// Let the user know that the bot is executing the command.
+			await context.Message.CreateReactionAsync(Constants.Loading);
+			CommandResult commandResult = await command.ExecuteAsync(context);
+			await context.Message.DeleteReactionAsync(Constants.Loading, context.Client.CurrentUser);
+			if (commandResult.IsSuccessful)
+			{
+				await context.Message.CreateReactionAsync(Constants.Check);
+			}
+			else
+			{
+				await CommandService.CommandErrored(context.CommandsNext.Client, context, commandResult.Exception);
+			}
 		}
 	}
 }

@@ -93,6 +93,7 @@ namespace Tomoe.Commands.Moderation
 					_ = await Database.SaveChangesAsync();
 					await checklist.Fail();
 				}
+
 				foreach (DiscordUser discordUser in await message.GetReactionsAsync(emojis[i], 100000))
 				{
 					DiscordMember discordMember = await discordUser.Id.GetMember(context.Guild);

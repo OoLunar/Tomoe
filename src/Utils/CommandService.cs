@@ -24,6 +24,7 @@ namespace Tomoe.Utils
 	internal class CommandService
 	{
 		private static readonly ILogger _logger = Log.ForContext<CommandService>();
+
 		internal static async Task Launch(DiscordShardedClient discordClient, IServiceProvider services)
 		{
 			while (true)
@@ -64,37 +65,58 @@ namespace Tomoe.Utils
 			}
 		}
 
-		private static async Task CommandErrored(CommandsNextExtension client, CommandErrorEventArgs args)
+		public static async Task CommandErrored(CommandsNextExtension client, CommandErrorEventArgs args) => await CommandErrored(client.Client, args.Context, args.Exception);
+
+		public static async Task CommandErrored(DiscordClient client, CommandContext context, Exception error)
 		{
-			// No need to log when a command isn't found
-			if (!(args.Exception is CommandNotFoundException) && !args.Handled)
+			using IServiceScope scope = Program.ServiceProvider.CreateScope();
+			Database database = scope.ServiceProvider.GetService<Database>();
+			GuildConfig guildConfig = await database.GuildConfigs.FirstOrDefaultAsync(guildConfig => guildConfig.Id == context.Guild.Id);
+			switch (error)
 			{
-				using IServiceScope scope = Program.ServiceProvider.CreateScope();
-				Database database = scope.ServiceProvider.GetService<Database>();
-				GuildConfig guildConfig = await database.GuildConfigs.FirstOrDefaultAsync(guildConfig => guildConfig.Id == args.Context.Guild.Id) ?? new(args.Context.Guild.Id);
-				if (!guildConfig.ShowPermissionErrors) return;
-				if (args.Exception is ChecksFailedException)
-				{
-					ChecksFailedException error = args.Exception as ChecksFailedException;
-					if (error.Context.Channel.IsPrivate)
+				case CommandNotFoundException:
+					await context.Message.CreateReactionAsync(Constants.QuestionMark);
+					return;
+				case ArgumentException:
+					Command helpCommand = context.CommandsNext.FindCommand($"help {(context.Command is CommandGroup ? $"{context.Command.QualifiedName} {context.Command.Name}" : context.Command.QualifiedName)}", out string helpCommandArgs);
+					CommandContext helpContext = context.CommandsNext.CreateContext(context.Message, context.Prefix, helpCommand, helpCommandArgs);
+					_ = await helpCommand.ExecuteAsync(helpContext);
+					break;
+				case NotImplementedException:
+					_ = await Program.SendMessage(context, $"{context.Command.Name} hasn't been implemented yet!");
+					break;
+				case HierarchyException:
+					if (!guildConfig.ShowPermissionErrors)
 					{
-						_ = await Program.SendMessage(args.Context, Constants.NotAGuild);
-						args.Handled = true;
+						await context.Message.CreateReactionAsync(Constants.NoPermission);
 					}
-					else if (error.FailedChecks.OfType<RequireUserPermissionsAttribute>() != null)
+					else
 					{
-						_ = await Program.SendMessage(args.Context, Constants.MissingPermissions);
-						args.Handled = true;
+						_ = await Program.SendMessage(context, $"**[Denied: Their hierarchy is the same as or higher than yours. You don't have enough power over them.]**");
 					}
-				}
-				else if (args.Exception is HierarchyException) _ = await Program.SendMessage(args.Context, $"**[Denied: Their hierarchy is the same as or higher than yours. You don't have enough power over them.]**");
-				else if (args.Exception is NotImplementedException) _ = await Program.SendMessage(args.Context, $"{args.Command.Name} hasn't been implemented yet!");
-				else if (args.Exception is ArgumentException) args.Handled = true;
-				else
-				{
-					_logger.Error($"'{args.Command?.QualifiedName ?? "<unknown command>"}' errored: {args.Exception.GetType()}, {args.Exception.Message ?? "<no message>"}\n{args.Exception.StackTrace}");
-					_ = await Program.SendMessage(args.Context, Formatter.Bold("[Error: An unknown error occured. Try executing the command again?]"));
-				}
+					break;
+				case ChecksFailedException:
+					ChecksFailedException checksFailedException = error as ChecksFailedException;
+					if (context.Channel.IsPrivate)
+					{
+						_ = await Program.SendMessage(context, Constants.NotAGuild);
+					}
+					else if (checksFailedException.FailedChecks.OfType<RequireUserPermissionsAttribute>() != null)
+					{
+						if (!guildConfig.ShowPermissionErrors)
+						{
+							await context.Message.CreateReactionAsync(Constants.NoPermission);
+						}
+						else
+						{
+							_ = await Program.SendMessage(context, Constants.MissingPermissions);
+						}
+					}
+					break;
+				default:
+					_logger.Error($"'{context.Command?.QualifiedName ?? "<unknown command>"}' errored: {error.GetType()}, {error.Message ?? "<no message>"}\n{error.StackTrace}");
+					_ = await Program.SendMessage(context, Formatter.Bold("[Error: An unknown error occured. Try executing the command again?]"));
+					break;
 			}
 		}
 	}
