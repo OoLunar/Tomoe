@@ -36,5 +36,5 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: |
-            docker.pkg.github.com/oolunar/Tomoe/tomoe:latest
-            docker.pkg.github.com/oolunar/Tomoe/tomoe:${{ steps.previoustag.outputs.tag }}
+            docker.pkg.github.com/oolunar/tomoe/tomoe:latest
+            docker.pkg.github.com/oolunar/tomoe/tomoe:${{ steps.previoustag.outputs.tag }}
