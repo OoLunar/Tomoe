@@ -16,20 +16,24 @@ git clone https://github.com/OoLunar/Tomoe.git
 cd Tomoe
 dotnet restore --configfile /src/Nuget.Config
 ```
-Be sure to edit your config file `res/config.jsonc`.
-```bash
+
+Be sure to edit your config file `res/config.jsonc` .
+
+``` bash
 dotnet run
 ```
 
 ### Docker
-**THIS WILL NOT WORK UNTIL A RELEASE HAPPENS. USE DOCKER-COMPOSE INSTEAD!**
-```bash
+
+``` bash
 docker run ghcr.io/oolunar/tomoe --mount ./configs,/src/res
 ```
 
 ### Docker-Compose
+
 Make sure to review the `volumes` section of the `docker-compose.yml` file.
-```bash
+
+``` bash
 docker-compose up -d
 ```
 
@@ -37,7 +41,7 @@ docker-compose up -d
 
 ## What is Tomoe written in?
 
-99.7% C#, 0.30% Docker.
+99.70% C#, 0.30% Docker.
 
 ## What features does Tomoe have?
 
@@ -49,6 +53,7 @@ As mentioned previously, Tomoe aims to be the #1 bot choice for Discord Moderati
 | Autoreact | ✅ |
 | Ban | ✅ |
 | Config | ✅ |
+| Doctor | ❌ |
 | Kick | ✅ |
 | Logging | ❌ |
 | Lock | ❌ |
@@ -81,11 +86,11 @@ As mentioned previously, Tomoe aims to be the #1 bot choice for Discord Moderati
 | Repository | ✅ |
 | Role Info | ✅ |
 | Server Info | ✅ |
-| Support | ✅ | 
+| Support | ✅ |
 | Tag | ✅ |
 | Time Of | ✅ |
 
-*Naming may change for simplicity. All commands are snake_case by default and have PascalCase aliases.
+*Naming may change for simplicity. All commands are snake_case.
 
 ## Why did you chose "Tomoe" as the bots name?
 

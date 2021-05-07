@@ -1,25 +1,26 @@
-using System.Text.Json.Serialization;
 
 namespace Tomoe.Utils.Configs
 {
-	public class Database
-	{
-		[JsonPropertyName("application_name")]
-		public string ApplicationName { get; set; }
+    using System.Text.Json.Serialization;
 
-		[JsonPropertyName("database_name")]
-		public string DatabaseName { get; set; }
+    public class Database
+    {
+        [JsonPropertyName("application_name")]
+        public string ApplicationName { get; set; }
 
-		[JsonPropertyName("host")]
-		public string Host { get; set; }
+        [JsonPropertyName("database_name")]
+        public string DatabaseName { get; set; }
 
-		[JsonPropertyName("password")]
-		public string Password { get; set; }
+        [JsonPropertyName("host")]
+        public string Host { get; set; }
 
-		[JsonPropertyName("username")]
-		public string Username { get; set; }
+        [JsonPropertyName("password")]
+        public string Password { get; set; }
 
-		[JsonPropertyName("port")]
-		public int Port { get; set; }
-	}
+        [JsonPropertyName("username")]
+        public string Username { get; set; }
+
+        [JsonPropertyName("port")]
+        public int Port { get; set; }
+    }
 }

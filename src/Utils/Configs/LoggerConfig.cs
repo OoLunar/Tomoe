@@ -1,23 +1,24 @@
-using System.Text.Json.Serialization;
-using Serilog.Events;
 
 namespace Tomoe.Utils.Configs
 {
-	public class Logger
-	{
-		[JsonPropertyName("tomoe"), JsonConverter(typeof(JsonStringEnumConverter))]
-		public LogEventLevel Tomoe { get; set; }
+    using Serilog.Events;
+    using System.Text.Json.Serialization;
 
-		[JsonPropertyName("discord"), JsonConverter(typeof(JsonStringEnumConverter))]
-		public LogEventLevel Discord { get; set; }
+    public class Logger
+    {
+        [JsonPropertyName("tomoe"), JsonConverter(typeof(JsonStringEnumConverter))]
+        public LogEventLevel Tomoe { get; set; }
 
-		[JsonPropertyName("database"), JsonConverter(typeof(JsonStringEnumConverter))]
-		public LogEventLevel Database { get; set; }
+        [JsonPropertyName("discord"), JsonConverter(typeof(JsonStringEnumConverter))]
+        public LogEventLevel Discord { get; set; }
 
-		[JsonPropertyName("show_id")]
-		public bool ShowId { get; set; }
+        [JsonPropertyName("database"), JsonConverter(typeof(JsonStringEnumConverter))]
+        public LogEventLevel Database { get; set; }
 
-		[JsonPropertyName("save_to_file")]
-		public bool SaveToFile { get; set; }
-	}
+        [JsonPropertyName("show_id")]
+        public bool ShowId { get; set; }
+
+        [JsonPropertyName("save_to_file")]
+        public bool SaveToFile { get; set; }
+    }
 }

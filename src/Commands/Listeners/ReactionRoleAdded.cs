@@ -1,46 +1,47 @@
-using System.Linq;
-using System.Threading.Tasks;
-using DSharpPlus;
-using DSharpPlus.Entities;
-using DSharpPlus.EventArgs;
-using Microsoft.Extensions.DependencyInjection;
-using Tomoe.Db;
-
 namespace Tomoe.Commands.Listeners
 {
-	public class ReactionRoleAdded
-	{
-		public static async Task Handler(DiscordClient client, MessageReactionAddEventArgs eventArgs)
-		{
-			if (eventArgs.User.Id == client.CurrentUser.Id)
-			{
-				return;
-			}
-			using IServiceScope scope = Program.ServiceProvider.CreateScope();
-			Database database = scope.ServiceProvider.GetService<Database>();
+    using DSharpPlus;
+    using DSharpPlus.Entities;
+    using DSharpPlus.EventArgs;
+    using Microsoft.Extensions.DependencyInjection;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using Tomoe.Db;
 
-			ReactionRole reactionRole = database.ReactionRoles.FirstOrDefault(databaseReactionRole
-				=> databaseReactionRole.GuildId == eventArgs.Guild.Id
-				&& databaseReactionRole.MessageId == eventArgs.Message.Id
-				&& databaseReactionRole.EmojiName == eventArgs.Emoji.GetDiscordName()
-			);
-			// Reaction role doesn't exist, meaning it's just a random reaction.
-			if (reactionRole == null)
-			{
-				return;
-			}
+    public class ReactionRoleAdded
+    {
+        public static async Task Handler(DiscordClient client, MessageReactionAddEventArgs eventArgs)
+        {
+            if (eventArgs.User.Id == client.CurrentUser.Id)
+            {
+                return;
+            }
 
-			DiscordRole discordRole = eventArgs.Guild.GetRole(reactionRole.RoleId);
-			// if the discord role has been removed, remove the reaction role from the database.
-			if (discordRole == null)
-			{
-				_ = database.ReactionRoles.Remove(reactionRole);
-				_ = await database.SaveChangesAsync();
-				return;
-			}
+            using IServiceScope scope = Program.ServiceProvider.CreateScope();
+            Database database = scope.ServiceProvider.GetService<Database>();
 
-			// Get the user and give them their reaction role.
-			await (await eventArgs.User.Id.GetMember(eventArgs.Guild)).GrantRoleAsync(discordRole);
-		}
-	}
+            ReactionRole reactionRole = database.ReactionRoles.FirstOrDefault(databaseReactionRole
+                => databaseReactionRole.GuildId == eventArgs.Guild.Id
+                && databaseReactionRole.MessageId == eventArgs.Message.Id
+                && databaseReactionRole.EmojiName == eventArgs.Emoji.GetDiscordName()
+            );
+            // Reaction role doesn't exist, meaning it's just a random reaction.
+            if (reactionRole == null)
+            {
+                return;
+            }
+
+            DiscordRole discordRole = eventArgs.Guild.GetRole(reactionRole.RoleId);
+            // if the discord role has been removed, remove the reaction role from the database.
+            if (discordRole == null)
+            {
+                _ = database.ReactionRoles.Remove(reactionRole);
+                _ = await database.SaveChangesAsync();
+                return;
+            }
+
+            // Get the user and give them their reaction role.
+            await (await eventArgs.User.Id.GetMember(eventArgs.Guild)).GrantRoleAsync(discordRole);
+        }
+    }
 }

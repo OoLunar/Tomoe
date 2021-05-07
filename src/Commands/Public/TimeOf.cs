@@ -1,36 +1,48 @@
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using DSharpPlus;
-using DSharpPlus.CommandsNext;
-using DSharpPlus.CommandsNext.Attributes;
-using DSharpPlus.Entities;
-using DSharpPlus.Interactivity;
-using DSharpPlus.Interactivity.Enums;
-using DSharpPlus.Interactivity.Extensions;
-
 namespace Tomoe.Commands.Public
 {
-	public class TimeOf : BaseCommandModule
-	{
-		[Command("timeof"), Description("Gets the time of the messages linked."), Aliases("time_of", "whenwas", "when_was", "timestamp")]
-		public async Task Overload(CommandContext context, params ulong[] messages)
-		{
-			messages = messages.Distinct().OrderBy(snowflake => snowflake).ToArray();
-			StringBuilder timestamps = new();
-			for (int i = 0; i < messages.Length; i++) _ = timestamps.Append($"{Formatter.InlineCode(messages[i].ToString(CultureInfo.InvariantCulture))} => {Formatter.InlineCode(messages[i].GetSnowflakeTime().ToString("yyyy'-'MM'-'dd' 'HH':'mm':'ss'.'ffff", CultureInfo.InvariantCulture))}\n");
+    using DSharpPlus;
+    using DSharpPlus.CommandsNext;
+    using DSharpPlus.CommandsNext.Attributes;
+    using DSharpPlus.Entities;
+    using DSharpPlus.Interactivity;
+    using DSharpPlus.Interactivity.Enums;
+    using DSharpPlus.Interactivity.Extensions;
+    using System.Globalization;
+    using System.Linq;
+    using System.Text;
+    using System.Threading.Tasks;
 
-			if (messages.Length > 10)
-			{
-				DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder().GenerateDefaultEmbed(context, $"Timestamps for {messages.Length} messages!");
-				InteractivityExtension interactivity = context.Client.GetInteractivity();
-				Page[] pages = interactivity.GeneratePagesInEmbed(timestamps.ToString(), SplitType.Line, embedBuilder).ToArray();
+    public class TimeOf : BaseCommandModule
+    {
+        [Command("time_of"), Description("Gets the time of the messages linked."), Aliases("when_was", "timestamp")]
+        public async Task Overload(CommandContext context, params ulong[] messages)
+        {
+            messages = messages.Distinct().OrderBy(snowflake => snowflake).ToArray();
+            StringBuilder timestamps = new();
+            for (int i = 0; i < messages.Length; i++)
+            {
+                _ = timestamps.Append($"{Formatter.InlineCode(messages[i].ToString(CultureInfo.InvariantCulture))} => {Formatter.InlineCode(messages[i].GetSnowflakeTime().ToString("yyyy'-'MM'-'dd' 'HH':'mm':'ss'.'ffff", CultureInfo.InvariantCulture))}\n");
+            }
 
-				if (pages.Length == 1) _ = await Program.SendMessage(context, null, pages[0].Embed);
-				else await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, pages);
-			}
-			else _ = await Program.SendMessage(context, timestamps.ToString());
-		}
-	}
+            if (messages.Length > 10)
+            {
+                DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder().GenerateDefaultEmbed(context, $"Timestamps for {messages.Length} messages!");
+                InteractivityExtension interactivity = context.Client.GetInteractivity();
+                Page[] pages = interactivity.GeneratePagesInEmbed(timestamps.ToString(), SplitType.Line, embedBuilder).ToArray();
+
+                if (pages.Length == 1)
+                {
+                    _ = await Program.SendMessage(context, null, pages[0].Embed);
+                }
+                else
+                {
+                    await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, pages);
+                }
+            }
+            else
+            {
+                _ = await Program.SendMessage(context, timestamps.ToString());
+            }
+        }
+    }
 }

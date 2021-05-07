@@ -1,118 +1,122 @@
-using System.Linq;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using DSharpPlus;
-using DSharpPlus.CommandsNext;
-using DSharpPlus.Entities;
-using DSharpPlus.EventArgs;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Tomoe.Db;
-
 namespace Tomoe.Commands.Listeners
 {
-	public class MessageRecieved
-	{
-		public static readonly Regex InviteRegex = new(@"disc(?:ord)?(?:(?:app)?\.com\/invite|(?:\.gg))\/([A-z0-9-]{2,})", RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.IgnoreCase);
+    using DSharpPlus;
+    using DSharpPlus.CommandsNext;
+    using DSharpPlus.Entities;
+    using DSharpPlus.EventArgs;
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.DependencyInjection;
+    using System.Linq;
+    using System.Text.RegularExpressions;
+    using System.Threading.Tasks;
+    using Tomoe.Db;
 
-		/// <summary>
-		/// Handles max lines, max mentions and anti-invite.
-		/// </summary>
-		/// <param name="client">Used to grab guild settings and the user id.</param>
-		/// <param name="eventArgs">Used to grab the guild, remove the message if required and potentionally strike the user.</param>
-		/// <returns></returns>
-		public static async Task Handler(DiscordClient client, MessageCreateEventArgs eventArgs)
-		{
-			if (eventArgs.Author.Id == client.CurrentUser.Id
-				|| eventArgs.Guild == null
-				|| eventArgs.Message.WebhookMessage
-				|| eventArgs.Author.IsBot
-				|| (eventArgs.Author.IsSystem.HasValue && eventArgs.Author.IsSystem.Value)
-			) return;
-			DiscordMember authorMember = await eventArgs.Author.Id.GetMember(eventArgs.Guild);
+    public class MessageRecieved
+    {
+        public static readonly Regex InviteRegex = new(@"disc(?:ord)?(?:(?:app)?\.com\/invite|(?:\.gg))\/([A-z0-9-]{2,})", RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.IgnoreCase);
 
-			using IServiceScope scope = Program.ServiceProvider.CreateScope();
-			Database database = scope.ServiceProvider.GetService<Database>();
-			GuildConfig guildConfig = await database.GuildConfigs.FirstOrDefaultAsync(guild => guild.Id == eventArgs.Guild.Id);
-			if (guildConfig == null
-				|| guildConfig.IgnoredChannels.Contains(eventArgs.Channel.Id)
-				|| authorMember.HasPermission(Permissions.ManageMessages)
-			  	|| authorMember.HasPermission(Permissions.Administrator)
-			  	|| eventArgs.Guild.OwnerId == eventArgs.Author.Id
-			  	|| guildConfig.AdminRoles.ConvertAll(role => role.ToString()).Intersect(authorMember.Roles.ToList().ConvertAll(role => role.ToString())).Any()
-		  	)
-			{
-				return;
-			}
+        /// <summary>
+        /// Handles max lines, max mentions and anti-invite.
+        /// </summary>
+        /// <param name="client">Used to grab guild settings and the user id.</param>
+        /// <param name="eventArgs">Used to grab the guild, remove the message if required and potentionally strike the user.</param>
+        /// <returns></returns>
+        public static async Task Handler(DiscordClient client, MessageCreateEventArgs eventArgs)
+        {
+            if (eventArgs.Author.Id == client.CurrentUser.Id
+                || eventArgs.Guild == null
+                || eventArgs.Message.WebhookMessage
+                || eventArgs.Author.IsBot
+                || (eventArgs.Author.IsSystem.HasValue && eventArgs.Author.IsSystem.Value)
+            )
+            {
+                return;
+            }
 
-			int maxMentions = guildConfig.MaxMentions;
-			int maxLines = guildConfig.MaxLines;
+            DiscordMember authorMember = await eventArgs.Author.Id.GetMember(eventArgs.Guild);
 
-			if (maxMentions > -1 && (eventArgs.MentionedUsers.Count + eventArgs.MentionedRoles.Count) > maxMentions)
-			{
-				DiscordMessage message = await eventArgs.Message.RespondAsync($"{eventArgs.Author.Mention}: Please refrain from spamming pings.");
+            using IServiceScope scope = Program.ServiceProvider.CreateScope();
+            Database database = scope.ServiceProvider.GetService<Database>();
+            GuildConfig guildConfig = await database.GuildConfigs.FirstOrDefaultAsync(guild => guild.Id == eventArgs.Guild.Id);
+            if (guildConfig == null
+                || guildConfig.IgnoredChannels.Contains(eventArgs.Channel.Id)
+                || authorMember.HasPermission(Permissions.ManageMessages)
+                  || authorMember.HasPermission(Permissions.Administrator)
+                  || eventArgs.Guild.OwnerId == eventArgs.Author.Id
+                  || guildConfig.AdminRoles.ConvertAll(role => role.ToString()).Intersect(authorMember.Roles.ToList().ConvertAll(role => role.ToString())).Any()
+              )
+            {
+                return;
+            }
 
-				if (guildConfig.DeleteBadMessages)
-				{
-					await eventArgs.Message.DeleteAsync("Exceeded max ping limit.");
-				}
+            int maxMentions = guildConfig.MaxUniqueMentionsPerMessage;
+            int maxLines = guildConfig.MaxLinesPerMessage;
 
-				if (guildConfig.AutoStrikes)
-				{
-					CommandsNextExtension commandsNext = client.GetCommandsNext();
-					Command command = commandsNext.FindCommand($"strike {eventArgs.Author.Mention} Please refrain from spamming pings.", out string args);
-					CommandContext context = commandsNext.CreateContext(message, ">>", command, args);
-					await commandsNext.ExecuteCommandAsync(context);
-				}
-			}
+            if (maxMentions > -1 && (eventArgs.MentionedUsers.Count + eventArgs.MentionedRoles.Count) > maxMentions)
+            {
+                DiscordMessage message = await eventArgs.Message.RespondAsync($"{eventArgs.Author.Mention}: Please refrain from spamming pings.");
 
-			if (maxLines > -1 && eventArgs.Message.Content.Split('\n').Length > maxLines)
-			{
-				DiscordMessage message = await eventArgs.Message.RespondAsync($"{eventArgs.Author.Mention}: Please refrain from spamming new lines.");
+                if (guildConfig.DeleteBadMessages)
+                {
+                    await eventArgs.Message.DeleteAsync("Exceeded max ping limit.");
+                }
 
-				if (guildConfig.DeleteBadMessages)
-				{
-					await eventArgs.Message.DeleteAsync("Exceeded max line limit.");
-				}
+                if (guildConfig.AutoStrikes)
+                {
+                    CommandsNextExtension commandsNext = client.GetCommandsNext();
+                    Command command = commandsNext.FindCommand($"strike {eventArgs.Author.Mention} Please refrain from spamming pings.", out string args);
+                    CommandContext context = commandsNext.CreateContext(message, ">>", command, args);
+                    await commandsNext.ExecuteCommandAsync(context);
+                }
+            }
 
-				if (guildConfig.AutoStrikes)
-				{
-					CommandsNextExtension commandsNext = client.GetCommandsNext();
-					Command command = commandsNext.FindCommand($"strike {eventArgs.Author.Mention} Please refrain from spamming new lines.", out string args);
-					CommandContext context = commandsNext.CreateContext(message, ">>", command, args);
-					await commandsNext.ExecuteCommandAsync(context);
-				}
-			}
+            if (maxLines > -1 && eventArgs.Message.Content.Split('\n').Length > maxLines)
+            {
+                DiscordMessage message = await eventArgs.Message.RespondAsync($"{eventArgs.Author.Mention}: Please refrain from spamming new lines.");
 
-			if (guildConfig.AntiInvite)
-			{
-				Match messageInvites = InviteRegex.Match(eventArgs.Message.Content);
-				if (messageInvites.Success)
-				{
-					CaptureCollection invites = messageInvites.Captures;
-					foreach (Capture capture in invites)
-					{
-						if (!guildConfig.AllowedInvites.Contains(capture.Value))
-						{
-							await eventArgs.Message.DeleteAsync($"Invite {Formatter.InlineCode(capture.Value)} is not whitelisted.");
-							DiscordMessage message = await eventArgs.Message.RespondAsync($"{eventArgs.Author.Mention}: Please refrain from posting Discord invites.");
+                if (guildConfig.DeleteBadMessages)
+                {
+                    await eventArgs.Message.DeleteAsync("Exceeded max line limit.");
+                }
 
-							if (guildConfig.DeleteBadMessages)
-							{
-								await eventArgs.Message.DeleteAsync("Posted Discord invite.");
-							}
+                if (guildConfig.AutoStrikes)
+                {
+                    CommandsNextExtension commandsNext = client.GetCommandsNext();
+                    Command command = commandsNext.FindCommand($"strike {eventArgs.Author.Mention} Please refrain from spamming new lines.", out string args);
+                    CommandContext context = commandsNext.CreateContext(message, ">>", command, args);
+                    await commandsNext.ExecuteCommandAsync(context);
+                }
+            }
 
-							if (guildConfig.AutoStrikes)
-							{
-								CommandsNextExtension commandsNext = client.GetCommandsNext();
-								Command command = commandsNext.FindCommand($"strike {eventArgs.Author.Mention} Please refrain from posting Discord invites.", out string args);
-								CommandContext context = commandsNext.CreateContext(message, ">>", command, args);
-								await commandsNext.ExecuteCommandAsync(context);
-							}
-						}
-					}
-				}
-			}
-		}
-	}
+            if (guildConfig.AntiInvite)
+            {
+                Match messageInvites = InviteRegex.Match(eventArgs.Message.Content);
+                if (messageInvites.Success)
+                {
+                    CaptureCollection invites = messageInvites.Captures;
+                    foreach (Capture capture in invites)
+                    {
+                        if (!guildConfig.AllowedInvites.Contains(capture.Value))
+                        {
+                            await eventArgs.Message.DeleteAsync($"Invite {Formatter.InlineCode(capture.Value)} is not whitelisted.");
+                            DiscordMessage message = await eventArgs.Message.RespondAsync($"{eventArgs.Author.Mention}: Please refrain from posting Discord invites.");
+
+                            if (guildConfig.DeleteBadMessages)
+                            {
+                                await eventArgs.Message.DeleteAsync("Posted Discord invite.");
+                            }
+
+                            if (guildConfig.AutoStrikes)
+                            {
+                                CommandsNextExtension commandsNext = client.GetCommandsNext();
+                                Command command = commandsNext.FindCommand($"strike {eventArgs.Author.Mention} Please refrain from posting Discord invites.", out string args);
+                                CommandContext context = commandsNext.CreateContext(message, ">>", command, args);
+                                await commandsNext.ExecuteCommandAsync(context);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
