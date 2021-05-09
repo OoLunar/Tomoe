@@ -4,12 +4,13 @@ namespace Tomoe.Commands.Listeners
     using DSharpPlus.Entities;
     using DSharpPlus.EventArgs;
     using Serilog;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
 
     public class GuildDownloadCompleted
     {
         private static readonly ILogger _logger = Log.ForContext<GuildDownloadCompleted>();
-        internal static int MemberCount;
+        internal static Dictionary<ulong, int> MemberCount = new();
 
         /// <summary>
         /// Changes the bot status whenever everything is ready.
@@ -18,7 +19,13 @@ namespace Tomoe.Commands.Listeners
         /// <param name="_eventArgs">Unused <see cref="ReadyEventArgs"/>.</param>
         public static async Task Handler(DiscordClient client, GuildDownloadCompletedEventArgs eventArgs)
         {
-            _logger.Information($"Ready! Handling {eventArgs.Guilds.Count} guilds and {MemberCount} guild members");
+            int totalMemberCount = 0;
+            foreach (int i in MemberCount.Values)
+            {
+                totalMemberCount += i;
+            }
+
+            _logger.Information($"Ready! Handling {eventArgs.Guilds.Count} guilds and {totalMemberCount} guild members");
             await client.UpdateStatusAsync(new DiscordActivity("for bad things", ActivityType.Watching), UserStatus.Online);
         }
     }

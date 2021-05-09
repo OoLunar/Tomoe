@@ -17,7 +17,7 @@ namespace Tomoe.Commands.Moderation
         public async Task ByUser(CommandContext context, LogType logType, DiscordChannel channel, bool isEnabled = false)
         {
             await ByProgram(context, logType, channel, isEnabled);
-            _ = await Program.SendMessage(context, $"Event {logType.Humanize()} will now be recorded in channel {channel.Mention}");
+            await Program.SendMessage(context, $"Event {logType.Humanize()} will now be recorded in channel {channel.Mention}");
         }
 
         public static async Task ByProgram(CommandContext context, LogType logType, DiscordChannel channel, bool isEnabled)

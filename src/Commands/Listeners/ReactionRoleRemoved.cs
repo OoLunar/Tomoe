@@ -34,8 +34,8 @@ namespace Tomoe.Commands.Listeners
             // if the discord role has been removed, remove the reaction role from the database.
             if (discordRole == null)
             {
-                _ = database.ReactionRoles.Remove(reactionRole);
-                _ = await database.SaveChangesAsync();
+                database.ReactionRoles.Remove(reactionRole);
+                await database.SaveChangesAsync();
                 return;
             }
 

@@ -17,6 +17,7 @@ namespace Tomoe.Db
         public DbSet<Tag> Tags { get; set; }
         public DbSet<Lock> Locks { get; set; }
         public DbSet<LogSetting> LogSettings { get; set; }
+        public DbSet<Reminder> Reminders { get; set; }
 
         public Database(DbContextOptions<Database> options) : base(options) { }
 

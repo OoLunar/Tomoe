@@ -51,7 +51,7 @@ namespace Tomoe.Commands.Moderation
         public async Task Overload(CommandContext context, [Description("More details on what's being recorded."), RemainingText] string reason = Constants.MissingReason)
         {
             await Record(context.Guild, LogType.CustomEvent, null, reason);
-            _ = await Program.SendMessage(context, "Successfully recorded event into the ModLog.");
+            await Program.SendMessage(context, "Successfully recorded event into the ModLog.");
         }
 
         public static async Task Record(DiscordGuild guild, LogType action, Database database = null, [RemainingText] string reason = Constants.MissingReason)
@@ -67,11 +67,11 @@ namespace Tomoe.Commands.Moderation
             modLog.GuildId = guild.Id;
             modLog.LogId = database.ModLogs.Where(log => log.GuildId == guild.Id).Count() + 1;
             modLog.Reason = reason;
-            _ = database.ModLogs.Add(modLog);
+            database.ModLogs.Add(modLog);
             LogSetting logSetting = await database.LogSettings.FirstOrDefaultAsync(logSetting => logSetting.GuildId == guild.Id && logSetting.Action == action) ?? await database.LogSettings.FirstOrDefaultAsync(logSetting => logSetting.GuildId == guild.Id && logSetting.Action == LogType.Unknown);
             if (saveDatabase)
             {
-                _ = await database.SaveChangesAsync();
+                await database.SaveChangesAsync();
                 await database.DisposeAsync();
             }
 
@@ -87,7 +87,7 @@ namespace Tomoe.Commands.Moderation
                 discordMessageBuilder.Content = $"**{action.Humanize(LetterCasing.Title)}**: {reason}";
                 discordMessageBuilder.WithAllowedMentions(new List<IMention>());
                 discordMessageBuilder.HasTTS(false);
-                _ = await modLogChannel.SendMessageAsync(discordMessageBuilder);
+                await modLogChannel.SendMessageAsync(discordMessageBuilder);
             }
         }
     }

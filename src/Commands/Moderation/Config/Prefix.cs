@@ -15,7 +15,7 @@ namespace Tomoe.Commands.Moderation
         public async Task Prefixes(CommandContext context)
         {
             GuildConfig guildConfig = await Database.GuildConfigs.FirstOrDefaultAsync(guildConfig => guildConfig.Id == context.Guild.Id);
-            _ = await Program.SendMessage(context, $"Prefixes => {string.Join(", ", guildConfig.Prefixes.Select(prefix => Formatter.Sanitize(prefix)).DefaultIfEmpty("None set"))}. Bad messages are {(guildConfig.DeleteBadMessages ? "removed" : "kept")} when posted.");
+            await Program.SendMessage(context, $"Prefixes => {string.Join(", ", guildConfig.Prefixes.Select(prefix => Formatter.Sanitize(prefix)).DefaultIfEmpty("None set"))}. Bad messages are {(guildConfig.DeleteBadMessages ? "removed" : "kept")} when posted.");
         }
 
         [Command("prefix_add"), RequireUserPermissions(Permissions.ManageGuild), Description("Adds a prefix that the bot responds to.")]
@@ -25,8 +25,8 @@ namespace Tomoe.Commands.Moderation
             guildConfig.Prefixes.Add(prefix);
             Database.Entry(guildConfig).State = EntityState.Modified;
             await Record(context.Guild, LogType.ConfigChange, Database, $"Prefixes => {context.User.Mention} has added `{prefix}` to the prefix list.");
-            _ = await Database.SaveChangesAsync();
-            _ = await Program.SendMessage(context, $"Added \"{prefix}\" as a prefix!");
+            await Database.SaveChangesAsync();
+            await Program.SendMessage(context, $"Added \"{prefix}\" as a prefix!");
         }
 
         [Command("prefix_remove"), RequireUserPermissions(Permissions.ManageGuild), Description("Removes a prefix that the bot responds to.")]
@@ -38,12 +38,12 @@ namespace Tomoe.Commands.Moderation
             {
                 Database.Entry(guildConfig).State = EntityState.Modified;
                 await Record(context.Guild, LogType.ConfigChange, Database, $"Prefixes => {context.User.Mention} has removed `{prefix}` from the prefix list.");
-                _ = await Database.SaveChangesAsync();
-                _ = await Program.SendMessage(context, $"Removed the \"{prefix}\" prefix!");
+                await Database.SaveChangesAsync();
+                await Program.SendMessage(context, $"Removed the \"{prefix}\" prefix!");
             }
             else
             {
-                _ = await Program.SendMessage(context, $"\"{prefix}\" was never a prefix!");
+                await Program.SendMessage(context, $"\"{prefix}\" was never a prefix!");
             }
         }
 

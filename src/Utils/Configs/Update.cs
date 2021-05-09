@@ -22,5 +22,11 @@ namespace Tomoe.Utils.Configs
 
         [JsonPropertyName("user_id")]
         public ulong UserId { get; set; }
+
+        [JsonPropertyName("git_name")]
+        public string GitName { get; set; }
+
+        [JsonPropertyName("git_email")]
+        public string GitEmail { get; set; }
     }
 }

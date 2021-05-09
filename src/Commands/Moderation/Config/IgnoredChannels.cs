@@ -16,7 +16,7 @@ namespace Tomoe.Commands.Moderation
         public async Task ChannelIgnored(CommandContext context)
         {
             GuildConfig guildConfig = await Database.GuildConfigs.FirstOrDefaultAsync(guildConfig => guildConfig.Id == context.Guild.Id);
-            _ = await Program.SendMessage(context, $"Ignored Channels => {string.Join(", ", guildConfig.IgnoredChannels.Select(channelId => $"<#{channelId}>").DefaultIfEmpty("None set"))}\nTomoe will not respond when commands are used in this channel.");
+            await Program.SendMessage(context, $"Ignored Channels => {string.Join(", ", guildConfig.IgnoredChannels.Select(channelId => $"<#{channelId}>").DefaultIfEmpty("None set"))}\nTomoe will not respond when commands are used in this channel.");
         }
 
         [Command("ignore_channel"), Aliases("hide_channel", "channel_ignore"), RequireUserPermissions(Permissions.ManageChannels), Description("Prevents the bot from reading messages and executing commands in the specified channel.")]
@@ -25,15 +25,15 @@ namespace Tomoe.Commands.Moderation
             GuildConfig guildConfig = await Database.GuildConfigs.FirstOrDefaultAsync(guildConfig => guildConfig.Id == context.Guild.Id);
             if (guildConfig.IgnoredChannels.Contains(discordChannel.Id))
             {
-                _ = await Program.SendMessage(context, $"Invite discord.gg/{discordChannel.Mention} was already whitelisted!");
+                await Program.SendMessage(context, $"Invite discord.gg/{discordChannel.Mention} was already whitelisted!");
             }
             else
             {
                 guildConfig.IgnoredChannels.Add(discordChannel.Id);
                 Database.Entry(guildConfig).State = EntityState.Modified;
                 await Record(context.Guild, LogType.ConfigChange, Database, $"Ignored Channels => {context.User.Mention} has added the channel {discordChannel.Mention} to the channel ignore list.");
-                _ = await Database.SaveChangesAsync();
-                _ = await Program.SendMessage(context, $"Invite discord.gg/{discordChannel.Mention} is now whitelisted.");
+                await Database.SaveChangesAsync();
+                await Program.SendMessage(context, $"Invite discord.gg/{discordChannel.Mention} is now whitelisted.");
             }
         }
 
@@ -45,12 +45,12 @@ namespace Tomoe.Commands.Moderation
             {
                 Database.Entry(guildConfig).State = EntityState.Modified;
                 await Record(context.Guild, LogType.ConfigChange, Database, $"Ignored Channels => {context.User.Mention} has removed the channel {discordChannel.Mention} from the channel ignore list.");
-                _ = await Database.SaveChangesAsync();
-                _ = await Program.SendMessage(context, "The channel is now shown.");
+                await Database.SaveChangesAsync();
+                await Program.SendMessage(context, "The channel is now shown.");
             }
             else
             {
-                _ = await Program.SendMessage(context, "The channel wasn't hidden!");
+                await Program.SendMessage(context, "The channel wasn't hidden!");
             }
         }
 

@@ -16,7 +16,7 @@ namespace Tomoe.Commands.Moderation
         public async Task AdminList(CommandContext context)
         {
             GuildConfig guildConfig = await Database.GuildConfigs.FirstOrDefaultAsync(guildConfig => guildConfig.Id == context.Guild.Id);
-            _ = await Program.SendMessage(context, $"Admin Roles => {string.Join(", ", guildConfig.AdminRoles.Select(roleId => $"<@&{roleId}>").DefaultIfEmpty("None set"))}.");
+            await Program.SendMessage(context, $"Admin Roles => {string.Join(", ", guildConfig.AdminRoles.Select(roleId => $"<@&{roleId}>").DefaultIfEmpty("None set"))}.");
         }
 
 
@@ -26,15 +26,15 @@ namespace Tomoe.Commands.Moderation
             GuildConfig guildConfig = await Database.GuildConfigs.FirstOrDefaultAsync(guildConfig => guildConfig.Id == context.Guild.Id);
             if (guildConfig.AdminRoles.Contains(discordRole.Id))
             {
-                _ = await Program.SendMessage(context, $"The role {discordRole.Mention} was already on the admin list!");
+                await Program.SendMessage(context, $"The role {discordRole.Mention} was already on the admin list!");
             }
             else
             {
                 guildConfig.AdminRoles.Add(discordRole.Id);
                 Database.Entry(guildConfig).State = EntityState.Modified;
                 await Record(context.Guild, LogType.ConfigChange, Database, $"Admin Roles => {context.User.Mention} has added the role {discordRole} to the admin list.");
-                _ = await Database.SaveChangesAsync();
-                _ = await Program.SendMessage(context, $"The role {discordRole.Mention} is now considered an admin.");
+                await Database.SaveChangesAsync();
+                await Program.SendMessage(context, $"The role {discordRole.Mention} is now considered an admin.");
             }
         }
 
@@ -47,12 +47,12 @@ namespace Tomoe.Commands.Moderation
             {
                 Database.Entry(guildConfig).State = EntityState.Modified;
                 await Record(context.Guild, LogType.ConfigChange, Database, $"Admin Roles => {context.User.Mention} has removed the role {discordRole} from the admin list.");
-                _ = await Database.SaveChangesAsync();
-                _ = await Program.SendMessage(context, "The role is no longer considered an admin.");
+                await Database.SaveChangesAsync();
+                await Program.SendMessage(context, "The role is no longer considered an admin.");
             }
             else
             {
-                _ = await Program.SendMessage(context, "The role wasn't on the admin list!");
+                await Program.SendMessage(context, "The role wasn't on the admin list!");
             }
         }
 

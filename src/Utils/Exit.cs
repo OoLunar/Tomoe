@@ -17,7 +17,7 @@ namespace Tomoe.Utils
             await Program.Client.UpdateStatusAsync(null, UserStatus.Offline);
             await Program.Client.StopAsync();
             _logger.Information("Closing database...");
-            _ = await Program.ServiceProvider.GetService<Database>().SaveChangesAsync();
+            await Program.ServiceProvider.GetService<Database>().SaveChangesAsync();
             _logger.Information("Goodbyte!");
             Environment.Exit(0);
         }

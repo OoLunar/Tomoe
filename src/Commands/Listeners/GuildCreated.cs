@@ -28,8 +28,8 @@ namespace Tomoe.Commands.Listeners
             if (guildConfig == null)
             {
                 guildConfig = new(eventArgs.Guild.Id);
-                _ = database.GuildConfigs.Add(guildConfig);
-                _ = await database.SaveChangesAsync();
+                database.GuildConfigs.Add(guildConfig);
+                await database.SaveChangesAsync();
             }
             else
             {
@@ -68,10 +68,10 @@ namespace Tomoe.Commands.Listeners
             if (updatedGuildUsers.Count != 0)
             {
                 database.GuildUsers.AddRange(updatedGuildUsers);
-                _ = await database.SaveChangesAsync();
+                await database.SaveChangesAsync();
             }
 
-            GuildDownloadCompleted.MemberCount += eventArgs.Guild.MemberCount;
+            GuildDownloadCompleted.MemberCount[eventArgs.Guild.Id] = eventArgs.Guild.MemberCount;
             _logger.Information($"\"{eventArgs.Guild.Name}\" ({eventArgs.Guild.Id}) is ready! Handling {eventArgs.Guild.MemberCount} members.");
         }
     }

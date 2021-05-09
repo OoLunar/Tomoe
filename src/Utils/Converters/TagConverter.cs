@@ -20,7 +20,7 @@ namespace Tomoe.Utils.Converters
 
             if (tag == null)
             {
-                _ = await Program.SendMessage(context, Formatter.Bold($"[Error]: Tag `{value.ToLowerInvariant()}` not found."));
+                await Program.SendMessage(context, Formatter.Bold($"[Error]: Tag `{value.ToLowerInvariant()}` not found."));
                 return Optional.FromNoValue<Tag>();
             }
 

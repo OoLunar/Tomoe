@@ -33,7 +33,7 @@ namespace Tomoe.Commands.Listeners
                     // When invoking, the delegate should be checking if the queue had timed out or not.
                     queueEventArgs.TimedOut = true;
                     await queue.Action.Invoke(queueEventArgs);
-                    _ = QueueList.Remove(queue);
+                    QueueList.Remove(queue);
                     queue.Dispose();
                 }
                 else if (queue.User.Id != eventArgs.User.Id)
@@ -48,7 +48,7 @@ namespace Tomoe.Commands.Listeners
                         if (eventArgs.Emoji == Constants.ThumbsUp || eventArgs.Emoji == Constants.ThumbsDown)
                         {
                             await queue.Action.Invoke(queueEventArgs);
-                            _ = QueueList.Remove(queue);
+                            QueueList.Remove(queue);
                             queue.Dispose();
                         }
                         else
@@ -65,7 +65,7 @@ namespace Tomoe.Commands.Listeners
                         else
                         {
                             await queue.Action.Invoke(queueEventArgs);
-                            _ = QueueList.Remove(queue);
+                            QueueList.Remove(queue);
                             queue.Dispose();
                         }
                     }

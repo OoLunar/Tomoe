@@ -59,7 +59,7 @@ namespace Tomoe.Utils.Types
 
         public void Dispose()
         {
-            _ = ReactionAdded.QueueList.Remove(this);
+            ReactionAdded.QueueList.Remove(this);
             Message = null;
             User = null;
             Emojis = null;

@@ -21,18 +21,18 @@ namespace Tomoe.Commands.Public
         [GroupCommand]
         public async Task Send(CommandContext context, Tag tag)
         {
-            _ = Database.Tags.Attach(tag);
+            Database.Tags.Attach(tag);
             tag.Uses += 1;
             if (tag.IsAlias)
             {
                 Tag realTag = await Database.Tags.AsNoTracking().FirstOrDefaultAsync(realTag => realTag.Name == tag.AliasTo && realTag.GuildId == context.Guild.Id);
-                _ = await Program.SendMessage(context, realTag.Content);
+                await Program.SendMessage(context, realTag.Content);
             }
             else
             {
-                _ = await Program.SendMessage(context, tag.Content);
+                await Program.SendMessage(context, tag.Content);
             }
-            _ = await Database.SaveChangesAsync();
+            await Database.SaveChangesAsync();
             Database.Entry(tag).State = EntityState.Detached;
         }
 
@@ -47,7 +47,7 @@ namespace Tomoe.Commands.Public
 
             if (tag != null)
             {
-                _ = await Program.SendMessage(context, Formatter.Bold($"[Error]: Tag `{tagName}` already exists!"));
+                await Program.SendMessage(context, Formatter.Bold($"[Error]: Tag `{tagName}` already exists!"));
                 return;
             }
 
@@ -57,9 +57,9 @@ namespace Tomoe.Commands.Public
             tag.Name = tagName.ToLowerInvariant().Trim().Replace("\n", ". ");
             tag.OwnerId = context.User.Id;
             tag.TagId = Database.Tags.Where(tag => tag.GuildId == context.Guild.Id).Count();
-            _ = Database.Tags.Add(tag);
-            _ = await Database.SaveChangesAsync();
-            _ = await Program.SendMessage(context, $"Tag `{tagName}` created!");
+            Database.Tags.Add(tag);
+            await Database.SaveChangesAsync();
+            await Program.SendMessage(context, $"Tag `{tagName}` created!");
         }
 
         [Command("remove"), Description("Deletes a tag from the guild.")]
@@ -67,19 +67,19 @@ namespace Tomoe.Commands.Public
         {
             if (tag.IsAlias)
             {
-                _ = await Program.SendMessage(context, Formatter.Bold($"[Error]: Cannot alias the `{tag.Name}` alias!"));
+                await Program.SendMessage(context, Formatter.Bold($"[Error]: Cannot alias the `{tag.Name}` alias!"));
             }
             else if (context.Member.HasPermission(Permissions.ManageMessages) || await IsGuildAdmin(context, Database) || tag.OwnerId == context.User.Id)
             {
                 List<Tag> tags = await Database.Tags.Where(databaseTag => databaseTag.TagId == tag.TagId).ToListAsync();
                 tags.Add(tag);
                 Database.Tags.RemoveRange(tags);
-                _ = await Database.SaveChangesAsync();
-                _ = await Program.SendMessage(context, $"Tag `{tag.Name}` has been deleted.");
+                await Database.SaveChangesAsync();
+                await Program.SendMessage(context, $"Tag `{tag.Name}` has been deleted.");
             }
             else
             {
-                _ = await Program.SendMessage(context, Formatter.Bold($"[Error]: You do not have permission to delete tag `{tag.Name}`"));
+                await Program.SendMessage(context, Formatter.Bold($"[Error]: You do not have permission to delete tag `{tag.Name}`"));
             }
         }
 
@@ -88,17 +88,17 @@ namespace Tomoe.Commands.Public
         {
             if (tag.IsAlias)
             {
-                _ = await Program.SendMessage(context, Formatter.Bold($"[Error]: Alias `{tag.Name}` is not a tag!"));
+                await Program.SendMessage(context, Formatter.Bold($"[Error]: Alias `{tag.Name}` is not a tag!"));
             }
             else if (context.Member.HasPermission(Permissions.ManageMessages) || await IsGuildAdmin(context, Database) || tag.OwnerId == context.User.Id)
             {
                 tag.Content = newContent;
-                _ = await Database.SaveChangesAsync();
-                _ = await Program.SendMessage(context, $"Tag `{tag.Name}` has been edited.");
+                await Database.SaveChangesAsync();
+                await Program.SendMessage(context, $"Tag `{tag.Name}` has been edited.");
             }
             else
             {
-                _ = await Program.SendMessage(context, Formatter.Bold($"[Error]: You do not have permission to edit tag `{tag.Name}`"));
+                await Program.SendMessage(context, Formatter.Bold($"[Error]: You do not have permission to edit tag `{tag.Name}`"));
             }
         }
 
@@ -112,9 +112,9 @@ namespace Tomoe.Commands.Public
             aliasTag.Name = tagName.ToLowerInvariant().Trim();
             aliasTag.OwnerId = context.User.Id;
             aliasTag.TagId = tag.TagId;
-            _ = Database.Tags.Add(aliasTag);
-            _ = await Database.SaveChangesAsync();
-            _ = await Program.SendMessage(context, $"Alias `{tagName}` has been created.");
+            Database.Tags.Add(aliasTag);
+            await Database.SaveChangesAsync();
+            await Program.SendMessage(context, $"Alias `{tagName}` has been created.");
         }
 
         [Command("remove_alias"), Description("Removes an alias that points to another tag.")]
@@ -122,17 +122,17 @@ namespace Tomoe.Commands.Public
         {
             if (!tag.IsAlias)
             {
-                _ = await Program.SendMessage(context, Formatter.Bold($"[Error]: Tag `{tag.Name}` is not an alias!"));
+                await Program.SendMessage(context, Formatter.Bold($"[Error]: Tag `{tag.Name}` is not an alias!"));
             }
             else if (context.Member.HasPermission(Permissions.ManageMessages) || await IsGuildAdmin(context, Database) || tag.OwnerId == context.User.Id)
             {
-                _ = Database.Tags.Remove(tag);
-                _ = await Database.SaveChangesAsync();
-                _ = await Program.SendMessage(context, $"Tag `{tag.Name}` has been deleted.");
+                Database.Tags.Remove(tag);
+                await Database.SaveChangesAsync();
+                await Program.SendMessage(context, $"Tag `{tag.Name}` has been deleted.");
             }
             else
             {
-                _ = await Program.SendMessage(context, Formatter.Bold($"[Error]: You do not have permission to delete alias `{tag.Name}`"));
+                await Program.SendMessage(context, Formatter.Bold($"[Error]: You do not have permission to delete alias `{tag.Name}`"));
             }
         }
 
@@ -141,18 +141,18 @@ namespace Tomoe.Commands.Public
         {
             if (tag.IsAlias)
             {
-                _ = await Program.SendMessage(context, Formatter.Bold($"[Error]: Alias `{tag.Name}` is not a tag!"));
+                await Program.SendMessage(context, Formatter.Bold($"[Error]: Alias `{tag.Name}` is not a tag!"));
             }
             else if (context.Member.HasPermission(Permissions.ManageMessages) || await IsGuildAdmin(context, Database) || tag.OwnerId == context.User.Id)
             {
                 List<Tag> tags = await Database.Tags.Where(databaseTag => databaseTag.TagId == tag.TagId && databaseTag.IsAlias).ToListAsync();
                 Database.Tags.RemoveRange(tags);
-                _ = await Database.SaveChangesAsync();
-                _ = await Program.SendMessage(context, $"All aliases for tag `{tag.Name}` have been purged!");
+                await Database.SaveChangesAsync();
+                await Program.SendMessage(context, $"All aliases for tag `{tag.Name}` have been purged!");
             }
             else
             {
-                _ = await Program.SendMessage(context, Formatter.Bold($"[Error]: You do not have permission to purge all aliases for tag `{tag.Name}`"));
+                await Program.SendMessage(context, Formatter.Bold($"[Error]: You do not have permission to purge all aliases for tag `{tag.Name}`"));
             }
         }
 
@@ -164,32 +164,32 @@ namespace Tomoe.Commands.Public
         {
             DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder().GenerateDefaultEmbed(context, $"Info on tag");
             embedBuilder.Title += $" `{tag.Name}`";
-            _ = embedBuilder.AddField("Name", tag.Name, true);
-            _ = embedBuilder.AddField("Owner", $"<@{tag.OwnerId}> ({tag.OwnerId})", true);
-            _ = embedBuilder.AddField("Created At", tag.CreatedAt.ToString() + " UTC", true);
-            _ = embedBuilder.AddField("Use Count", tag.Uses.ToString(), true);
-            _ = embedBuilder.AddField("Type", tag.IsAlias ? "Alias" : "Tag", true);
+            embedBuilder.AddField("Name", tag.Name, true);
+            embedBuilder.AddField("Owner", $"<@{tag.OwnerId}> ({tag.OwnerId})", true);
+            embedBuilder.AddField("Created At", tag.CreatedAt.ToString() + " UTC", true);
+            embedBuilder.AddField("Use Count", tag.Uses.ToString(), true);
+            embedBuilder.AddField("Type", tag.IsAlias ? "Alias" : "Tag", true);
             if (tag.IsAlias)
             {
                 embedBuilder.AddField("Alias To", tag.AliasTo, true);
-                _ = await Program.SendMessage(context, null, embedBuilder.Build());
+                await Program.SendMessage(context, null, embedBuilder.Build());
             }
             else
             {
                 List<string> aliasList = await Database.Tags.Where(databaseTag => databaseTag.TagId == tag.TagId && databaseTag.IsAlias && databaseTag.GuildId == context.Guild.Id).Select(tag => tag.Name).ToListAsync();
-                _ = embedBuilder.AddField("Total Alias Count", aliasList.Count.ToString(), true);
+                embedBuilder.AddField("Total Alias Count", aliasList.Count.ToString(), true);
                 if (aliasList.Count == 0)
                 {
-                    _ = embedBuilder.AddField("Aliases", "None");
-                    _ = await Program.SendMessage(context, null, embedBuilder);
+                    embedBuilder.AddField("Aliases", "None");
+                    await Program.SendMessage(context, null, embedBuilder);
                     return;
                 }
 
                 string aliases = '`' + aliasList.Aggregate((total, part) => total + "`, `" + part) + '`';
                 if (aliases.Length <= 2000)
                 {
-                    _ = embedBuilder.AddField("Aliases", aliases);
-                    _ = await Program.SendMessage(context, null, embedBuilder);
+                    embedBuilder.AddField("Aliases", aliases);
+                    await Program.SendMessage(context, null, embedBuilder);
                 }
                 else
                 {
@@ -211,7 +211,7 @@ namespace Tomoe.Commands.Public
                 Url = tagOwner.AvatarUrl,
             };
 
-            _ = await Program.SendMessage(context, null, embedBuilder.Build());
+            await Program.SendMessage(context, null, embedBuilder.Build());
         }
 
         [Command("user"), Description("Gets general tag information about a user.")]
@@ -220,12 +220,12 @@ namespace Tomoe.Commands.Public
             DiscordEmbedBuilder embedBuilder = new();
             embedBuilder.Color = new DiscordColor("#7b84d1");
             embedBuilder.Title = "Tag info on ".Titleize() + discordUser.DisplayName;
-            _ = embedBuilder.AddField("Total Tags Created", Database.Tags.Where(databaseTag => databaseTag.OwnerId == discordUser.Id).Count().ToString(), true);
-            _ = embedBuilder.AddField("Total Tags Guild Created", Database.Tags.Where(databaseTag => databaseTag.OwnerId == discordUser.Id && databaseTag.GuildId == context.Guild.Id).Count().ToString(), true);
+            embedBuilder.AddField("Total Tags Created", Database.Tags.Where(databaseTag => databaseTag.OwnerId == discordUser.Id).Count().ToString(), true);
+            embedBuilder.AddField("Total Tags Guild Created", Database.Tags.Where(databaseTag => databaseTag.OwnerId == discordUser.Id && databaseTag.GuildId == context.Guild.Id).Count().ToString(), true);
             List<string> tagTitlesEnumerable = Database.Tags.Where(databaseTag => databaseTag.OwnerId == discordUser.Id).Select(databaseTag => databaseTag.Name).ToList();
             string tagTitles = tagTitlesEnumerable.Count == 0 ? "None" : '`' + tagTitlesEnumerable.Aggregate((total, part) => total + "`, `" + part) + '`';
-            _ = embedBuilder.AddField("Guild Tags", tagTitles, true);
-            _ = await Program.SendMessage(context, null, embedBuilder.Build());
+            embedBuilder.AddField("Guild Tags", tagTitles, true);
+            await Program.SendMessage(context, null, embedBuilder.Build());
         }
 
         public static async Task<bool> IsGuildAdmin(CommandContext context, Database database)

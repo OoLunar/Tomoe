@@ -36,8 +36,8 @@ namespace Tomoe.Utils
                 if (guildConfig == null)
                 {
                     guildConfig = new(eventArgs.Guild.Id);
-                    _ = database.GuildConfigs.Add(guildConfig);
-                    _ = await database.SaveChangesAsync();
+                    database.GuildConfigs.Add(guildConfig);
+                    await database.SaveChangesAsync();
                 }
                 // Guild exists, check to see it's not executing in an ignored channel.
                 else if (guildConfig.IgnoredChannels.Contains(eventArgs.Channel.Id))
@@ -83,7 +83,8 @@ namespace Tomoe.Utils
             };
 
             CommandContext context = commandsNext.CreateContext(eventArgs.Message, prefix, command, args);
-            _ = Task.Run(async () => await ExecuteCommandAsync(context, command));
+#pragma warning disable CS4014
+            Task.Run(async () => await ExecuteCommandAsync(context, command));
             return;
         }
 

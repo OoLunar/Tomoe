@@ -14,7 +14,7 @@ namespace Tomoe.Commands.Moderation
         public async Task AntiInvite(CommandContext context)
         {
             GuildConfig guildConfig = await Database.GuildConfigs.FirstOrDefaultAsync(guildConfig => guildConfig.Id == context.Guild.Id);
-            _ = await Program.SendMessage(context, $"AntiInvite => {guildConfig.AntiInvite}. Invites are {(guildConfig.AntiInvite ? "removed" : "kept")} when posted.");
+            await Program.SendMessage(context, $"AntiInvite => {guildConfig.AntiInvite}. Invites are {(guildConfig.AntiInvite ? "removed" : "kept")} when posted.");
         }
 
         [Command("anti_invite"), Aliases("remove_invites"), RequireUserPermissions(Permissions.ManageMessages), Description("Determines whether invites are allowed to be posted or not.")]
@@ -23,8 +23,8 @@ namespace Tomoe.Commands.Moderation
             GuildConfig guildConfig = await Database.GuildConfigs.FirstOrDefaultAsync(guildConfig => guildConfig.Id == context.Guild.Id);
             guildConfig.AntiInvite = isEnabled;
             await Record(context.Guild, LogType.ConfigChange, Database, $"AntiInvite => {context.User.Mention} has changed the AntiInvite policy to {guildConfig.AntiInvite}");
-            _ = await Database.SaveChangesAsync();
-            _ = await Program.SendMessage(context, $"Invites will now be {(guildConfig.AntiInvite ? "removed" : "kept")} when posted.");
+            await Database.SaveChangesAsync();
+            await Program.SendMessage(context, $"Invites will now be {(guildConfig.AntiInvite ? "removed" : "kept")} when posted.");
         }
     }
 }

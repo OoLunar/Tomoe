@@ -44,7 +44,7 @@ namespace Tomoe.Commands.Moderation
             embedBuilder.AddField("**Antimeme Role**", guildConfig.AntimemeRole == 0 ? "Not set" : $"<@&{guildConfig.AntimemeRole}>", true);
             embedBuilder.AddField("**Mute Role**", guildConfig.MuteRole == 0 ? "Not set" : $"<@&{guildConfig.MuteRole}>", true);
             embedBuilder.AddField("**Voiceban Role**", guildConfig.VoicebanRole == 0 ? "Not set" : $"<@&{guildConfig.VoicebanRole}>", true);
-            _ = await Program.SendMessage(context, null, embedBuilder.Build());
+            await Program.SendMessage(context, null, embedBuilder.Build());
         }
     }
 }

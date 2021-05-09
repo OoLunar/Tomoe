@@ -51,7 +51,7 @@ namespace Tomoe.Commands.Moderation
             database.Locks.RemoveRange(locks);
             if (saveDatabase)
             {
-                _ = await database.SaveChangesAsync();
+                await database.SaveChangesAsync();
                 await database.DisposeAsync();
             }
         }
@@ -61,8 +61,8 @@ namespace Tomoe.Commands.Moderation
         {
             await UnlockChannel(context, channel, null, Database);
             await Record(context.Guild, LogType.UnlockChannel, Database, $"{context.User.Mention} unlocked channel {channel.Mention}. Reason: {unlockReason}");
-            _ = await Database.SaveChangesAsync();
-            _ = await Program.SendMessage(context, $"Channel successfully unlocked. Permissions were restored to what they were before.");
+            await Database.SaveChangesAsync();
+            await Program.SendMessage(context, $"Channel successfully unlocked. Permissions were restored to what they were before.");
         }
 
         [Command("channel")]
@@ -76,8 +76,8 @@ namespace Tomoe.Commands.Moderation
                 await UnlockChannel(context, channel, null, Database);
             }
             await Record(context.Guild, LogType.UnlockServer, Database, $"{context.User.Mention} unlocked the server. Reason: {unlockReason}");
-            _ = await Database.SaveChangesAsync();
-            _ = await Program.SendMessage(context, $"Server successfully unlocked. Permissions were restored to what they were before.");
+            await Database.SaveChangesAsync();
+            await Program.SendMessage(context, $"Server successfully unlocked. Permissions were restored to what they were before.");
         }
 
         [Command("role")]
@@ -90,15 +90,15 @@ namespace Tomoe.Commands.Moderation
                     await UnlockChannel(context, guildChannel, new() { role }, Database);
                 }
                 await Record(context.Guild, LogType.UnlockRole, Database, $"{context.User.Mention} unlocked the role {role.Mention} across the server. Reason: {unlockReason}");
-                _ = await Database.SaveChangesAsync();
-                _ = await Program.SendMessage(context, $"{role.Mention} is now unlocked across the server. Permissions were restored to what they were before.");
+                await Database.SaveChangesAsync();
+                await Program.SendMessage(context, $"{role.Mention} is now unlocked across the server. Permissions were restored to what they were before.");
             }
             else
             {
                 await UnlockChannel(context, channel, new() { role }, Database);
                 await Record(context.Guild, LogType.UnlockRole, Database, $"{context.User.Mention} unlocked the server. Reason: {unlockReason}");
-                _ = await Database.SaveChangesAsync();
-                _ = await Program.SendMessage(context, $"Role successfully unlocked in channel {channel.Mention}. Permissions were restored to what they were before.");
+                await Database.SaveChangesAsync();
+                await Program.SendMessage(context, $"Role successfully unlocked in channel {channel.Mention}. Permissions were restored to what they were before.");
             }
         }
 
@@ -116,8 +116,8 @@ namespace Tomoe.Commands.Moderation
                     }
                 }
                 await Record(context.Guild, LogType.UnlockBots, Database, $"{context.User.Mention} unlocked the bots across the server. Reason: {unlockReason}");
-                _ = await Database.SaveChangesAsync();
-                _ = await Program.SendMessage(context, $"The bots can now send messages or react in the server. Permissions were restored to what they were before.");
+                await Database.SaveChangesAsync();
+                await Program.SendMessage(context, $"The bots can now send messages or react in the server. Permissions were restored to what they were before.");
             }
             else
             {
@@ -126,8 +126,8 @@ namespace Tomoe.Commands.Moderation
                     await UnlockChannel(context, channel, new() { role }, Database);
                 }
                 await Record(context.Guild, LogType.UnlockBots, Database, $"{context.User.Mention} unlocked bots from the channel {channel.Mention}. Reason: {unlockReason}");
-                _ = await Database.SaveChangesAsync();
-                _ = await Program.SendMessage(context, $"Bots are successfully unlocked in channel {channel.Mention}. Permissions were restored to what they were before.");
+                await Database.SaveChangesAsync();
+                await Program.SendMessage(context, $"Bots are successfully unlocked in channel {channel.Mention}. Permissions were restored to what they were before.");
             }
         }
     }

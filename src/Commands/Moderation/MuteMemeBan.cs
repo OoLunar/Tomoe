@@ -30,7 +30,7 @@ namespace Tomoe.Commands.Moderation
         {
             if (discordRole == null)
             {
-                _ = await Program.SendMessage(context, Constants.MissingRole);
+                await Program.SendMessage(context, Constants.MissingRole);
                 return;
             }
 
@@ -49,10 +49,10 @@ namespace Tomoe.Commands.Moderation
             }
             catch (ArgumentException error)
             {
-                _ = await Program.SendMessage(context, error.Message);
+                await Program.SendMessage(context, error.Message);
                 return;
             }
-            _ = await Program.SendMessage(context, $"{victim.Mention} has been {rolename}{(sentDm ? '.' : " (Failed to dm).")} Reason: ```\n{punishReason}```");
+            await Program.SendMessage(context, $"{victim.Mention} has been {rolename}{(sentDm ? '.' : " (Failed to dm).")} Reason: ```\n{punishReason}```");
         }
 
         public static async Task<bool> ByProgram(DiscordGuild discordGuild, DiscordUser victim, DiscordUser issuer, string punishReason, RoleAction roleAction, DiscordRole discordRole, string dmMessage)
@@ -102,7 +102,7 @@ namespace Tomoe.Commands.Moderation
             };
 
             await Record(discordGuild, logType, database, $"{issuer.Mention} {rolename} {victim.Mention}{(sentDm ? '.' : " (Failed to dm).")} Reason: {punishReason}");
-            _ = await database.SaveChangesAsync();
+            await database.SaveChangesAsync();
             return sentDm;
         }
     }

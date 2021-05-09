@@ -16,9 +16,14 @@ namespace Tomoe.Commands.Moderation
         public async Task ByUser(CommandContext context, [Description("Who to remove from the guild.")] DiscordUser victim, [Description("Why is the victim being removed from the guild?"), RemainingText] string kickReason = Constants.MissingReason)
         {
             DiscordMember guildVictim = await victim.Id.GetMember(context.Guild);
-            _ = guildVictim == null
-                ? await Program.SendMessage(context, Formatter.Bold($"[Error]: User {victim.Mention} is not in the guild!"))
-                : await Program.SendMessage(context, $"{victim.Mention} has been kicked{(await ByProgram(context.Guild, guildVictim, context.User, context.Message.JumpLink, kickReason) ? '.' : " (Failed to dm).")}");
+            if (guildVictim == null)
+            {
+                await Program.SendMessage(context, Formatter.Bold($"[Error]: User {victim.Mention} is not in the guild!"));
+            }
+            else
+            {
+                await Program.SendMessage(context, $"{victim.Mention} has been kicked{(await ByProgram(context.Guild, guildVictim, context.User, context.Message.JumpLink, kickReason) ? '.' : " (Failed to dm).")}");
+            }
         }
 
         public static async Task<bool> ByProgram(DiscordGuild discordGuild, DiscordMember victim, DiscordUser issuer, Uri jumplink, [RemainingText] string kickReason = Constants.MissingReason)

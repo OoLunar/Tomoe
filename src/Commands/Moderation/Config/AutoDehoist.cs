@@ -14,7 +14,7 @@ namespace Tomoe.Commands.Moderation
         public async Task AutoDehoist(CommandContext context)
         {
             GuildConfig guildConfig = await Database.GuildConfigs.FirstOrDefaultAsync(guildConfig => guildConfig.Id == context.Guild.Id);
-            _ = await Program.SendMessage(context, $"AutoDehoist => {guildConfig.AutoDehoist}. Hoisted nicknames are {(guildConfig.AutoDehoist ? $"renamed to {Formatter.InlineCode("dehoisted")}" : "kept")}.");
+            await Program.SendMessage(context, $"AutoDehoist => {guildConfig.AutoDehoist}. Hoisted nicknames are {(guildConfig.AutoDehoist ? $"renamed to {Formatter.InlineCode("dehoisted")}" : "kept")}.");
         }
 
         [Command("auto_dehoist"), Aliases("dehoist"), RequireUserPermissions(Permissions.ManageNicknames), Description("Determines whether nicknames are allowed at the top of the list or not.")]
@@ -23,8 +23,8 @@ namespace Tomoe.Commands.Moderation
             GuildConfig guildConfig = await Database.GuildConfigs.FirstOrDefaultAsync(guildConfig => guildConfig.Id == context.Guild.Id);
             guildConfig.AutoDehoist = isEnabled;
             await Record(context.Guild, LogType.ConfigChange, Database, $"AutoDehoist => {context.User.Mention} has changed the AutoDehoist policy to {guildConfig.AutoDehoist}");
-            _ = await Database.SaveChangesAsync();
-            _ = await Program.SendMessage(context, $"Hoisted nicknames will now be {(guildConfig.AutoDehoist ? $"renamed to {Formatter.InlineCode("dehoisted")}" : "kept")}.");
+            await Database.SaveChangesAsync();
+            await Program.SendMessage(context, $"Hoisted nicknames will now be {(guildConfig.AutoDehoist ? $"renamed to {Formatter.InlineCode("dehoisted")}" : "kept")}.");
         }
     }
 }

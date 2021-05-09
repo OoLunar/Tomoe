@@ -95,7 +95,7 @@ namespace Tomoe.Commands.Moderation
                 {
                     if (eventArgs.TimedOut || eventArgs.MessageReactionAddEventArgs.Emoji == Constants.ThumbsDown)
                     {
-                        _ = await message.ModifyAsync(Formatter.Strike(message.Content) + '\n' + Formatter.Bold("[Notice: Aborting!]"));
+                        await message.ModifyAsync(Formatter.Strike(message.Content) + '\n' + Formatter.Bold("[Notice: Aborting!]"));
                     }
                     else
                     {
@@ -107,7 +107,7 @@ namespace Tomoe.Commands.Moderation
 
             Checklist checklist = new(context, "Saving role id to database...", "Override channel permissions for role...");
             await Record(context.Guild, LogType.ConfigChange, Database, $"{roleAction} Role => {context.User.Mention} has changed the {roleAction} role to {role.Mention}");
-            _ = await Database.SaveChangesAsync();
+            await Database.SaveChangesAsync();
             await checklist.Check();
             FixPermissions(context.Guild, roleAction, role);
             await checklist.Finalize($"Role {role.Mention} is now set as the {roleAction} role!");

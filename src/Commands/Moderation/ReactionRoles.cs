@@ -32,15 +32,15 @@ namespace Tomoe.Commands.Moderation
             ReactionRole databaseReactionRole = Database.ReactionRoles.FirstOrDefault(databaseReactionRole => databaseReactionRole.GuildId == reactionRole.GuildId && databaseReactionRole.MessageId == reactionRole.MessageId && databaseReactionRole.EmojiName == reactionRole.EmojiName);
             if (databaseReactionRole != null)
             {
-                _ = await Program.SendMessage(context, Formatter.Bold($"[Error]: Message {message.Id} already has the emoji {emoji} assigned to it!"));
+                await Program.SendMessage(context, Formatter.Bold($"[Error]: Message {message.Id} already has the emoji {emoji} assigned to it!"));
                 return;
             }
 
-            _ = Database.ReactionRoles.Add(reactionRole);
+            Database.ReactionRoles.Add(reactionRole);
             await Record(context.Guild, LogType.ReactionRoleCreate, Database, $"{context.User} assigned {emoji} to role {role.Mention} on message {message.JumpLink}");
-            _ = await Database.SaveChangesAsync();
+            await Database.SaveChangesAsync();
             await message.CreateReactionAsync(emoji);
-            _ = await Program.SendMessage(context, $"Reaction role created! When someone reacts with {emoji} on <{message.JumpLink}>, they'll be given the {role.Mention} role.");
+            await Program.SendMessage(context, $"Reaction role created! When someone reacts with {emoji} on <{message.JumpLink}>, they'll be given the {role.Mention} role.");
         }
 
         [GroupCommand]
@@ -52,7 +52,7 @@ namespace Tomoe.Commands.Moderation
             }
             else
             {
-                _ = await Program.SendMessage(context, Formatter.Bold("[Error]: Message reply required."));
+                await Program.SendMessage(context, Formatter.Bold("[Error]: Message reply required."));
             }
         }
 
@@ -68,7 +68,7 @@ namespace Tomoe.Commands.Moderation
 
             if (reactionRoles.Length == 0)
             {
-                _ = await Program.SendMessage(context, Formatter.Bold("[Error]: No reaction roles found!"));
+                await Program.SendMessage(context, Formatter.Bold("[Error]: No reaction roles found!"));
                 return;
             }
 
@@ -91,7 +91,7 @@ namespace Tomoe.Commands.Moderation
                 DiscordRole discordRole = context.Guild.GetRole(reactionRole.RoleId);
                 if (discordRole == null)
                 {
-                    _ = Database.ReactionRoles.Remove(reactionRole);
+                    Database.ReactionRoles.Remove(reactionRole);
                     await checklist.Fail();
                 }
 
@@ -117,7 +117,7 @@ namespace Tomoe.Commands.Moderation
             StringBuilder stringBuilder = new();
             foreach (ReactionRole reactionRole in Database.ReactionRoles.Where(reactionRole => reactionRole.MessageId == message.Id && reactionRole.GuildId == context.Guild.Id))
             {
-                _ = stringBuilder.AppendLine($"{DiscordEmoji.FromName(context.Client, reactionRole.EmojiName, true)} => {context.Guild.GetRole(reactionRole.RoleId).Mention}");
+                stringBuilder.AppendLine($"{DiscordEmoji.FromName(context.Client, reactionRole.EmojiName, true)} => {context.Guild.GetRole(reactionRole.RoleId).Mention}");
             }
 
             DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder().GenerateDefaultEmbed(context, $"Reaction Roles on Message");
@@ -125,7 +125,7 @@ namespace Tomoe.Commands.Moderation
             if (stringBuilder.Length <= 2000)
             {
                 embedBuilder.Description = stringBuilder.ToString();
-                _ = await Program.SendMessage(context, null, embedBuilder.Build());
+                await Program.SendMessage(context, null, embedBuilder.Build());
             }
             else
             {
@@ -141,14 +141,14 @@ namespace Tomoe.Commands.Moderation
             ReactionRole databaseReactionRole = Database.ReactionRoles.FirstOrDefault(databaseReactionRole => databaseReactionRole.GuildId == context.Guild.Id && databaseReactionRole.MessageId == message.Id && databaseReactionRole.EmojiName == (emoji.Id == 0 ? emoji.GetDiscordName() : emoji.Id.ToString()));
             if (databaseReactionRole != null)
             {
-                _ = Database.ReactionRoles.Remove(databaseReactionRole);
+                Database.ReactionRoles.Remove(databaseReactionRole);
                 await Record(context.Guild, LogType.ReactionRoleDelete, Database, $"{context.User} deleted {emoji} which assigned role <@&{databaseReactionRole.RoleId}> on message {message.JumpLink}");
-                _ = await Database.SaveChangesAsync();
-                _ = await Program.SendMessage(context, $"Reaction role with {emoji} on <{message.JumpLink}>, will no longer be given the <@&{databaseReactionRole.RoleId}> role.");
+                await Database.SaveChangesAsync();
+                await Program.SendMessage(context, $"Reaction role with {emoji} on <{message.JumpLink}>, will no longer be given the <@&{databaseReactionRole.RoleId}> role.");
             }
             else
             {
-                _ = await Program.SendMessage(context, Formatter.Bold($"[Error]: No reaction role was found with {emoji} on message <{message.JumpLink}>"));
+                await Program.SendMessage(context, Formatter.Bold($"[Error]: No reaction role was found with {emoji} on message <{message.JumpLink}>"));
             }
         }
     }

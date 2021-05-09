@@ -39,8 +39,8 @@ namespace Tomoe.Commands.Listeners
                 else
                 {
                     user = new(eventArgs.Member.Id);
-                    _ = database.GuildUsers.Add(user);
-                    _ = await database.SaveChangesAsync();
+                    database.GuildUsers.Add(user);
+                    await database.SaveChangesAsync();
                 }
             }
         }

@@ -52,7 +52,7 @@ namespace Tomoe.Utils.Converters
                     }
 
                     char captureChar = groupCapture[^1];
-                    _ = int.TryParse(groupCapture[..groupCapture.Length], NumberStyles.Integer, CultureInfo.InvariantCulture, out int intValue);
+                    int.TryParse(groupCapture[..groupCapture.Length], NumberStyles.Integer, CultureInfo.InvariantCulture, out int intValue);
                     switch (captureChar)
                     {
                         case 'd':

@@ -4,13 +4,11 @@ namespace Tomoe.Commands.Moderation
     using DSharpPlus.CommandsNext;
     using DSharpPlus.CommandsNext.Attributes;
     using DSharpPlus.Entities;
-    using System.IO;
-    using System.IO.Compression;
-    using System.Net.Http;
-    using System.Net.Http.Headers;
-    using System.Text.Json;
-    using System.Text.Json.Serialization;
+    using LibGit2Sharp;
+    using System;
+    using System.Linq;
     using System.Threading.Tasks;
+    using Tomoe.Utils;
     using Tomoe.Utils.Types;
 
     public class Update : BaseCommandModule
@@ -18,18 +16,21 @@ namespace Tomoe.Commands.Moderation
         [Command("update"), RequireOwner, Description("Updates the bot to the latest version. Branch is set in the config.")]
         public async Task ByUser(CommandContext context)
         {
-            string latestVersion = await GetLatestVersion();
-            if (latestVersion == Constants.Version)
+            await Program.SendMessage(context, "Broken. See https://github.com/libgit2/libgit2sharp/issues/1883");
+            string latestVersion = GetLatestVersion().FriendlyName.ToLowerInvariant();
+            if (latestVersion == Constants.Version.ToLowerInvariant())
             {
-                _ = await Program.SendMessage(context, "Currently on the latest version!");
+                await Program.SendMessage(context, "Currently on the latest version!");
             }
             else
             {
                 if (Program.Config.Update.AutoUpdate)
                 {
-                    Checklist checklist = new(context, "Downloading latest version...", "Extracting latest version...");
-                    await Download(latestVersion);
-                    await checklist.Finalize("Rebooting", true);
+                    Checklist checklist = new(context, "Downloading latest version...", "Rebooting...");
+                    Download();
+                    await checklist.Finalize("Rebooting", false);
+                    System.Diagnostics.Process.Start(Environment.GetCommandLineArgs()[0], string.Join(' ', Environment.GetCommandLineArgs().Skip(1)));
+                    Quit.ConsoleShutdown(null, null);
                 }
                 else
                 {
@@ -38,64 +39,39 @@ namespace Tomoe.Commands.Moderation
                     {
                         if (eventArgs.TimedOut || eventArgs.MessageReactionAddEventArgs.Emoji == Constants.ThumbsDown)
                         {
-                            _ = await message.ModifyAsync(Formatter.Strike(Formatter.Strip(message.Content)) + "\nNot updating!");
+                            await message.ModifyAsync(Formatter.Strike(Formatter.Strip(message.Content)) + "\nNot updating!");
                         }
                         else
                         {
-                            Checklist checklist = new(context, "Downloading latest version...", "Extracting latest version...");
-                            await Download(latestVersion);
-                            await checklist.Finalize("Rebooting", true);
+                            Checklist checklist = new(context, "Downloading latest version...", "Rebooting");
+                            Download();
+                            await checklist.Finalize("Rebooting", false);
+                            System.Diagnostics.Process.Start(Environment.GetCommandLineArgs()[0], string.Join(' ', Environment.GetCommandLineArgs().Skip(1)));
+                            Quit.ConsoleShutdown(null, null);
                         }
                     }));
                 }
             }
         }
 
-        public static async Task<string> GetLatestVersion()
+        public static Tag GetLatestVersion()
         {
-            HttpClient client = new();
-            client.DefaultRequestHeaders.Accept.Add(MediaTypeWithQualityHeaderValue.Parse("application/vnd.github.v3+json"));
-            string githubLatestVersion = "";
-            if (Program.Config.Update.Branch.ToLowerInvariant() == "beta")
-            {
-                githubLatestVersion = JsonSerializer.Deserialize<JsonElement>(await client.GetStringAsync("https://api.github.com/repos/OoLunar/Mod_Downloader/tags?per_page=1")).GetProperty("0.name").GetString();
-            }
-            else if (Program.Config.Update.Branch.ToLowerInvariant() == "public")
-            {
-                githubLatestVersion = JsonSerializer.Deserialize<JsonElement>(await client.GetStringAsync("https://api.github.com/repos/OoLunar/Mod_Downloader/releases/latest")).GetProperty("tag_name").GetString();
-            }
-            return githubLatestVersion.ToLowerInvariant();
+            using Repository repo = new("./");
+            return repo.Tags
+                .OrderByDescending(tag => tag.FriendlyName) // Order by version: 2.0.0, 1.2.0, 1.0.0, etc
+                .First(tag => Program.Config.Update.Branch != "public" || !tag.FriendlyName.Contains("beta")); // If the branch is not public, then return the latest tag. Else, give me a tag that doesn't include "beta" in the name
         }
 
-        public static async Task Download(string latestVersion)
+        public static void Download()
         {
-            HttpClient client = new();
-            string githubDownloadLink = "";
-            if (Program.Config.Update.Branch.ToLowerInvariant() == "beta")
-            {
-                githubDownloadLink = JsonSerializer.Deserialize<JsonElement>(await client.GetStringAsync($"https://api.github.com/repos/OoLunar/Mod_Downloader/tag/{latestVersion}")).GetProperty("0.zipball_url").GetString();
-            }
-            else if (Program.Config.Update.Branch.ToLowerInvariant() == "public")
-            {
-                githubDownloadLink = JsonSerializer.Deserialize<JsonElement>(await client.GetStringAsync($"https://api.github.com/repos/OoLunar/Mod_Downloader/releases/{latestVersion}")).GetProperty("zipball_url").GetString();
-            }
-            Directory.Delete("./*", true);
-            File.WriteAllBytes($"Tomoe-{latestVersion}.zip", await client.GetByteArrayAsync(githubDownloadLink));
-            ZipArchive zipArchive = ZipFile.Open($"Tomoe-{latestVersion}.zip", ZipArchiveMode.Read);
-            zipArchive.ExtractToDirectory("./", true);
-            FileStream configFile = File.Open("./res/config.jsonc.prod", FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read);
-            JsonSerializerOptions jsonSerializerOptions = new()
-            {
-                AllowTrailingCommas = false,
-                IgnoreReadOnlyFields = false,
-                IgnoreReadOnlyProperties = false,
-                IncludeFields = true,
-                NumberHandling = JsonNumberHandling.Strict,
-                PropertyNamingPolicy = null,
-                WriteIndented = true
-            };
-            await JsonSerializer.SerializeAsync(configFile, Program.Config, jsonSerializerOptions);
-            configFile.Close();
+            using Repository repo = new("./");
+            Tag latestTag = GetLatestVersion();
+            CherryPickOptions cherryPickOptions = new();
+            cherryPickOptions.FailOnConflict = false;
+            cherryPickOptions.FileConflictStrategy = CheckoutFileConflictStrategy.Theirs;
+            cherryPickOptions.FindRenames = true;
+            cherryPickOptions.IgnoreWhitespaceChange = false;
+            repo.CherryPick((Commit)latestTag.Target, new Signature(Program.Config.Update.GitName, Program.Config.Update.GitEmail, DateTimeOffset.Now), cherryPickOptions);
         }
     }
 }

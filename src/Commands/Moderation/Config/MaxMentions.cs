@@ -14,7 +14,7 @@ namespace Tomoe.Commands.Moderation
         public async Task MaxMentions(CommandContext context)
         {
             GuildConfig guildConfig = await Database.GuildConfigs.FirstOrDefaultAsync(guildConfig => guildConfig.Id == context.Guild.Id);
-            _ = await Program.SendMessage(context, $"Max Unique Mentions Per Message => {guildConfig.MaxUniqueMentionsPerMessage}. Messages with more than {guildConfig.MaxLinesPerMessage} will be removed.");
+            await Program.SendMessage(context, $"Max Unique Mentions Per Message => {guildConfig.MaxUniqueMentionsPerMessage}. Messages with more than {guildConfig.MaxLinesPerMessage} will be removed.");
         }
 
         [Command("max_mentions"), RequireUserPermissions(Permissions.ManageMessages), Description("Sets the maximum mentions allowed in a message. Unique user pings and unique role pings are added together for the total ping count, which determines if the user gets a strike or not.")]
@@ -23,8 +23,8 @@ namespace Tomoe.Commands.Moderation
             GuildConfig guildConfig = await Database.GuildConfigs.FirstOrDefaultAsync(guildConfig => guildConfig.Id == context.Guild.Id);
             guildConfig.MaxUniqueMentionsPerMessage = maxMentionCount;
             await Record(context.Guild, LogType.ConfigChange, Database, $"MaxMentions => {context.User.Mention} has changed the max mentions count to {guildConfig.MaxUniqueMentionsPerMessage}");
-            _ = await Database.SaveChangesAsync();
-            _ = await Program.SendMessage(context, $"The maximum mentions allowed in a message is now {maxMentionCount}.");
+            await Database.SaveChangesAsync();
+            await Program.SendMessage(context, $"The maximum mentions allowed in a message is now {maxMentionCount}.");
         }
     }
 }

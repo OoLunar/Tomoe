@@ -25,14 +25,14 @@ namespace Tomoe.Utils.Converters
             bool convertedSuccessfully = int.TryParse(value, NumberStyles.Number, CultureInfo.InvariantCulture, out int strikeId);
             if (!convertedSuccessfully)
             {
-                _ = await Program.SendMessage(context, $"{Formatter.InlineCode(value)} is not a valid strike id!");
+                await Program.SendMessage(context, $"{Formatter.InlineCode(value)} is not a valid strike id!");
                 return Optional.FromNoValue<Strike>();
             }
             Strike strike = await database.Strikes.AsNoTracking().FirstOrDefaultAsync(strike => strike.LogId == strikeId && strike.GuildId == context.Guild.Id);
             database.Dispose();
             if (strike == null)
             {
-                _ = await Program.SendMessage(context, $"Strike #{strikeId} not found!");
+                await Program.SendMessage(context, $"Strike #{strikeId} not found!");
                 return Optional.FromNoValue<Strike>();
             }
             else

@@ -39,11 +39,11 @@ namespace Tomoe.Commands.Moderation
             strike.VictimId = victim.Id;
             strike.LogId = database.Strikes.Where(strike => strike.GuildId == context.Guild.Id).Count() + 1;
             strike.VictimMessaged = await (await victim.Id.GetMember(context.Guild)).TryDmMember($"You've been given a strike by {context.User.Mention} from {Formatter.Bold(context.Guild.Name)}. Reason: {Formatter.BlockCode(Formatter.Strip(strikeReason))}Context: {context.Message.JumpLink}");
-            _ = database.Strikes.Add(strike);
+            database.Strikes.Add(strike);
             await Record(context.Guild, LogType.Strike, database, $"{context.User.Mention} striked {victim.Mention}{(strike.VictimMessaged ? '.' : "(failed to dm.)")} Reason: {strikeReason}");
             if (saveDatabase)
             {
-                _ = await database.SaveChangesAsync();
+                await database.SaveChangesAsync();
                 database.Dispose();
             }
             return strike.VictimMessaged;
@@ -55,7 +55,7 @@ namespace Tomoe.Commands.Moderation
             // CommandHandler will handle the HierarchyException that ExecuteCheckAsync throws.
             if (await new Punishment(false).ExecuteCheckAsync(context, false))
             {
-                _ = await Program.SendMessage(context, $"{victim.Mention} has been striked{(await ByProgram(context, victim, null, strikeReason) ? '.' : "(failed to dm.)")}");
+                await Program.SendMessage(context, $"{victim.Mention} has been striked{(await ByProgram(context, victim, null, strikeReason) ? '.' : "(failed to dm.)")}");
             }
         }
 
@@ -64,7 +64,7 @@ namespace Tomoe.Commands.Moderation
         {
             if (strike.Dropped)
             {
-                _ = await Program.SendMessage(context, $"Strike #{strike.LogId} is already dropped!");
+                await Program.SendMessage(context, $"Strike #{strike.LogId} is already dropped!");
                 return;
             }
 
@@ -79,8 +79,8 @@ namespace Tomoe.Commands.Moderation
             strike.Dropped = true;
             Database.Entry(strike).State = EntityState.Modified;
             await Record(context.Guild, LogType.Pardon, Database, $"{context.User.Mention} dropped <@{strike.VictimId}>'s strike #{strike.LogId}{(sentDm ? '.' : "(failed to dm).")} Reason: {dropReason}");
-            _ = await Database.SaveChangesAsync();
-            _ = await Program.SendMessage(context, $"Strike #{strike.LogId} has been dropped{(sentDm ? '.' : "(failed to dm.)")}");
+            await Database.SaveChangesAsync();
+            await Program.SendMessage(context, $"Strike #{strike.LogId} has been dropped{(sentDm ? '.' : "(failed to dm.)")}");
             Database.Entry(strike).State = EntityState.Detached;
         }
 
@@ -94,7 +94,7 @@ namespace Tomoe.Commands.Moderation
             Strike strike = Database.Strikes.AsNoTracking().LastOrDefault(strike => strike.VictimId == victim.Id && strike.GuildId == context.Guild.Id);
             if (strike == null)
             {
-                _ = await Program.SendMessage(context, $"{victim.Mention} doesn't have any strikes!");
+                await Program.SendMessage(context, $"{victim.Mention} doesn't have any strikes!");
             }
             else
             {
@@ -126,13 +126,13 @@ namespace Tomoe.Commands.Moderation
                 if (i != 0 && (i % 25) == 0)
                 {
                     pages.Add(new(null, embedBuilder));
-                    _ = embedBuilder.ClearFields();
+                    embedBuilder.ClearFields();
                 }
-                _ = embedBuilder.AddField(i == 0 ? $"Reason 1 (Original)" : $"Reason {i + 1}", Formatter.MaskedUrl(strike.Reasons[i], new Uri(strike.JumpLinks[i])), true);
+                embedBuilder.AddField(i == 0 ? $"Reason 1 (Original)" : $"Reason {i + 1}", Formatter.MaskedUrl(strike.Reasons[i], new Uri(strike.JumpLinks[i])), true);
             }
             if (pages.Count == 0)
             {
-                _ = await Program.SendMessage(context, null, embedBuilder);
+                await Program.SendMessage(context, null, embedBuilder);
             }
             else
             {
@@ -156,7 +156,7 @@ namespace Tomoe.Commands.Moderation
             Strike[] pastStrikes = await Database.Strikes.Where(strike => strike.GuildId == context.Guild.Id && strike.VictimId == victim.Id).OrderBy(strike => strike.LogId).ToArrayAsync();
             if (pastStrikes.Length == 0)
             {
-                _ = await Program.SendMessage(context, "No previous strikes have been found!");
+                await Program.SendMessage(context, "No previous strikes have been found!");
             }
             else
             {
@@ -165,7 +165,7 @@ namespace Tomoe.Commands.Moderation
                     embedBuilder.Description += $"Case #{strike.LogId} [on {strike.CreatedAt.ToString("MMM' 'dd', 'yyyy' 'HH':'mm':'ss", CultureInfo.InvariantCulture)}, Issued by {(await context.Client.GetUserAsync(strike.IssuerId)).Mention}]({strike.JumpLinks.First()}) {(strike.Dropped ? "(Dropped)" : null)}\n";
                 }
 
-                _ = await Program.SendMessage(context, null, embedBuilder.Build());
+                await Program.SendMessage(context, null, embedBuilder.Build());
             }
         }
 
@@ -174,7 +174,7 @@ namespace Tomoe.Commands.Moderation
         {
             if (!strike.Dropped)
             {
-                _ = await Program.SendMessage(context, $"Strike #{strike.LogId} isn't dropped!");
+                await Program.SendMessage(context, $"Strike #{strike.LogId} isn't dropped!");
                 return;
             }
 
@@ -189,8 +189,8 @@ namespace Tomoe.Commands.Moderation
             strike.Dropped = false;
             Database.Entry(strike).State = EntityState.Modified;
             await Record(context.Guild, LogType.Restrike, Database, $"{context.User.Mention} has reapplied <@{strike.VictimId}>'s strike #{strike.LogId}{(sentDm ? '.' : "(failed to dm).")} Reason: {restrikeReason}");
-            _ = await Database.SaveChangesAsync();
-            _ = await Program.SendMessage(context, $"Strike #{strike.LogId} has been reapplied{(sentDm ? '.' : "(failed to dm.)")}");
+            await Database.SaveChangesAsync();
+            await Program.SendMessage(context, $"Strike #{strike.LogId} has been reapplied{(sentDm ? '.' : "(failed to dm.)")}");
             Database.Entry(strike).State = EntityState.Detached;
         }
     }

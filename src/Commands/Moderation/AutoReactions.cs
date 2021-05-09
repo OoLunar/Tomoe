@@ -24,7 +24,7 @@ namespace Tomoe.Commands.Moderation
             AutoReaction autoReaction = Database.AutoReactions.FirstOrDefault(autoReaction => autoReaction.GuildId == context.Guild.Id && autoReaction.ChannelId == channel.Id && autoReaction.EmojiName == (emoji.Id == 0 ? emoji.GetDiscordName() : emoji.Id.ToString()));
             if (autoReaction != null)
             {
-                _ = await Program.SendMessage(context, $"Auto reaction {emoji} on {channel.Mention} already exists!");
+                await Program.SendMessage(context, $"Auto reaction {emoji} on {channel.Mention} already exists!");
                 return;
             }
 
@@ -36,11 +36,11 @@ namespace Tomoe.Commands.Moderation
                     autoReaction.GuildId = context.Guild.Id;
                     autoReaction.ChannelId = channel.Id;
                     autoReaction.EmojiName = emoji.GetDiscordName();
-                    _ = Database.AutoReactions.Add(autoReaction);
+                    Database.AutoReactions.Add(autoReaction);
                 }
                 await Record(context.Guild, LogType.AutoReactionCreate, Database, $"{context.User.Mention} has created an autoreaction with emoji {emoji} on all current channels in category {channel.Mention}.");
-                _ = await Database.SaveChangesAsync();
-                _ = await Program.SendMessage(context, $"From here on out, every message in the current channels of category {channel.Mention} will have the {emoji} reaction added to it!");
+                await Database.SaveChangesAsync();
+                await Program.SendMessage(context, $"From here on out, every message in the current channels of category {channel.Mention} will have the {emoji} reaction added to it!");
             }
             else if (channel.Type is ChannelType.Text or ChannelType.News)
             {
@@ -48,14 +48,14 @@ namespace Tomoe.Commands.Moderation
                 autoReaction.GuildId = context.Guild.Id;
                 autoReaction.ChannelId = channel.Id;
                 autoReaction.EmojiName = emoji.GetDiscordName();
-                _ = Database.AutoReactions.Add(autoReaction);
+                Database.AutoReactions.Add(autoReaction);
                 await Record(context.Guild, LogType.AutoReactionCreate, Database, $"{context.User.Mention} has created an autoreaction with emoji {emoji} on channel {channel.Mention}.");
-                _ = await Database.SaveChangesAsync();
-                _ = await Program.SendMessage(context, $"From here on out, every message in {channel.Mention} will have the {emoji} reaction added to it!");
+                await Database.SaveChangesAsync();
+                await Program.SendMessage(context, $"From here on out, every message in {channel.Mention} will have the {emoji} reaction added to it!");
             }
             else
             {
-                _ = await Program.SendMessage(context, Formatter.Bold($"[Error]: The channel must be text, news or a category!"));
+                await Program.SendMessage(context, Formatter.Bold($"[Error]: The channel must be text, news or a category!"));
             }
         }
 
@@ -65,14 +65,14 @@ namespace Tomoe.Commands.Moderation
             StringBuilder stringBuilder = new();
             foreach (AutoReaction autoReaction in Database.AutoReactions.Where(autoReaction => autoReaction.ChannelId == channel.Id && autoReaction.GuildId == context.Guild.Id))
             {
-                _ = stringBuilder.AppendLine($"{DiscordEmoji.FromName(context.Client, autoReaction.EmojiName, true)}");
+                stringBuilder.AppendLine($"{DiscordEmoji.FromName(context.Client, autoReaction.EmojiName, true)}");
             }
 
             DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder().GenerateDefaultEmbed(context, $"Autoreactions in channel {channel.Mention}");
             if (stringBuilder.Length <= 2000)
             {
                 embedBuilder.Description = stringBuilder.ToString();
-                _ = await Program.SendMessage(context, null, embedBuilder.Build());
+                await Program.SendMessage(context, null, embedBuilder.Build());
             }
             else
             {
@@ -115,20 +115,20 @@ namespace Tomoe.Commands.Moderation
                 AutoReaction autoReaction = Database.AutoReactions.FirstOrDefault(autoReaction => autoReaction.GuildId == context.Guild.Id && autoReaction.ChannelId == channel.Id && autoReaction.EmojiName == (emoji.Id == 0 ? emoji.GetDiscordName() : emoji.Id.ToString()));
                 if (autoReaction != null)
                 {
-                    _ = Database.AutoReactions.Remove(autoReaction);
+                    Database.AutoReactions.Remove(autoReaction);
                     await Record(context.Guild, LogType.AutoReactionDelete, Database, $"{context.User.Mention} has removed an autoreaction with emoji {emoji} on channel {channel.Mention}.");
-                    _ = await Database.SaveChangesAsync();
-                    _ = await Program.SendMessage(context, $"Auto reaction {emoji} on {channel.Mention} has been removed!");
+                    await Database.SaveChangesAsync();
+                    await Program.SendMessage(context, $"Auto reaction {emoji} on {channel.Mention} has been removed!");
                     return;
                 }
                 else
                 {
-                    _ = await Program.SendMessage(context, Formatter.Bold("[Error]: Autoreaction doesn't exist!"));
+                    await Program.SendMessage(context, Formatter.Bold("[Error]: Autoreaction doesn't exist!"));
                 }
             }
             else
             {
-                _ = await Program.SendMessage(context, Formatter.Bold($"[Error]: The channel must be text, news or a category!"));
+                await Program.SendMessage(context, Formatter.Bold($"[Error]: The channel must be text, news or a category!"));
             }
         }
     }

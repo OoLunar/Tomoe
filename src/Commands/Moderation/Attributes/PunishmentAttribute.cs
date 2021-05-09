@@ -39,12 +39,12 @@ namespace Tomoe.Commands.Moderation.Attributes
             }
             else if (context.Guild == null)
             {
-                _ = await Program.SendMessage(context, Formatter.Bold($"[Error]: Command can only be used in a guild!"));
+                await Program.SendMessage(context, Formatter.Bold($"[Error]: Command can only be used in a guild!"));
                 return false;
             }
             else if (context.Message.MentionedUsers.Contains(Program.Client.CurrentUser))
             {
-                _ = await Program.SendMessage(context, Constants.SelfBotAction);
+                await Program.SendMessage(context, Constants.SelfBotAction);
                 return false;
             }
             else if (context.Guild != null)
@@ -80,7 +80,7 @@ namespace Tomoe.Commands.Moderation.Attributes
                 {
                     if (eventArgs.TimedOut || eventArgs.MessageReactionAddEventArgs.Emoji == Constants.ThumbsDown)
                     {
-                        _ = await confirmSelfPunishment.ModifyAsync(Formatter.Strike(confirmSelfPunishment.Content) + '\n' + Formatter.Bold("[Notice: Aborting!]"));
+                        await confirmSelfPunishment.ModifyAsync(Formatter.Strike(confirmSelfPunishment.Content) + '\n' + Formatter.Bold("[Notice: Aborting!]"));
                     }
                 })).WaitForReaction();
             }
@@ -97,17 +97,17 @@ namespace Tomoe.Commands.Moderation.Attributes
         {
             if (context.User.Id == Program.Client.CurrentUser.Id)
             {
-                _ = await Program.SendMessage(context, Constants.SelfBotAction);
+                await Program.SendMessage(context, Constants.SelfBotAction);
                 return false;
             }
             else if (context.Message.MentionedUsers.Select(user => user.Id).Contains(context.Guild.OwnerId))
             {
-                _ = await Program.SendMessage(context, Constants.GuildOwner);
+                await Program.SendMessage(context, Constants.GuildOwner);
                 return false;
             }
             else if (context.Member.Hierarchy <= victim.Hierarchy)
             {
-                _ = await Program.SendMessage(context, Constants.Hierarchy);
+                await Program.SendMessage(context, Constants.Hierarchy);
                 return false;
             }
             else if (context.Message.MentionedUsers.Contains(context.User))
@@ -118,7 +118,7 @@ namespace Tomoe.Commands.Moderation.Attributes
                 {
                     if (eventArgs.TimedOut || eventArgs.MessageReactionAddEventArgs.Emoji == Constants.ThumbsDown)
                     {
-                        _ = await confirmSelfPunishment.ModifyAsync(Formatter.Strike(confirmSelfPunishment.Content) + '\n' + Formatter.Bold("[Notice: Aborting!]"));
+                        await confirmSelfPunishment.ModifyAsync(Formatter.Strike(confirmSelfPunishment.Content) + '\n' + Formatter.Bold("[Notice: Aborting!]"));
                     }
                     else if (eventArgs.MessageReactionAddEventArgs.Emoji == Constants.ThumbsUp)
                     {

@@ -71,7 +71,7 @@ namespace Tomoe.Commands.Moderation
             database.Locks.AddRange(locks);
             if (saveDatabase)
             {
-                _ = await database.SaveChangesAsync();
+                await database.SaveChangesAsync();
                 await database.DisposeAsync();
             }
         }
@@ -81,8 +81,8 @@ namespace Tomoe.Commands.Moderation
         {
             await LockChannel(context, channel, null, Database);
             await Record(context.Guild, LogType.LockChannel, Database, $"{context.User.Mention} locked channel {channel.Mention}. Reason: {lockReason}");
-            _ = await Database.SaveChangesAsync();
-            _ = await Program.SendMessage(context, $"Channel successfully locked. All roles below me cannot send messages or react. To undo this, run `>>unlock channel`");
+            await Database.SaveChangesAsync();
+            await Program.SendMessage(context, $"Channel successfully locked. All roles below me cannot send messages or react. To undo this, run `>>unlock channel`");
         }
 
         [Command("channel")]
@@ -97,8 +97,8 @@ namespace Tomoe.Commands.Moderation
             }
 
             await Record(context.Guild, LogType.LockServer, Database, $"{context.User.Mention} locked the server. Reason: {lockReason}");
-            _ = await Database.SaveChangesAsync();
-            _ = await Program.SendMessage(context, $"Server successfully locked. All roles below me cannot send messages or react. To undo this, run `>>unlock server`");
+            await Database.SaveChangesAsync();
+            await Program.SendMessage(context, $"Server successfully locked. All roles below me cannot send messages or react. To undo this, run `>>unlock server`");
         }
 
         [Command("role")]
@@ -111,15 +111,15 @@ namespace Tomoe.Commands.Moderation
                     await LockChannel(context, guildChannel, new() { role }, Database);
                 }
                 await Record(context.Guild, LogType.LockRole, Database, $"{context.User.Mention} locked the role {role.Mention} across the server. Reason: {lockReason}");
-                _ = await Database.SaveChangesAsync();
-                _ = await Program.SendMessage(context, $"The role {role.Mention} cannot send messages or react in the server. To undo this, run `>>unlock role {role.Mention}`");
+                await Database.SaveChangesAsync();
+                await Program.SendMessage(context, $"The role {role.Mention} cannot send messages or react in the server. To undo this, run `>>unlock role {role.Mention}`");
             }
             else
             {
                 await LockChannel(context, channel, new() { role }, Database);
                 await Record(context.Guild, LogType.LockRole, Database, $"{context.User.Mention} locked the role {role.Mention} in channel {channel.Mention}. Reason: {lockReason}");
-                _ = await Database.SaveChangesAsync();
-                _ = await Program.SendMessage(context, $"Role successfully locked channel {channel.Mention}. The role {role.Mention} cannot send messages or react. To undo this, run `>>unlock role #{channel.Name}`");
+                await Database.SaveChangesAsync();
+                await Program.SendMessage(context, $"Role successfully locked channel {channel.Mention}. The role {role.Mention} cannot send messages or react. To undo this, run `>>unlock role #{channel.Name}`");
             }
         }
 
@@ -136,8 +136,8 @@ namespace Tomoe.Commands.Moderation
                         await LockChannel(context, guildChannel, new() { role }, Database);
                     }
                     await Record(context.Guild, LogType.LockBots, Database, $"{context.User.Mention} locked the bots across the server. Reason: {lockReason}");
-                    _ = await Database.SaveChangesAsync();
-                    _ = await Program.SendMessage(context, $"The bots cannot send messages or react in the server. To undo this, run `>>unlock bots`");
+                    await Database.SaveChangesAsync();
+                    await Program.SendMessage(context, $"The bots cannot send messages or react in the server. To undo this, run `>>unlock bots`");
                 }
             }
             else
@@ -147,7 +147,7 @@ namespace Tomoe.Commands.Moderation
                     await LockChannel(context, channel, new() { role }, Database);
                 }
                 await Record(context.Guild, LogType.LockBots, Database, $"{context.User.Mention} locked bots from the channel {channel.Mention}. Reason: {lockReason}");
-                _ = await Program.SendMessage(context, $"Bots are successfully locked in channel {channel.Mention}. Bots cannot send messages or react. To undo this, run `>>unlock bots #{channel.Name}`");
+                await Program.SendMessage(context, $"Bots are successfully locked in channel {channel.Mention}. Bots cannot send messages or react. To undo this, run `>>unlock bots #{channel.Name}`");
             }
         }
     }

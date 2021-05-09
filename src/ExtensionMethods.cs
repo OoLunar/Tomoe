@@ -59,7 +59,7 @@ namespace Tomoe
             {
                 try
                 {
-                    _ = await (await discordMember.CreateDmChannelAsync()).SendMessageAsync(message);
+                    await (await discordMember.CreateDmChannelAsync()).SendMessageAsync(message);
                     sentDm = true;
                 }
                 catch (Exception) { }

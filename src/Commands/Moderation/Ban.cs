@@ -20,14 +20,14 @@ namespace Tomoe.Commands.Moderation
             {
                 if ((await context.Guild.GetBansAsync()).Any(guildUser => guildUser.User.Id == victim.Id))
                 {
-                    _ = await Program.SendMessage(context, Formatter.Bold($"[Error]: {victim.Mention} is already banned!"));
+                    await Program.SendMessage(context, Formatter.Bold($"[Error]: {victim.Mention} is already banned!"));
                     return;
                 }
-                _ = await Program.SendMessage(context, $"{victim.Mention} has been banned{(await ByProgram(context.Guild, victim, context.User, context.Message.JumpLink, banReason) ? '.' : " (Failed to dm).")}");
+                await Program.SendMessage(context, $"{victim.Mention} has been banned{(await ByProgram(context.Guild, victim, context.User, context.Message.JumpLink, banReason) ? '.' : " (Failed to dm).")}");
             }
             catch (UnauthorizedException)
             {
-                _ = await Program.SendMessage(context, Formatter.Bold($"[Error]: I cannot ban {victim.Mention} due to permissions!"));
+                await Program.SendMessage(context, Formatter.Bold($"[Error]: I cannot ban {victim.Mention} due to permissions!"));
             }
         }
 

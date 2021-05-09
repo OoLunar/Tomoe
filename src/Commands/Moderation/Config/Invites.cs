@@ -16,7 +16,7 @@ namespace Tomoe.Commands.Moderation
         public async Task Invites(CommandContext context)
         {
             GuildConfig guildConfig = await Database.GuildConfigs.FirstOrDefaultAsync(guildConfig => guildConfig.Id == context.Guild.Id);
-            _ = await Program.SendMessage(context, $"Allowed Invites => {string.Join(", ", guildConfig.AllowedInvites.Select(code => $"<https://discord.gg/{code}>").DefaultIfEmpty("None set"))}\nNone of these invites will be deleted when posted.");
+            await Program.SendMessage(context, $"Allowed Invites => {string.Join(", ", guildConfig.AllowedInvites.Select(code => $"<https://discord.gg/{code}>").DefaultIfEmpty("None set"))}\nNone of these invites will be deleted when posted.");
         }
 
         [Command("add_invite"), Aliases("allow_invite"), RequireUserPermissions(Permissions.ManageMessages), Description("Adds a Discord invite to the whitelist. Only effective if `anti_invite` is enabled.")]
@@ -25,15 +25,15 @@ namespace Tomoe.Commands.Moderation
             GuildConfig guildConfig = await Database.GuildConfigs.FirstOrDefaultAsync(guildConfig => guildConfig.Id == context.Guild.Id);
             if (guildConfig.AllowedInvites.Contains(discordInvite.Code))
             {
-                _ = await Program.SendMessage(context, $"Invite discord.gg/{discordInvite.Code} was already whitelisted!");
+                await Program.SendMessage(context, $"Invite discord.gg/{discordInvite.Code} was already whitelisted!");
             }
             else
             {
                 guildConfig.AllowedInvites.Add(discordInvite.Code);
                 Database.Entry(guildConfig).State = EntityState.Modified;
                 await Record(context.Guild, LogType.ConfigChange, Database, $"AllowedInvites => {context.User.Mention} has added the invite `discord.gg/{discordInvite.Code}` to the invite whitelist.");
-                _ = await Database.SaveChangesAsync();
-                _ = await Program.SendMessage(context, $"Invite discord.gg/{discordInvite.Code} is now whitelisted.");
+                await Database.SaveChangesAsync();
+                await Program.SendMessage(context, $"Invite discord.gg/{discordInvite.Code} is now whitelisted.");
             }
         }
 
@@ -44,13 +44,13 @@ namespace Tomoe.Commands.Moderation
             if (guildConfig.AllowedInvites.Remove(discordInvite.Code))
             {
                 Database.Entry(guildConfig).State = EntityState.Modified;
-                _ = await Database.SaveChangesAsync();
-                _ = await Program.SendMessage(context, "Invite has been removed from the whitelist.");
+                await Database.SaveChangesAsync();
+                await Program.SendMessage(context, "Invite has been removed from the whitelist.");
                 await Record(context.Guild, LogType.ConfigChange, Database, $"AllowedInvites => {context.User.Mention} has removed the invite `discord.gg/{discordInvite.Code}` from the invite whitelist.");
             }
             else
             {
-                _ = await Program.SendMessage(context, "Invite was not whitelisted!");
+                await Program.SendMessage(context, "Invite was not whitelisted!");
             }
         }
 

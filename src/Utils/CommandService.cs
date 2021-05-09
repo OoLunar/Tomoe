@@ -40,7 +40,7 @@ namespace Tomoe.Utils
                         UseDefaultCommandHandler = false,
                         Services = services,
                     });
-                    _ = discordClient.UseInteractivityAsync(new InteractivityConfiguration
+                    await discordClient.UseInteractivityAsync(new InteractivityConfiguration
                     {
                         // default timeout for other actions to 2 minutes
                         Timeout = TimeSpan.FromMinutes(2)
@@ -51,6 +51,7 @@ namespace Tomoe.Utils
                         commands.RegisterConverter(new ImageFormatConverter());
                         commands.RegisterConverter(new RoleActionConverter());
                         commands.RegisterConverter(new TimeSpanConverter());
+                        commands.RegisterConverter(new ReminderConverter());
                         commands.RegisterConverter(new LogTypeConverter());
                         commands.RegisterConverter(new StrikeConverter());
                         commands.RegisterConverter(new TagConverter());
@@ -81,10 +82,10 @@ namespace Tomoe.Utils
                 case ArgumentException:
                     Command helpCommand = context.CommandsNext.FindCommand($"help {(context.Command is CommandGroup ? $"{context.Command.QualifiedName} {context.Command.Name}" : context.Command.QualifiedName)}", out string helpCommandArgs);
                     CommandContext helpContext = context.CommandsNext.CreateContext(context.Message, context.Prefix, helpCommand, helpCommandArgs);
-                    _ = await helpCommand.ExecuteAsync(helpContext);
+                    await helpCommand.ExecuteAsync(helpContext);
                     break;
                 case NotImplementedException:
-                    _ = await Program.SendMessage(context, $"{context.Command.Name} hasn't been implemented yet!");
+                    await Program.SendMessage(context, $"{context.Command.Name} hasn't been implemented yet!");
                     break;
                 case HierarchyException:
                     if (!guildConfig.ShowPermissionErrors)
@@ -93,14 +94,14 @@ namespace Tomoe.Utils
                     }
                     else
                     {
-                        _ = await Program.SendMessage(context, $"**[Denied: Their hierarchy is the same as or higher than yours. You don't have enough power over them.]**");
+                        await Program.SendMessage(context, $"**[Denied: Their hierarchy is the same as or higher than yours. You don't have enough power over them.]**");
                     }
                     break;
                 case ChecksFailedException:
                     ChecksFailedException checksFailedException = error as ChecksFailedException;
                     if (context.Channel.IsPrivate)
                     {
-                        _ = await Program.SendMessage(context, Constants.NotAGuild);
+                        await Program.SendMessage(context, Constants.NotAGuild);
                     }
                     else if (checksFailedException.FailedChecks.OfType<RequireUserPermissionsAttribute>() != null)
                     {
@@ -110,13 +111,13 @@ namespace Tomoe.Utils
                         }
                         else
                         {
-                            _ = await Program.SendMessage(context, Constants.MissingPermissions);
+                            await Program.SendMessage(context, Constants.MissingPermissions);
                         }
                     }
                     break;
                 default:
                     _logger.Error($"'{context.Command?.QualifiedName ?? "<unknown command>"}' errored: {error.GetType()}, {error.Message ?? "<no message>"}\n{error.StackTrace}");
-                    _ = await Program.SendMessage(context, Formatter.Bold("[Error: An unknown error occured. Try executing the command again?]"));
+                    await Program.SendMessage(context, Formatter.Bold("[Error: An unknown error occured. Try executing the command again?]"));
                     break;
             }
         }

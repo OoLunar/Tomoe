@@ -18,7 +18,7 @@ namespace Tomoe.Commands.Moderation
         public async Task ByUser(CommandContext context, [Description("Who to unban.")] DiscordUser victim, [Description("Why is the vicitm being unbanned."), RemainingText] string unbanReason = Constants.MissingReason)
         {
             bool sentDm = await ByProgram(context.Guild, victim, context.User, context.Message.JumpLink, unbanReason);
-            _ = await Program.SendMessage(context, $"{victim.Mention} has been unbanned{(sentDm ? '.' : " (Failed to dm).")}");
+            await Program.SendMessage(context, $"{victim.Mention} has been unbanned{(sentDm ? '.' : " (Failed to dm).")}");
         }
 
         public static async Task<bool> ByProgram(DiscordGuild discordGuild, DiscordUser victim, DiscordUser issuer, Uri jumplink, [RemainingText] string unbanReason = Constants.MissingReason)

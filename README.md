@@ -49,14 +49,19 @@ As mentioned previously, Tomoe aims to be the #1 bot choice for Discord Moderati
 
 | Command | Implemented |
 |:-|:-:|
+| **Bot Owner Commands** | - |
+| Reboot | ✅ |
+| Stop | ✅ |
+| Update | ❌ |
+| **Moderation Commands** | - |
 | Antimeme | ✅ |
 | Autoreact | ✅ |
 | Ban | ✅ |
 | Config | ✅ |
 | Doctor | ❌ |
 | Kick | ✅ |
-| Logging | ❌ |
-| Lock | ❌ |
+| Logging | ✅ |
+| Lock | ✅ |
 | Modlog | ✅ |
 | Mute | ✅ |
 | Reaction Roles | ✅ |
@@ -65,6 +70,7 @@ As mentioned previously, Tomoe aims to be the #1 bot choice for Discord Moderati
 | Tempantimeme | ❌ |
 | Tempban | ❌ |
 | Tempmute | ❌ |
+| Templock | ❌ |
 | Tempvoiceban | ❌ |
 | Unantimeme | ✅ |
 | Unban | ✅ |
