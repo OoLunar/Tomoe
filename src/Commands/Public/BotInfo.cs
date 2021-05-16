@@ -17,11 +17,16 @@ namespace Tomoe.Commands.Public
             DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder().GenerateDefaultEmbed(context, "General Bot Info");
             StringBuilder botInfo = new();
             botInfo.Append($"Currently in {context.Client.Guilds.Count} guilds\n");
-            botInfo.Append($"Handling around {Listeners.GuildDownloadCompleted.MemberCount} guild members\n");
+            int totalMemberCount = 0;
+            foreach (int i in Listeners.GuildDownloadCompleted.MemberCount.Values)
+            {
+                totalMemberCount += i;
+            }
+            botInfo.Append($"Handling around {totalMemberCount.ToMetric()} guild members\n");
             botInfo.Append($"General Ping: {context.Client.Ping}ms\n");
             botInfo.Append($"Total shards: {Program.Client.ShardClients.Count}\n");
             Process currentProcess = Process.GetCurrentProcess();
-            botInfo.Append($"Total memory used: {Math.Round(currentProcess.PrivateMemorySize64.Bytes().Megabytes, 2)}mb\n");
+            botInfo.Append($"Total memory used: {Math.Round(currentProcess.PrivateMemorySize64.Bytes().Megabytes, 2).ToMetric()}mb\n");
             botInfo.Append($"Total threads open: {currentProcess.Threads.Count}");
             embedBuilder.Description = botInfo.ToString();
             currentProcess.Dispose();
