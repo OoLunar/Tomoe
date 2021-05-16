@@ -31,24 +31,24 @@ namespace Tomoe.Commands.Public
                 embedBuilder.Title = $"Help - {section.Titleize()} Commands";
                 embedBuilder.Description = "Note that all commands are [cAsE iNsEnSiTiVe](https://en.wiktionary.org/wiki/case_insensitive#Adjective). All commands have PascalCase and snake_case varients.";
                 List<Command> sectionCommands = GetSectionCommands(context, section);
-
-                for (int i = 0; i < (sectionCommands.Count / 25) + 1; i++)
+                foreach (Command command in sectionCommands)
                 {
-                    embedBuilder.ClearFields();
-                    foreach (Command command in sectionCommands.Take(25))
+                    if (embedBuilder.Fields.Count >= 6)
+                    {
+                        pages.Add(new(null, embedBuilder));
+                        embedBuilder.ClearFields();
+                    }
+
+                    if (!(await command.RunChecksAsync(context, true)).Any())
                     {
                         embedBuilder.AddField(command.QualifiedName, command.Description.Truncate(75, "...") ?? $"No description was found. Open up a {Formatter.MaskedUrl("Github Issue", new("https://github.com/OoLunar/Tomoe/issues/new?assignees=OoLunar&labels=bug%2C+documentation%2C+enhancement&template=missing-command-description.md&title=%5BMissing+Command+Description%5D"))} about this please!", true);
                     }
+                }
 
-                    if (sectionCommands.Count < 25)
-                    {
-                        sectionCommands.Clear();
-                    }
-                    else
-                    {
-                        sectionCommands.RemoveRange(0, 25);
-                    }
+                if (embedBuilder.Fields.Any())
+                {
                     pages.Add(new(null, embedBuilder));
+                    embedBuilder.ClearFields();
                 }
             }
             await context.Client.GetInteractivity().SendPaginatedMessageAsync(context.Channel, context.User, pages);
