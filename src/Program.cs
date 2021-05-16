@@ -93,7 +93,9 @@ namespace Tomoe
                 }
                 options.UseNpgsql(connectionBuilder.ToString(), options => options.EnableRetryOnFailure());
                 options.UseSnakeCaseNamingConvention(CultureInfo.InvariantCulture);
+#if DEBUG
                 options.EnableSensitiveDataLogging();
+#endif
                 options.EnableDetailedErrors();
                 options.UseLoggerFactory(ServiceProvider.GetService<ILoggerFactory>());
             }, ServiceLifetime.Transient);

@@ -51,18 +51,27 @@ namespace Tomoe
             }
         }
 
-        public static async Task<bool> TryDmMember(this DiscordMember discordMember, string message)
+        public static async Task<bool> TryDmMember(this DiscordUser discordUser, string message)
         {
             // TODO: Get shared servers and try dming the member through there when dm's are off.
             bool sentDm = false;
-            if (discordMember != null && !discordMember.IsBot)
+            if (discordUser != null && !discordUser.IsBot)
             {
-                try
+                foreach (DiscordClient discordClient in Program.Client.ShardClients.Values)
                 {
-                    await (await discordMember.CreateDmChannelAsync()).SendMessageAsync(message);
-                    sentDm = true;
+                    foreach (DiscordGuild discordGuild in discordClient.Guilds.Values)
+                    {
+                        try
+                        {
+                            DiscordMember discordMember = await discordGuild.GetMemberAsync(discordUser.Id);
+                            await (await discordMember.CreateDmChannelAsync()).SendMessageAsync(message);
+                            sentDm = true;
+                            break;
+                        }
+                        catch (NotFoundException) { }
+                        catch (UnauthorizedException) { }
+                    }
                 }
-                catch (Exception) { }
             }
             return sentDm;
         }
