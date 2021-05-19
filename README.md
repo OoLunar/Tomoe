@@ -100,4 +100,4 @@ As mentioned previously, Tomoe aims to be the #1 bot choice for Discord Moderati
 
 ## Why did you chose "Tomoe" as the bots name?
 
-Simple! I originally found the name from the anime [Kamisama Kiss](https://www.funimation.com/shows/kamisama-kiss/). Tomoe is a wild fox yokai that Mikage had as his previous familiar. While he is taking care of Nanami, he's very strict yet kind with her. I'm taking the strict part from him, and putting it into the bot.
+[Kamisama Kiss](https://www.funimation.com/shows/kamisama-kiss/).

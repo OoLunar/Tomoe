@@ -7,8 +7,13 @@ namespace Tomoe.Utils
     using DSharpPlus.CommandsNext.Attributes;
     using DSharpPlus.CommandsNext.Converters;
     using DSharpPlus.CommandsNext.Exceptions;
+    using DSharpPlus.Entities;
     using DSharpPlus.Interactivity;
     using DSharpPlus.Interactivity.Extensions;
+    using Humanizer;
+    using ICSharpCode.Decompiler;
+    using ICSharpCode.Decompiler.CSharp;
+    using ICSharpCode.Decompiler.TypeSystem;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.DependencyInjection;
     using Serilog;
@@ -16,10 +21,12 @@ namespace Tomoe.Utils
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
+    using System.Text.Json;
     using System.Threading.Tasks;
     using Tomoe.Db;
     using Tomoe.Utils.Converters;
     using Tomoe.Utils.Exceptions;
+
 
     internal class CommandService
     {
@@ -57,6 +64,7 @@ namespace Tomoe.Utils
                         commands.RegisterConverter(new TagConverter());
                         commands.RegisterCommands(Assembly.GetEntryAssembly());
                         commands.CommandErrored += CommandErrored;
+                        commands.CommandExecuted += CommandExecuted;
                     }
                     break;
                 }
@@ -66,6 +74,8 @@ namespace Tomoe.Utils
                 }
             }
         }
+
+        public static async Task CommandExecuted(CommandsNextExtension client, CommandExecutionEventArgs eventArgs) => await eventArgs.Context.Message.CreateReactionAsync(Constants.Check);
 
         public static async Task CommandErrored(CommandsNextExtension client, CommandErrorEventArgs args) => await CommandErrored(args.Context, args.Exception);
 
@@ -94,7 +104,7 @@ namespace Tomoe.Utils
                     }
                     else
                     {
-                        await Program.SendMessage(context, $"**[Denied: Their hierarchy is the same as or higher than yours. You don't have enough power over them.]**");
+                        await Program.SendMessage(context, $"**[Denied: Their highest role is higher or equal to your highest role! You don't have enough power over them.]**");
                     }
                     break;
                 case ChecksFailedException:
@@ -118,6 +128,8 @@ namespace Tomoe.Utils
                 default:
                     _logger.Error($"'{context.Command?.QualifiedName ?? "<unknown command>"}' errored: {error.GetType()}, {error.Message ?? "<no message>"}\n{error.StackTrace}");
                     await Program.SendMessage(context, Formatter.Bold("[Error: An unknown error occured. Try executing the command again?]"));
+                    DiscordChannel errorChannel = await context.Client.GetChannelAsync(Program.Config.Update.ChannelId);
+                    await errorChannel.SendMessageAsync($"{error.GetType()}: {error.Message ?? "<no message>"}\n{Formatter.BlockCode(error.StackTrace.Truncate(1950))}");
                     break;
             }
         }

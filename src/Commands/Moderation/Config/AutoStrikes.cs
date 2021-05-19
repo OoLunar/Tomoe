@@ -3,28 +3,22 @@ namespace Tomoe.Commands.Moderation
     using DSharpPlus;
     using DSharpPlus.CommandsNext;
     using DSharpPlus.CommandsNext.Attributes;
-    using Microsoft.EntityFrameworkCore;
     using System.Threading.Tasks;
-    using Tomoe.Db;
-    using static Tomoe.Commands.Moderation.ModLogs;
 
     public partial class Config : BaseCommandModule
     {
         [Command("auto_strike")]
         public async Task StrikeAutomod(CommandContext context)
         {
-            GuildConfig guildConfig = await Database.GuildConfigs.FirstOrDefaultAsync(guildConfig => guildConfig.Id == context.Guild.Id);
-            await Program.SendMessage(context, $"AutoDehoist => {guildConfig.AutoDehoist}. Hoisted nicknames are {(guildConfig.AutoDehoist ? $"renamed to {Formatter.InlineCode("dehoisted")}" : "kept")}.");
+            bool isEnabled = (bool)Api.Moderation.Config.Get(context.Guild.Id, Api.Moderation.Config.ConfigSetting.AutoStrike);
+            await Program.SendMessage(context, $"AutoStrike => {isEnabled}. Automod will {(isEnabled ? "now" : "not")} give out strikes.");
         }
 
         [Command("auto_strike"), Aliases("auto_strikes"), RequireUserPermissions(Permissions.ManageMessages), Description("Determines whether automod should add a strike to the victim when automodding.")]
         public async Task StrikeAutomod(CommandContext context, bool isEnabled)
         {
-            GuildConfig guildConfig = await Database.GuildConfigs.FirstOrDefaultAsync(guildConfig => guildConfig.Id == context.Guild.Id);
-            guildConfig.AutoStrikes = isEnabled;
-            await Record(context.Guild, LogType.ConfigChange, Database, $"AutoStrikes => {context.User.Mention} has made automod {(guildConfig.AutoStrikes ? "start" : "stop")} issuing strikes.");
-            await Database.SaveChangesAsync();
-            await Program.SendMessage(context, $"Automod will {(guildConfig.AutoStrikes ? "now" : "no longer")} issue strikes.");
+            await Api.Moderation.Config.Set(context.Client, context.Guild.Id, context.User.Id, Api.Moderation.Config.ConfigSetting.AutoStrike, isEnabled);
+            await Program.SendMessage(context, $"Automod will {(isEnabled ? "now" : "no longer")} give out strikes.");
         }
     }
 }

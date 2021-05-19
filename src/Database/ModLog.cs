@@ -1,7 +1,6 @@
 namespace Tomoe.Db
 {
     using System.ComponentModel.DataAnnotations;
-    using static Tomoe.Commands.Moderation.ModLogs;
 
     public class ModLog
     {
@@ -13,6 +12,6 @@ namespace Tomoe.Db
         public ulong MessageId { get; internal set; }
         public string JumpLink { get; internal set; }
         public string Reason { get; internal set; }
-        public LogType Action { get; internal set; }
+        public Api.Moderation.LogType LogType { get; internal set; }
     }
 }

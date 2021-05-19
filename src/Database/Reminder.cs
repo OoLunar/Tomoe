@@ -2,7 +2,6 @@ namespace Tomoe.Db
 {
     using System;
     using System.ComponentModel.DataAnnotations;
-    using static Tomoe.Commands.Moderation.ModLogs;
 
     public class Reminder
     {
@@ -17,8 +16,9 @@ namespace Tomoe.Db
         public string Content { get; internal set; }
         public bool Expires { get; internal set; }
         public DateTime ExpiresOn { get; internal set; }
+        public DateTime IssuedAt { get; internal set; }
         // Used for tempban, tempmute, templock, etc
         public bool IsPunishment { get; internal set; }
-        public LogType Punishment { get; internal set; }
+        public Api.Moderation.LogType Punishment { get; internal set; }
     }
 }

@@ -10,17 +10,9 @@ namespace Tomoe.Commands.Moderation
     using System.Threading.Tasks;
     using Tomoe.Db;
 
-    [Group("config"), RequireGuild, Description("Shows and sets settings for the guild.")]
+    [Group("config"), RequireGuild, Description("Shows and sets settings for the guild."), RequireUserPermissions(Permissions.ManageGuild)]
     public partial class Config : BaseCommandModule
     {
-        public enum RoleAction
-        {
-            None,
-            Antimeme,
-            Mute,
-            Voiceban
-        }
-
         public Database Database { private get; set; }
 
         [GroupCommand]
@@ -35,8 +27,8 @@ namespace Tomoe.Commands.Moderation
             embedBuilder.AddField("**Ignored Channels**", string.Join(", ", guildConfig.IgnoredChannels.Select(channel => $"<#{channel}>").DefaultIfEmpty("None set")), false);
             embedBuilder.AddField("**AntiInvite**", guildConfig.AntiInvite.ToString(), true);
             embedBuilder.AddField("**Auto Dehoist**", guildConfig.AutoDehoist.ToString(), true);
-            embedBuilder.AddField("**Auto Strikes**", guildConfig.AutoStrikes.ToString(), true);
-            embedBuilder.AddField("**Delete Bad Messages**", guildConfig.DeleteBadMessages.ToString(), true);
+            embedBuilder.AddField("**Auto Strikes**", guildConfig.AutoStrike.ToString(), true);
+            embedBuilder.AddField("**Delete Bad Messages**", guildConfig.AutoDelete.ToString(), true);
             embedBuilder.AddField("**Max Lines Per Message**", guildConfig.MaxLinesPerMessage.ToMetric(), true);
             embedBuilder.AddField("**Max Mentions Per Message**", guildConfig.MaxUniqueMentionsPerMessage.ToMetric(), true);
             //embedBuilder.AddField("**Progressive Strikes**", guildConfig.ProgressiveStrikes.ToString(), true);

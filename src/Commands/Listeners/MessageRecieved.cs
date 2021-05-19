@@ -56,12 +56,12 @@ namespace Tomoe.Commands.Listeners
             {
                 DiscordMessage message = await eventArgs.Message.RespondAsync($"{eventArgs.Author.Mention}: Please refrain from spamming pings.");
 
-                if (guildConfig.DeleteBadMessages)
+                if (guildConfig.AutoDelete)
                 {
                     await eventArgs.Message.DeleteAsync("Exceeded max ping limit.");
                 }
 
-                if (guildConfig.AutoStrikes)
+                if (guildConfig.AutoStrike)
                 {
                     CommandsNextExtension commandsNext = client.GetCommandsNext();
                     Command command = commandsNext.FindCommand($"strike {eventArgs.Author.Mention} Please refrain from spamming pings.", out string args);
@@ -74,12 +74,12 @@ namespace Tomoe.Commands.Listeners
             {
                 DiscordMessage message = await eventArgs.Message.RespondAsync($"{eventArgs.Author.Mention}: Please refrain from spamming new lines.");
 
-                if (guildConfig.DeleteBadMessages)
+                if (guildConfig.AutoDelete)
                 {
                     await eventArgs.Message.DeleteAsync("Exceeded max line limit.");
                 }
 
-                if (guildConfig.AutoStrikes)
+                if (guildConfig.AutoStrike)
                 {
                     CommandsNextExtension commandsNext = client.GetCommandsNext();
                     Command command = commandsNext.FindCommand($"strike {eventArgs.Author.Mention} Please refrain from spamming new lines.", out string args);
@@ -101,12 +101,12 @@ namespace Tomoe.Commands.Listeners
                             await eventArgs.Message.DeleteAsync($"Invite {Formatter.InlineCode(capture.Value)} is not whitelisted.");
                             DiscordMessage message = await eventArgs.Message.RespondAsync($"{eventArgs.Author.Mention}: Please refrain from posting Discord invites.");
 
-                            if (guildConfig.DeleteBadMessages)
+                            if (guildConfig.AutoDelete)
                             {
                                 await eventArgs.Message.DeleteAsync("Posted Discord invite.");
                             }
 
-                            if (guildConfig.AutoStrikes)
+                            if (guildConfig.AutoStrike)
                             {
                                 CommandsNextExtension commandsNext = client.GetCommandsNext();
                                 Command command = commandsNext.FindCommand($"strike {eventArgs.Author.Mention} Please refrain from posting Discord invites.", out string args);

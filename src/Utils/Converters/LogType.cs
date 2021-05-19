@@ -5,7 +5,7 @@ namespace Tomoe.Utils.Converters
     using DSharpPlus.Entities;
     using Humanizer;
     using System.Threading.Tasks;
-    using static Tomoe.Commands.Moderation.ModLogs;
+    using static Tomoe.Api.Moderation;
 
     public class LogTypeConverter : IArgumentConverter<LogType>
     {

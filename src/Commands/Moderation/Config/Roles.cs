@@ -10,7 +10,7 @@ namespace Tomoe.Commands.Moderation
     using System.Threading.Tasks;
     using Tomoe.Db;
     using Tomoe.Utils.Types;
-    using static Tomoe.Commands.Moderation.ModLogs;
+    using static Tomoe.Api.Moderation;
 
     public partial class Config : BaseCommandModule
     {
@@ -106,7 +106,7 @@ namespace Tomoe.Commands.Moderation
             }
 
             Checklist checklist = new(context, "Saving role id to database...", "Override channel permissions for role...");
-            await Record(context.Guild, LogType.ConfigChange, Database, $"{roleAction} Role => {context.User.Mention} has changed the {roleAction} role to {role.Mention}");
+            await ModLog(context.Guild, LogType.ConfigChange, Database, $"{roleAction} Role => {context.User.Mention} has changed the {roleAction} role to {role.Mention}");
             await Database.SaveChangesAsync();
             await checklist.Check();
             FixPermissions(context.Guild, roleAction, role);

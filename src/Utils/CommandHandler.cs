@@ -8,7 +8,6 @@ namespace Tomoe.Utils
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using Tomoe.Db;
-    using static Tomoe.Commands.Moderation.ModLogs;
 
     public class CommandHandler
     {
@@ -91,19 +90,11 @@ namespace Tomoe.Utils
         public static async Task ExecuteCommandAsync(CommandContext context, Command command)
         {
             // Log that the command was executed.
-            await Record(context.Guild, LogType.CommandExecuted, null, $"{context.User.Mention} ({context.User.Id}) used command \"{(context.Prefix + context.Command.QualifiedName + ' ' + context.RawArgumentString).Trim()}\" in channel {context.Channel.Mention} ({context.Message.JumpLink})");
+            await Api.Moderation.ModLog(context.Guild, Api.Moderation.LogType.CommandExecuted, null, $"{context.User.Mention} ({context.User.Id}) used command \"{(context.Prefix + context.Command.QualifiedName + ' ' + context.RawArgumentString).Trim()}\" in channel {context.Channel.Mention} ({context.Message.JumpLink})");
             // Let the user know that the bot is executing the command.
             await context.Message.CreateReactionAsync(Constants.Loading);
-            CommandResult commandResult = await command.ExecuteAsync(context);
+            await context.CommandsNext.ExecuteCommandAsync(context);
             await context.Message.DeleteReactionAsync(Constants.Loading, context.Client.CurrentUser);
-            if (commandResult.IsSuccessful)
-            {
-                await context.Message.CreateReactionAsync(Constants.Check);
-            }
-            else
-            {
-                await CommandService.CommandErrored(context, commandResult.Exception);
-            }
         }
     }
 }

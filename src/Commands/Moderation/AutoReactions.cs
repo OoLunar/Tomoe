@@ -11,47 +11,34 @@ namespace Tomoe.Commands.Moderation
     using System.Text;
     using System.Threading.Tasks;
     using Tomoe.Db;
-    using static Tomoe.Commands.Moderation.ModLogs;
 
-    [Group("auto_react"), RequireGuild, Description("Reacts automatically when a new message is posted."), Aliases("autoreact", "ar"), RequireUserPermissions(Permissions.AddReactions), RequireBotPermissions(Permissions.AddReactions)]
+    [Group("auto_react"), RequireGuild, Description("Reacts automatically when a new message is posted."), Aliases("autoreact", "ar"), RequireUserPermissions(Permissions.AddReactions | Permissions.ManageChannels), RequireBotPermissions(Permissions.AddReactions)]
     public class AutoReactions : BaseCommandModule
     {
         public Database Database { private get; set; }
 
         [GroupCommand]
-        public async Task Overload(CommandContext context, [Description("The channel to react in.")] DiscordChannel channel, [Description("The emoji to react with.")] DiscordEmoji emoji)
+        public async Task Overload(CommandContext context, [Description("The channel to react in.")] DiscordChannel channel, [Description("The emojis to react with.")] params DiscordEmoji[] emojis)
         {
-            AutoReaction autoReaction = Database.AutoReactions.FirstOrDefault(autoReaction => autoReaction.GuildId == context.Guild.Id && autoReaction.ChannelId == channel.Id && autoReaction.EmojiName == (emoji.Id == 0 ? emoji.GetDiscordName() : emoji.Id.ToString()));
-            if (autoReaction != null)
-            {
-                await Program.SendMessage(context, $"Auto reaction {emoji} on {channel.Mention} already exists!");
-                return;
-            }
-
             if (channel.Type == ChannelType.Category)
             {
                 foreach (DiscordChannel subchannel in channel.Children)
                 {
-                    autoReaction = new();
-                    autoReaction.GuildId = context.Guild.Id;
-                    autoReaction.ChannelId = channel.Id;
-                    autoReaction.EmojiName = emoji.GetDiscordName();
-                    Database.AutoReactions.Add(autoReaction);
+                    await Api.Moderation.AutoReactions.Create(context.Client, context.Guild.Id, subchannel.Id, context.User.Id, emojis.Select(emoji => emoji.GetDiscordName()).ToArray());
                 }
-                await Record(context.Guild, LogType.AutoReactionCreate, Database, $"{context.User.Mention} has created an autoreaction with emoji {emoji} on all current channels in category {channel.Mention}.");
-                await Database.SaveChangesAsync();
-                await Program.SendMessage(context, $"From here on out, every message in the current channels of category {channel.Mention} will have the {emoji} reaction added to it!");
+                await Program.SendMessage(context, $"From here on out, every message in the current channels of category {channel.Mention} will have the following autoreactions added to it: {string.Join(", ", emojis.AsEnumerable())}");
             }
             else if (channel.Type is ChannelType.Text or ChannelType.News)
             {
-                autoReaction = new();
-                autoReaction.GuildId = context.Guild.Id;
-                autoReaction.ChannelId = channel.Id;
-                autoReaction.EmojiName = emoji.GetDiscordName();
-                Database.AutoReactions.Add(autoReaction);
-                await Record(context.Guild, LogType.AutoReactionCreate, Database, $"{context.User.Mention} has created an autoreaction with emoji {emoji} on channel {channel.Mention}.");
-                await Database.SaveChangesAsync();
-                await Program.SendMessage(context, $"From here on out, every message in {channel.Mention} will have the {emoji} reaction added to it!");
+
+                if (await Api.Moderation.AutoReactions.Create(context.Client, context.Guild.Id, channel.Id, context.User.Id, emojis.Select(emoji => emoji.GetDiscordName()).ToArray()))
+                {
+                    await Program.SendMessage(context, $"The following autoreactions in channel {channel.Mention} have been created: {string.Join(", ", emojis.AsEnumerable())}");
+                }
+                else
+                {
+                    await Program.SendMessage(context, $"Those autoreactions already exist!");
+                }
             }
             else
             {
@@ -63,7 +50,7 @@ namespace Tomoe.Commands.Moderation
         public async Task List(CommandContext context, [Description("Lists all autoreactions for the specified channel.")] DiscordChannel channel)
         {
             StringBuilder stringBuilder = new();
-            foreach (AutoReaction autoReaction in Database.AutoReactions.Where(autoReaction => autoReaction.ChannelId == channel.Id && autoReaction.GuildId == context.Guild.Id))
+            foreach (AutoReaction autoReaction in Api.Moderation.AutoReactions.List(context.Guild.Id, channel.Id))
             {
                 stringBuilder.AppendLine($"{DiscordEmoji.FromName(context.Client, autoReaction.EmojiName, true)}");
             }
@@ -83,47 +70,25 @@ namespace Tomoe.Commands.Moderation
         }
 
         [Command("remove"), Description("Removes an autoreaction from a channel."), Aliases("rm", "delete", "del")]
-        public async Task Remove(CommandContext context, [Description("The channel to remove the autoreaction from.")] DiscordChannel channel, [Description("The emoji to stop autoreacting with.")] DiscordEmoji emoji = null)
+        public async Task Remove(CommandContext context, [Description("The channel to remove the autoreaction from.")] DiscordChannel channel, [Description("The emoji to stop autoreacting with.")] params DiscordEmoji[] emojis)
         {
             if (channel.Type == ChannelType.Category)
             {
-                List<AutoReaction> autoReactions = emoji == null
-                    ? Database.AutoReactions.Where(autoReaction => autoReaction.GuildId == context.Guild.Id && channel.Children.Select(channel => channel.Id).Contains(autoReaction.ChannelId)).ToList()
-                    : Database.AutoReactions.Where(autoReaction => autoReaction.GuildId == context.Guild.Id && channel.Children.Select(channel => channel.Id).Contains(autoReaction.ChannelId) && autoReaction.EmojiName == emoji.Name).ToList();
-
-                if (autoReactions.Count == 0)
+                foreach (DiscordChannel subchannel in channel.Children)
                 {
-                    await Program.SendMessage(context, Formatter.Bold($"[Error]: There are no autoreactions on any channels in category {channel.Mention}!"));
+                    await Api.Moderation.AutoReactions.Delete(context.Client, context.Guild.Id, subchannel.Id, context.User.Id, emojis.Select(emoji => emoji.GetDiscordName()).ToArray());
                 }
-                else
-                {
-                    Database.AutoReactions.RemoveRange(autoReactions);
-                    if (emoji == null)
-                    {
-                        await Record(context.Guild, LogType.AutoReactionDelete, Database, $"{context.User.Mention} has removed all autoreactions on all current channels of category {channel.Mention}.");
-                        await Program.SendMessage(context, $"All autoreactions on current channels of category {channel.Mention} have been removed!");
-                    }
-                    else
-                    {
-                        await Record(context.Guild, LogType.AutoReactionDelete, Database, $"{context.User.Mention} has removed the {emoji} autoreactions on all current channels of category {channel.Mention}.");
-                        await Program.SendMessage(context, $"All {emoji} autoreactions on current channels of category {channel.Mention} have been removed!");
-                    }
-                }
+                await Program.SendMessage(context, $"All autoreactions in the channels of category {channel.Mention} with the following emojis have been removed: {string.Join(", ", emojis.AsEnumerable())}");
             }
             else if (channel.Type is ChannelType.Text or ChannelType.News)
             {
-                AutoReaction autoReaction = Database.AutoReactions.FirstOrDefault(autoReaction => autoReaction.GuildId == context.Guild.Id && autoReaction.ChannelId == channel.Id && autoReaction.EmojiName == (emoji.Id == 0 ? emoji.GetDiscordName() : emoji.Id.ToString()));
-                if (autoReaction != null)
+                if (await Api.Moderation.AutoReactions.Delete(context.Client, context.Guild.Id, channel.Id, context.User.Id, emojis.Select(emoji => emoji.GetDiscordName()).ToArray()))
                 {
-                    Database.AutoReactions.Remove(autoReaction);
-                    await Record(context.Guild, LogType.AutoReactionDelete, Database, $"{context.User.Mention} has removed an autoreaction with emoji {emoji} on channel {channel.Mention}.");
-                    await Database.SaveChangesAsync();
-                    await Program.SendMessage(context, $"Auto reaction {emoji} on {channel.Mention} has been removed!");
-                    return;
+                    await Program.SendMessage(context, $"The following autoreactions have been deleted from channel {channel.Mention}: {string.Join(", ", emojis.AsEnumerable())}");
                 }
                 else
                 {
-                    await Program.SendMessage(context, Formatter.Bold("[Error]: Autoreaction doesn't exist!"));
+                    await Program.SendMessage(context, $"Those autoreactions already exist!");
                 }
             }
             else

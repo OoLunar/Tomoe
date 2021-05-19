@@ -10,6 +10,7 @@ namespace Tomoe.Commands.Listeners
     using System.Linq;
     using System.Threading.Tasks;
     using Tomoe.Db;
+    using static Tomoe.Api.Moderation;
 
     public class GuildCreated
     {
@@ -38,17 +39,17 @@ namespace Tomoe.Commands.Listeners
                 DiscordRole voicebanRole = guildConfig.VoicebanRole.GetRole(eventArgs.Guild);
                 if (muteRole != null)
                 {
-                    Moderation.Config.FixPermissions(eventArgs.Guild, Moderation.Config.RoleAction.Mute, muteRole);
+                    Moderation.Config.FixPermissions(eventArgs.Guild, RoleAction.Mute, muteRole);
                 }
 
                 if (antimemeRole != null)
                 {
-                    Moderation.Config.FixPermissions(eventArgs.Guild, Moderation.Config.RoleAction.Antimeme, antimemeRole);
+                    Moderation.Config.FixPermissions(eventArgs.Guild, RoleAction.Antimeme, antimemeRole);
                 }
 
                 if (voicebanRole != null)
                 {
-                    Moderation.Config.FixPermissions(eventArgs.Guild, Moderation.Config.RoleAction.Voiceban, voicebanRole);
+                    Moderation.Config.FixPermissions(eventArgs.Guild, RoleAction.Voiceban, voicebanRole);
                 }
             }
 

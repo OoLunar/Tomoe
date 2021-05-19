@@ -7,6 +7,8 @@ namespace Tomoe.Commands.Public
     using DSharpPlus.Interactivity;
     using DSharpPlus.Interactivity.Enums;
     using DSharpPlus.Interactivity.Extensions;
+    using System;
+    using System.Collections.Generic;
     using System.Globalization;
     using System.Linq;
     using System.Text;
@@ -43,6 +45,38 @@ namespace Tomoe.Commands.Public
             {
                 await Program.SendMessage(context, timestamps.ToString());
             }
+        }
+
+        [Command("time_of")]
+        public async Task Overload(CommandContext context, params string[] messages)
+        {
+            List<ulong> messageIds = new();
+            Dictionary<string, string> invalidMessages = new();
+            foreach (string message in messages)
+            {
+                if (Uri.TryCreate(message, UriKind.Absolute, out Uri messageLink))
+                {
+                    if (messageLink.Host is "discord.com" or "discordapp.com")
+                    {
+                        if (ulong.TryParse(messageLink.Segments.Last(), NumberStyles.Number, CultureInfo.InvariantCulture, out ulong messageId))
+                        {
+                            messageIds.Add(messageId);
+                            continue;
+                        }
+                        invalidMessages.Add(message, "Not a Discord message link.");
+                        continue;
+                    }
+                    invalidMessages.Add(message, "Not a Discord link.");
+                    continue;
+                }
+                invalidMessages.Add(message, "Not a valid url.");
+            }
+
+            if (invalidMessages.Any())
+            {
+                await Program.SendMessage(context, $"Failed to get the time of the following messages:\n{string.Join('\n', invalidMessages.Select(pair => pair.Key + " - " + pair.Value))}");
+            }
+            await Overload(context, messageIds.ToArray());
         }
     }
 }

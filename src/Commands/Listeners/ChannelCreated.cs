@@ -7,6 +7,7 @@ namespace Tomoe.Commands.Listeners
     using Microsoft.Extensions.DependencyInjection;
     using System.Threading.Tasks;
     using Tomoe.Db;
+    using static Tomoe.Api.Moderation;
 
     public class ChannelCreated
     {
@@ -31,19 +32,19 @@ namespace Tomoe.Commands.Listeners
                 DiscordRole muteRole = guildConfig.MuteRole.GetRole(eventArgs.Guild);
                 if (muteRole != null)
                 {
-                    await Moderation.Config.FixPermissions(eventArgs.Channel, Moderation.Config.RoleAction.Mute, muteRole);
+                    await Moderation.Config.FixPermissions(eventArgs.Channel, RoleAction.Mute, muteRole);
                 }
 
                 DiscordRole antimemeRole = guildConfig.AntimemeRole.GetRole(eventArgs.Guild);
                 if (antimemeRole != null)
                 {
-                    await Moderation.Config.FixPermissions(eventArgs.Channel, Moderation.Config.RoleAction.Antimeme, antimemeRole);
+                    await Moderation.Config.FixPermissions(eventArgs.Channel, RoleAction.Antimeme, antimemeRole);
                 }
 
                 DiscordRole voicebanRole = guildConfig.VoicebanRole.GetRole(eventArgs.Guild);
                 if (voicebanRole != null)
                 {
-                    await Moderation.Config.FixPermissions(eventArgs.Channel, Moderation.Config.RoleAction.Voiceban, voicebanRole);
+                    await Moderation.Config.FixPermissions(eventArgs.Channel, RoleAction.Voiceban, voicebanRole);
                 }
             }
         }
