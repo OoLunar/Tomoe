@@ -39,10 +39,6 @@ docker-compose up -d
 
 # Tomoe, The Discord Moderation Bot
 
-## What is Tomoe written in?
-
-99.80% C#, 0.20% Docker.
-
 ## What features does Tomoe have?
 
 As mentioned previously, Tomoe aims to be the #1 bot choice for Discord Moderation. This means that any and all moderation commands that Vortex, Mee6 and Carl can do, Tomoe will try to implement. Here's the current road map of commands:
