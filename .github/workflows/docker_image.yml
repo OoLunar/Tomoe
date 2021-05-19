@@ -36,5 +36,5 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/tomoe:latest
-            ghcr.io/${{ github.repository_owner }}/tomoe:${{ steps.previoustag.outputs.tag }}
+            ghcr.io/oolunar/tomoe:latest
+            ghcr.io/oolunar/tomoe:${{ steps.previoustag.outputs.tag }}
