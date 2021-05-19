@@ -15,7 +15,7 @@ namespace Tomoe
         public const string SelfBotAction = "**[Denied: Cannot execute on myself.]**";
         public const string Hierarchy = "**[Denied: Prevented by hierarchy.]**";
         public const string GuildNotInDatabase = "**[Error: Failed to execute command because the guild is not in the database!]**";
-        public const string Version = "1.0.0-beta2";
+        public const string Version = "1.0.0-beta3";
 
         // Not constants, but they got no where else to go.
         public static readonly DiscordEmoji ThumbsUp = DiscordEmoji.FromUnicode(Program.Client.ShardClients[0], "👍");
