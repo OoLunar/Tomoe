@@ -51,15 +51,16 @@ namespace Tomoe.Api
                 return emojiRoleDictionary;
             }
 
-            public static async Task<bool> Create(DiscordClient discordClient, DiscordGuild discordGuild, ulong discordUserId, DiscordMessage discordMessage, string emojiRoleString)
+            public static async Task<bool> Create(DiscordClient discordClient, DiscordGuild discordGuild, ulong discordUserId, DiscordMessage discordMessage, string emojiRoleString) => await Create(discordClient, discordGuild, discordUserId, discordMessage, Parse(discordClient, discordGuild, emojiRoleString));
+
+            public static async Task<bool> Create(DiscordClient discordClient, DiscordGuild discordGuild, ulong discordUserId, DiscordMessage discordMessage, Dictionary<DiscordEmoji, DiscordRole> discordReactionRoles)
             {
-                Dictionary<DiscordEmoji, DiscordRole> discordReactionRoles = Parse(discordClient, discordGuild, emojiRoleString);
                 using IServiceScope scope = Program.ServiceProvider.CreateScope();
                 Database database = scope.ServiceProvider.GetService<Database>();
                 bool reactionRolesCreated = false;
                 foreach ((DiscordEmoji discordEmoji, DiscordRole discordRole) in discordReactionRoles)
                 {
-                    ReactionRole reactionRole = database.ReactionRoles.FirstOrDefault(reactionRole => reactionRole.EmojiName == discordEmoji.GetDiscordName() && reactionRole.RoleId == discordRole.Id);
+                    ReactionRole reactionRole = database.ReactionRoles.FirstOrDefault(reactionRole => reactionRole.EmojiName == discordEmoji.GetDiscordName() && reactionRole.RoleId == discordRole.Id && reactionRole.GuildId == discordGuild.Id && reactionRole.ChannelId == discordMessage.ChannelId && reactionRole.MessageId == discordMessage.Id);
                     if (reactionRole != null)
                     {
                         continue;
@@ -77,6 +78,7 @@ namespace Tomoe.Api
                 await database.SaveChangesAsync();
                 await Fix(discordClient, discordGuild, discordUserId, discordMessage);
                 return reactionRolesCreated;
+
             }
 
             public static async Task<bool> Delete(DiscordClient discordClient, DiscordGuild discordGuild, ulong discordUserId, DiscordMessage discordMessage, string emojiRoleString)
@@ -100,7 +102,7 @@ namespace Tomoe.Api
                 return reactionRolesCreated;
             }
 
-            public static async Task<bool> Fix(DiscordClient client, DiscordGuild discordGuild, ulong discordUserId, DiscordChannel discordChannel)
+            public static async Task<bool> Fix(DiscordClient discordClient, DiscordGuild discordGuild, ulong discordUserId, DiscordChannel discordChannel)
             {
                 using IServiceScope scope = Program.ServiceProvider.CreateScope();
                 Database database = scope.ServiceProvider.GetService<Database>();
@@ -122,7 +124,7 @@ namespace Tomoe.Api
                         discordMessage = await discordChannel.GetMessageAsync(databaseReactionRole.MessageId);
                     }
                     catch (Exception) { }
-                    DiscordEmoji discordEmoji = DiscordEmoji.FromName(client, databaseReactionRole.EmojiName, true);
+                    DiscordEmoji discordEmoji = DiscordEmoji.FromName(discordClient, databaseReactionRole.EmojiName, true);
                     DiscordRole discordRole = discordGuild.GetRole(databaseReactionRole.RoleId);
                     if (discordRole == null || discordMessage == null)
                     {
@@ -148,7 +150,7 @@ namespace Tomoe.Api
                 return reactionRolesFixed;
             }
 
-            public static async Task<bool> Fix(DiscordClient client, DiscordGuild discordGuild, ulong discordUserId, DiscordMessage discordMessage)
+            public static async Task<bool> Fix(DiscordClient discordClient, DiscordGuild discordGuild, ulong discordUserId, DiscordMessage discordMessage)
             {
                 using IServiceScope scope = Program.ServiceProvider.CreateScope();
                 Database database = scope.ServiceProvider.GetService<Database>();
@@ -164,7 +166,7 @@ namespace Tomoe.Api
 
                 foreach (ReactionRole databaseReactionRole in databaseReactionRoles)
                 {
-                    DiscordEmoji discordEmoji = DiscordEmoji.FromName(client, databaseReactionRole.EmojiName, true);
+                    DiscordEmoji discordEmoji = DiscordEmoji.FromName(discordClient, databaseReactionRole.EmojiName, true);
                     DiscordRole discordRole = discordGuild.GetRole(databaseReactionRole.RoleId);
                     if (discordEmoji == null || discordRole == null)
                     {

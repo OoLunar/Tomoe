@@ -34,50 +34,39 @@ namespace Tomoe.Utils
 
         internal static async Task Launch(DiscordShardedClient discordClient, IServiceProvider services)
         {
-            while (true)
+            IReadOnlyDictionary<int, CommandsNextExtension> commandsCollection = await discordClient.UseCommandsNextAsync(new CommandsNextConfiguration
             {
-                try
-                {
-                    IReadOnlyDictionary<int, CommandsNextExtension> commandsCollection = await discordClient.UseCommandsNextAsync(new CommandsNextConfiguration
-                    {
-                        StringPrefixes = new[] { Program.Config.DiscordBotPrefix },
-                        CaseSensitive = false,
-                        EnableDms = true,
-                        EnableDefaultHelp = false,
-                        UseDefaultCommandHandler = false,
-                        Services = services,
-                    });
-                    await discordClient.UseInteractivityAsync(new InteractivityConfiguration
-                    {
-                        // default timeout for other actions to 2 minutes
-                        Timeout = TimeSpan.FromMinutes(2)
-                    });
+                StringPrefixes = new[] { Program.Config.DiscordBotPrefix },
+                CaseSensitive = false,
+                EnableDms = true,
+                EnableDefaultHelp = false,
+                UseDefaultCommandHandler = false,
+                Services = services,
+            });
+            await discordClient.UseInteractivityAsync(new InteractivityConfiguration
+            {
+                // default timeout for other actions to 2 minutes
+                Timeout = TimeSpan.FromMinutes(2)
+            });
 
-                    foreach (CommandsNextExtension commands in commandsCollection.Values)
-                    {
-                        commands.RegisterConverter(new ImageFormatConverter());
-                        commands.RegisterConverter(new RoleActionConverter());
-                        commands.RegisterConverter(new TimeSpanConverter());
-                        commands.RegisterConverter(new ReminderConverter());
-                        commands.RegisterConverter(new LogTypeConverter());
-                        commands.RegisterConverter(new StrikeConverter());
-                        commands.RegisterConverter(new TagConverter());
-                        commands.RegisterCommands(Assembly.GetEntryAssembly());
-                        commands.CommandErrored += CommandErrored;
-                        commands.CommandExecuted += CommandExecuted;
-                    }
-                    break;
-                }
-                catch (InvalidOperationException)
-                {
-                    _logger.Error("Failed to initalize shards on CommandsNext. Trying again...");
-                }
+            foreach (CommandsNextExtension commandsNextExtension in commandsCollection.Values)
+            {
+                commandsNextExtension.RegisterConverter(new ImageFormatConverter());
+                commandsNextExtension.RegisterConverter(new RoleActionConverter());
+                commandsNextExtension.RegisterConverter(new TimeSpanConverter());
+                commandsNextExtension.RegisterConverter(new ReminderConverter());
+                commandsNextExtension.RegisterConverter(new LogTypeConverter());
+                commandsNextExtension.RegisterConverter(new StrikeConverter());
+                commandsNextExtension.RegisterConverter(new TagConverter());
+                commandsNextExtension.RegisterCommands(Assembly.GetEntryAssembly());
+                commandsNextExtension.CommandErrored += CommandErrored;
+                commandsNextExtension.CommandExecuted += CommandExecuted;
             }
         }
 
         public static async Task CommandExecuted(CommandsNextExtension client, CommandExecutionEventArgs eventArgs) => await eventArgs.Context.Message.CreateReactionAsync(Constants.Check);
 
-        public static async Task CommandErrored(CommandsNextExtension client, CommandErrorEventArgs args) => await CommandErrored(args.Context, args.Exception);
+        public static async Task CommandErrored(CommandsNextExtension client, CommandErrorEventArgs eventArgs) => await CommandErrored(eventArgs.Context, eventArgs.Exception);
 
         public static async Task CommandErrored(CommandContext context, Exception error)
         {

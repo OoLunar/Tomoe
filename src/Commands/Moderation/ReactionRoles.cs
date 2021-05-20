@@ -6,6 +6,7 @@ namespace Tomoe.Commands.Moderation
     using DSharpPlus.Entities;
     using DSharpPlus.Interactivity;
     using DSharpPlus.Interactivity.Extensions;
+    using System;
     using System.Collections.Generic;
     using System.Text;
     using System.Threading.Tasks;
@@ -16,20 +17,27 @@ namespace Tomoe.Commands.Moderation
     {
         public Database Database { private get; set; }
 
-        [GroupCommand, Aliases("add", "create")]
+        [GroupCommand]
         public async Task ByMessage(CommandContext context, [Description("The message to put a reaction role on.")] DiscordMessage message, [RemainingText, Description("Should be formatted as such (exact emojis or roles not required): :heart: @Role1 :blue_heart: @Role2 :green_heart: @Role1 :orange_heart: @Role3")] string emojiRoleList)
         {
-            if (string.IsNullOrEmpty(emojiRoleList))
+            try
             {
-                await Program.SendMessage(context, Formatter.Bold($"[Error]: `:emoji: @Role` format is required!"));
+                if (string.IsNullOrEmpty(emojiRoleList))
+                {
+                    await Program.SendMessage(context, Formatter.Bold($"[Error]: `:emoji: @Role` format is required!"));
+                }
+                else if (await Api.Moderation.ReactionRoles.Create(context.Client, context.Guild, context.User.Id, message, emojiRoleList))
+                {
+                    await Program.SendMessage(context, $"Reaction roles created!");
+                }
+                else
+                {
+                    await Program.SendMessage(context, Formatter.Bold($"[Error]: Message {message.Id} already has those reaction roles!"));
+                }
             }
-            else if (await Api.Moderation.ReactionRoles.Create(context.Client, context.Guild, context.User.Id, message, emojiRoleList))
+            catch (FormatException)
             {
-                await Program.SendMessage(context, $"Reaction roles created!");
-            }
-            else
-            {
-                await Program.SendMessage(context, Formatter.Bold($"[Error]: Message {message.Id} already has those reaction roles!"));
+                await Program.SendMessage(context, Formatter.Bold($"[Error]: Improperly formatted input. The input should be in the following format: :heart: @Role1 :blue_heart: @Role2 :green_heart: @Role1 :orange_heart: @Role3, etc. One or more emoji-role pair is required."));
             }
         }
 
@@ -42,25 +50,35 @@ namespace Tomoe.Commands.Moderation
             }
             else
             {
-                await Program.SendMessage(context, Formatter.Bold("[Error]: Message reply or message link is required."));
+                await ByMessage(context, (await context.Channel.GetMessagesAsync(2))[1], emojiRoleList);
             }
         }
 
-        [Command("add"), Aliases("create")]
-        public async Task AddMessage(CommandContext context, DiscordMessage message, [RemainingText] string emojiRolePair) => await ByMessage(context, message, emojiRolePair);
-
-        [Command("add")]
+        [GroupCommand]
         public async Task AddReply(CommandContext context, [RemainingText] string emojiRolePair) => await ByReply(context, emojiRolePair);
 
-        [Command("last"), Description("Assigns a role to the user(s) who react to the last message in the channel."), Aliases("last_message")]
+        [GroupCommand, Description("Assigns a role to the user(s) who react to the last message in the channel.")]
         public async Task LastMessage(CommandContext context, [Description("Which channel to get the last message from.")] DiscordChannel channel, [RemainingText, Description("Should be formatted as such (exact emojis or roles not required): :heart: @Role1 :blue_heart: @Role2 :green_heart: @Role1 :orange_heart: @Role3")] string emojiRoleList) => await ByMessage(context, (await channel.GetMessagesAsync(1))[0], emojiRoleList);
 
         [Command("fix"), Description("Adds Tomoe's reactions back onto previous reaction role messages."), Aliases("repair", "rereact")]
-        public async Task Fix(CommandContext context, [Description("Gets all reaction roles in this channel.")] DiscordChannel channel)
+        public async Task Fix(CommandContext context, [Description("Which channel needs to be fixed.")] DiscordChannel channel)
         {
             if (await Api.Moderation.ReactionRoles.Fix(context.Client, context.Guild, context.User.Id, channel))
             {
                 await Program.SendMessage(context, $"All reaction roles in channel {channel.Mention} have been fixed!");
+            }
+            else
+            {
+                await Program.SendMessage(context, "No reaction roles needed to be fixed!");
+            }
+        }
+
+        [Command("fix")]
+        public async Task Fix(CommandContext context, [Description("Which message needs to be fixed.")] DiscordMessage message)
+        {
+            if (await Api.Moderation.ReactionRoles.Fix(context.Client, context.Guild, context.User.Id, message))
+            {
+                await Program.SendMessage(context, $"Fixed all reaction roles on message <{message.JumpLink}>");
             }
             else
             {
