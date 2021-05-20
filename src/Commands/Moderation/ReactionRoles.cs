@@ -54,9 +54,6 @@ namespace Tomoe.Commands.Moderation
             }
         }
 
-        [GroupCommand]
-        public async Task AddReply(CommandContext context, [RemainingText] string emojiRolePair) => await ByReply(context, emojiRolePair);
-
         [GroupCommand, Description("Assigns a role to the user(s) who react to the last message in the channel.")]
         public async Task LastMessage(CommandContext context, [Description("Which channel to get the last message from.")] DiscordChannel channel, [RemainingText, Description("Should be formatted as such (exact emojis or roles not required): :heart: @Role1 :blue_heart: @Role2 :green_heart: @Role1 :orange_heart: @Role3")] string emojiRoleList) => await ByMessage(context, (await channel.GetMessagesAsync(1))[0], emojiRoleList);
 
