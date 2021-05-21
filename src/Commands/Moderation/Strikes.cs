@@ -50,7 +50,7 @@ namespace Tomoe.Commands.Moderation
         [Command("drop")]
         public async Task Drop(CommandContext context, [Description("Who to get the last strike from.")] DiscordUser victim, [Description("Why is the strike being dropped."), RemainingText] string dropReason = Constants.MissingReason)
         {
-            Strike strike = Database.Strikes.AsNoTracking().LastOrDefault(strike => strike.VictimId == victim.Id && strike.GuildId == context.Guild.Id);
+            Strike strike = Database.Strikes.AsNoTracking().OrderBy(strike => strike.Id).LastOrDefault(strike => strike.VictimId == victim.Id && strike.GuildId == context.Guild.Id);
             if (strike == null)
             {
                 await Program.SendMessage(context, $"{victim.Mention} doesn't have any strikes!");

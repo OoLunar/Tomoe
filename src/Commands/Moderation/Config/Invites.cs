@@ -10,7 +10,7 @@ namespace Tomoe.Commands.Moderation
 
     public partial class Config : BaseCommandModule
     {
-        [Command("invites"), Aliases("add_invite", "allow_invite")]
+        [Command("invites")]
         public async Task Invites(CommandContext context) => await Program.SendMessage(context, $"Allowed Invites => {string.Join(", ", ((List<string>)Api.Moderation.Config.Get(context.Guild.Id, Api.Moderation.Config.ConfigSetting.AllowedInvites)).Select(code => $"<https://discord.gg/{code}>").DefaultIfEmpty("None set"))}\nNone of these invites will be deleted when posted.");
 
         [Command("add_invite"), Aliases("allow_invite"), RequireUserPermissions(Permissions.ManageMessages), Description("Adds a Discord invite to the whitelist. Only effective if `anti_invite` is enabled.")]

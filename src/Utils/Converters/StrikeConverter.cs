@@ -25,7 +25,12 @@ namespace Tomoe.Utils.Converters
             bool convertedSuccessfully = int.TryParse(value, NumberStyles.Number, CultureInfo.InvariantCulture, out int strikeId);
             if (!convertedSuccessfully)
             {
-                await Program.SendMessage(context, $"{Formatter.InlineCode(value)} is not a valid strike id!");
+                IArgumentConverter<DiscordUser> converter = new DiscordUserConverter();
+                Optional<DiscordUser> optionalUser = await converter.ConvertAsync(value, context);
+                if (!optionalUser.HasValue)
+                {
+                    await Program.SendMessage(context, $"{Formatter.InlineCode(value)} is not a valid strike id!");
+                }
                 return Optional.FromNoValue<Strike>();
             }
             Strike strike = await database.Strikes.AsNoTracking().FirstOrDefaultAsync(strike => strike.LogId == strikeId && strike.GuildId == context.Guild.Id);

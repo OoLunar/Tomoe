@@ -10,7 +10,7 @@ namespace Tomoe.Commands.Moderation
 
     public partial class Config : BaseCommandModule
     {
-        [Command("ignored_channels"), Aliases("hidden_channels", "channel_ignored", "ignore_channel", "hide_channel", "channel_ignore"), Description("Shows all ignored channels.")]
+        [Command("ignored_channels"), Aliases("hidden_channels", "channel_ignored"), Description("Shows all ignored channels.")]
         public async Task ChannelIgnored(CommandContext context) => await Program.SendMessage(context, $"Ignored Channels => {string.Join(", ", ((List<ulong>)Api.Moderation.Config.Get(context.Guild.Id, Api.Moderation.Config.ConfigSetting.IgnoredChannels)).Select(channelId => $"<#{channelId}>").DefaultIfEmpty("None set"))}\nTomoe will not respond when commands are used in this channel.");
 
         [Command("ignore_channel"), Aliases("hide_channel", "channel_ignore"), RequireUserPermissions(Permissions.ManageChannels), Description("Prevents the bot from reading messages and executing commands in the specified channel.")]

@@ -41,9 +41,9 @@ namespace Tomoe.Commands.Listeners
             if (guildConfig == null
                 || guildConfig.IgnoredChannels.Contains(eventArgs.Channel.Id)
                 || authorMember.HasPermission(Permissions.ManageMessages)
-                  || authorMember.HasPermission(Permissions.Administrator)
-                  || eventArgs.Guild.OwnerId == eventArgs.Author.Id
-                  || guildConfig.AdminRoles.ConvertAll(role => role.ToString()).Intersect(authorMember.Roles.ToList().ConvertAll(role => role.ToString())).Any()
+                || authorMember.HasPermission(Permissions.Administrator)
+                || eventArgs.Guild.OwnerId == eventArgs.Author.Id
+                || guildConfig.AdminRoles.ConvertAll(role => role.ToString()).Intersect(authorMember.Roles.ToList().ConvertAll(role => role.ToString())).Any()
               )
             {
                 return;
