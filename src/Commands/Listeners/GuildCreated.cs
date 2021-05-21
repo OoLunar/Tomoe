@@ -39,17 +39,17 @@ namespace Tomoe.Commands.Listeners
                 DiscordRole voicebanRole = guildConfig.VoicebanRole.GetRole(eventArgs.Guild);
                 if (muteRole != null)
                 {
-                    Moderation.Config.FixPermissions(eventArgs.Guild, RoleAction.Mute, muteRole);
+                    await Moderation.Config.FixPermissions(eventArgs.Guild, RoleAction.Mute, muteRole);
                 }
 
                 if (antimemeRole != null)
                 {
-                    Moderation.Config.FixPermissions(eventArgs.Guild, RoleAction.Antimeme, antimemeRole);
+                    await Moderation.Config.FixPermissions(eventArgs.Guild, RoleAction.Antimeme, antimemeRole);
                 }
 
                 if (voicebanRole != null)
                 {
-                    Moderation.Config.FixPermissions(eventArgs.Guild, RoleAction.Voiceban, voicebanRole);
+                    await Moderation.Config.FixPermissions(eventArgs.Guild, RoleAction.Voiceban, voicebanRole);
                 }
             }
 

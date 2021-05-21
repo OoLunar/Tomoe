@@ -90,18 +90,26 @@ namespace Tomoe.Commands.Moderation
                     RoleAction.None or _ => throw new NotImplementedException()
                 };
 
-                DiscordMessage message = await Program.SendMessage(context, $"Role {role.Mention} is currently set as ");
-                Queue queue = new(message, context.User, new(async eventArgs =>
+                if (previousRole == role.Id)
                 {
-                    if (eventArgs.TimedOut || eventArgs.MessageReactionAddEventArgs.Emoji == Constants.ThumbsDown)
+                    await Program.SendMessage(context, $"{role.Mention} is already the {previousRoleType} role!");
+                    await FixPermissions(context.Guild, roleAction, role);
+                }
+                else
+                {
+                    DiscordMessage message = await Program.SendMessage(context, $"Role <@{previousRole}> is set as the current {previousRoleType} role. Should we change it?");
+                    Queue queue = new(message, context.User, new(async eventArgs =>
                     {
-                        await message.ModifyAsync(Formatter.Strike(message.Content) + '\n' + Formatter.Bold("[Notice: Aborting!]"));
-                    }
-                    else
-                    {
-                        await SetRole(context, roleAction, role, false);
-                    }
-                }));
+                        if (eventArgs.TimedOut || eventArgs.MessageReactionAddEventArgs.Emoji == Constants.ThumbsDown)
+                        {
+                            await message.ModifyAsync(Formatter.Strike(message.Content) + '\n' + Formatter.Bold("[Notice: Aborting!]"));
+                        }
+                        else
+                        {
+                            await SetRole(context, roleAction, role, false);
+                        }
+                    }));
+                }
                 return;
             }
 
@@ -109,7 +117,7 @@ namespace Tomoe.Commands.Moderation
             await ModLog(context.Guild, LogType.ConfigChange, Database, $"{roleAction} Role => {context.User.Mention} has changed the {roleAction} role to {role.Mention}");
             await Database.SaveChangesAsync();
             await checklist.Check();
-            FixPermissions(context.Guild, roleAction, role);
+            await FixPermissions(context.Guild, roleAction, role);
             await checklist.Finalize($"Role {role.Mention} is now set as the {roleAction} role!");
             checklist.Dispose();
         }
@@ -120,7 +128,13 @@ namespace Tomoe.Commands.Moderation
         /// <param name="discordGuild">The <see cref="DiscordGuild"/> in question.</param>
         /// <param name="roleAction">The <see cref="RoleAction"/> determines which set of <see cref="Permissions"/> to use.</param>
         /// <param name="discordRole">The <see cref="DiscordRole"/> whose <see cref="Permissions"/> should be fixed.</param>
-        public static void FixPermissions(DiscordGuild discordGuild, RoleAction roleAction, DiscordRole discordRole) => discordGuild.Channels.Values.ToList().ForEach(async channel => await FixPermissions(channel, roleAction, discordRole));
+        public static async Task FixPermissions(DiscordGuild discordGuild, RoleAction roleAction, DiscordRole discordRole)
+        {
+            foreach (DiscordChannel channel in discordGuild.Channels.Values)
+            {
+                await FixPermissions(channel, roleAction, discordRole);
+            }
+        }
 
         /// <summary>
         /// Fixes a <see cref="DiscordRole"/>'s <see cref="Permissions"/> for a specific <paramref name="discordChannel"/> to ensure that the <paramref name="discordRole"/> works as intended.
@@ -130,22 +144,6 @@ namespace Tomoe.Commands.Moderation
         /// <param name="discordRole">The <see cref="DiscordRole"/> whose <see cref="Permissions"/> should be fixed.</param>
         public static async Task FixPermissions(DiscordChannel discordChannel, RoleAction roleAction, DiscordRole discordRole)
         {
-            Permissions textChannelPerms = roleAction switch
-            {
-                RoleAction.Mute => Permissions.SendMessages | Permissions.AddReactions,
-                RoleAction.Antimeme => Permissions.AttachFiles | Permissions.AddReactions | Permissions.EmbedLinks | Permissions.UseExternalEmojis,
-                RoleAction.Voiceban => Permissions.None,
-                _ => Permissions.None
-            };
-            Permissions voiceChannelPerms = roleAction switch
-            {
-                RoleAction.Mute => Permissions.Speak | Permissions.Stream,
-                RoleAction.Antimeme => Permissions.Stream | Permissions.UseVoiceDetection,
-                RoleAction.Voiceban => Permissions.UseVoice,
-                _ => Permissions.None
-            };
-            Permissions categoryPerms = textChannelPerms | voiceChannelPerms;
-
             string auditLogReason = roleAction switch
             {
                 RoleAction.Mute => "Configuring permissions for mute role. Preventing role from sending messages, reacting to messages and speaking in voice channels.",
@@ -154,17 +152,45 @@ namespace Tomoe.Commands.Moderation
                 _ => "Not configuring unknown role action."
             };
 
-            switch (discordChannel.Type)
+            switch (roleAction)
             {
-                case ChannelType.Voice:
-                    await discordChannel.AddOverwriteAsync(discordRole, Permissions.None, voiceChannelPerms, auditLogReason);
+                case RoleAction.Antimeme:
+                    if (discordChannel.Type is ChannelType.Category)
+                    {
+                        await discordChannel.AddOverwriteAsync(discordRole, Permissions.None, Permissions.AttachFiles | Permissions.AddReactions | Permissions.EmbedLinks | Permissions.UseExternalEmojis | Permissions.Stream | Permissions.UseVoiceDetection, auditLogReason);
+                    }
+                    else if (discordChannel.Type == ChannelType.Voice)
+                    {
+                        await discordChannel.AddOverwriteAsync(discordRole, Permissions.None, Permissions.Stream | Permissions.UseVoiceDetection, auditLogReason);
+                    }
+                    else
+                    {
+                        await discordChannel.AddOverwriteAsync(discordRole, Permissions.None, Permissions.AttachFiles | Permissions.AddReactions | Permissions.EmbedLinks | Permissions.UseExternalEmojis, auditLogReason);
+                    }
                     break;
-                case ChannelType.Category:
-                    await discordChannel.AddOverwriteAsync(discordRole, Permissions.None, categoryPerms, auditLogReason);
+                case RoleAction.Mute:
+                    if (discordChannel.Type is ChannelType.Category)
+                    {
+                        await discordChannel.AddOverwriteAsync(discordRole, Permissions.None, Permissions.SendMessages | Permissions.AddReactions | Permissions.Speak | Permissions.Stream, auditLogReason);
+                    }
+                    else if (discordChannel.Type == ChannelType.Voice)
+                    {
+                        await discordChannel.AddOverwriteAsync(discordRole, Permissions.None, Permissions.Speak | Permissions.Stream, auditLogReason);
+                    }
+                    else
+                    {
+                        await discordChannel.AddOverwriteAsync(discordRole, Permissions.None, Permissions.SendMessages | Permissions.AddReactions, auditLogReason);
+                    }
                     break;
+                case RoleAction.Voiceban:
+                    if (discordChannel.Type is ChannelType.Category or ChannelType.Voice)
+                    {
+                        await discordChannel.AddOverwriteAsync(discordRole, Permissions.None, Permissions.UseVoice, auditLogReason);
+                    }
+                    break;
+                case RoleAction.None:
                 default:
-                    await discordChannel.AddOverwriteAsync(discordRole, Permissions.None, textChannelPerms, auditLogReason);
-                    break;
+                    throw new NotImplementedException();
             }
         }
     }
