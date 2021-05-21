@@ -155,7 +155,7 @@ namespace Tomoe.Commands.Moderation
             switch (roleAction)
             {
                 case RoleAction.Antimeme:
-                    if (discordChannel.Type is ChannelType.Category)
+                    if (discordChannel.Type == ChannelType.Category)
                     {
                         await discordChannel.AddOverwriteAsync(discordRole, Permissions.None, Permissions.AttachFiles | Permissions.AddReactions | Permissions.EmbedLinks | Permissions.UseExternalEmojis | Permissions.Stream | Permissions.UseVoiceDetection, auditLogReason);
                     }
@@ -169,7 +169,7 @@ namespace Tomoe.Commands.Moderation
                     }
                     break;
                 case RoleAction.Mute:
-                    if (discordChannel.Type is ChannelType.Category)
+                    if (discordChannel.Type == ChannelType.Category)
                     {
                         await discordChannel.AddOverwriteAsync(discordRole, Permissions.None, Permissions.SendMessages | Permissions.AddReactions | Permissions.Speak | Permissions.Stream, auditLogReason);
                     }
@@ -186,6 +186,14 @@ namespace Tomoe.Commands.Moderation
                     if (discordChannel.Type is ChannelType.Category or ChannelType.Voice)
                     {
                         await discordChannel.AddOverwriteAsync(discordRole, Permissions.None, Permissions.UseVoice, auditLogReason);
+                    }
+                    else
+                    {
+                        DiscordOverwrite discordOverwrite = discordChannel.PermissionOverwrites.FirstOrDefault(overwrite => overwrite.Id == discordRole.Id);
+                        if (discordOverwrite != null)
+                        {
+                            await discordOverwrite.DeleteAsync(auditLogReason);
+                        }
                     }
                     break;
                 case RoleAction.None:
