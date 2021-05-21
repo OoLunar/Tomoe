@@ -22,27 +22,25 @@ namespace Tomoe.Commands.Listeners
             GuildDownloadCompleted.MemberCount[eventArgs.Guild.Id]++;
             using IServiceScope scope = Program.ServiceProvider.CreateScope();
             Database database = scope.ServiceProvider.GetService<Database>();
-            GuildConfig guild = await database.GuildConfigs.FirstOrDefaultAsync(guild => guild.Id == eventArgs.Guild.Id);
-            if (guild != null)
+            GuildConfig guild = database.GuildConfigs.First(guild => guild.Id == eventArgs.Guild.Id);
+            GuildUser user = database.GuildUsers.FirstOrDefault(user => user.UserId == eventArgs.Member.Id && user.GuildId == eventArgs.Guild.Id);
+            if (user != null)
             {
-                GuildUser user = database.GuildUsers.FirstOrDefault(user => user.UserId == eventArgs.Member.Id && user.GuildId == eventArgs.Guild.Id);
-                if (user != null)
+                foreach (ulong roleId in user.Roles)
                 {
-                    foreach (ulong roleId in user.Roles)
+                    DiscordRole role = eventArgs.Guild.GetRole(roleId);
+                    if (role != null)
                     {
-                        DiscordRole role = eventArgs.Guild.GetRole(roleId);
-                        if (role != null)
-                        {
-                            await eventArgs.Member.GrantRoleAsync(role, "Persistent Roles.");
-                        }
+                        await eventArgs.Member.GrantRoleAsync(role, "Persistent Roles.");
                     }
                 }
-                else
-                {
-                    user = new(eventArgs.Member.Id);
-                    database.GuildUsers.Add(user);
-                    await database.SaveChangesAsync();
-                }
+            }
+            else
+            {
+                user = new(eventArgs.Member.Id);
+                user.Roles.AddRange(eventArgs.Member.Roles.Except(new[] { eventArgs.Guild.EveryoneRole }).Select(role => role.Id));
+                database.GuildUsers.Add(user);
+                await database.SaveChangesAsync();
             }
         }
     }

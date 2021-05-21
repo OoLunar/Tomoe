@@ -21,15 +21,14 @@ namespace Tomoe.Commands.Listeners
         {
             using IServiceScope scope = Program.ServiceProvider.CreateScope();
             Database database = scope.ServiceProvider.GetService<Database>();
-            GuildConfig guildConfig = await database.GuildConfigs.FirstOrDefaultAsync(guild => guild.Id == eventArgs.Guild.Id);
-            if (guildConfig != null)
+            GuildConfig guildConfig = database.GuildConfigs.First(guild => guild.Id == eventArgs.Guild.Id);
+            GuildUser guildUser = database.GuildUsers.FirstOrDefault(user => user.UserId == eventArgs.Member.Id && user.GuildId == eventArgs.Guild.Id);
+            if (guildUser == null)
             {
-                GuildUser guildUser = database.GuildUsers.FirstOrDefault(user => user.UserId == eventArgs.Member.Id && user.GuildId == eventArgs.Guild.Id);
-                if (guildUser != null)
-                {
-                    guildUser.Roles.AddRange(eventArgs.Member.Roles.Except(new[] { eventArgs.Guild.EveryoneRole }).Select(role => role.Id));
-                }
+                guildUser = new(eventArgs.Member.Id);
             }
+            guildUser.Roles.AddRange(eventArgs.Member.Roles.Except(new[] { eventArgs.Guild.EveryoneRole }).Select(role => role.Id));
+            await database.SaveChangesAsync();
         }
     }
 }
