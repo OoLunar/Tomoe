@@ -19,6 +19,7 @@ namespace Tomoe.Commands.Listeners
         /// <returns></returns>
         public static async Task Handler(DiscordClient _client, GuildMemberAddEventArgs eventArgs)
         {
+            GuildDownloadCompleted.MemberCount[eventArgs.Guild.Id]++;
             using IServiceScope scope = Program.ServiceProvider.CreateScope();
             Database database = scope.ServiceProvider.GetService<Database>();
             GuildConfig guild = await database.GuildConfigs.FirstOrDefaultAsync(guild => guild.Id == eventArgs.Guild.Id);
