@@ -1,4 +1,3 @@
-
 namespace Tomoe.Utils.Configs
 {
     using Serilog.Events;

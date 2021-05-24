@@ -4,6 +4,7 @@ namespace Tomoe.Utils.Converters
     using DSharpPlus.CommandsNext.Converters;
     using DSharpPlus.Entities;
     using Humanizer;
+    using System;
     using System.Threading.Tasks;
     using static Tomoe.Api.Moderation;
 
@@ -17,7 +18,9 @@ namespace Tomoe.Utils.Converters
             }
             catch (NoMatchFoundException)
             {
-                return Task.FromResult(Optional.FromValue(LogType.Unknown));
+                return Enum.TryParse(value, true, out LogType logType)
+                    ? Task.FromResult(Optional.FromValue(logType))
+                    : Task.FromResult(Optional.FromValue(LogType.Unknown));
             }
         }
     }

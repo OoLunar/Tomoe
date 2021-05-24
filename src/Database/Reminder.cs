@@ -17,8 +17,6 @@ namespace Tomoe.Db
         public bool Expires { get; internal set; }
         public DateTime ExpiresOn { get; internal set; }
         public DateTime IssuedAt { get; internal set; }
-        // Used for tempban, tempmute, templock, etc
-        public bool IsPunishment { get; internal set; }
         public Api.Moderation.LogType Punishment { get; internal set; }
     }
 }

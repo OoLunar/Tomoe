@@ -1,4 +1,3 @@
-
 namespace Tomoe.Utils.Converters
 {
     using DSharpPlus;

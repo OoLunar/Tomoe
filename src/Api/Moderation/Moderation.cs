@@ -46,6 +46,7 @@ namespace Tomoe.Api
             CommandExecuted,
             CustomEvent,
             Unknown,
+            Reminder
         }
 
         public static async Task<bool> Ban(DiscordGuild discordGuild, DiscordUser victim, ulong issuerId, string discordMessageLink, string banReason = Constants.MissingReason)
@@ -79,7 +80,7 @@ namespace Tomoe.Api
             modLog.LogId = database.ModLogs.Where(log => log.GuildId == discordGuildId).Count() + 1;
             modLog.Reason = reason;
             database.ModLogs.Add(modLog);
-            LogSetting logSetting = await database.LogSettings.FirstOrDefaultAsync(logSetting => logSetting.GuildId == discordGuildId && logSetting.Action == logType) ?? await database.LogSettings.FirstOrDefaultAsync(logSetting => logSetting.GuildId == discordGuildId && logSetting.Action == LogType.Unknown);
+            LogSetting logSetting = database.LogSettings.FirstOrDefault(logSetting => logSetting.GuildId == discordGuildId && logSetting.Action == logType) ?? database.LogSettings.FirstOrDefault(logSetting => logSetting.GuildId == discordGuildId && logSetting.Action == LogType.Unknown);
             if (saveToDatabase)
             {
                 await database.SaveChangesAsync();
@@ -215,7 +216,12 @@ namespace Tomoe.Api
         public static async Task<bool> Unban(DiscordClient client, DiscordGuild discordGuild, ulong victimId, ulong issuerId, string discordMessageLink, string unbanReason = Constants.MissingReason)
         {
             await discordGuild.UnbanMemberAsync(victimId, unbanReason);
-            DiscordUser victim = await client.GetUserAsync(victimId);
+            DiscordUser victim = null;
+            try
+            {
+                victim = await client.GetUserAsync(victimId);
+            }
+            catch (NotFoundException) { }
             bool sentDm = false;
             if (victim != null)
             {

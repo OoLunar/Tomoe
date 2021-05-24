@@ -7,7 +7,7 @@ namespace Tomoe.Commands.Moderation
     using System.Linq;
     using System.Threading.Tasks;
     using Tomoe.Utils;
-#pragma warning disable CS1998
+
     public class OwnerTools : BaseCommandModule
     {
         [Command("stop"), RequireOwner, Description("Shuts down the bot.")]

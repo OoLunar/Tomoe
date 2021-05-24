@@ -3,7 +3,6 @@ namespace Tomoe.Api
     using DSharpPlus;
     using DSharpPlus.Entities;
     using Humanizer;
-    using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.DependencyInjection;
     using System.Linq;
     using System.Threading.Tasks;
@@ -18,16 +17,16 @@ namespace Tomoe.Api
                 using IServiceScope scope = Program.ServiceProvider.CreateScope();
                 Database database = scope.ServiceProvider.GetService<Database>();
 
-                LogSetting logSetting = await database.LogSettings.FirstOrDefaultAsync(logSetting => logSetting.Action == logType && logSetting.GuildId == discordGuildId);
+                LogSetting logSetting = database.LogSettings.FirstOrDefault(logSetting => logSetting.Action == logType && logSetting.GuildId == discordGuildId);
                 if (logSetting == null)
                 {
                     logSetting = new();
                     logSetting.Action = logType;
                     logSetting.GuildId = discordGuildId;
+                    database.LogSettings.Add(logSetting);
                 }
                 logSetting.ChannelId = channel.Id;
                 logSetting.IsLoggingEnabled = isLoggingEnabled;
-                database.LogSettings.Add(logSetting);
                 await ModLog(client, discordGuildId, LogType.ConfigChange, database, $"Logging {logType.Humanize()} => <@{discordUserId}> changed the {logType.Humanize()} log channel to {channel.Mention}");
                 await database.SaveChangesAsync();
             }

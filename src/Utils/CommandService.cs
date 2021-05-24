@@ -11,9 +11,6 @@ namespace Tomoe.Utils
     using DSharpPlus.Interactivity;
     using DSharpPlus.Interactivity.Extensions;
     using Humanizer;
-    using ICSharpCode.Decompiler;
-    using ICSharpCode.Decompiler.CSharp;
-    using ICSharpCode.Decompiler.TypeSystem;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.DependencyInjection;
     using Serilog;
@@ -21,12 +18,10 @@ namespace Tomoe.Utils
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
-    using System.Text.Json;
     using System.Threading.Tasks;
     using Tomoe.Db;
     using Tomoe.Utils.Converters;
     using Tomoe.Utils.Exceptions;
-
 
     internal class CommandService
     {

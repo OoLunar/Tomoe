@@ -7,3 +7,4 @@ res/*.bak
 *.db
 .obsidian
 .vscode
+.vs

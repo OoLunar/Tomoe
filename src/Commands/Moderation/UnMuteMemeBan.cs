@@ -4,8 +4,6 @@ namespace Tomoe.Commands.Moderation
     using DSharpPlus.CommandsNext;
     using DSharpPlus.CommandsNext.Attributes;
     using DSharpPlus.Entities;
-    using Microsoft.EntityFrameworkCore;
-    using Microsoft.Extensions.DependencyInjection;
     using System;
     using System.Threading.Tasks;
     using Tomoe.Commands.Moderation.Attributes;
