@@ -27,7 +27,7 @@ namespace Tomoe.Api
                 }
                 logSetting.ChannelId = channel.Id;
                 logSetting.IsLoggingEnabled = isLoggingEnabled;
-                await ModLog(client, discordGuildId, LogType.ConfigChange, database, $"Logging {logType.Humanize()} => <@{discordUserId}> changed the {logType.Humanize()} log channel to {channel.Mention}");
+                await ModLog(client, discordGuildId, LogType.Config, database, $"Logging {logType.Humanize()} => <@{discordUserId}> changed the {logType.Humanize()} log channel to {channel.Mention}");
                 await database.SaveChangesAsync();
             }
 

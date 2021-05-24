@@ -81,7 +81,7 @@ namespace Tomoe.Api
                     _ => throw new ArgumentException("Unknown ConfigSetting! Open up a GitHub issue please.")
                 };
                 database.Entry(guildConfig).State = EntityState.Modified;
-                await ModLog(discordClient, discordGuildId, LogType.ConfigChange, database, $"<@{discordUserId}> set {configSetting.Humanize()} to {value}");
+                await ModLog(discordClient, discordGuildId, LogType.Config, database, $"<@{discordUserId}> set {configSetting.Humanize()} to {value}");
                 await database.SaveChangesAsync();
             }
 
@@ -108,7 +108,7 @@ namespace Tomoe.Api
                         throw new ArgumentException("ConfigSetting expected to be a list.");
                 }
                 database.Entry(guildConfig).State = EntityState.Modified;
-                await ModLog(discordClient, discordGuildId, LogType.ConfigChange, database, $"<@{discordUserId}> added {value} to the {configSetting.Humanize()} list");
+                await ModLog(discordClient, discordGuildId, LogType.Config, database, $"<@{discordUserId}> added {value} to the {configSetting.Humanize()} list");
                 await database.SaveChangesAsync();
             }
 
@@ -126,7 +126,7 @@ namespace Tomoe.Api
                     _ => throw new ArgumentException("ConfigSetting expected to be a list.")
                 };
                 database.Entry(guildConfig).State = EntityState.Modified;
-                await ModLog(discordClient, discordGuildId, LogType.ConfigChange, database, $"<@{discordUserId}> removed {value} to the {configSetting.Humanize()} list");
+                await ModLog(discordClient, discordGuildId, LogType.Config, database, $"<@{discordUserId}> removed {value} to the {configSetting.Humanize()} list");
                 await database.SaveChangesAsync();
                 return removed;
             }
@@ -154,7 +154,7 @@ namespace Tomoe.Api
                         throw new ArgumentException("ConfigSetting expected to be a list.");
                 }
                 database.Entry(guildConfig).State = EntityState.Modified;
-                await ModLog(discordClient, discordGuildId, LogType.ConfigChange, database, $"<@{discordUserId}> cleared the {configSetting.Humanize()} list");
+                await ModLog(discordClient, discordGuildId, LogType.Config, database, $"<@{discordUserId}> cleared the {configSetting.Humanize()} list");
                 await database.SaveChangesAsync();
             }
 

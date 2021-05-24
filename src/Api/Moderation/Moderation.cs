@@ -42,11 +42,12 @@ namespace Tomoe.Api
             ReactionRoleDelete,
             ReactionRoleFix,
             Lock,
-            ConfigChange,
+            Config,
             CommandExecuted,
             CustomEvent,
             Unknown,
-            Reminder
+            Reminder,
+            None
         }
 
         public static async Task<bool> Ban(DiscordGuild discordGuild, DiscordUser victim, ulong issuerId, string discordMessageLink, string banReason = Constants.MissingReason)
@@ -222,6 +223,7 @@ namespace Tomoe.Api
                 victim = await client.GetUserAsync(victimId);
             }
             catch (NotFoundException) { }
+
             bool sentDm = false;
             if (victim != null)
             {

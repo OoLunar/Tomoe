@@ -3,7 +3,9 @@ namespace Tomoe.Commands.Moderation.Attributes
     using DSharpPlus;
     using DSharpPlus.CommandsNext;
     using DSharpPlus.CommandsNext.Attributes;
+    using DSharpPlus.CommandsNext.Converters;
     using DSharpPlus.Entities;
+    using DSharpPlus.Exceptions;
     using System;
     using System.Collections.Generic;
     using System.Globalization;
@@ -84,46 +86,20 @@ namespace Tomoe.Commands.Moderation.Attributes
         private async Task<DiscordMember[]> GetMembersAsync(CommandContext context, IReadOnlyList<string> discordUsers)
         {
             List<DiscordMember> discordMembers = new();
+            IArgumentConverter<DiscordMember> converter = new DiscordMemberConverter();
             foreach (string discordUserId in discordUsers)
             {
-                Optional<DiscordMember> optionalDiscordMember = await ConvertAsync(discordUserId, context);
-                if (optionalDiscordMember.HasValue)
+                try
                 {
-                    discordMembers.Add(optionalDiscordMember.Value);
+                    Optional<DiscordMember> optionalDiscordMember = await converter.ConvertAsync(discordUserId.ToString(), context);
+                    if (optionalDiscordMember.HasValue)
+                    {
+                        discordMembers.Add(optionalDiscordMember.Value);
+                    }
                 }
+                catch (NotFoundException) { }
             }
             return discordMembers.ToArray();
-        }
-
-        private async Task<Optional<DiscordMember>> ConvertAsync(string value, CommandContext context)
-        {
-            if (context.Guild == null)
-            {
-                return Optional.FromNoValue<DiscordMember>();
-            }
-
-            if (ulong.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out ulong result))
-            {
-                DiscordMember discordMember = await context.Guild.GetMemberAsync(result).ConfigureAwait(continueOnCapturedContext: false);
-                return (discordMember != null) ? Optional.FromValue(discordMember) : Optional.FromNoValue<DiscordMember>();
-            }
-
-            Match match = UserRegex.Match(value);
-            if (match.Success && ulong.TryParse(match.Groups[1].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out result))
-            {
-                DiscordMember discordMember2 = await context.Guild.GetMemberAsync(result).ConfigureAwait(continueOnCapturedContext: false);
-                return (discordMember2 != null) ? Optional.FromValue(discordMember2) : Optional.FromNoValue<DiscordMember>();
-            }
-            bool cs = true;
-            if (!cs)
-            {
-                value = value.ToLowerInvariant();
-            }
-            int num = value.IndexOf('#');
-            string un = (num != -1) ? value.Substring(0, num) : value;
-            string dv = (num != -1) ? value[(num + 1)..] : null;
-            DiscordMember discordMember3 = context.Guild.Members.Values.Where((DiscordMember xm) => ((cs ? xm.Username : xm.Username.ToLowerInvariant()) == un && ((dv != null && xm.Discriminator == dv) || dv == null)) || (cs ? xm.Nickname : xm.Nickname?.ToLowerInvariant()) == value).FirstOrDefault();
-            return (discordMember3 != null) ? Optional.FromValue(discordMember3) : Optional.FromNoValue<DiscordMember>();
         }
     }
 }

@@ -114,7 +114,7 @@ namespace Tomoe.Commands.Moderation
             }
 
             Checklist checklist = new(context, "Saving role id to database...", "Override channel permissions for role...");
-            await ModLog(context.Guild, LogType.ConfigChange, Database, $"{roleAction} Role => {context.User.Mention} has changed the {roleAction} role to {role.Mention}");
+            await ModLog(context.Guild, LogType.Config, Database, $"{roleAction} Role => {context.User.Mention} has changed the {roleAction} role to {role.Mention}");
             await Database.SaveChangesAsync();
             await checklist.Check();
             await FixPermissions(context.Guild, roleAction, role);
