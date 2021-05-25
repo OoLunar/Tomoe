@@ -1,14 +1,12 @@
 namespace Tomoe.Commands.Public
 {
-    using DSharpPlus;
-    using DSharpPlus.CommandsNext;
-    using DSharpPlus.CommandsNext.Attributes;
+    using DSharpPlus.SlashCommands;
     using System.Threading.Tasks;
 
-    public class Repository : BaseCommandModule
+    public class Repository : SlashCommandModule
     {
-        [Command("repository"), Description("Sends the source code for Tomoe."), Aliases("github", "gh", "gitlab", "repo")]
-        public async Task Overload(CommandContext context) => await Program.SendMessage(context, Formatter.EmbedlessUrl(new(Program.Config.RepositoryLink)));
+        [SlashCommand("repository", "Sends the source code for Tomoe.")]
+        public async Task Overload(InteractionContext context) => await Program.SendMessage(context, Program.Config.RepositoryLink);
 
     }
 }

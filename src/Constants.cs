@@ -18,12 +18,12 @@ namespace Tomoe
         public const string Version = "1.0.0-beta2.4";
 
         // Not constants, but they got no where else to go.
-        public static readonly DiscordEmoji ThumbsUp = DiscordEmoji.FromUnicode(Program.Client.ShardClients[0], "👍");
-        public static readonly DiscordEmoji ThumbsDown = DiscordEmoji.FromUnicode(Program.Client.ShardClients[0], "👎");
-        public static readonly DiscordEmoji Loading = DiscordEmoji.FromGuildEmote(Program.Client.ShardClients[0], 844773853636460575);
-        public static readonly DiscordEmoji NoPermission = DiscordEmoji.FromGuildEmote(Program.Client.ShardClients[0], 844773889355415573);
-        public static readonly DiscordEmoji Check = DiscordEmoji.FromUnicode(Program.Client.ShardClients[0], "✅");
-        public static readonly DiscordEmoji Failed = DiscordEmoji.FromUnicode(Program.Client.ShardClients[0], "❌");
-        public static readonly DiscordEmoji QuestionMark = DiscordEmoji.FromUnicode(Program.Client.ShardClients[0], "❓");
+        public static readonly DiscordEmoji ThumbsUp = DiscordEmoji.FromUnicode(Program.Client, "👍");
+        public static readonly DiscordEmoji ThumbsDown = DiscordEmoji.FromUnicode(Program.Client, "👎");
+        public static readonly DiscordEmoji Loading = DiscordEmoji.FromGuildEmote(Program.Client, 844773853636460575);
+        public static readonly DiscordEmoji NoPermission = DiscordEmoji.FromGuildEmote(Program.Client, 844773889355415573);
+        public static readonly DiscordEmoji Check = DiscordEmoji.FromUnicode(Program.Client, "✅");
+        public static readonly DiscordEmoji Failed = DiscordEmoji.FromUnicode(Program.Client, "❌");
+        public static readonly DiscordEmoji QuestionMark = DiscordEmoji.FromUnicode(Program.Client, "❓");
     }
 }

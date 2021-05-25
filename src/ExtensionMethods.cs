@@ -4,6 +4,7 @@ namespace Tomoe
     using DSharpPlus.CommandsNext;
     using DSharpPlus.Entities;
     using DSharpPlus.Exceptions;
+    using DSharpPlus.SlashCommands;
     using Humanizer;
     using System;
     using System.Linq;
@@ -12,6 +13,23 @@ namespace Tomoe
     public static class ExtensionMethods
     {
         public static DiscordEmbedBuilder GenerateDefaultEmbed(this DiscordEmbedBuilder embedBuilder, CommandContext context, string title = null)
+        {
+            if (!string.IsNullOrEmpty(title))
+            {
+                embedBuilder.Title = title.Titleize();
+            }
+
+            embedBuilder.Color = new DiscordColor("#7b84d1");
+            embedBuilder.Author = new()
+            {
+                Name = context.Guild == null ? context.User.Username : context.Member.DisplayName,
+                IconUrl = context.User.AvatarUrl,
+                Url = context.User.AvatarUrl
+            };
+            return embedBuilder;
+        }
+
+        public static DiscordEmbedBuilder GenerateDefaultEmbed(this DiscordEmbedBuilder embedBuilder, InteractionContext context, string title = null)
         {
             if (!string.IsNullOrEmpty(title))
             {
@@ -57,20 +75,17 @@ namespace Tomoe
             bool sentDm = false;
             if (discordUser != null && !discordUser.IsBot)
             {
-                foreach (DiscordClient discordClient in Program.Client.ShardClients.Values)
+                foreach (DiscordGuild discordGuild in Program.Client.Guilds.Values)
                 {
-                    foreach (DiscordGuild discordGuild in discordClient.Guilds.Values)
+                    try
                     {
-                        try
-                        {
-                            DiscordMember discordMember = await discordGuild.GetMemberAsync(discordUser.Id);
-                            await (await discordMember.CreateDmChannelAsync()).SendMessageAsync(message);
-                            sentDm = true;
-                            break;
-                        }
-                        catch (NotFoundException) { }
-                        catch (UnauthorizedException) { }
+                        DiscordMember discordMember = await discordGuild.GetMemberAsync(discordUser.Id);
+                        await (await discordMember.CreateDmChannelAsync()).SendMessageAsync(message);
+                        sentDm = true;
+                        break;
                     }
+                    catch (NotFoundException) { }
+                    catch (UnauthorizedException) { }
                 }
             }
             return sentDm;

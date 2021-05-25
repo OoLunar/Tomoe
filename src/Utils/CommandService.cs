@@ -10,6 +10,8 @@ namespace Tomoe.Utils
     using DSharpPlus.Entities;
     using DSharpPlus.Interactivity;
     using DSharpPlus.Interactivity.Extensions;
+    using DSharpPlus.SlashCommands;
+    using DSharpPlus.SlashCommands.EventArgs;
     using Humanizer;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.DependencyInjection;
@@ -27,9 +29,9 @@ namespace Tomoe.Utils
     {
         private static readonly ILogger _logger = Log.ForContext<CommandService>();
 
-        internal static async Task Launch(DiscordShardedClient discordClient, IServiceProvider services)
+        internal static void Launch(DiscordClient discordClient, IServiceProvider services)
         {
-            IReadOnlyDictionary<int, CommandsNextExtension> commandsCollection = await discordClient.UseCommandsNextAsync(new CommandsNextConfiguration
+            CommandsNextExtension commandsNextExtension = discordClient.UseCommandsNext(new CommandsNextConfiguration
             {
                 StringPrefixes = new[] { Program.Config.DiscordBotPrefix },
                 CaseSensitive = false,
@@ -38,25 +40,29 @@ namespace Tomoe.Utils
                 UseDefaultCommandHandler = false,
                 Services = services,
             });
-            await discordClient.UseInteractivityAsync(new InteractivityConfiguration
-            {
-                // default timeout for other actions to 2 minutes
-                Timeout = TimeSpan.FromMinutes(2)
-            });
-
-            foreach (CommandsNextExtension commandsNextExtension in commandsCollection.Values)
-            {
-                commandsNextExtension.RegisterConverter(new ImageFormatConverter());
-                commandsNextExtension.RegisterConverter(new RoleActionConverter());
-                commandsNextExtension.RegisterConverter(new TimeSpanConverter());
-                commandsNextExtension.RegisterConverter(new ReminderConverter());
-                commandsNextExtension.RegisterConverter(new LogTypeConverter());
-                commandsNextExtension.RegisterConverter(new StrikeConverter());
-                commandsNextExtension.RegisterConverter(new TagConverter());
-                commandsNextExtension.RegisterCommands(Assembly.GetEntryAssembly());
-                commandsNextExtension.CommandErrored += CommandErrored;
-                commandsNextExtension.CommandExecuted += CommandExecuted;
-            }
+            commandsNextExtension.RegisterConverter(new ImageFormatConverter());
+            commandsNextExtension.RegisterConverter(new RoleActionConverter());
+            commandsNextExtension.RegisterConverter(new TimeSpanConverter());
+            commandsNextExtension.RegisterConverter(new ReminderConverter());
+            commandsNextExtension.RegisterConverter(new LogTypeConverter());
+            commandsNextExtension.RegisterConverter(new StrikeConverter());
+            commandsNextExtension.RegisterConverter(new TagConverter());
+            commandsNextExtension.RegisterCommands(Assembly.GetEntryAssembly());
+            commandsNextExtension.CommandErrored += CommandErrored;
+            commandsNextExtension.CommandExecuted += CommandExecuted;
+            discordClient.UseInteractivity(new InteractivityConfiguration { Timeout = TimeSpan.FromMinutes(2) });
+            SlashCommandsExtension slashCommandsExtension = discordClient.UseSlashCommands();
+            slashCommandsExtension.RegisterCommands<Commands.Public.BotInfo>(832354798153236510);
+            slashCommandsExtension.RegisterCommands<Commands.Public.Flip>(832354798153236510);
+            slashCommandsExtension.RegisterCommands<Commands.Public.GuildIcon>(832354798153236510);
+            slashCommandsExtension.RegisterCommands<Commands.Public.Invite>(832354798153236510);
+            slashCommandsExtension.RegisterCommands<Commands.Public.MemberCount>(832354798153236510);
+            slashCommandsExtension.RegisterCommands<Commands.Public.Ping>(832354798153236510);
+            slashCommandsExtension.RegisterCommands<Commands.Public.ProfilePicture>(832354798153236510);
+            slashCommandsExtension.RegisterCommands<Commands.Public.Repository>(832354798153236510);
+            slashCommandsExtension.RegisterCommands<Commands.Public.GuildInfo>();
+            //slashCommandsExtension.RegisterCommands<Commands.Public.Sort>(832354798153236510);
+            slashCommandsExtension.RegisterCommands<Commands.Public.Support>(832354798153236510);
         }
 
         public static async Task CommandExecuted(CommandsNextExtension client, CommandExecutionEventArgs eventArgs) => await eventArgs.Context.Message.CreateReactionAsync(Constants.Check);

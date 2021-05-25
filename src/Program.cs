@@ -4,6 +4,7 @@ namespace Tomoe
     using DSharpPlus.CommandsNext;
     using DSharpPlus.Entities;
     using DSharpPlus.Exceptions;
+    using DSharpPlus.SlashCommands;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
@@ -22,7 +23,7 @@ namespace Tomoe
 
     public class Program
     {
-        public static DiscordShardedClient Client { get; private set; }
+        public static DiscordClient Client { get; private set; }
         public static Utils.Configs.Config Config { get; private set; }
         public static IServiceProvider ServiceProvider { get; private set; }
 
@@ -131,8 +132,8 @@ namespace Tomoe
             Client.MessageReactionAdded += ReactionRoleAdded.Handler;
             Client.MessageReactionRemoved += ReactionRoleRemoved.Handler;
             Console.CancelKeyPress += Quit.ConsoleShutdown;
-            await CommandService.Launch(Client, ServiceProvider);
-            await Client.StartAsync();
+            CommandService.Launch(Client, ServiceProvider);
+            await Client.ConnectAsync();
             await Task.Delay(-1);
         }
 
@@ -183,6 +184,30 @@ namespace Tomoe
             {
                 throw;
             }
+        }
+
+        public static async Task SendMessage(InteractionContext context, string content = null, DiscordEmbed embed = null, params IMention[] mentions)
+        {
+            if (content is null && embed is null)
+            {
+                throw new ArgumentNullException(nameof(content), "Either content or embed needs to hold a value.");
+            }
+
+            // Reply to the message that invoked this command
+            DiscordInteractionResponseBuilder messageBuilder = new();
+            messageBuilder.AsEphemeral(true); // Makes it to where only the user can see the message
+            messageBuilder.IsTTS = false;
+
+            if (content != null)
+            {
+                messageBuilder.Content = content;
+            }
+
+            if (embed != null)
+            {
+                messageBuilder.AddEmbed(embed);
+            }
+            await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, messageBuilder);
         }
     }
 }

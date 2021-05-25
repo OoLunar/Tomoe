@@ -41,7 +41,7 @@ namespace Tomoe.Utils
                     else
                     {
                         _logger.Information($"A new update is available! Latest version: {githubLatestVersion}. Current version: {Constants.Version}.");
-                        CommandsNextExtension commandsNext = (await Program.Client.GetCommandsNextAsync()).Values.First();
+                        CommandsNextExtension commandsNext = Program.Client.GetCommandsNext();
                         DiscordGuild guild = await commandsNext.Client.GetGuildAsync(Program.Config.Update.GuildId, false);
                         DiscordChannel channel = guild.GetChannel(Program.Config.Update.ChannelId);
                         await channel.SendMessageAsync($"<@{Program.Config.Update.UserId}>: A new update is available! Latest version: {githubLatestVersion}. Current version: {Constants.Version}.\nRun `>>update` to have the bot update!");

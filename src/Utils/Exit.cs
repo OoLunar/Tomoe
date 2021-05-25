@@ -15,7 +15,7 @@ namespace Tomoe.Utils
             _logger.Information("Shutting down...");
             _logger.Information("Closing Discord...");
             await Program.Client.UpdateStatusAsync(null, UserStatus.Offline);
-            await Program.Client.StopAsync();
+            await Program.Client.DisconnectAsync();
             _logger.Information("Closing database...");
             await Program.ServiceProvider.GetService<Database>().SaveChangesAsync();
             _logger.Information("Goodbyte!");

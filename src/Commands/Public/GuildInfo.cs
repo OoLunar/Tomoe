@@ -1,18 +1,17 @@
 namespace Tomoe.Commands.Public
 {
     using DSharpPlus;
-    using DSharpPlus.CommandsNext;
-    using DSharpPlus.CommandsNext.Attributes;
     using DSharpPlus.Entities;
+    using DSharpPlus.SlashCommands;
     using Humanizer;
     using System;
     using System.Linq;
     using System.Threading.Tasks;
 
-    public class ServerInfo : BaseCommandModule
+    public class GuildInfo : SlashCommandModule
     {
-        [Command("server_info"), Description("Gets general info about the server."), Aliases("guild_info")]
-        public async Task Overload(CommandContext context)
+        [SlashCommand("guild_info", "Gets general info about the server.")]
+        public async Task Overload(InteractionContext context)
         {
             DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder().GenerateDefaultEmbed(context, null);
             embedBuilder.Title = context.Guild.Name;
@@ -26,9 +25,9 @@ namespace Tomoe.Commands.Public
             embedBuilder.AddField($"Emoji Count", context.Guild.Emojis.Count.ToMetric(), true);
             string features = string.Join(", ", context.Guild.Features.Select(feature => feature.ToLowerInvariant().Titleize()));
             embedBuilder.AddField($"Features", string.IsNullOrWhiteSpace(features) ? "None" : features);
-            embedBuilder.AddField($"Explicit Content Filter", context.Guild.ExplicitContentFilter.ToString(), true);
+            embedBuilder.AddField($"Explicit Content Filter", context.Guild.ExplicitContentFilter.ToString().Titleize(), true);
             embedBuilder.AddField($"Icon url", context.Guild.IconUrl == null ? "No icon set!" : Formatter.MaskedUrl("Link to image", new(context.Guild.IconUrl.Replace(".jpg", ".png?size=1024"))), true);
-            embedBuilder.AddField($"Id", context.Guild.Id.ToString(), true);
+            embedBuilder.AddField($"Id", $"`{context.Guild.Id}`", true);
             embedBuilder.AddField($"Is Large", context.Guild.IsLarge.ToString(), true);
             embedBuilder.AddField($"Max Members", context.Guild.MaxMembers.HasValue ? context.Guild.MaxMembers.Value.ToMetric() : "Unknown", true);
             embedBuilder.AddField($"Member Count", context.Guild.MemberCount.ToMetric(), true);
@@ -40,14 +39,17 @@ namespace Tomoe.Commands.Public
             embedBuilder.AddField($"Premium Tier", context.Guild.PremiumTier.Humanize(), true);
             embedBuilder.AddField($"Role Count", context.Guild.Roles.Count.ToMetric(), true);
             embedBuilder.AddField($"Rules Channel", context.Guild.RulesChannel?.Mention ?? "Not set", true);
-            embedBuilder.AddField($"Splash Url", Formatter.MaskedUrl("Link to image", new(context.Guild.SplashUrl.Replace(".jpg", ".png?size=1024"))) ?? "Not set", true);
+            embedBuilder.AddField($"Splash Url", context.Guild.SplashUrl != null ? Formatter.MaskedUrl("Link to image", new(context.Guild.SplashUrl.Replace(".jpg", ".png?size=1024"))) : "Not set", true);
             embedBuilder.AddField($"Vanity Url", context.Guild.VanityUrlCode ?? "Not set", true);
             embedBuilder.AddField($"Verification Level", context.Guild.VerificationLevel.ToString(), true);
             embedBuilder.AddField($"Voice Region", context.Guild.VoiceRegion.Name, true);
-            embedBuilder.Thumbnail = new()
+            if (context.Guild.IconUrl != null)
             {
-                Url = context.Guild.IconUrl.Replace(".jpg", ".png?&size=1024")
-            };
+                embedBuilder.Thumbnail = new()
+                {
+                    Url = context.Guild.IconUrl.Replace(".jpg", ".png?&size=1024")
+                };
+            }
 
             await Program.SendMessage(context, null, embedBuilder.Build());
         }
