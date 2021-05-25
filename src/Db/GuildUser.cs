@@ -9,7 +9,7 @@ namespace Tomoe.Db
         public GuildUser(ulong userId) => UserId = userId;
 
         [Key] public int Id { get; internal set; }
-        public ulong UserId { get; }
+        public ulong UserId { get; internal set; }
         public ulong GuildId { get; internal set; }
         public List<ulong> Roles { get; } = new();
         public bool IsMuted { get; internal set; }

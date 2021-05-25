@@ -18,7 +18,7 @@ namespace Tomoe.Db
         public List<ulong> AdminRoles { get; internal set; } = new();
         public List<ulong> IgnoredChannels { get; internal set; } = new();
         public ulong AntimemeRole { get; internal set; }
-        [Key] public ulong Id { get; }
+        [Key] public ulong Id { get; internal set; }
         public ulong MuteRole { get; internal set; }
         public ulong VoicebanRole { get; internal set; }
         public bool ShowPermissionErrors { get; internal set; } = true;
