@@ -5,8 +5,7 @@ namespace Tomoe.Db
 
     public class Lock
     {
-        [Key]
-        public int Id { get; internal set; }
+        [Key] public int Id { get; internal set; }
         public ulong GuildId { get; internal set; }
         public ulong ChannelId { get; internal set; }
         public ulong RoleId { get; internal set; }

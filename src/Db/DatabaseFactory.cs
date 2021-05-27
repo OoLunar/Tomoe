@@ -8,7 +8,7 @@ namespace Tomoe.Db
     using System.IO;
     using System.Net;
     using System.Text.Json;
-    using Tomoe.Utils.Configs;
+    using Utils.Configs;
 
     public class BloggingContextFactory : IDesignTimeDbContextFactory<Database>
     {
@@ -37,8 +37,9 @@ namespace Tomoe.Db
                 Console.WriteLine("The config file was downloaded. Please go fill out \"res/config.jsonc\". It is recommended to use \"res/config.jsonc.prod\" if you intend on contributing to Tomoe.");
                 Environment.Exit(1);
             }
+
             // Prefer JsonSerializer.DeserializeAsync over JsonSerializer.Deserialize due to being able to send the stream directly.
-            Config config = JsonSerializer.Deserialize<Config>(File.ReadAllText(tokenFile), new() { IncludeFields = true, AllowTrailingCommas = true, ReadCommentHandling = JsonCommentHandling.Skip, PropertyNameCaseInsensitive = true });
+            Config config = JsonSerializer.Deserialize<Config>(File.ReadAllText(tokenFile), new JsonSerializerOptions() {IncludeFields = true, AllowTrailingCommas = true, ReadCommentHandling = JsonCommentHandling.Skip, PropertyNameCaseInsensitive = true});
 
             DbContextOptionsBuilder<Database> options = new();
             NpgsqlConnectionStringBuilder connectionBuilder = new();
@@ -48,7 +49,7 @@ namespace Tomoe.Db
             connectionBuilder.Password = config.Database.Password;
             connectionBuilder.Username = config.Database.Username;
             connectionBuilder.Port = config.Database.Port;
-            options.UseNpgsql(connectionBuilder.ToString(), options => options.EnableRetryOnFailure());
+            options.UseNpgsql(connectionBuilder.ToString(), npgsqlOptions => npgsqlOptions.EnableRetryOnFailure());
             options.UseSnakeCaseNamingConvention(CultureInfo.InvariantCulture);
             options.EnableSensitiveDataLogging();
             options.EnableDetailedErrors();

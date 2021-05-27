@@ -1,12 +1,12 @@
 namespace Tomoe.Db
 {
+    using Api;
     using System;
     using System.ComponentModel.DataAnnotations;
 
     public class Reminder
     {
-        [Key]
-        public int Id { get; internal set; }
+        [Key] public int Id { get; internal set; }
         public int LogId { get; internal set; }
         public ulong GuildId { get; internal set; }
         public ulong ChannelId { get; internal set; }
@@ -17,6 +17,6 @@ namespace Tomoe.Db
         public bool Expires { get; internal set; }
         public DateTime ExpiresOn { get; internal set; }
         public DateTime IssuedAt { get; internal set; }
-        public Api.Moderation.LogType Punishment { get; internal set; }
+        public Moderation.LogType Punishment { get; internal set; }
     }
 }

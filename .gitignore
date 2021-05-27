@@ -8,3 +8,4 @@ res/*.bak
 .obsidian
 .vscode
 .vs
+Migrations/

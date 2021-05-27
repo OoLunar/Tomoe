@@ -1,12 +1,15 @@
 namespace Tomoe.Commands.Public
 {
-    using DSharpPlus.CommandsNext;
-    using DSharpPlus.CommandsNext.Attributes;
+    using DSharpPlus;
+    using DSharpPlus.SlashCommands;
     using System.Threading.Tasks;
 
-    public class Ping : BaseCommandModule
+    public class Ping : SlashCommandModule
     {
-        [Command("ping"), Description("Checks the latency between the bot and the Discord API Websocket. Best used to see if the bot is lagging.")]
-        public async Task Overload(CommandContext context) => await Program.SendMessage(context, $"Pong! Latency is {context.Client.Ping}ms");
+        [SlashCommand("ping", "Checks the latency between the bot and the Discord API. Best used to see if the bot is lagging.")]
+        public async Task Overload(InteractionContext context) => await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+        {
+            Content = $"Pong! Webhook latency is {context.Client.Ping}ms"
+        });
     }
 }

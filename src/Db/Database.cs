@@ -8,6 +8,10 @@ namespace Tomoe.Db
 
     public class Database : DbContext
     {
+        public Database(DbContextOptions<Database> options) : base(options)
+        {
+        }
+
         public DbSet<ReactionRole> ReactionRoles { get; set; }
         public DbSet<AutoReaction> AutoReactions { get; set; }
         public DbSet<ModLog> ModLogs { get; set; }
@@ -19,8 +23,6 @@ namespace Tomoe.Db
         public DbSet<LogSetting> LogSettings { get; set; }
         public DbSet<Reminder> Reminders { get; set; }
 
-        public Database(DbContextOptions<Database> options) : base(options) { }
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // Convert List<ulong> to List<string> due to weird behaviour of EFCore + Postgres
@@ -31,25 +33,25 @@ namespace Tomoe.Db
             );
 
             modelBuilder.Entity<GuildConfig>()
-            .Property(guild => guild.IgnoredChannels)
-            .HasConversion(
-                ignoredChannels => ignoredChannels.ConvertAll(s => s.ToString()),
-                ignoredChannels => ignoredChannels.ConvertAll(s => ulong.Parse(s))
-            );
+                .Property(guild => guild.IgnoredChannels)
+                .HasConversion(
+                    ignoredChannels => ignoredChannels.ConvertAll(s => s.ToString()),
+                    ignoredChannels => ignoredChannels.ConvertAll(ulong.Parse)
+                );
 
             modelBuilder.Entity<GuildConfig>()
-            .Property(guild => guild.AdminRoles)
-            .HasConversion(
-                adminRoles => adminRoles.ConvertAll(s => s.ToString()),
-                adminRoles => adminRoles.ConvertAll(s => ulong.Parse(s))
-            ).Metadata.SetValueComparer(valueComparerUlong);
+                .Property(guild => guild.AdminRoles)
+                .HasConversion(
+                    adminRoles => adminRoles.ConvertAll(s => s.ToString()),
+                    adminRoles => adminRoles.ConvertAll(ulong.Parse)
+                ).Metadata.SetValueComparer(valueComparerUlong);
 
             modelBuilder.Entity<GuildUser>()
-            .Property(guildUser => guildUser.Roles)
-            .HasConversion(
-                guildUser => guildUser.ConvertAll(s => s.ToString()),
-                guildUser => guildUser.ConvertAll(s => ulong.Parse(s))
-            ).Metadata.SetValueComparer(valueComparerUlong);
+                .Property(guildUser => guildUser.Roles)
+                .HasConversion(
+                    guildUser => guildUser.ConvertAll(s => s.ToString()),
+                    guildUser => guildUser.ConvertAll(ulong.Parse)
+                ).Metadata.SetValueComparer(valueComparerUlong);
         }
     }
 }

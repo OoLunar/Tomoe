@@ -1,13 +1,16 @@
 namespace Tomoe.Commands.Public
 {
-    using DSharpPlus.CommandsNext;
-    using DSharpPlus.CommandsNext.Attributes;
+    using DSharpPlus;
+    using DSharpPlus.SlashCommands;
     using Humanizer;
     using System.Threading.Tasks;
 
-    public class MemberCount : BaseCommandModule
+    public class MemberCount : SlashCommandModule
     {
-        [Command("member_count"), Description("Sends the approximate member count."), Aliases("mc")]
-        public async Task Overload(CommandContext context) => await Program.SendMessage(context, $"Approximate member count: {context.Guild.MemberCount.ToMetric()}");
+        [SlashCommand("member_count", "Sends the approximate member count.")]
+        public async Task Overload(InteractionContext context) => await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+        {
+            Content = $"Approximate member count: {context.Guild.MemberCount.ToMetric()}",
+        });
     }
 }
