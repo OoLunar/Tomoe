@@ -185,29 +185,5 @@ namespace Tomoe
                 throw;
             }
         }
-
-        public static async Task SendMessage(InteractionContext context, string content = null, DiscordEmbed embed = null, params IMention[] mentions)
-        {
-            if (content is null && embed is null)
-            {
-                throw new ArgumentNullException(nameof(content), "Either content or embed needs to hold a value.");
-            }
-
-            // Reply to the message that invoked this command
-            DiscordInteractionResponseBuilder messageBuilder = new();
-            messageBuilder.AsEphemeral(true); // Makes it to where only the user can see the message
-            messageBuilder.IsTTS = false;
-
-            if (content != null)
-            {
-                messageBuilder.Content = content;
-            }
-
-            if (embed != null)
-            {
-                messageBuilder.AddEmbed(embed);
-            }
-            await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, messageBuilder);
-        }
     }
 }

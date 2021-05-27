@@ -22,12 +22,20 @@ namespace Tomoe.Commands.Public
                 if (messageLink.Host != "discord.com" && messageLink.Host != "discordapp.com")
                 {
                     //TODO: Make a web request and try escaping the content
-                    await Program.SendMessage(context, "Message link isn't from Discord!");
+                    await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+                    {
+                        Content = "Message link isn't from Discord!",
+                        IsEphemeral = true
+                    });
                     return;
                 }
                 else if (messageLink.Segments.Length != 5 || messageLink.Segments[1] != "channels/" || (ulong.TryParse(messageLink.Segments[2].Remove(messageLink.Segments[2].Length - 1), NumberStyles.Number, CultureInfo.InvariantCulture, out ulong guildId) && guildId != context.Guild.Id))
                 {
-                    await Program.SendMessage(context, "Message link isn't from this guild!");
+                    await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+                    {
+                        Content = "Message link isn't from this guild!",
+                        IsEphemeral = true
+                    });
                     return;
                 }
                 else if (ulong.TryParse(messageLink.Segments[3].Remove(messageLink.Segments[3].Length - 1), NumberStyles.Number, CultureInfo.InvariantCulture, out ulong channelId))
@@ -35,13 +43,14 @@ namespace Tomoe.Commands.Public
                     channel = context.Guild.GetChannel(channelId);
                     if (channel == null)
                     {
-                        await Program.SendMessage(context, $"Unknown channel <#{channelId}> ({channelId})");
-                        return;
+                        await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+                        {
+                            Content = $"Unknown channel <#{channelId}> ({channelId})",
+                            IsEphemeral = true
+                        });
                     }
-
-                    if (ulong.TryParse(messageLink.Segments[4], NumberStyles.Number, CultureInfo.InvariantCulture, out ulong messageLinkId))
+                    else if (ulong.TryParse(messageLink.Segments[4], NumberStyles.Number, CultureInfo.InvariantCulture, out ulong messageLinkId))
                     {
-
                         messageId = messageLinkId;
                     }
                 }
@@ -53,7 +62,11 @@ namespace Tomoe.Commands.Public
             }
             else
             {
-                await Program.SendMessage(context, $"{messageString} is not a message id or link!");
+                await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+                {
+                    Content = $"{messageString} is not a message id or link!",
+                    IsEphemeral = true
+                });
                 return;
             }
 
@@ -63,22 +76,37 @@ namespace Tomoe.Commands.Public
             }
             catch (NotFoundException)
             {
-                await Program.SendMessage(context, "Message not found! Did you call the command in the correct channel?");
+                await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+                {
+                    Content = "Message not found! Did you call the command in the correct channel?",
+                    IsEphemeral = true
+                });
                 return;
             }
             catch (UnauthorizedException)
             {
-                await Program.SendMessage(context, "I don't have access to the message! Please fix my Discord permissions!");
+                await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+                {
+                    Content = "I don't have access to that message. Please fix my Discord permissions!",
+                    IsEphemeral = true
+                });
                 return;
             }
 
             if (message.Content == string.Empty && message.Embeds.Any())
             {
-                await Program.SendMessage(context, Constants.RawEmbed);
+                await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+                {
+                    Content = Constants.RawEmbed,
+                    IsEphemeral = true
+                });
             }
             else
             {
-                await Program.SendMessage(context, Formatter.Sanitize(message.Content));
+                await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+                {
+                    Content = Formatter.Sanitize(message.Content)
+                });
             }
         }
     }

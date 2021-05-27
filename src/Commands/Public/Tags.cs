@@ -1,6 +1,6 @@
-
 namespace Tomoe.Commands.Public
 {
+    using DSharpPlus;
     using DSharpPlus.Entities;
     using DSharpPlus.SlashCommands;
     using System.Linq;
@@ -18,13 +18,17 @@ namespace Tomoe.Commands.Public
             Tag tag = await GetTagAsync(tagName);
             if (tag == null)
             {
-                await Program.SendMessage(context, $"Tag `{tagName.ToLowerInvariant()}` was not found!");
+                await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+                {
+                    Content = $"Tag `{tagName.ToLowerInvariant()}` was not found!",
+                    IsEphemeral = true
+                });
             }
             else
             {
                 tag.Uses++;
                 await Database.SaveChangesAsync();
-                await context.CreateResponseAsync(DSharpPlus.InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
+                await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
                 {
                     Content = tag.Content
                 });
@@ -36,7 +40,11 @@ namespace Tomoe.Commands.Public
         {
             if ((await GetTagAsync(tagName)) != null)
             {
-                await Program.SendMessage(context, $"Tag `{tagName.ToLowerInvariant()}` already exists!");
+                await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+                {
+                    Content = $"Tag `{tagName.ToLowerInvariant()}` already exists!",
+                    IsEphemeral = true
+                });
                 return;
             }
 
@@ -48,7 +56,72 @@ namespace Tomoe.Commands.Public
             tag.TagId = Database.Tags.Count(databaseTag => databaseTag.GuildId == context.Guild.Id) + 1;
             Database.Tags.Add(tag);
             await Database.SaveChangesAsync();
-            await Program.SendMessage(context, $"Created tag `{tag.Name}` with content:\n{tag.Content}");
+            await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+            {
+                Content = $"Created tag `{tag.Name}` with content:\n{tag.Content}"
+            });
+        }
+
+        [SlashCommand("delete", "Deletes a tag.")]
+        public async Task Delete(InteractionContext context, [Option("tag_name", "Which tag to remove permanently.")] string tagName)
+        {
+            Tag tag = await GetTagAsync(tagName);
+            if (tag == null)
+            {
+                await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+                {
+                    Content = $"Tag `{tagName.ToLowerInvariant()}` already exists!",
+                    IsEphemeral = true
+                });
+                return;
+            }
+
+            if (tag.OwnerId == context.User.Id)
+            {
+                Database.Tags.Remove(tag);
+                await Database.SaveChangesAsync();
+                await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+                {
+                    Content = $"Tag `{tag.Name}` successfully deleted!"
+                });
+            }
+            else
+            {
+                DiscordMember discordMember = await context.User.Id.GetMember(context.Guild);
+                if (discordMember.HasPermission(Permissions.ManageMessages))
+                {
+                    Database.Tags.Remove(tag);
+                    await Database.SaveChangesAsync();
+                    await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+                    {
+                        Content = $"Tag `{tag.Name}` successfully deleted!"
+                    });
+                    return;
+                }
+
+                // See if the user has any admin roles
+                GuildConfig guildConfig = Database.GuildConfigs.First(guildConfig => guildConfig.Id == context.Guild.Id);
+                if (guildConfig.AdminRoles.Intersect(discordMember.Roles.Select(role => role.Id)).Any())
+                {
+                    Database.Tags.Remove(tag);
+                    await Database.SaveChangesAsync();
+                    await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+                    {
+                        Content = $"Tag `{tag.Name}` successfully deleted!"
+                    });
+                    return;
+                }
+                else
+                {
+                    Database.Tags.Remove(tag);
+                    await Database.SaveChangesAsync();
+                    await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+                    {
+                        Content = $"You don't have permission to delete tag `{tag.Name}`!",
+                        IsEphemeral = true
+                    });
+                }
+            }
         }
 
         public async Task<Tag> GetTagAsync(string tagName)
