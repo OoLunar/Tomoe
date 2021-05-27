@@ -50,20 +50,19 @@ namespace Tomoe.Utils
             commandsNextExtension.CommandExecuted += CommandExecuted;
             discordClient.UseInteractivity(new InteractivityConfiguration { Timeout = TimeSpan.FromMinutes(2) });
             SlashCommandsExtension slashCommandsExtension = discordClient.UseSlashCommands();
-            slashCommandsExtension.RegisterCommands<Commands.Public.BotInfo>(832354798153236510);
-            slashCommandsExtension.RegisterCommands<Commands.Public.Flip>(832354798153236510);
-            slashCommandsExtension.RegisterCommands<Commands.Public.GuildIcon>(832354798153236510);
-            slashCommandsExtension.RegisterCommands<Commands.Public.Invite>(832354798153236510);
-            slashCommandsExtension.RegisterCommands<Commands.Public.MemberCount>(832354798153236510);
-            slashCommandsExtension.RegisterCommands<Commands.Public.Ping>(832354798153236510);
-            slashCommandsExtension.RegisterCommands<Commands.Public.ProfilePicture>(832354798153236510);
-            slashCommandsExtension.RegisterCommands<Commands.Public.Repository>(832354798153236510);
-            slashCommandsExtension.RegisterCommands<Commands.Public.GuildInfo>(832354798153236510);
-            slashCommandsExtension.RegisterCommands<Commands.Public.Raw>(832354798153236510);
-            slashCommandsExtension.RegisterCommands<Commands.Public.RoleInfo>(832354798153236510);
-            slashCommandsExtension.RegisterCommands<Commands.Public.Tags>(832354798153236510);
-            //slashCommandsExtension.RegisterCommands<Commands.Public.Sort>(832354798153236510);
-            slashCommandsExtension.RegisterCommands<Commands.Public.Support>(832354798153236510);
+            slashCommandsExtension.RegisterCommands<Commands.Public.BotInfo>();
+            slashCommandsExtension.RegisterCommands<Commands.Public.Flip>();
+            slashCommandsExtension.RegisterCommands<Commands.Public.GuildIcon>();
+            slashCommandsExtension.RegisterCommands<Commands.Public.Invite>();
+            slashCommandsExtension.RegisterCommands<Commands.Public.MemberCount>();
+            slashCommandsExtension.RegisterCommands<Commands.Public.Ping>();
+            slashCommandsExtension.RegisterCommands<Commands.Public.ProfilePicture>();
+            slashCommandsExtension.RegisterCommands<Commands.Public.Repository>();
+            slashCommandsExtension.RegisterCommands<Commands.Public.GuildInfo>();
+            slashCommandsExtension.RegisterCommands<Commands.Public.Raw>();
+            slashCommandsExtension.RegisterCommands<Commands.Public.RoleInfo>();
+            slashCommandsExtension.RegisterCommands<Commands.Public.Tags>();
+            slashCommandsExtension.RegisterCommands<Commands.Public.Support>();
         }
 
         public static async Task CommandExecuted(CommandsNextExtension client, CommandExecutionEventArgs eventArgs) => await eventArgs.Context.Message.CreateReactionAsync(Constants.Check);
