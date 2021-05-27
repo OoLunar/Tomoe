@@ -4,7 +4,6 @@ namespace Tomoe.Commands.Public
     using DSharpPlus.Entities;
     using DSharpPlus.SlashCommands;
     using Humanizer;
-    using ICSharpCode.Decompiler.CSharp.Syntax;
     using System;
     using System.Globalization;
     using System.Linq;

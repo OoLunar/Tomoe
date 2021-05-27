@@ -11,7 +11,6 @@ namespace Tomoe.Utils
     using DSharpPlus.Interactivity;
     using DSharpPlus.Interactivity.Extensions;
     using DSharpPlus.SlashCommands;
-    using DSharpPlus.SlashCommands.EventArgs;
     using Humanizer;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.DependencyInjection;
