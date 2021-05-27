@@ -17,7 +17,6 @@ namespace Tomoe.Utils
     using Microsoft.Extensions.DependencyInjection;
     using Serilog;
     using System;
-    using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
     using System.Threading.Tasks;
@@ -60,7 +59,10 @@ namespace Tomoe.Utils
             slashCommandsExtension.RegisterCommands<Commands.Public.Ping>(832354798153236510);
             slashCommandsExtension.RegisterCommands<Commands.Public.ProfilePicture>(832354798153236510);
             slashCommandsExtension.RegisterCommands<Commands.Public.Repository>(832354798153236510);
-            slashCommandsExtension.RegisterCommands<Commands.Public.GuildInfo>();
+            slashCommandsExtension.RegisterCommands<Commands.Public.GuildInfo>(832354798153236510);
+            slashCommandsExtension.RegisterCommands<Commands.Public.Raw>(832354798153236510);
+            slashCommandsExtension.RegisterCommands<Commands.Public.RoleInfo>(832354798153236510);
+            slashCommandsExtension.RegisterCommands<Commands.Public.Tags>(832354798153236510);
             //slashCommandsExtension.RegisterCommands<Commands.Public.Sort>(832354798153236510);
             slashCommandsExtension.RegisterCommands<Commands.Public.Support>(832354798153236510);
         }
