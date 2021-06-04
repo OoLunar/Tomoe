@@ -10,7 +10,7 @@ namespace Tomoe.Commands.Public
         [SlashCommand("member_count", "Sends the approximate member count.")]
         public async Task Overload(InteractionContext context) => await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
         {
-            Content = $"Approximate member count: {context.Guild.MemberCount.ToMetric()}",
+            Content = $"Approximate member count: {Api.Public.MemberCount[context.Guild.Id].ToMetric()}",
         });
     }
 }

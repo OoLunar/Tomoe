@@ -7,8 +7,7 @@ namespace Tomoe.Db
     using System.Globalization;
     using System.IO;
     using System.Net;
-    using System.Text.Json;
-    using Utils.Configs;
+    using Tomoe.Utils.Configs;
 
     public class BloggingContextFactory : IDesignTimeDbContextFactory<Database>
     {
@@ -38,9 +37,7 @@ namespace Tomoe.Db
                 Environment.Exit(1);
             }
 
-            // Prefer JsonSerializer.DeserializeAsync over JsonSerializer.Deserialize due to being able to send the stream directly.
-            Config config = JsonSerializer.Deserialize<Config>(File.ReadAllText(tokenFile), new JsonSerializerOptions() {IncludeFields = true, AllowTrailingCommas = true, ReadCommentHandling = JsonCommentHandling.Skip, PropertyNameCaseInsensitive = true});
-
+            Config config = Config.Load().GetAwaiter().GetResult();
             DbContextOptionsBuilder<Database> options = new();
             NpgsqlConnectionStringBuilder connectionBuilder = new();
             connectionBuilder.ApplicationName = config.Database.ApplicationName;

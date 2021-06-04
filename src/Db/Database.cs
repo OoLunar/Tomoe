@@ -4,6 +4,7 @@ namespace Tomoe.Db
     using Microsoft.EntityFrameworkCore.ChangeTracking;
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.Linq;
 
     public class Database : DbContext
@@ -16,7 +17,7 @@ namespace Tomoe.Db
         public DbSet<AutoReaction> AutoReactions { get; set; }
         public DbSet<ModLog> ModLogs { get; set; }
         public DbSet<Strike> Strikes { get; set; }
-        public DbSet<GuildUser> GuildUsers { get; set; }
+        public DbSet<GuildMember> GuildMembers { get; set; }
         public DbSet<GuildConfig> GuildConfigs { get; set; }
         public DbSet<Tag> Tags { get; set; }
         public DbSet<Lock> Locks { get; set; }
@@ -35,21 +36,21 @@ namespace Tomoe.Db
             modelBuilder.Entity<GuildConfig>()
                 .Property(guild => guild.IgnoredChannels)
                 .HasConversion(
-                    ignoredChannels => ignoredChannels.ConvertAll(s => s.ToString()),
+                    ignoredChannels => ignoredChannels.ConvertAll(s => s.ToString(CultureInfo.InvariantCulture)),
                     ignoredChannels => ignoredChannels.ConvertAll(ulong.Parse)
                 );
 
             modelBuilder.Entity<GuildConfig>()
                 .Property(guild => guild.AdminRoles)
                 .HasConversion(
-                    adminRoles => adminRoles.ConvertAll(s => s.ToString()),
+                    adminRoles => adminRoles.ConvertAll(s => s.ToString(CultureInfo.InvariantCulture)),
                     adminRoles => adminRoles.ConvertAll(ulong.Parse)
                 ).Metadata.SetValueComparer(valueComparerUlong);
 
-            modelBuilder.Entity<GuildUser>()
+            modelBuilder.Entity<GuildMember>()
                 .Property(guildUser => guildUser.Roles)
                 .HasConversion(
-                    guildUser => guildUser.ConvertAll(s => s.ToString()),
+                    guildUser => guildUser.ConvertAll(s => s.ToString(CultureInfo.InvariantCulture)),
                     guildUser => guildUser.ConvertAll(ulong.Parse)
                 ).Metadata.SetValueComparer(valueComparerUlong);
         }

@@ -1,6 +1,5 @@
 namespace Tomoe.Db
 {
-    using Api;
     using System;
     using System.ComponentModel.DataAnnotations;
 
@@ -17,6 +16,6 @@ namespace Tomoe.Db
         public bool Expires { get; internal set; }
         public DateTime ExpiresOn { get; internal set; }
         public DateTime IssuedAt { get; internal set; }
-        public Moderation.LogType Punishment { get; internal set; }
+        //public Moderation.LogType Punishment { get; internal set; }
     }
 }

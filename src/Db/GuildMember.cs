@@ -4,11 +4,10 @@ namespace Tomoe.Db
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
 
-    public class GuildUser
+    public class GuildMember
     {
-        public GuildUser(ulong userId) => UserId = userId;
-
-        [Key] public int Id { get; internal set; }
+        [Key]
+        public int Id { get; internal set; }
         public ulong UserId { get; internal set; }
         public ulong GuildId { get; internal set; }
         public List<ulong> Roles { get; } = new();

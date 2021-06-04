@@ -10,25 +10,17 @@ namespace Tomoe.Commands.Public
         [SlashCommand("guild_icon", "Gets the guild's icon.")]
         public async Task Overload(InteractionContext context)
         {
-            if (context.Guild.IconUrl == null)
+            DiscordEmbed discordEmbed = Api.Public.GuildIcon(context);
+            if (discordEmbed == null)
             {
                 await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
                 {
-                    Content = "No guild icon set!",
-                    IsEphemeral = true
+                    Content = "Error: The guild has no icon!"
                 });
             }
             else
             {
-                DiscordEmbedBuilder embedBuilder = new()
-                {
-                    Title = context.Guild.Name + (context.Guild.Name.EndsWith('s') ? "' Guild Icon" : "'s Guild Icon"),
-                    ImageUrl = context.Guild.IconUrl.Replace(".jpg", ".png?size=1024"),
-                    Color = new DiscordColor("#7b84d1")
-                };
-                DiscordInteractionResponseBuilder messageBuilder = new();
-                messageBuilder.AddEmbed(embedBuilder);
-                await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, messageBuilder);
+                await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().AddEmbed(discordEmbed));
             }
         }
     }

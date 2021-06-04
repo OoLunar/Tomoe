@@ -9,7 +9,7 @@ namespace Tomoe.Commands.Public
         [SlashCommand("support", "Sends the support Discord invite.")]
         public async Task Overload(InteractionContext context) => await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
         {
-            Content = "https://discord.gg/Bsv7zSFygc"
+            Content = Api.Public.Support()
         });
     }
 }

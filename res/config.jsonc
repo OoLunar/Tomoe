@@ -27,24 +27,5 @@
         "password": "secure password",
         "username": "tomoe",
         "port": 5432
-    },
-    // Checks hourly for a new release
-    "update": {
-        /*
-		 * Can choose from
-		 * - public
-		 * - beta
-		 * - none
-		 * "public" gets latest Github release, "beta" gets latest tag, "none" doesn't update at all.
-		 */
-        "branch": "public",
-        "notify": true,
-        "auto_update": true,
-        "guild_id": 0,
-        "channel_id": 0,
-        // Which individual person to ping when the update is available
-        "owner_id": 0,
-        "git_username": "Tomoe",
-        "git_email": "tomoe@exmaple.com"
     }
 }

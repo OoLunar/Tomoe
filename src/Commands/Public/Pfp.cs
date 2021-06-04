@@ -11,15 +11,7 @@ namespace Tomoe.Commands.Public
         public async Task Overload(InteractionContext context, [Option("User", "Who's avatar to retrieve.")] DiscordUser user = null)
         {
             user ??= context.Member;
-            DiscordEmbedBuilder embedBuilder = new()
-            {
-                Title = user.Username + (user.Username.EndsWith('s') ? "' Avatar" : "'s Avatar"),
-                ImageUrl = user.GetAvatarUrl(ImageFormat.Png, 1024),
-                Color = new DiscordColor("#7b84d1")
-            };
-            DiscordInteractionResponseBuilder messageBuilder = new();
-            messageBuilder.AddEmbed(embedBuilder);
-            await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, messageBuilder);
+            await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().AddEmbed(Api.Public.GetProfilePicture(user)));
         }
     }
 }

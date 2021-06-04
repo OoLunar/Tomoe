@@ -10,7 +10,7 @@ namespace Tomoe.Commands.Public
         public async Task Overload(InteractionContext context) => await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
         {
             IsEphemeral = true,
-            Content = $"https://discord.com/api/oauth2/authorize?client_id={context.Client.CurrentUser.Id}&scope=applications.commands%20bot&permissions=8"
+            Content = Api.Public.GetInvite(context.Client.CurrentUser.Id)
         });
 
     }

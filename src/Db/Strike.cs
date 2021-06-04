@@ -15,6 +15,6 @@ namespace Tomoe.Db
         public List<string> JumpLinks { get; } = new();
         public bool VictimMessaged { get; internal set; }
         public bool Dropped { get; internal set; }
-        public DateTime CreatedAt { get; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; internal set; } = DateTime.UtcNow;
     }
 }
