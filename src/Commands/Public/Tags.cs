@@ -13,6 +13,20 @@ namespace Tomoe.Commands.Public
 
     public class Tags : SlashCommandModule
     {
+        public override Task BeforeExecutionAsync(InteractionContext context)
+        {
+            if (context.Guild == null)
+            {
+                context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+                {
+                    Content = "Error: This command can only be used in a guild!",
+                    IsEphemeral = true
+                });
+            }
+
+            return Task.CompletedTask;
+        }
+
         [SlashCommandGroup("tag", "Sends a predetermined message.")]
         public class RealTags : SlashCommandModule
         {
