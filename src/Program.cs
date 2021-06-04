@@ -13,7 +13,7 @@ namespace Tomoe
 
     public class Program
     {
-        public static DiscordClient Client { get; private set; }
+        public static DiscordShardedClient Client { get; private set; }
         public static Config Config { get; private set; }
         public static ServiceProvider ServiceProvider { get; private set; }
 
@@ -41,16 +41,17 @@ namespace Tomoe
 
             logger.Information("Registering commands...");
             Client = new(discordConfiguration);
-            SlashCommandsExtension slashCommandsExtension = Client.UseSlashCommands(slashCommandsConfiguration);
-            MethodInfo registerCommandMethod = slashCommandsExtension.GetType().GetMethod(nameof(slashCommandsExtension.RegisterCommands));
-            foreach (Type someClass in Assembly.GetEntryAssembly().GetTypes().Where(type => type?.GetCustomAttribute<SlashCommandAttribute>() != null && !type.IsNested))
+            foreach (SlashCommandsExtension slashCommandShardExtension in (await Client.UseSlashCommandsAsync(slashCommandsConfiguration)).Values)
             {
-                registerCommandMethod.MakeGenericMethod(new[] { someClass.GetType() }).Invoke(slashCommandsExtension, null);
+                foreach (Type slashCommandClass in Assembly.GetEntryAssembly().GetTypes().Where(type => type?.GetCustomAttribute<SlashCommandAttribute>() != null && !type.IsNested))
+                {
+                    slashCommandShardExtension.RegisterCommands(slashCommandClass);
+                }
             }
             logger.Information("Commands up!");
 
             logger.Information("Connecting to Discord...");
-            await Client.ConnectAsync();
+            await Client.StartAsync();
             await Task.Delay(-1);
         }
     }

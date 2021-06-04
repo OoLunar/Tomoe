@@ -4,7 +4,6 @@ namespace Tomoe.Commands.Listeners
     using DSharpPlus.Entities;
     using DSharpPlus.EventArgs;
     using Microsoft.Extensions.DependencyInjection;
-    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Linq;
