@@ -9,6 +9,6 @@ namespace Tomoe.Commands.Public
     {
 
         [SlashCommand("guild_info", "Gets general info about the server.")]
-        public async Task Overload(InteractionContext context) => await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().AddEmbed(Api.Public.GuildInfo(context)));
+        public static async Task Overload(InteractionContext context) => await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().AddEmbed(Api.Public.GuildInfo(context)));
     }
 }

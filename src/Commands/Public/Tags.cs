@@ -34,12 +34,10 @@ namespace Tomoe.Commands.Public
                 {
                     tag.Uses++;
                     await Database.SaveChangesAsync();
-                    DiscordInteractionResponseBuilder builder = new()
+                    await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
                     {
                         Content = tag.Content
-                    };
-                    builder.AddMention(new RoleMention(719028863530827808));
-                    await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, builder);
+                    });
                 }
             }
 
@@ -311,25 +309,6 @@ namespace Tomoe.Commands.Public
                         Content = $"<@{tag.OwnerId}>"
                     });
                 }
-            }
-
-            [SlashCommand("all", "Lists all tags in the guild.")]
-            public async Task All(InteractionContext context)
-            {
-                await context.CreateResponseAsync(InteractionResponseType.Pong);
-                string tags = string.Join('\n', Database.Tags.Where(databaseTag => databaseTag.GuildId == context.Guild.Id).Select(tag => tag.Name));
-
-                DiscordEmbedBuilder discordEmbedBuilder = new()
-                {
-                    Title = "All Tags for Guild".Titleize() + $" {context.Guild.Name}",
-                    Color = new DiscordColor("#7b84d1")
-                };
-                if (context.Guild.IconUrl != null)
-                {
-                    discordEmbedBuilder.WithThumbnail(context.Guild.IconUrl.Replace(".jpg", ".png?size=1024"));
-                }
-
-                // TODO: Make your own interactivity
             }
 
             public async Task<Tag> GetTagAsync(string tagName, ulong guildId)

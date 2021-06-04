@@ -9,7 +9,7 @@ namespace Tomoe.Commands.Public
     public class BotInfo : SlashCommandModule
     {
         [SlashCommand("bot_info", "Gets general info about the bot.")]
-        public async Task Overload(InteractionContext context)
+        public static async Task Overload(InteractionContext context)
         {
             DiscordEmbedBuilder discordEmbedBuilder = new()
             {

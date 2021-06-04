@@ -8,7 +8,7 @@ namespace Tomoe.Commands.Public
     public class GuildIcon : SlashCommandModule
     {
         [SlashCommand("guild_icon", "Gets the guild's icon.")]
-        public async Task Overload(InteractionContext context)
+        public static async Task Overload(InteractionContext context)
         {
             DiscordEmbed discordEmbed = Api.Public.GuildIcon(context);
             if (discordEmbed == null)

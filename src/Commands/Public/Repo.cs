@@ -7,7 +7,7 @@ namespace Tomoe.Commands.Public
     public class Repository : SlashCommandModule
     {
         [SlashCommand("repository", "Sends the source code for Tomoe.")]
-        public async Task Overload(InteractionContext context) => await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+        public static async Task Overload(InteractionContext context) => await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
         {
             Content = Api.Public.RepositoryLink()
         });

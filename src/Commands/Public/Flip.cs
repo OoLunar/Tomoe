@@ -7,7 +7,7 @@ namespace Tomoe.Commands.Public
     public class Flip : SlashCommandModule
     {
         [SlashCommand("flip", "Choose from the options you provide!")]
-        public async Task Overload(InteractionContext context, [Option("Choices", "A list of items to choose from.")] string choices = "Heads Tails") => await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+        public static async Task Overload(InteractionContext context, [Option("Choices", "A list of items to choose from.")] string choices = "Heads Tails") => await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
         {
             Content = Api.Public.Choose(choices)
         });
