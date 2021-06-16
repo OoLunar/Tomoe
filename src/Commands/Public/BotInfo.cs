@@ -1,29 +1,35 @@
-namespace Tomoe.Commands.Public
+namespace Tomoe.Commands
 {
     using DSharpPlus;
     using DSharpPlus.Entities;
     using DSharpPlus.SlashCommands;
     using Humanizer;
+    using System;
+    using System.Diagnostics;
+    using System.Globalization;
+    using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
 
-    public class BotInfo : SlashCommandModule
+    public partial class Public : SlashCommandModule
     {
         [SlashCommand("bot_info", "Gets general info about the bot.")]
-        public static async Task Overload(InteractionContext context)
+        public static async Task BotInfo(InteractionContext context)
         {
-            DiscordEmbedBuilder discordEmbedBuilder = new()
+            DiscordEmbedBuilder embedBuilder = new()
             {
                 Title = "Bot Info",
-                Color = new DiscordColor("#7b84d1"),
-                ImageUrl = context.Client.CurrentUser.GetAvatarUrl(ImageFormat.Png)
+                Color = new DiscordColor("#7b84d1")
             };
 
-            foreach ((Api.Public.BotInfoField field, string value) in Api.Public.BotInfo(context))
-            {
-                discordEmbedBuilder.AddField(field.Humanize(), value, true);
-            }
+            embedBuilder.AddField("Guild Count", context.Client.Guilds.Count.ToMetric());
+            embedBuilder.AddField("Member Count", TotalMemberCount.Values.Sum().ToMetric());
+            embedBuilder.AddField("Heap Memory", GC.GetTotalMemory(true).Bytes().ToString("MB", CultureInfo.InvariantCulture));
+            embedBuilder.AddField("Thread Count", ThreadPool.ThreadCount.ToMetric());
+            embedBuilder.AddField("Websocket Ping", context.Client.Ping + "ms");
+            embedBuilder.AddField("Uptime", (Process.GetCurrentProcess().StartTime.ToUniversalTime() - DateTime.UtcNow).Humanize(3));
 
-            await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().AddEmbed(discordEmbedBuilder));
+            await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().AddEmbed(embedBuilder));
         }
     }
 }

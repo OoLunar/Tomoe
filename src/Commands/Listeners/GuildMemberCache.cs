@@ -48,8 +48,11 @@ namespace Tomoe.Commands.Listeners
             database.GuildMembers.AddRange(newGuildMembers);
             await database.SaveChangesAsync();
 
-            Api.Public.memberCount[guildCreateEventArgs.Guild.Id] += guildCreateEventArgs.Guild.MemberCount;
-            logger.Information($"Guild {guildCreateEventArgs.Guild.Name} ({guildCreateEventArgs.Guild.Id}) is ready!");
+            if (!Public.TotalMemberCount.TryAdd(guildCreateEventArgs.Guild.Id, guildCreateEventArgs.Guild.MemberCount))
+            {
+                Public.TotalMemberCount[guildCreateEventArgs.Guild.Id] += guildCreateEventArgs.Guild.MemberCount;
+            }
+            logger.Information($"{guildCreateEventArgs.Guild.Name} ({guildCreateEventArgs.Guild.Id}) is ready!");
         }
     }
 }

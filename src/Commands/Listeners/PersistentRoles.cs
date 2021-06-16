@@ -3,22 +3,25 @@ namespace Tomoe.Commands.Listeners
     using DSharpPlus;
     using DSharpPlus.Entities;
     using DSharpPlus.EventArgs;
+    using Humanizer;
     using Microsoft.Extensions.DependencyInjection;
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.Linq;
     using System.Threading.Tasks;
     using Tomoe.Db;
 
     public class PersistentRoles
     {
-        public async Task Handler(DiscordClient discordClient, GuildMemberAddEventArgs guildMemberAddEventArgs)
+        public static async Task Handler(DiscordClient discordClient, GuildMemberAddEventArgs guildMemberAddEventArgs)
         {
+            Public.TotalMemberCount[guildMemberAddEventArgs.Guild.Id]++;
+
             using IServiceScope scope = Program.ServiceProvider.CreateScope();
             Database database = scope.ServiceProvider.GetService<Database>();
             GuildConfig guild = database.GuildConfigs.First(guild => guild.Id == guildMemberAddEventArgs.Guild.Id);
             GuildMember guildMember = database.GuildMembers.FirstOrDefault(user => user.UserId == guildMemberAddEventArgs.Member.Id && user.GuildId == guildMemberAddEventArgs.Guild.Id);
-            bool saveDatabase = false;
 
             if (guildMember == null)
             {
@@ -26,7 +29,6 @@ namespace Tomoe.Commands.Listeners
                 guildMember.GuildId = guildMemberAddEventArgs.Guild.Id;
                 IEnumerable<ulong> newRoles = guildMemberAddEventArgs.Member.Roles.Except(new[] { guildMemberAddEventArgs.Guild.EveryoneRole }).Select(discordRole => discordRole.Id).Except(guildMember.Roles);
                 guildMember.Roles.AddRange(newRoles);
-                saveDatabase = true;
             }
             else
             {
@@ -36,7 +38,6 @@ namespace Tomoe.Commands.Listeners
                     if (discordRole == null)
                     {
                         guildMember.Roles.Remove(discordRoleId);
-                        saveDatabase = true;
                     }
                     else
                     {
@@ -49,42 +50,49 @@ namespace Tomoe.Commands.Listeners
                 }
             }
 
-            if (saveDatabase)
-            {
-                await database.SaveChangesAsync();
-            }
+            Dictionary<string, string> keyValuePairs = new();
+            keyValuePairs.Add("guild_name", guildMemberAddEventArgs.Guild.Name);
+            keyValuePairs.Add("guild_count", Public.TotalMemberCount[guildMemberAddEventArgs.Guild.Id].ToMetric());
+            keyValuePairs.Add("person_username", guildMemberAddEventArgs.Member.Username);
+            keyValuePairs.Add("person_tag", guildMemberAddEventArgs.Member.Discriminator);
+            keyValuePairs.Add("person_mention", guildMemberAddEventArgs.Member.Mention);
+            keyValuePairs.Add("person_id", guildMemberAddEventArgs.Member.Id.ToString(CultureInfo.InvariantCulture));
 
-            Api.Public.memberCount[guildMemberAddEventArgs.Guild.Id]++;
+            await Api.Moderation.Modlog(guildMemberAddEventArgs.Guild, keyValuePairs, Api.Moderation.LogType.MemberJoined, database);
+            await database.SaveChangesAsync();
         }
 
-        public async Task Handler(DiscordClient discordClient, GuildMemberRemoveEventArgs guildMemberRemoveEventArgs)
+        public static async Task Handler(DiscordClient discordClient, GuildMemberRemoveEventArgs guildMemberRemoveEventArgs)
         {
+            Public.TotalMemberCount[guildMemberRemoveEventArgs.Guild.Id]--;
+
             using IServiceScope scope = Program.ServiceProvider.CreateScope();
             Database database = scope.ServiceProvider.GetService<Database>();
             GuildConfig guild = database.GuildConfigs.First(guild => guild.Id == guildMemberRemoveEventArgs.Guild.Id);
             GuildMember guildMember = database.GuildMembers.FirstOrDefault(user => user.UserId == guildMemberRemoveEventArgs.Member.Id && user.GuildId == guildMemberRemoveEventArgs.Guild.Id);
-            bool saveDatabase = false;
 
             if (guildMember == null)
             {
                 guildMember.UserId = guildMemberRemoveEventArgs.Member.Id;
                 guildMember.GuildId = guildMemberRemoveEventArgs.Guild.Id;
-                saveDatabase = true;
             }
 
             IEnumerable<ulong> newRoles = guildMemberRemoveEventArgs.Member.Roles.Except(new[] { guildMemberRemoveEventArgs.Guild.EveryoneRole }).Select(discordRole => discordRole.Id).Except(guildMember.Roles);
             if (newRoles.Any())
             {
                 guildMember.Roles.AddRange(newRoles);
-                saveDatabase = true;
             }
 
-            if (saveDatabase)
-            {
-                await database.SaveChangesAsync();
-            }
+            Dictionary<string, string> keyValuePairs = new();
+            keyValuePairs.Add("guild_name", guildMemberRemoveEventArgs.Guild.Name);
+            keyValuePairs.Add("guild_count", Public.TotalMemberCount[guildMemberRemoveEventArgs.Guild.Id].ToMetric());
+            keyValuePairs.Add("person_username", guildMemberRemoveEventArgs.Member.Username);
+            keyValuePairs.Add("person_tag", guildMemberRemoveEventArgs.Member.Discriminator);
+            keyValuePairs.Add("person_mention", guildMemberRemoveEventArgs.Member.Mention);
+            keyValuePairs.Add("person_id", guildMemberRemoveEventArgs.Member.Id.ToString(CultureInfo.InvariantCulture));
 
-            Api.Public.memberCount[guildMemberRemoveEventArgs.Guild.Id]--;
+            await Api.Moderation.Modlog(guildMemberRemoveEventArgs.Guild, keyValuePairs, Api.Moderation.LogType.MemberLeft, database);
+            await database.SaveChangesAsync();
         }
     }
 }

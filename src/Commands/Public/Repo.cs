@@ -1,15 +1,15 @@
-namespace Tomoe.Commands.Public
+namespace Tomoe.Commands
 {
     using DSharpPlus;
     using DSharpPlus.SlashCommands;
     using System.Threading.Tasks;
 
-    public class Repository : SlashCommandModule
+    public partial class Public : SlashCommandModule
     {
-        [SlashCommand("repository", "Sends the source code for Tomoe.")]
-        public static async Task Overload(InteractionContext context) => await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+        [SlashCommand("source_code", "Sends the source code for Tomoe.")]
+        public static async Task SourceCode(InteractionContext context) => await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
         {
-            Content = Api.Public.RepositoryLink()
+            Content = Program.Config.RepositoryLink
         });
     }
 }

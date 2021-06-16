@@ -5,7 +5,8 @@ namespace Tomoe.Db
 
     public class Tag
     {
-        [Key] public int Id { get; internal set; }
+        [Key]
+        public int Id { get; internal set; }
         public int TagId { get; internal set; }
         public string Name { get; internal set; }
         public string Content { get; internal set; }

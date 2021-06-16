@@ -1,4 +1,4 @@
-namespace Tomoe.Commands.Public
+namespace Tomoe.Commands
 {
     using DSharpPlus;
     using DSharpPlus.Entities;
@@ -9,12 +9,14 @@ namespace Tomoe.Commands.Public
     using System.Reflection;
     using System.Threading.Tasks;
 
-    public class Help : SlashCommandModule
+    public partial class Public : SlashCommandModule
     {
+        internal static readonly Dictionary<string, MethodInfo> Commands = new();
+
         [SlashCommand("help", "Sends the help menu for the bot.")]
-        public static async Task Command(InteractionContext context, [ChoiceProvider(typeof(TriggerHelpChoiceProvider)), Option("command", "The name of the command to get help on.")] string commandName)
+        public static async Task Help(InteractionContext context, [ChoiceProvider(typeof(HelpChoiceProvider)), Option("command", "The name of the command to get help on.")] string commandName)
         {
-            if (!Api.Public.Commands.TryGetValue(commandName, out MethodInfo command))
+            if (!Commands.TryGetValue(commandName, out MethodInfo command))
             {
                 await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
                 {
@@ -54,7 +56,7 @@ namespace Tomoe.Commands.Public
         }
     }
 
-    public class TriggerHelpChoiceProvider : IChoiceProvider
+    public class HelpChoiceProvider : IChoiceProvider
     {
         public Task<IEnumerable<DiscordApplicationCommandOptionChoice>> Provider()
         {
@@ -62,9 +64,9 @@ namespace Tomoe.Commands.Public
             IEnumerable<Type> commandClasses = Assembly.GetEntryAssembly().GetTypes().Where(type => type.IsSubclassOf(typeof(SlashCommandModule)) && !type.IsNested);
             foreach (Type command in commandClasses)
             {
-                Api.Public.SearchCommands(command);
+                SearchCommands(command);
             }
-            foreach (string commandName in Api.Public.Commands.Keys)
+            foreach (string commandName in Public.Commands.Keys)
             {
                 DiscordApplicationCommandOptionChoice discordApplicationCommandOptionChoice = new(commandName, commandName);
                 discordApplicationCommandOptionChoices.Add(discordApplicationCommandOptionChoice);
@@ -72,6 +74,33 @@ namespace Tomoe.Commands.Public
 
             discordApplicationCommandOptionChoices.Sort((DiscordApplicationCommandOptionChoice x, DiscordApplicationCommandOptionChoice y) => string.CompareOrdinal(x.Name, y.Name));
             return Task.FromResult(discordApplicationCommandOptionChoices.AsEnumerable());
+        }
+
+        public static void SearchCommands(Type type, string commandName = "")
+        {
+            IEnumerable<Type> nestedTypes = type.GetNestedTypes().Where(type => type?.GetCustomAttribute<SlashCommandGroupAttribute>() != null);
+            if (nestedTypes.Any())
+            {
+                foreach (Type nestedType in nestedTypes)
+                {
+                    SlashCommandGroupAttribute slashCommandGroupAttribute = nestedType.GetCustomAttribute<SlashCommandGroupAttribute>();
+                    commandName += ' ' + slashCommandGroupAttribute.Name;
+                    SearchCommands(nestedType, commandName);
+                }
+            }
+            else
+            {
+                IEnumerable<MethodInfo> localCommands = type.GetMethods().Where(method => method.GetCustomAttribute<SlashCommandAttribute>() != null);
+                if (localCommands.Any())
+                {
+                    foreach (MethodInfo command in localCommands)
+                    {
+                        SlashCommandAttribute slashCommandAttribute = command.GetCustomAttribute<SlashCommandAttribute>();
+                        string subCommand = commandName + ' ' + slashCommandAttribute.Name;
+                        Public.Commands.TryAdd(subCommand, command);
+                    }
+                }
+            }
         }
     }
 }

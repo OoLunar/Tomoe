@@ -13,7 +13,7 @@ namespace Tomoe
 
     public class Program
     {
-        public static DiscordShardedClient Client { get; private set; }
+        public static DiscordClient Client { get; private set; }
         public static Config Config { get; private set; }
         public static ServiceProvider ServiceProvider { get; private set; }
 
@@ -41,17 +41,33 @@ namespace Tomoe
 
             logger.Information("Registering commands...");
             Client = new(discordConfiguration);
-            foreach (SlashCommandsExtension slashCommandShardExtension in (await Client.UseSlashCommandsAsync(slashCommandsConfiguration)).Values)
+
+            SlashCommandsExtension slashCommandsExtension = Client.UseSlashCommands(slashCommandsConfiguration);
+            Type slashCommandModule = typeof(SlashCommandModule);
+            foreach (Type type in Assembly.GetEntryAssembly().GetTypes().Where(type => slashCommandModule.IsAssignableFrom(type) && !type.IsNested))
             {
-                foreach (Type slashCommandClass in Assembly.GetEntryAssembly().GetTypes().Where(type => type?.GetCustomAttribute<SlashCommandAttribute>() != null && !type.IsNested))
-                {
-                    slashCommandShardExtension.RegisterCommands(slashCommandClass);
-                }
+                slashCommandsExtension.RegisterCommands(type, 776184288823345191);
             }
+
+            // Until ShardedDiscordClient is fixed
+            //foreach (SlashCommandsExtension slashCommandShardExtension in (await Client.UseSlashCommandsAsync(slashCommandsConfiguration)).Values)
+            //{
+            //    foreach (Type slashCommandClass in Assembly.GetEntryAssembly().GetTypes().Where(type => type?.GetCustomAttribute<SlashCommandAttribute>() != null && !type.IsNested))
+            //    {
+            //        slashCommandShardExtension.RegisterCommands(slashCommandClass);
+            //        slashCommandShardExtension.SlashCommandErrored += Commands.Listeners.CommandErrored.Handler;
+            //    }
+            //}
             logger.Information("Commands up!");
 
+            Client.GuildMemberAdded += Commands.Listeners.PersistentRoles.Handler;
+            Client.GuildMemberRemoved += Commands.Listeners.PersistentRoles.Handler;
+            Client.GuildDownloadCompleted += Commands.Listeners.GuildDownloadCompleted.Handler;
+            Client.GuildAvailable += Commands.Listeners.GuildMemberCache.Handler;
+            slashCommandsExtension.SlashCommandErrored += Commands.Listeners.CommandErrored.Handler;
+
             logger.Information("Connecting to Discord...");
-            await Client.StartAsync();
+            await Client.ConnectAsync();
             await Task.Delay(-1);
         }
     }

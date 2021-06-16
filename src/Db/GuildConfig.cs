@@ -13,10 +13,10 @@ namespace Tomoe.Db
         public bool AutoStrike { get; internal set; }
         public int MaxLinesPerMessage { get; internal set; } = 5;
         public int MaxUniqueMentionsPerMessage { get; internal set; } = 5;
-        public List<string> AllowedInvites { get; internal set; } = new();
-        public List<string> Prefixes { get; internal set; } = new();
-        public List<ulong> AdminRoles { get; internal set; } = new();
-        public List<ulong> IgnoredChannels { get; internal set; } = new();
+        public List<string> AllowedInvites { get; } = new();
+        public List<string> Prefixes { get; } = new();
+        public List<ulong> AdminRoles { get; } = new();
+        public List<ulong> IgnoredChannels { get; } = new();
         public ulong AntimemeRole { get; internal set; }
         [Key]
         public ulong Id { get; internal set; }

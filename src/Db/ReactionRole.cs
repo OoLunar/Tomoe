@@ -4,7 +4,8 @@ namespace Tomoe.Db
 
     public class ReactionRole
     {
-        [Key] public int Id { get; internal set; }
+        [Key]
+        public int Id { get; internal set; }
         public ulong GuildId { get; internal set; }
         public ulong ChannelId { get; internal set; }
         public ulong MessageId { get; internal set; }
