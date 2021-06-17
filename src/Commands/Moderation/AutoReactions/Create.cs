@@ -10,7 +10,6 @@ namespace Tomoe.Commands
     using System.Linq;
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
-    using Tomoe.Api.Attributes;
     using Tomoe.Db;
 
     [SlashCommandGroup("temp", "temp")]
@@ -20,9 +19,10 @@ namespace Tomoe.Commands
         public partial class AutoReactions : SlashCommandModule
         {
             private static Regex EmojiRegex { get; } = new("^<(?<animated>a)?:(?<name>[a-zA-Z0-9_]+?):(?<id>\\d+?)>$", RegexOptions.Compiled | RegexOptions.ECMAScript);
+            public Database Database { private get; set; }
 
-            [SlashCommand("create", "Creates a new autoreaction on a channel."), Hierarchy]
-            public static async Task Create(InteractionContext context, [Option("channel", "Which guild channel to autoreact too.")] DiscordChannel channel, [Option("emoji", "Which emoji to react with.")] string emojiString)
+            [SlashCommand("create", "Creates a new autoreaction on a channel.")]
+            public async Task Create(InteractionContext context, [Option("channel", "Which guild channel to autoreact too.")] DiscordChannel channel, [Option("emoji", "Which emoji to react with.")] string emojiString)
             {
 
                 if (!DiscordEmoji.TryFromUnicode(context.Client, emojiString, out DiscordEmoji emoji))
@@ -115,7 +115,8 @@ namespace Tomoe.Commands
                 keyValuePairs.Add("moderator_id", context.Member.Id.ToString(CultureInfo.InvariantCulture));
                 keyValuePairs.Add("moderator_displayname", context.Member.DisplayName);
                 keyValuePairs.Add("channels_affected", channelsAffected.Humanize());
-                await Api.Moderation.Modlog(context.Guild, keyValuePairs, Api.Moderation.LogType.AutoReactionCreate);
+                keyValuePairs.Add("channel_emoji", emoji);
+                await Modlog(context.Guild, keyValuePairs, LogType.AutoReactionCreate);
 
                 await context.EditResponseAsync(new()
                 {

@@ -10,17 +10,15 @@ namespace Tomoe.Commands
     using System.Linq;
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
-    using Tomoe.Api.Attributes;
     using Tomoe.Db;
 
     public partial class Moderation : SlashCommandModule
     {
         public partial class AutoReactions : SlashCommandModule
         {
-            [SlashCommand("delete", "Deletes an autoreaction from a specified channel."), Hierarchy]
+            [SlashCommand("delete", "Deletes an autoreaction from a specified channel.")]
             public static async Task Delete(InteractionContext context, [Option("channel", "Which guild channel to remove the autoreaction from.")] DiscordChannel channel, [Option("emoji", "Which emoji to react with.")] string emojiString)
             {
-
                 if (!DiscordEmoji.TryFromUnicode(context.Client, emojiString, out DiscordEmoji emoji))
                 {
                     Match match = EmojiRegex.Match(emojiString);
@@ -66,15 +64,9 @@ namespace Tomoe.Commands
                 if (channel.Type is ChannelType.Text or ChannelType.News)
                 {
                     AutoReaction autoReaction = database.AutoReactions.FirstOrDefault(databaseAutoReaction => databaseAutoReaction.GuildId == context.Guild.Id && databaseAutoReaction.ChannelId == channel.Id && databaseAutoReaction.EmojiName == emoji.ToString());
-                    if (autoReaction == null)
+                    if (autoReaction != null)
                     {
-                        autoReaction = new()
-                        {
-                            GuildId = context.Guild.Id,
-                            ChannelId = channel.Id,
-                            EmojiName = emoji.ToString()
-                        };
-                        database.AutoReactions.Add(autoReaction);
+                        database.AutoReactions.Remove(autoReaction);
                         await database.SaveChangesAsync();
                         channelsAffected.Add(channel.Mention);
                     }
@@ -84,15 +76,9 @@ namespace Tomoe.Commands
                     foreach (DiscordChannel subChannel in channel.Children)
                     {
                         AutoReaction autoReaction = database.AutoReactions.FirstOrDefault(databaseAutoReaction => databaseAutoReaction.GuildId == context.Guild.Id && databaseAutoReaction.ChannelId == subChannel.Id && databaseAutoReaction.EmojiName == emoji.ToString());
-                        if (autoReaction == null)
+                        if (autoReaction != null)
                         {
-                            autoReaction = new()
-                            {
-                                GuildId = context.Guild.Id,
-                                ChannelId = subChannel.Id,
-                                EmojiName = emoji.ToString()
-                            };
-                            database.AutoReactions.Add(autoReaction);
+                            database.AutoReactions.Remove(autoReaction);
                             channelsAffected.Add(subChannel.Mention);
                         }
                     }
@@ -111,11 +97,12 @@ namespace Tomoe.Commands
                 keyValuePairs.Add("moderator_id", context.Member.Id.ToString(CultureInfo.InvariantCulture));
                 keyValuePairs.Add("moderator_displayname", context.Member.DisplayName);
                 keyValuePairs.Add("channels_affected", channelsAffected.Humanize());
-                await Api.Moderation.Modlog(context.Guild, keyValuePairs, Api.Moderation.LogType.AutoReactionCreate);
+                keyValuePairs.Add("channel_emoji", emoji);
+                await Modlog(context.Guild, keyValuePairs, LogType.AutoReactionCreate);
 
                 await context.EditResponseAsync(new()
                 {
-                    Content = "Channel" + (channelsAffected.Count != 1 ? "s" : "") + $" {channelsAffected.Humanize()} will now have the emoji {emoji} reacted on every new message."
+                    Content = "Channel" + (channelsAffected.Count != 1 ? "s" : "") + $" {channelsAffected.Humanize()} had the autoreaction {emoji} removed."
                 });
             }
         }

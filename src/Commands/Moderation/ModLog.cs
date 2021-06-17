@@ -1,14 +1,16 @@
-namespace Tomoe.Api
+namespace Tomoe.Commands
 {
+    using DSharpPlus;
     using DSharpPlus.Entities;
     using DSharpPlus.Exceptions;
+    using DSharpPlus.SlashCommands;
     using Microsoft.Extensions.DependencyInjection;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using Tomoe.Db;
 
-    public partial class Moderation
+    public partial class Moderation : SlashCommandModule
     {
         public enum LogType
         {
@@ -38,6 +40,25 @@ namespace Tomoe.Api
             None,
             MemberJoined,
             MemberLeft
+        }
+
+        public Database Database { private get; set; }
+
+        [SlashCommand("mod_log", "Adds a new log to the mod log.")]
+        public async Task ModLog(InteractionContext context, [Option("reason", "What to add to the mod_log")] string reason = Constants.MissingReason)
+        {
+            Database.ModLogs.Add(new()
+            {
+                GuildId = context.Guild.Id,
+                LogType = LogType.CustomEvent,
+                LogId = Database.ModLogs.Count() + 1,
+                Reason = reason
+            });
+            await Database.SaveChangesAsync();
+            await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+            {
+                Content = $"Event has been recorded!\n{reason}"
+            });
         }
 
         public static async Task Modlog(DiscordGuild guild, Dictionary<string, string> parameters, LogType logType = LogType.Unknown, Database database = null)

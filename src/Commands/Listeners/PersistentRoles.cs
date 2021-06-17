@@ -58,7 +58,7 @@ namespace Tomoe.Commands.Listeners
             keyValuePairs.Add("person_mention", guildMemberAddEventArgs.Member.Mention);
             keyValuePairs.Add("person_id", guildMemberAddEventArgs.Member.Id.ToString(CultureInfo.InvariantCulture));
 
-            await Api.Moderation.Modlog(guildMemberAddEventArgs.Guild, keyValuePairs, Api.Moderation.LogType.MemberJoined, database);
+            await Moderation.Modlog(guildMemberAddEventArgs.Guild, keyValuePairs, Moderation.LogType.MemberJoined, database);
             await database.SaveChangesAsync();
         }
 
@@ -91,7 +91,7 @@ namespace Tomoe.Commands.Listeners
             keyValuePairs.Add("person_mention", guildMemberRemoveEventArgs.Member.Mention);
             keyValuePairs.Add("person_id", guildMemberRemoveEventArgs.Member.Id.ToString(CultureInfo.InvariantCulture));
 
-            await Api.Moderation.Modlog(guildMemberRemoveEventArgs.Guild, keyValuePairs, Api.Moderation.LogType.MemberLeft, database);
+            await Moderation.Modlog(guildMemberRemoveEventArgs.Guild, keyValuePairs, Moderation.LogType.MemberLeft, database);
             await database.SaveChangesAsync();
         }
     }

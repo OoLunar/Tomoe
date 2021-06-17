@@ -1,4 +1,4 @@
-namespace Tomoe.Api.Attributes
+namespace Tomoe.Commands.Attributes
 {
     using DSharpPlus;
     using DSharpPlus.Entities;

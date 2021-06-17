@@ -7,7 +7,7 @@ namespace Tomoe.Commands
     using System.Collections.Generic;
     using System.Globalization;
     using System.Threading.Tasks;
-    using Tomoe.Api.Attributes;
+    using Tomoe.Commands.Attributes;
 
     public partial class Moderation : SlashCommandModule
     {
@@ -65,7 +65,7 @@ namespace Tomoe.Commands
             keyValuePairs.Add("moderator_id", context.Member.Id.ToString(CultureInfo.InvariantCulture));
             keyValuePairs.Add("moderator_displayname", context.Member.DisplayName);
             keyValuePairs.Add("punishment_reason", kickReason);
-            await Api.Moderation.Modlog(context.Guild, keyValuePairs, Api.Moderation.LogType.Ban);
+            await Modlog(context.Guild, keyValuePairs, LogType.Ban);
 
             await context.EditResponseAsync(new()
             {
