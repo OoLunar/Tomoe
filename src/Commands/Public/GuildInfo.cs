@@ -49,10 +49,10 @@ namespace Tomoe.Commands
             embedBuilder.AddField("Name", context.Guild.Name, true);
             embedBuilder.AddField("Owner", context.Guild.Owner.Mention, true);
             embedBuilder.AddField("Preferred Locale", context.Guild.PreferredLocale, true);
-            embedBuilder.AddField("Premium Subscription Count", context.Guild.PremiumSubscriptionCount.HasValue ? context.Guild.PremiumSubscriptionCount.Value.ToMetric() : "0", true);
-            embedBuilder.AddField("Premium Tier", context.Guild.PremiumTier.Humanize(), true);
             embedBuilder.AddField("Role Count", context.Guild.Roles.Count.ToMetric(), true);
             embedBuilder.AddField("Rules Channel", context.Guild.RulesChannel == null ? NotSet : context.Guild.RulesChannel.Mention, true);
+            embedBuilder.AddField("Server Boosts", context.Guild.PremiumSubscriptionCount.HasValue ? context.Guild.PremiumSubscriptionCount.Value.ToMetric() : "0", true);
+            embedBuilder.AddField("Server Tier", context.Guild.PremiumTier.Humanize(), true);
             embedBuilder.AddField("Splash Url", context.Guild.SplashUrl == null ? NotSet : Formatter.MaskedUrl(LinkToImage, new(splashUrl), splashUrl), true);
             embedBuilder.AddField("Vanity Url", string.IsNullOrEmpty(context.Guild.VanityUrlCode) ? NotSet : $"discord.gg/{context.Guild.VanityUrlCode}", true);
             embedBuilder.AddField("Verification Level", context.Guild.VerificationLevel.Humanize(), true);
