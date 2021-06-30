@@ -10,13 +10,14 @@ namespace Tomoe.Commands
     using System.Linq;
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
+    using Tomoe.Commands.Attributes;
     using Tomoe.Db;
 
     public partial class Moderation : SlashCommandModule
     {
         public partial class AutoReactions : SlashCommandModule
         {
-            [SlashCommand("delete", "Deletes an autoreaction from a specified channel.")]
+            [SlashCommand("delete", "Deletes an autoreaction from a specified channel."), Hierarchy(Permissions.ManageChannels | Permissions.ManageMessages)]
             public static async Task Delete(InteractionContext context, [Option("channel", "Which guild channel to remove the autoreaction from.")] DiscordChannel channel, [Option("emoji", "Which emoji to react with.")] string emojiString)
             {
                 if (!DiscordEmoji.TryFromUnicode(context.Client, emojiString, out DiscordEmoji emoji))
@@ -44,7 +45,10 @@ namespace Tomoe.Commands
                     }
                 }
 
-                if (channel.Type != ChannelType.Text || channel.Type != ChannelType.News || channel.Type != ChannelType.Category)
+
+#pragma warning disable CS8794
+                if (channel.Type is not ChannelType.Text or not ChannelType.News or not ChannelType.Category)
+#pragma warning restore CS8794
                 {
                     await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
                     {
@@ -98,7 +102,7 @@ namespace Tomoe.Commands
                 keyValuePairs.Add("moderator_displayname", context.Member.DisplayName);
                 keyValuePairs.Add("channels_affected", channelsAffected.Humanize());
                 keyValuePairs.Add("channel_emoji", emoji);
-                await Modlog(context.Guild, keyValuePairs, LogType.AutoReactionCreate);
+                await ModLog(context.Guild, keyValuePairs, CustomEvent.AutoReactionDelete);
 
                 await context.EditResponseAsync(new()
                 {

@@ -1,4 +1,4 @@
-namespace Tomoe.Utils
+namespace Tomoe.Utilities
 {
     using Serilog.Sinks.SystemConsole.Themes;
     using System;

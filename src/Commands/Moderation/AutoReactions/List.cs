@@ -16,6 +16,7 @@ namespace Tomoe.Commands
             [SlashCommand("list", "Shows all autoreactions on a channel.")]
             public async Task List(InteractionContext context, [Option("channel", "Which channel to view the autoreactions on.")] DiscordChannel channel = null)
             {
+                channel ??= context.Channel;
                 IEnumerable<AutoReaction> autoReactions = channel == null
                     ? Database.AutoReactions.Where(databaseAutoReaction => databaseAutoReaction.GuildId == context.Guild.Id && databaseAutoReaction.ChannelId == channel.Id)
                     : Database.AutoReactions.Where(databaseAutoReaction => databaseAutoReaction.GuildId == context.Guild.Id);

@@ -11,8 +11,8 @@ namespace Tomoe.Commands
 
     public partial class Moderation : SlashCommandModule
     {
-        [SlashCommand("kick", "Kicks a member from the guild, sending them off with a dm."), Hierarchy]
-        public static async Task Kick(InteractionContext context, [Option("victim", "Who to kick from the guild.")] DiscordUser victimUser, [Option("reason", "Why is the victim being kicked from the guild?")] string kickReason = Constants.MissingReason)
+        [SlashCommand("kick", "Kicks a member from the guild, sending them off with a dm."), Hierarchy(Permissions.KickMembers)]
+        public static async Task Kick(InteractionContext context, [Option("victim", "Who to kick from the guild.")] DiscordUser victimUser, [Option("reason", "Why is the victim being kicked from the guild?")] string reason = Constants.MissingReason)
         {
             DiscordMember victimMember = await victimUser.Id.GetMember(context.Guild);
             if (victimMember == null)
@@ -24,36 +24,16 @@ namespace Tomoe.Commands
                 });
                 return;
             }
-            else
-            {
-                if (victimMember.Hierarchy >= victimMember.Hierarchy)
-                {
-                    await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
-                    {
-                        IsEphemeral = true,
-                        Content = $"Error: {victimMember.Mention}'s highest role is equal or greater than your highest role! You don't have enough power over them."
-                    });
-                    return;
-                }
-                else if (victimMember.Hierarchy >= context.Guild.CurrentMember.Hierarchy)
-                {
-                    await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
-                    {
-                        IsEphemeral = true,
-                        Content = $"Error: {victimMember.Mention}'s highest role is equal or greater than my highest role! I don't have enough power over them."
-                    });
-                    return;
-                }
-            }
 
             await context.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource, new());
 
-            bool sentDm = await victimUser.TryDmMember($"You've been kicked from {context.Guild.Name} by {context.Member.Mention} ({Formatter.InlineCode(context.Member.Id.ToString(CultureInfo.InvariantCulture))}). Reason: {kickReason}");
-            await victimMember.RemoveAsync(kickReason);
+            bool sentDm = await victimUser.TryDmMember($"You've been kicked from {context.Guild.Name} by {context.Member.Mention} ({Formatter.InlineCode(context.Member.Id.ToString(CultureInfo.InvariantCulture))}). Reason: {reason}");
+            await victimMember.RemoveAsync(reason);
 
             Dictionary<string, string> keyValuePairs = new();
             keyValuePairs.Add("guild_name", context.Guild.Name);
             keyValuePairs.Add("guild_count", Public.TotalMemberCount[context.Guild.Id].ToMetric());
+            keyValuePairs.Add("guild_id", context.Guild.Id.ToString(CultureInfo.InvariantCulture));
             keyValuePairs.Add("person_username", victimMember.Username);
             keyValuePairs.Add("person_tag", victimMember.Discriminator);
             keyValuePairs.Add("person_mention", victimMember.Mention);
@@ -64,12 +44,12 @@ namespace Tomoe.Commands
             keyValuePairs.Add("moderator_mention", context.Member.Mention);
             keyValuePairs.Add("moderator_id", context.Member.Id.ToString(CultureInfo.InvariantCulture));
             keyValuePairs.Add("moderator_displayname", context.Member.DisplayName);
-            keyValuePairs.Add("punishment_reason", kickReason);
-            await Modlog(context.Guild, keyValuePairs, LogType.Ban);
+            keyValuePairs.Add("punishment_reason", reason);
+            await ModLog(context.Guild, keyValuePairs, DiscordEvent.Ban);
 
             await context.EditResponseAsync(new()
             {
-                Content = $"{victimUser.Mention} has been kicked{(sentDm ? "" : "(failed to dm)")}. Reason: {kickReason}"
+                Content = $"{victimUser.Mention} has been kicked{(sentDm ? "" : "(failed to dm)")}. Reason: {reason}"
             });
         }
     }

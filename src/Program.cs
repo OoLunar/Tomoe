@@ -1,6 +1,7 @@
 namespace Tomoe
 {
     using DSharpPlus;
+    using DSharpPlus.Entities;
     using DSharpPlus.SlashCommands;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
@@ -9,7 +10,7 @@ namespace Tomoe
     using System.Linq;
     using System.Reflection;
     using System.Threading.Tasks;
-    using Tomoe.Utils.Configs;
+    using Tomoe.Utilities.Configs;
 
     public class Program
     {
@@ -30,6 +31,11 @@ namespace Tomoe
 
             DiscordConfiguration discordConfiguration = new()
             {
+                Intents = DiscordIntents.GuildMembers // Required for persistent roles
+                    | DiscordIntents.Guilds // Required for channel permissions and member cache
+                    | DiscordIntents.GuildPresences // Required for member cache
+                    | DiscordIntents.GuildMessages // Required for automod
+                    | DiscordIntents.GuildMessageReactions, // Required for reaction roles
                 Token = Config.DiscordApiToken,
                 LoggerFactory = ServiceProvider.GetService<ILoggerFactory>()
             };
@@ -41,14 +47,38 @@ namespace Tomoe
 
             logger.Information("Registering commands...");
             Client = new(discordConfiguration);
-
             SlashCommandsExtension slashCommandsExtension = Client.UseSlashCommands(slashCommandsConfiguration);
+
+            logger.Information("Connecting to Discord...");
+            await Client.ConnectAsync();
+
+
             Type slashCommandModule = typeof(SlashCommandModule);
             foreach (Type type in Assembly.GetEntryAssembly().GetTypes().Where(type => slashCommandModule.IsAssignableFrom(type) && !type.IsNested))
             {
-                slashCommandsExtension.RegisterCommands(type, 776184288823345191);
+                // Unregister all guild commands
+                foreach (DiscordGuild guild in slashCommandsExtension.Client.Guilds.Values)
+                {
+                    await guild.BulkOverwriteApplicationCommandsAsync(Array.Empty<DiscordApplicationCommand>());
+                }
+
+                // Shadow
+                //slashCommandsExtension.RegisterCommands(type, 719028863530827808);
+
+                // ForSaken Borders
+                slashCommandsExtension.RegisterCommands(type, 832354798153236510);
+
+                // Lioness Clubhouse
+                //slashCommandsExtension.RegisterCommands(type, 776184288823345191);
             }
 
+            Client.ComponentInteractionCreated += Commands.Listeners.ButtonClicked;
+            Client.GuildMemberAdded += Commands.Listeners.PersistentRoles;
+            Client.GuildMemberRemoved += Commands.Listeners.PersistentRoles;
+            Client.GuildDownloadCompleted += Commands.Listeners.GuildDownloadCompleted;
+            Client.GuildAvailable += Commands.Listeners.GuildMemberCache;
+            Client.GuildCreated += Commands.Listeners.GuildMemberCache;
+            slashCommandsExtension.SlashCommandErrored += Commands.Listeners.CommandErrored;
             // Until ShardedDiscordClient is fixed
             //foreach (SlashCommandsExtension slashCommandShardExtension in (await Client.UseSlashCommandsAsync(slashCommandsConfiguration)).Values)
             //{
@@ -59,15 +89,6 @@ namespace Tomoe
             //    }
             //}
             logger.Information("Commands up!");
-
-            Client.GuildMemberAdded += Commands.Listeners.PersistentRoles.Handler;
-            Client.GuildMemberRemoved += Commands.Listeners.PersistentRoles.Handler;
-            Client.GuildDownloadCompleted += Commands.Listeners.GuildDownloadCompleted.Handler;
-            Client.GuildAvailable += Commands.Listeners.GuildMemberCache.Handler;
-            slashCommandsExtension.SlashCommandErrored += Commands.Listeners.CommandErrored.Handler;
-
-            logger.Information("Connecting to Discord...");
-            await Client.ConnectAsync();
             await Task.Delay(-1);
         }
     }

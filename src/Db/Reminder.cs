@@ -17,6 +17,6 @@ namespace Tomoe.Db
         public bool Expires { get; internal set; }
         public DateTime ExpiresOn { get; internal set; }
         public DateTime IssuedAt { get; } = DateTime.UtcNow;
-        public Commands.Moderation.LogType Punishment { get; internal set; }
+        public Commands.Moderation.CustomEvent Punishment { get; internal set; }
     }
 }

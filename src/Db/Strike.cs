@@ -8,7 +8,7 @@ namespace Tomoe.Db
     {
         [Key]
         public int Id { get; internal set; }
-        public int LogId { get; internal set; }
+        public long LogId { get; internal set; }
         public ulong GuildId { get; internal set; }
         public ulong IssuerId { get; internal set; }
         public ulong VictimId { get; internal set; }

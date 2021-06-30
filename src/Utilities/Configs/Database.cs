@@ -1,4 +1,4 @@
-namespace Tomoe.Utils.Configs
+namespace Tomoe.Utilities.Configs
 {
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.DependencyInjection;

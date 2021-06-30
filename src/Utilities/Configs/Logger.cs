@@ -1,4 +1,4 @@
-namespace Tomoe.Utils.Configs
+namespace Tomoe.Utilities.Configs
 {
     using Microsoft.Extensions.DependencyInjection;
     using Serilog;

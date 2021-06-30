@@ -15,16 +15,17 @@ namespace Tomoe.Commands
         [SlashCommand("role_info", "Gets general information about a role.")]
         public static async Task RoleInfo(InteractionContext context, [Option("role", "The role to get information on.")] DiscordRole discordRole)
         {
+            // TODO: Keep local cache of guild members with roles.
             int totalMemberCount = 0;
             StringBuilder roleMembers = new();
-            foreach (DiscordMember member in context.Guild.Members.Values.OrderBy(member => member.DisplayName, StringComparer.CurrentCultureIgnoreCase))
+            foreach (DiscordMember member in (await context.Guild.GetAllMembersAsync()).OrderBy(member => member.DisplayName, StringComparer.CurrentCultureIgnoreCase))
             {
                 if (member.Roles.Contains(discordRole) || discordRole.Name == "@everyone")
                 {
                     totalMemberCount++;
-                    if ((roleMembers.Length + $"{member.Mention} ".Length) < 1024)
+                    if ((roleMembers.Length + $"{member.Mention}, ".Length) < 1024)
                     {
-                        roleMembers.Append($"{member.Mention} ");
+                        roleMembers.Append($"{member.Mention}, ");
                     }
                 }
             }
@@ -44,12 +45,12 @@ namespace Tomoe.Commands
             embedBuilder.AddField("Hoisted", discordRole.IsHoisted.ToString(), true);
             embedBuilder.AddField("Is Managed", discordRole.IsManaged.ToString(), true);
             embedBuilder.AddField("Is Mentionable", discordRole.IsMentionable.ToString(), true);
-            embedBuilder.AddField("Role Id", discordRole.Id.ToString(CultureInfo.InvariantCulture), true);
+            embedBuilder.AddField("Role Id", Formatter.InlineCode(discordRole.Id.ToString(CultureInfo.InvariantCulture)), true);
             embedBuilder.AddField("Role Name", discordRole.Name, true);
             embedBuilder.AddField("Role Position", discordRole.Position.ToMetric(), true);
             embedBuilder.AddField("Total Member Count", totalMemberCount.ToMetric(), true);
             embedBuilder.AddField("Permissions", discordRole.Permissions.ToPermissionString());
-            embedBuilder.AddField("Members", roleMembers.ToString());
+            embedBuilder.AddField("Members", roleMembers.Length == 0 ? "None." : roleMembers.ToString());
 
             await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().AddEmbed(embedBuilder));
         }

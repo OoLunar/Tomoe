@@ -7,7 +7,7 @@ namespace Tomoe.Db
     using System.Globalization;
     using System.IO;
     using System.Net;
-    using Tomoe.Utils.Configs;
+    using Tomoe.Utilities.Configs;
 
     public class BloggingContextFactory : IDesignTimeDbContextFactory<Database>
     {

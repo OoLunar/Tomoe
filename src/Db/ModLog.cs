@@ -9,6 +9,7 @@ namespace Tomoe.Db
         public int LogId { get; internal set; }
         public ulong GuildId { get; internal set; }
         public string Reason { get; internal set; }
-        public Commands.Moderation.LogType LogType { get; internal set; }
+        public Commands.Moderation.CustomEvent LogType { get; internal set; }
+        public Commands.Moderation.DiscordEvent DiscordEvent { get; internal set; }
     }
 }

@@ -11,8 +11,13 @@ namespace Tomoe.Commands.Attributes
     public sealed class HierarchyAttribute : SlashCheckBaseAttribute
     {
         private readonly bool CanSelfPunish;
+        private readonly Permissions RequiredPermissions;
 
-        public HierarchyAttribute(bool canSelfPunish = false) => CanSelfPunish = canSelfPunish;
+        public HierarchyAttribute(Permissions requiredPermissions = Permissions.None, bool canSelfPunish = false)
+        {
+            CanSelfPunish = canSelfPunish;
+            RequiredPermissions = requiredPermissions;
+        }
 
         public override async Task<bool> ExecuteChecksAsync(InteractionContext context)
         {
@@ -20,13 +25,38 @@ namespace Tomoe.Commands.Attributes
             {
                 return true;
             }
+            else if (!context.Member.HasPermission(RequiredPermissions))
+            {
+                // https://stackoverflow.com/a/8949772/10942966, tests if there are more than one flag set in the Permissions enum.
+                if ((RequiredPermissions & (RequiredPermissions - 1)) != 0)
+                {
+                    await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+                    {
+                        IsEphemeral = true,
+                        Content = $"Error: You're lacking the {RequiredPermissions.ToPermissionString()} permission."
+                    });
+                }
+                else
+                {
+                    await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+                    {
+                        IsEphemeral = true,
+                        Content = "Error: You're lacking following permissions: " + RequiredPermissions.ToPermissionString()
+                    });
+                }
+                return false;
+            }
 
-            foreach (DiscordInteractionDataOption val in context.Interaction.Data.Options.Where(option => option.Type.GetType() == typeof(DiscordUser) || option.Type.GetType() == typeof(ulong)))
+            foreach (DiscordInteractionDataOption val in context.Interaction.Data.Options.Where(option => option.Type == ApplicationCommandOptionType.User || (option.Type == ApplicationCommandOptionType.String && option.Value is ulong)))
             {
                 DiscordMember discordMember = null;
                 if (val.Value is DiscordMember member)
                 {
-                    discordMember = await member.Id.GetMember(context.Guild);
+                    discordMember = member;
+                }
+                else if (val.Value is DiscordUser user)
+                {
+                    discordMember = await user.Id.GetMember(context.Guild);
                 }
                 else if (val.Value is ulong id)
                 {
@@ -37,15 +67,35 @@ namespace Tomoe.Commands.Attributes
                 {
                     continue;
                 }
-                else if (discordMember == context.Member && CanSelfPunish)
+                else if (discordMember == context.Member)
                 {
-                    // TODO: Prompt for "self punishment" #How2Masochist
-                    await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+                    if (CanSelfPunish)
                     {
-                        Content = $"Error: {discordMember.Mention}'s highest role is greater than or equal to your highest role. You do not have enough power over them!",
-                        IsEphemeral = true
-                    });
-                    return false;
+                        // TODO: Prompt for "self punishment" #How2Masochist
+                        bool selfPunish = await context.Confirm("Error: You're about to punish yourself. Do you wish to continue?");
+                        if (selfPunish)
+                        {
+                            await context.DeleteResponseAsync();
+                            continue;
+                        }
+                        else
+                        {
+                            await context.EditResponseAsync(new()
+                            {
+                                Content = "Error: Cancelling self punishment."
+                            });
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+                        {
+                            Content = $"Error: Cannot issue self punishment with the {context.CommandName} command.",
+                            IsEphemeral = true
+                        });
+                        return false;
+                    }
                 }
                 else if (discordMember.Hierarchy >= context.Member.Hierarchy)
                 {

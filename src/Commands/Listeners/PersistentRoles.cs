@@ -1,4 +1,4 @@
-namespace Tomoe.Commands.Listeners
+namespace Tomoe.Commands
 {
     using DSharpPlus;
     using DSharpPlus.Entities;
@@ -12,9 +12,9 @@ namespace Tomoe.Commands.Listeners
     using System.Threading.Tasks;
     using Tomoe.Db;
 
-    public class PersistentRoles
+    public partial class Listeners
     {
-        public static async Task Handler(DiscordClient discordClient, GuildMemberAddEventArgs guildMemberAddEventArgs)
+        public static async Task PersistentRoles(DiscordClient discordClient, GuildMemberAddEventArgs guildMemberAddEventArgs)
         {
             Public.TotalMemberCount[guildMemberAddEventArgs.Guild.Id]++;
 
@@ -58,11 +58,11 @@ namespace Tomoe.Commands.Listeners
             keyValuePairs.Add("person_mention", guildMemberAddEventArgs.Member.Mention);
             keyValuePairs.Add("person_id", guildMemberAddEventArgs.Member.Id.ToString(CultureInfo.InvariantCulture));
 
-            await Moderation.Modlog(guildMemberAddEventArgs.Guild, keyValuePairs, Moderation.LogType.MemberJoined, database);
+            await Moderation.ModLog(guildMemberAddEventArgs.Guild, keyValuePairs, Moderation.DiscordEvent.MemberJoined, database);
             await database.SaveChangesAsync();
         }
 
-        public static async Task Handler(DiscordClient discordClient, GuildMemberRemoveEventArgs guildMemberRemoveEventArgs)
+        public static async Task PersistentRoles(DiscordClient discordClient, GuildMemberRemoveEventArgs guildMemberRemoveEventArgs)
         {
             Public.TotalMemberCount[guildMemberRemoveEventArgs.Guild.Id]--;
 
@@ -91,7 +91,7 @@ namespace Tomoe.Commands.Listeners
             keyValuePairs.Add("person_mention", guildMemberRemoveEventArgs.Member.Mention);
             keyValuePairs.Add("person_id", guildMemberRemoveEventArgs.Member.Id.ToString(CultureInfo.InvariantCulture));
 
-            await Moderation.Modlog(guildMemberRemoveEventArgs.Guild, keyValuePairs, Moderation.LogType.MemberLeft, database);
+            await Moderation.ModLog(guildMemberRemoveEventArgs.Guild, keyValuePairs, Moderation.DiscordEvent.MemberLeft, database);
             await database.SaveChangesAsync();
         }
     }

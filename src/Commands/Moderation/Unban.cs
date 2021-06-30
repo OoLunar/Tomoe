@@ -8,12 +8,22 @@ namespace Tomoe.Commands
     using System.Globalization;
     using System.Linq;
     using System.Threading.Tasks;
+    using Tomoe.Commands.Attributes;
 
     public partial class Moderation : SlashCommandModule
     {
-        [SlashCommand("unban", "Unbans a person from the guild.")]
-        public static async Task Unban(InteractionContext context, [Option("victim_id", "The Discord user id of who to unban from the guild.")] ulong victimId, [Option("reason", "Why is the victim being unbanned from the guild.")] string unbanReason = Constants.MissingReason)
+        [SlashCommand("unban", "Unbans a person from the guild."), Hierarchy(Permissions.BanMembers)]
+        public static async Task Unban(InteractionContext context, [Option("victim_id", "The Discord user id of who to unban from the guild.")] string victimIdString, [Option("reason", "Why is the victim being unbanned from the guild.")] string unbanReason = Constants.MissingReason)
         {
+            if (!ulong.TryParse(victimIdString, NumberStyles.Number, CultureInfo.InvariantCulture, out ulong victimId))
+            {
+                await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+                {
+                    Content = $"Error: Unknown user id {Formatter.InlineCode(victimIdString)}. To get a user's id, enable Developer Mode on the Discord Client, right click the user you banned, and at the bottom of the menu, click \"Copy ID\""
+                });
+                return;
+            }
+
             DiscordUser victim = await context.Client.GetUserAsync(victimId);
             if (victim == null)
             {
@@ -54,7 +64,7 @@ namespace Tomoe.Commands
             keyValuePairs.Add("moderator_id", context.Member.Id.ToString(CultureInfo.InvariantCulture));
             keyValuePairs.Add("moderator_displayname", context.Member.DisplayName);
             keyValuePairs.Add("punishment_reason", unbanReason);
-            await Modlog(context.Guild, keyValuePairs, LogType.Ban);
+            await ModLog(context.Guild, keyValuePairs, DiscordEvent.Ban);
 
             await context.EditResponseAsync(new()
             {

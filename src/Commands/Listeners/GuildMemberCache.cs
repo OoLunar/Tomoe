@@ -1,20 +1,18 @@
-namespace Tomoe.Commands.Listeners
+namespace Tomoe.Commands
 {
     using DSharpPlus;
     using DSharpPlus.Entities;
     using DSharpPlus.EventArgs;
     using Microsoft.Extensions.DependencyInjection;
-    using Serilog;
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using Tomoe.Db;
 
-    public class GuildMemberCache
+    public partial class Listeners
     {
-        private static readonly ILogger logger = Log.ForContext<GuildMemberCache>();
-
-        public static async Task Handler(DiscordClient discordClient, GuildCreateEventArgs guildCreateEventArgs)
+        public static async Task GuildMemberCache(DiscordClient discordClient, GuildCreateEventArgs guildCreateEventArgs)
         {
             if (guildCreateEventArgs.Guild == null)
             {
@@ -36,12 +34,14 @@ namespace Tomoe.Commands.Listeners
             IEnumerable<ulong> discordMembers = database.GuildMembers.Where(databaseGuildMember => databaseGuildMember.GuildId == guildCreateEventArgs.Guild.Id).Select(databaseGuildMember => databaseGuildMember.UserId);
             foreach (ulong discordMemberId in guildCreateEventArgs.Guild.Members.Keys.Except(discordMembers))
             {
-                GuildMember guildMember = new();
-                guildMember.UserId = discordMemberId;
-                guildMember.GuildId = guildCreateEventArgs.Guild.Id;
-
                 DiscordMember discordMember = guildCreateEventArgs.Guild.Members[discordMemberId];
-                guildMember.Roles.AddRange(discordMember.Roles.Except(new[] { guildCreateEventArgs.Guild.EveryoneRole }).Select(discordRole => discordRole.Id));
+                GuildMember guildMember = new()
+                {
+                    UserId = discordMemberId,
+                    GuildId = guildCreateEventArgs.Guild.Id,
+                    Roles = discordMember.Roles.Except(new[] { guildCreateEventArgs.Guild.EveryoneRole }).Select(discordRole => discordRole.Id).ToList(),
+                    JoinedAt = DateTime.UtcNow
+                };
                 newGuildMembers.Add(guildMember);
             }
 

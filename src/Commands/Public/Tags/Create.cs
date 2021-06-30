@@ -8,6 +8,7 @@ namespace Tomoe.Commands
 
     public partial class Public : SlashCommandModule
     {
+        [SlashCommandGroup("tag", "Manages text walls for later use on common scenarios.")]
         public partial class Tags : SlashCommandModule
         {
             [SlashCommand("create", "Creates a new tag.")]

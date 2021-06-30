@@ -1,4 +1,4 @@
-namespace Tomoe.Commands.Listeners
+namespace Tomoe.Commands
 {
     using DSharpPlus;
     using DSharpPlus.Entities;
@@ -8,9 +8,9 @@ namespace Tomoe.Commands.Listeners
     using System.Threading.Tasks;
     using Tomoe.Db;
 
-    public class AutoReactions
+    public partial class Listeners
     {
-        public static async Task Handler(DiscordClient discordClient, MessageCreateEventArgs messageCreateEventArgs)
+        public static async Task AutoReactions(DiscordClient discordClient, MessageCreateEventArgs messageCreateEventArgs)
         {
             if (messageCreateEventArgs.Guild == null)
             {

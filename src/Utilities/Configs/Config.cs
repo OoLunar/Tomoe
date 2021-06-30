@@ -1,4 +1,4 @@
-namespace Tomoe.Utils.Configs
+namespace Tomoe.Utilities.Configs
 {
     using System;
     using System.IO;
@@ -6,7 +6,7 @@ namespace Tomoe.Utils.Configs
     using System.Text.Json;
     using System.Text.Json.Serialization;
     using System.Threading.Tasks;
-    using Tomoe.Utils.Converters;
+    using Tomoe.Utilities.Converters;
 
     public class Config
     {

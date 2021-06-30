@@ -1,4 +1,4 @@
-namespace Tomoe.Commands.Listeners
+namespace Tomoe.Commands
 {
     using DSharpPlus;
     using DSharpPlus.Entities;
@@ -7,11 +7,11 @@ namespace Tomoe.Commands.Listeners
     using System.Linq;
     using System.Threading.Tasks;
 
-    public class GuildDownloadCompleted
+    public partial class Listeners
     {
-        private static readonly ILogger logger = Log.ForContext<GuildDownloadCompleted>();
+        private static readonly ILogger logger = Log.ForContext<Listeners>();
 
-        public static async Task Handler(DiscordClient discordClient, GuildDownloadCompletedEventArgs guildDownloadCompletedEventArgs)
+        public static async Task GuildDownloadCompleted(DiscordClient discordClient, GuildDownloadCompletedEventArgs guildDownloadCompletedEventArgs)
         {
             int guildCount = Public.TotalMemberCount.Count;
             int memberCount = Public.TotalMemberCount.Values.Sum();

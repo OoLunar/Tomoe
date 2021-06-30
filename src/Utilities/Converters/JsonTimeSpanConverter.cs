@@ -1,4 +1,4 @@
-namespace Tomoe.Utils.Converters
+namespace Tomoe.Utilities.Converters
 {
     using System;
     using System.Globalization;

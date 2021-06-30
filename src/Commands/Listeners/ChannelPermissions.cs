@@ -1,4 +1,4 @@
-namespace Tomoe.Commands.Listeners
+namespace Tomoe.Commands
 {
     using DSharpPlus;
     using DSharpPlus.EventArgs;
@@ -6,9 +6,9 @@ namespace Tomoe.Commands.Listeners
     using System.Linq;
     using Tomoe.Db;
 
-    public class ChannelPermissions
+    public partial class Listeners
     {
-        public static void Handler(DiscordClient discordClient, ChannelCreateEventArgs channelCreateEventArgs)
+        public static void ChannelPermissions(DiscordClient discordClient, ChannelCreateEventArgs channelCreateEventArgs)
         {
             if (channelCreateEventArgs.Guild == null)
             {

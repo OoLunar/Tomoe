@@ -21,10 +21,7 @@ namespace Tomoe.Commands
         [SlashCommand("raw", "Gets the raw version of the message provided.")]
         public static async Task Raw(InteractionContext context, [Option("Message", "The message id or link.")] string messageString)
         {
-            await context.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource, new()
-            {
-                IsEphemeral = true
-            });
+            await context.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource, new());
 
             Dictionary<string, Stream> messageFiles = new();
 
@@ -33,7 +30,7 @@ namespace Tomoe.Commands
             ulong messageId = 0;
             if (Uri.TryCreate(messageString, UriKind.Absolute, out Uri messageLink))
             {
-                if (messageLink.Host != "discord.com" && messageLink.Host != "discordapp.com")
+                if (messageLink.Host is not "discord.com" and not "discordapp.com")
                 {
                     HttpResponseMessage httpResponseMessage = await HttpClient.GetAsync(messageLink);
                     if (httpResponseMessage.IsSuccessStatusCode && httpResponseMessage.TrailingHeaders.TryGetValues("Content-Type", out IEnumerable<string> contentType))
@@ -51,7 +48,7 @@ namespace Tomoe.Commands
                             }
                             else
                             {
-                                messageFiles.Add($"{messageLink.Host}.txt", new MemoryStream(Encoding.ASCII.GetBytes(sanitizedWebContent)));
+                                messageFiles.Add($"{messageLink.Host}.txt", new MemoryStream(Encoding.UTF8.GetBytes(sanitizedWebContent)));
                             }
                         }
                         else
@@ -137,12 +134,20 @@ namespace Tomoe.Commands
                 DiscordEmbed embed = message.Embeds[i];
                 MemoryStream memoryStream = new();
                 await JsonSerializer.SerializeAsync(memoryStream, embed);
-                messageFiles.Add($"Embed {i} - {embed.Title}.txt", memoryStream);
+                memoryStream.Position = 0;
+                messageFiles.Add($"Embed {i + 1}.json", memoryStream);
             }
 
             string sanitizedContent = Formatter.Sanitize(message.Content);
 
-            if (sanitizedContent.Length < 2000)
+            if (sanitizedContent.Length == 0)
+            {
+                DiscordWebhookBuilder discordWebhookBuilder = new();
+                discordWebhookBuilder.AddFiles(messageFiles, true);
+                discordWebhookBuilder.Content = "No text found, turned the embeds into JSON!";
+                await context.EditResponseAsync(discordWebhookBuilder);
+            }
+            else if (sanitizedContent.Length < 2000)
             {
                 await context.EditResponseAsync(new DiscordWebhookBuilder()
                 {
@@ -151,17 +156,14 @@ namespace Tomoe.Commands
             }
             else if (sanitizedContent.Length < 80000)
             {
-                messageFiles.Add("Message Content.txt", new MemoryStream(Encoding.ASCII.GetBytes(sanitizedContent)));
-                await context.EditResponseAsync(new DiscordWebhookBuilder()
-                {
-                    Content = sanitizedContent
-                }.AddFiles(messageFiles));
+                messageFiles.Add("Message Content.txt", new MemoryStream(Encoding.UTF8.GetBytes(sanitizedContent)));
+                await context.EditResponseAsync(new DiscordWebhookBuilder().AddFiles(messageFiles));
             }
             else
             {
                 await context.EditResponseAsync(new DiscordWebhookBuilder()
                 {
-                    Content = "Error: Message content is greater than 8MB. Cannot upload as a message or file."
+                    Content = "Error: Message content is greater than 8MB. Cannot upload as a message or a file."
                 }.AddFiles(messageFiles));
             }
         }

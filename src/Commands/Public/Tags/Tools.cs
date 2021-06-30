@@ -65,7 +65,7 @@ namespace Tomoe.Commands
                 {
                     return true;
                 }
-                else if (discordMember.HasPermission(Permissions.ManageMessages))
+                else if (discordMember.Permissions.HasPermission(Permissions.ManageMessages))
                 {
                     return true;
                 }

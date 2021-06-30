@@ -13,6 +13,7 @@ namespace Tomoe.Commands
     {
         private const string NotSet = "Not set.";
         private const string LinkToImage = "Link to image.";
+
         internal static readonly Dictionary<ulong, int> TotalMemberCount = new();
 
         [SlashCommand("guild_info", "Gets general info about the server.")]
@@ -41,9 +42,9 @@ namespace Tomoe.Commands
             embedBuilder.AddField("Emoji Count", context.Guild.Emojis.Count.ToMetric(), true);
             embedBuilder.AddField("Explicit Content Filter", context.Guild.ExplicitContentFilter.Humanize(), true);
             embedBuilder.AddField("Icon url", iconUrl == null ? NotSet : Formatter.MaskedUrl(LinkToImage, new(iconUrl), iconUrl), true);
-            embedBuilder.AddField("Features", string.IsNullOrEmpty(features) ? "None" : features);
+            embedBuilder.AddField("Features", string.IsNullOrEmpty(features) ? "None." : features);
             embedBuilder.AddField("Id", $"`{context.Guild.Id}`", true);
-            embedBuilder.AddField("Max Members", context.Guild.MaxMembers.HasValue ? context.Guild.MaxMembers.Value.ToMetric() : "Unknown", true);
+            embedBuilder.AddField("Max Members", context.Guild.MaxMembers.HasValue ? context.Guild.MaxMembers.Value.ToMetric() : "Unknown.", true);
             embedBuilder.AddField("Member Count", TotalMemberCount[context.Guild.Id].ToMetric(), true);
             embedBuilder.AddField("MFA Level", context.Guild.MfaLevel.Humanize(), true);
             embedBuilder.AddField("Name", context.Guild.Name, true);

@@ -3,9 +3,11 @@ namespace Tomoe
     using DSharpPlus;
     using DSharpPlus.Entities;
     using DSharpPlus.Exceptions;
+    using DSharpPlus.SlashCommands;
     using System;
     using System.Linq;
     using System.Threading.Tasks;
+    using Tomoe.Utilities.Types;
 
     public static class ExtensionMethods
     {
@@ -53,7 +55,32 @@ namespace Tomoe
             return sentDm;
         }
 
-        public static DiscordRole GetRole(this ulong roleId, DiscordGuild guild) => roleId != 0 ? guild.GetRole(roleId) : null;
+        public static async Task<bool> Confirm(this InteractionContext context, string prompt)
+        {
+            string id = $"{context.Guild.Id}{new Random().Next(0, 10000)}";
+            DiscordButtonComponent yes = new(ButtonStyle.Success, $"{id}-confirm", "Yes", false, new("✅"));
+            DiscordButtonComponent no = new(ButtonStyle.Danger, $"{id}-decline", "No", false, new("❌"));
+            DiscordComponent[] buttonRow = new[] { yes, no };
+            QueueButton queueButton = new(id, buttonRow);
+
+            DiscordInteractionResponseBuilder responseBuilder = new();
+            responseBuilder.Content = prompt;
+            responseBuilder.IsEphemeral = true;
+            responseBuilder.AddComponents(buttonRow);
+            await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, responseBuilder);
+
+            bool confirmed = await queueButton.WaitAsync();
+
+            yes.Disabled = true;
+            no.Disabled = true;
+            DiscordWebhookBuilder editedResponse = new();
+            editedResponse.Content = Constants.Loading;
+            editedResponse.AddComponents(buttonRow);
+            await context.EditResponseAsync(editedResponse);
+
+            return confirmed;
+        }
+
         public static bool HasPermission(this DiscordMember guildMember, Permissions permission) => !guildMember.Roles.Any() ? guildMember.Guild.EveryoneRole.Permissions.HasPermission(permission) : guildMember.Roles.Any(role => role.Permissions.HasPermission(permission));
     }
 }
