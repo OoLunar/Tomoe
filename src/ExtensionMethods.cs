@@ -61,20 +61,19 @@ namespace Tomoe
             DiscordButtonComponent yes = new(ButtonStyle.Success, $"{id}-confirm", "Yes", false, new("✅"));
             DiscordButtonComponent no = new(ButtonStyle.Danger, $"{id}-decline", "No", false, new("❌"));
             DiscordComponent[] buttonRow = new[] { yes, no };
-            QueueButton queueButton = new(id, buttonRow);
+            QueueButton queueButton = new(id, context.User.Id, buttonRow);
 
-            DiscordInteractionResponseBuilder responseBuilder = new();
+            DiscordWebhookBuilder responseBuilder = new();
             responseBuilder.Content = prompt;
-            responseBuilder.IsEphemeral = true;
             responseBuilder.AddComponents(buttonRow);
-            await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, responseBuilder);
+            await context.EditResponseAsync(responseBuilder);
 
             bool confirmed = await queueButton.WaitAsync();
 
             yes.Disabled = true;
             no.Disabled = true;
             DiscordWebhookBuilder editedResponse = new();
-            editedResponse.Content = Constants.Loading;
+            editedResponse.Content = Constants.Loading + ' ' + prompt;
             editedResponse.AddComponents(buttonRow);
             await context.EditResponseAsync(editedResponse);
 

@@ -1,6 +1,5 @@
 namespace Tomoe.Commands
 {
-    using DSharpPlus;
     using DSharpPlus.Entities;
     using DSharpPlus.SlashCommands;
     using Humanizer;
@@ -16,8 +15,6 @@ namespace Tomoe.Commands
             [SlashCommand("info", "Gets information on a strike.")]
             public async Task Info(InteractionContext context, [Option("strike_id", "Which strike to get information on.")] long strikeId)
             {
-                await context.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource, new());
-
                 Strike strike = Database.Strikes.FirstOrDefault(databaseStrike => databaseStrike.LogId == strikeId && databaseStrike.GuildId == context.Guild.Id);
                 string embedDescription = $"Created At: {strike.Changes.First().Humanize()}";
                 embedDescription += $"Issued By: <@{strike.IssuerId}>";

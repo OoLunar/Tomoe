@@ -18,7 +18,6 @@ namespace Tomoe.Commands
         {
             GuildConfig guildConfig = Database.GuildConfigs.First(databaseGuildConfig => databaseGuildConfig.Id == context.Guild.Id);
             DiscordRole antimemeRole = null;
-            bool prompted = false;
             bool databaseNeedsSaving = false; // Thank you! But our Database is in another castle!
 
             if (guildConfig.AntimemeRole == 0 || context.Guild.GetRole(guildConfig.AntimemeRole) == null)
@@ -26,10 +25,9 @@ namespace Tomoe.Commands
                 bool createRole = await context.Confirm("Error: The antimeme role does not exist. Should one be created now?");
                 if (createRole)
                 {
-                    antimemeRole = await context.Guild.CreateRoleAsync("Antimemed", Permissions.None, DiscordColor.VeryDarkGray, false, false, "Used for the mute command and config.");
+                    antimemeRole = await context.Guild.CreateRoleAsync("Antimemed", Permissions.None, DiscordColor.VeryDarkGray, false, false, "Used for the antimeme command and config.");
                     await Config.FixRolePermissions(context.Guild, antimemeRole, CustomEvent.Antimeme);
                     guildConfig.AntimemeRole = antimemeRole.Id;
-                    prompted = true;
                     databaseNeedsSaving = true;
                 }
                 else
@@ -44,11 +42,6 @@ namespace Tomoe.Commands
             else
             {
                 antimemeRole = context.Guild.GetRole(guildConfig.AntimemeRole);
-            }
-
-            if (!prompted)
-            {
-                await context.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource, new());
             }
 
             GuildMember databaseVictim = Database.GuildMembers.FirstOrDefault(guildUser => guildUser.UserId == victim.Id && guildUser.GuildId == context.Guild.Id);

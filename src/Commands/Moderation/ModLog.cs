@@ -61,7 +61,7 @@ namespace Tomoe.Commands
                 Reason = reason
             });
             await Database.SaveChangesAsync();
-            await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+            await context.EditResponseAsync(new()
             {
                 Content = $"Event has been recorded!\n{reason}"
             });

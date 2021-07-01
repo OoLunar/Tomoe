@@ -12,15 +12,14 @@ namespace Tomoe.Commands
 
     public partial class Moderation : SlashCommandModule
     {
-        [SlashCommand("ban", "Bans a member from the guild, sending them off with a dm."), Hierarchy(Permissions.BanMembers)]
+        [SlashCommand("ban", "Bans a member from the guild, sending them off with a dm."), Hierarchy(Permissions.BanMembers, true)]
         public static async Task Ban(InteractionContext context, [Option("victim", "Who to ban from the guild.")] DiscordUser victimUser, [Option("reason", "Why is the victim being banned from the guild?")] string reason = Constants.MissingReason)
         {
             try
             {
                 await context.Guild.GetBanAsync(victimUser.Id);
-                await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+                await context.EditResponseAsync(new()
                 {
-                    IsEphemeral = true,
                     Content = $"Error: {victimUser.Mention} is already banned!"
                 });
                 return;
@@ -28,8 +27,6 @@ namespace Tomoe.Commands
             catch (NotFoundException) { }
 
             DiscordMember victimMember = await victimUser.Id.GetMember(context.Guild);
-            await context.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource, new());
-
             bool sentDm = await victimUser.TryDmMember($"You've been banned from {context.Guild.Name} by {context.Member.Mention} ({Formatter.InlineCode(context.Member.Id.ToString(CultureInfo.InvariantCulture))}). Reason: {reason}");
             await context.Guild.BanMemberAsync(victimUser.Id, 1, reason);
 

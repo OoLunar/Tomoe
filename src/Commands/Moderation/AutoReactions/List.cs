@@ -70,7 +70,7 @@ namespace Tomoe.Commands
                     embeds.Add(embed);
                 }
 
-                await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().AddEmbeds(embeds));
+                await context.EditResponseAsync(new DiscordWebhookBuilder().AddEmbeds(embeds));
             }
         }
     }

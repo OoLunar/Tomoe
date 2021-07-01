@@ -41,7 +41,7 @@ namespace Tomoe.Commands
                     }
                     await Database.SaveChangesAsync();
 
-                    await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+                    await context.EditResponseAsync(new()
                     {
                         Content = $"{channel.Mention} will now log all messages related to the {Formatter.InlineCode(logType.ToString())} event."
                     });

@@ -45,10 +45,9 @@ namespace Tomoe.Commands
                 embedBuilder.AddField("Persistent Roles", guildConfig.PersistentRoles ? "Yes." : "No.", true);
                 embedBuilder.AddField("Progressive Strikes", guildConfig.ProgressiveStrikes ? "Yes." : "No.", true);
 
-                DiscordInteractionResponseBuilder responseBuilder = new();
-                responseBuilder.IsEphemeral = true;
+                DiscordWebhookBuilder responseBuilder = new();
                 responseBuilder.AddEmbed(embedBuilder);
-                await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, responseBuilder);
+                await context.EditResponseAsync(responseBuilder);
             }
         }
     }

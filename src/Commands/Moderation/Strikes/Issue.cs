@@ -18,7 +18,6 @@ namespace Tomoe.Commands
             [SlashCommand("issue", "Creates a new strike for an individual."), Hierarchy(Permissions.KickMembers)]
             public async Task Issue(InteractionContext context, [Option("victim", "Who is being striked?")] DiscordUser victim, [Option("reason", "Why is the user being striked?")] string punishReason = Constants.MissingReason)
             {
-                await context.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource, new() { });
                 Strike strike = new()
                 {
                     LogId = Database.Strikes.Count(databaseStrike => databaseStrike.GuildId == context.Guild.Id) + 1,

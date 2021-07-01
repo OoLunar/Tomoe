@@ -2,11 +2,11 @@ namespace Tomoe.Commands
 {
     using DSharpPlus;
     using DSharpPlus.Entities;
+    using DSharpPlus.Exceptions;
     using DSharpPlus.SlashCommands;
     using Humanizer;
     using System.Collections.Generic;
     using System.Globalization;
-    using System.Linq;
     using System.Threading.Tasks;
     using Tomoe.Commands.Attributes;
 
@@ -17,7 +17,7 @@ namespace Tomoe.Commands
         {
             if (!ulong.TryParse(victimIdString, NumberStyles.Number, CultureInfo.InvariantCulture, out ulong victimId))
             {
-                await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+                await context.EditResponseAsync(new()
                 {
                     Content = $"Error: Unknown user id {Formatter.InlineCode(victimIdString)}. To get a user's id, enable Developer Mode on the Discord Client, right click the user you banned, and at the bottom of the menu, click \"Copy ID\""
                 });
@@ -27,26 +27,25 @@ namespace Tomoe.Commands
             DiscordUser victim = await context.Client.GetUserAsync(victimId);
             if (victim == null)
             {
-                await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+                await context.EditResponseAsync(new()
                 {
-                    IsEphemeral = true,
                     Content = $"Error: <@{victimId}> ({victimId}) is not a Discord user!"
                 });
                 return;
             }
 
-            if (!(await context.Guild.GetBansAsync()).Any(discordBan => discordBan.User.Id == victimId))
+            try
             {
-                await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+                DiscordBan discordBan = await context.Guild.GetBanAsync(victimId);
+            }
+            catch (NotFoundException)
+            {
+                await context.EditResponseAsync(new()
                 {
-                    IsEphemeral = true,
                     Content = $"Error: <@{victimId}> is not banned!"
                 });
                 return;
             }
-
-            await context.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource, new());
-
 
             await context.Guild.UnbanMemberAsync(victim.Id, unbanReason);
             bool sentDm = await victim.TryDmMember($"You've been unbanned from {context.Guild.Name} by {context.Member.Mention} ({Formatter.InlineCode(context.Member.Id.ToString(CultureInfo.InvariantCulture))}). Reason: {unbanReason}");

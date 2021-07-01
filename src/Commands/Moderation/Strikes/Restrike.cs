@@ -16,7 +16,6 @@ namespace Tomoe.Commands
             [SlashCommand("reapply", "Reapplies a previously issued strike for an individual."), Hierarchy(Permissions.KickMembers)]
             public async Task Reapply(InteractionContext context, [Option("strike_id", "Which strike to reapply.")] long strikeId, [Option("reason", "Why is the strike being reapplied?")] string punishReason = Constants.MissingReason)
             {
-                await context.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource, new() { });
                 Strike strike = Database.Strikes.FirstOrDefault(databaseStrike => databaseStrike.LogId == strikeId && databaseStrike.GuildId == context.Guild.Id);
                 if (!strike.Dropped)
                 {

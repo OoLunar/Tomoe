@@ -6,12 +6,14 @@ namespace Tomoe.Utilities.Types
     public class QueueButton
     {
         public string Id { get; private set; }
+        public ulong UserId { get; private set; }
         public DiscordComponent[] Components { get; private set; }
         public DiscordComponent SelectedButton { get; set; }
 
-        public QueueButton(string id, params DiscordComponent[] components)
+        public QueueButton(string id, ulong userId, params DiscordComponent[] components)
         {
             Id = id;
+            UserId = userId;
             Components = components;
             Commands.Listeners.QueueButtons.Add(id, this);
         }

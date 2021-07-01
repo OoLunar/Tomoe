@@ -19,11 +19,11 @@ namespace Tomoe.Commands
                     LogSetting logSetting = Database.LogSettings.FirstOrDefault(databaseLogSetting => databaseLogSetting.GuildId == context.Guild.Id && databaseLogSetting.CustomEvent == logType);
                     if (logSetting == null)
                     {
-                        await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+                        await context.EditResponseAsync(new()
                         {
-                            Content = $"Error: The {Formatter.InlineCode(logType.ToString())} event was never setup! Run {Formatter.InlineCode("/logging change")} to do so now.",
-                            IsEphemeral = true
+                            Content = $"Error: The {Formatter.InlineCode(logType.ToString())} event was never setup! Run {Formatter.InlineCode("/logging change")} to do so now."
                         });
+                        return;
                     }
                     else
                     {
@@ -31,7 +31,7 @@ namespace Tomoe.Commands
                     }
                     await Database.SaveChangesAsync();
 
-                    await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+                    await context.EditResponseAsync(new()
                     {
                         Content = $"All messages related to the {Formatter.InlineCode(logType.ToString())} event will be logged."
                     });

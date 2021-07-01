@@ -17,15 +17,12 @@ namespace Tomoe.Commands
             DiscordMember victimMember = await victimUser.Id.GetMember(context.Guild);
             if (victimMember == null)
             {
-                await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+                await context.EditResponseAsync(new()
                 {
-                    IsEphemeral = true,
                     Content = $"Error: {victimUser.Mention} is not in the guild!"
                 });
                 return;
             }
-
-            await context.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource, new());
 
             bool sentDm = await victimUser.TryDmMember($"You've been kicked from {context.Guild.Name} by {context.Member.Mention} ({Formatter.InlineCode(context.Member.Id.ToString(CultureInfo.InvariantCulture))}). Reason: {reason}");
             await victimMember.RemoveAsync(reason);

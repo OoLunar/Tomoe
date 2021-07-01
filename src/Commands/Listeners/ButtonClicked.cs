@@ -14,12 +14,13 @@ namespace Tomoe.Commands
         public static async Task ButtonClicked(DiscordClient discordClient, ComponentInteractionCreateEventArgs componentInteractionCreateEventArgs)
         {
             string id = componentInteractionCreateEventArgs.Id.Split('-')[0];
-            if (QueueButtons.TryGetValue(id, out QueueButton queueButton))
+            if (QueueButtons.TryGetValue(id, out QueueButton queueButton) && queueButton.UserId == componentInteractionCreateEventArgs.User.Id)
             {
                 queueButton.SelectedButton = queueButton.Components.First(discordComponent => discordComponent.CustomId == componentInteractionCreateEventArgs.Id);
+                QueueButtons.Remove(id);
+                await componentInteractionCreateEventArgs.Interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate, new());
+                componentInteractionCreateEventArgs.Handled = true;
             }
-            await componentInteractionCreateEventArgs.Interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate, new());
-            componentInteractionCreateEventArgs.Handled = true;
         }
     }
 }

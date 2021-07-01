@@ -18,7 +18,6 @@ namespace Tomoe.Commands
         {
             GuildConfig guildConfig = Database.GuildConfigs.First(databaseGuildConfig => databaseGuildConfig.Id == context.Guild.Id);
             DiscordRole voicebanRole = null;
-            bool prompted = false;
             bool databaseNeedsSaving = false; // Thank you! But our Database is in another castle!
 
             if (guildConfig.VoicebanRole == 0 || context.Guild.GetRole(guildConfig.VoicebanRole) == null)
@@ -29,7 +28,6 @@ namespace Tomoe.Commands
                     voicebanRole = await context.Guild.CreateRoleAsync("Voicebanned", Permissions.None, DiscordColor.VeryDarkGray, false, false, "Used for the voiceban command and config.");
                     await Config.FixRolePermissions(context.Guild, voicebanRole, CustomEvent.Voiceban);
                     guildConfig.VoicebanRole = voicebanRole.Id;
-                    prompted = true;
                     databaseNeedsSaving = true;
                 }
                 else
@@ -44,11 +42,6 @@ namespace Tomoe.Commands
             else
             {
                 voicebanRole = context.Guild.GetRole(guildConfig.VoicebanRole);
-            }
-
-            if (!prompted)
-            {
-                await context.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource, new());
             }
 
             GuildMember databaseVictim = Database.GuildMembers.FirstOrDefault(guildUser => guildUser.UserId == victim.Id && guildUser.GuildId == context.Guild.Id);

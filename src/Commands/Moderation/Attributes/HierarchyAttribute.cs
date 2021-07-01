@@ -13,6 +13,12 @@ namespace Tomoe.Commands.Attributes
         private readonly bool CanSelfPunish;
         private readonly Permissions RequiredPermissions;
 
+        /// <summary>
+        /// Checks if the user is running a moderation command on themself, causing a "self punishment." Additionally checks to see if they have the required permissions if it is not a self punishment.
+        /// </summary>
+        /// <param name="requiredPermissions">The Discord Permissions required for the user.</param>
+        /// <param name="canSelfPunish">Can the user execute the command on themself?</param>
+        /// <remarks>Instead of calling context.CreateInteractionResponseAsync, you need to call EditResponseAsync.</remarks>
         public HierarchyAttribute(Permissions requiredPermissions = Permissions.None, bool canSelfPunish = false)
         {
             CanSelfPunish = canSelfPunish;
@@ -25,27 +31,9 @@ namespace Tomoe.Commands.Attributes
             {
                 return true;
             }
-            else if (!context.Member.HasPermission(RequiredPermissions))
-            {
-                // https://stackoverflow.com/a/8949772/10942966, tests if there are more than one flag set in the Permissions enum.
-                if ((RequiredPermissions & (RequiredPermissions - 1)) != 0)
-                {
-                    await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
-                    {
-                        IsEphemeral = true,
-                        Content = $"Error: You're lacking the {RequiredPermissions.ToPermissionString()} permission."
-                    });
-                }
-                else
-                {
-                    await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
-                    {
-                        IsEphemeral = true,
-                        Content = "Error: You're lacking following permissions: " + RequiredPermissions.ToPermissionString()
-                    });
-                }
-                return false;
-            }
+
+            // This forces all commands which use this attribute to edit a response instead of creating it.
+            await context.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource, new());
 
             foreach (DiscordInteractionDataOption val in context.Interaction.Data.Options.Where(option => option.Type == ApplicationCommandOptionType.User || (option.Type == ApplicationCommandOptionType.String && option.Value is ulong)))
             {
@@ -71,11 +59,9 @@ namespace Tomoe.Commands.Attributes
                 {
                     if (CanSelfPunish)
                     {
-                        // TODO: Prompt for "self punishment" #How2Masochist
                         bool selfPunish = await context.Confirm("Error: You're about to punish yourself. Do you wish to continue?");
                         if (selfPunish)
                         {
-                            await context.DeleteResponseAsync();
                             continue;
                         }
                         else
@@ -96,6 +82,27 @@ namespace Tomoe.Commands.Attributes
                         });
                         return false;
                     }
+                }
+                else if (!context.Member.HasPermission(RequiredPermissions))
+                {
+                    // https://stackoverflow.com/a/8949772/10942966, tests if there are more than one flag set in the Permissions enum.
+                    if ((RequiredPermissions & (RequiredPermissions - 1)) != 0)
+                    {
+                        await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+                        {
+                            IsEphemeral = true,
+                            Content = $"Error: You're lacking the {RequiredPermissions.ToPermissionString()} permission."
+                        });
+                    }
+                    else
+                    {
+                        await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+                        {
+                            IsEphemeral = true,
+                            Content = "Error: You're lacking following permissions: " + RequiredPermissions.ToPermissionString()
+                        });
+                    }
+                    return false;
                 }
                 else if (discordMember.Hierarchy >= context.Member.Hierarchy)
                 {

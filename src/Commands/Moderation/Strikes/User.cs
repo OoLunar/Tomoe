@@ -1,6 +1,5 @@
 namespace Tomoe.Commands
 {
-    using DSharpPlus;
     using DSharpPlus.Entities;
     using DSharpPlus.SlashCommands;
     using System.Collections.Generic;
@@ -15,7 +14,6 @@ namespace Tomoe.Commands
             [SlashCommand("history", "Gets information on a user.")]
             public async Task History(InteractionContext context, [Option("user", "Who")] DiscordUser victim)
             {
-                await context.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource, new());
                 DiscordEmbedBuilder embedBuilder = new()
                 {
                     Title = $"{victim.Username}'s Past History",

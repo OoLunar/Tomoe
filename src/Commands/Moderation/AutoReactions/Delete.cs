@@ -4,7 +4,6 @@ namespace Tomoe.Commands
     using DSharpPlus.Entities;
     using DSharpPlus.SlashCommands;
     using Humanizer;
-    using Microsoft.Extensions.DependencyInjection;
     using System.Collections.Generic;
     using System.Globalization;
     using System.Linq;
@@ -18,7 +17,7 @@ namespace Tomoe.Commands
         public partial class AutoReactions : SlashCommandModule
         {
             [SlashCommand("delete", "Deletes an autoreaction from a specified channel."), Hierarchy(Permissions.ManageChannels | Permissions.ManageMessages)]
-            public static async Task Delete(InteractionContext context, [Option("channel", "Which guild channel to remove the autoreaction from.")] DiscordChannel channel, [Option("emoji", "Which emoji to react with.")] string emojiString)
+            public async Task Delete(InteractionContext context, [Option("channel", "Which guild channel to remove the autoreaction from.")] DiscordChannel channel, [Option("emoji", "Which emoji to react with.")] string emojiString)
             {
                 if (!DiscordEmoji.TryFromUnicode(context.Client, emojiString, out DiscordEmoji emoji))
                 {
@@ -26,9 +25,8 @@ namespace Tomoe.Commands
                     string emojiIdString = match.Groups["id"].Value;
                     if (!ulong.TryParse(emojiIdString, NumberStyles.Integer, CultureInfo.InvariantCulture, out ulong emojiId))
                     {
-                        await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+                        await context.EditResponseAsync(new()
                         {
-                            IsEphemeral = true,
                             Content = $"Error: {emojiString} is not a valid emoji!"
                         });
                         return;
@@ -36,9 +34,8 @@ namespace Tomoe.Commands
 
                     if (!DiscordEmoji.TryFromGuildEmote(context.Client, emojiId, out emoji))
                     {
-                        await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+                        await context.EditResponseAsync(new()
                         {
-                            IsEphemeral = true,
                             Content = $"Error: {emojiString} is not a valid emoji!"
                         });
                         return;
@@ -50,28 +47,22 @@ namespace Tomoe.Commands
                 if (channel.Type is not ChannelType.Text or not ChannelType.News or not ChannelType.Category)
 #pragma warning restore CS8794
                 {
-                    await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+                    await context.EditResponseAsync(new()
                     {
-                        IsEphemeral = true,
                         Content = $"Error: {channel.Mention} is not a text or category channel!"
                     });
                     return;
                 }
 
-                await context.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource, new());
-
-                using IServiceScope scope = Program.ServiceProvider.CreateScope();
-                Database database = scope.ServiceProvider.GetService<Database>();
-
                 List<string> channelsAffected = new();
 
                 if (channel.Type is ChannelType.Text or ChannelType.News)
                 {
-                    AutoReaction autoReaction = database.AutoReactions.FirstOrDefault(databaseAutoReaction => databaseAutoReaction.GuildId == context.Guild.Id && databaseAutoReaction.ChannelId == channel.Id && databaseAutoReaction.EmojiName == emoji.ToString());
+                    AutoReaction autoReaction = Database.AutoReactions.FirstOrDefault(databaseAutoReaction => databaseAutoReaction.GuildId == context.Guild.Id && databaseAutoReaction.ChannelId == channel.Id && databaseAutoReaction.EmojiName == emoji.ToString());
                     if (autoReaction != null)
                     {
-                        database.AutoReactions.Remove(autoReaction);
-                        await database.SaveChangesAsync();
+                        Database.AutoReactions.Remove(autoReaction);
+                        await Database.SaveChangesAsync();
                         channelsAffected.Add(channel.Mention);
                     }
                 }
@@ -79,16 +70,16 @@ namespace Tomoe.Commands
                 {
                     foreach (DiscordChannel subChannel in channel.Children)
                     {
-                        AutoReaction autoReaction = database.AutoReactions.FirstOrDefault(databaseAutoReaction => databaseAutoReaction.GuildId == context.Guild.Id && databaseAutoReaction.ChannelId == subChannel.Id && databaseAutoReaction.EmojiName == emoji.ToString());
+                        AutoReaction autoReaction = Database.AutoReactions.FirstOrDefault(databaseAutoReaction => databaseAutoReaction.GuildId == context.Guild.Id && databaseAutoReaction.ChannelId == subChannel.Id && databaseAutoReaction.EmojiName == emoji.ToString());
                         if (autoReaction != null)
                         {
-                            database.AutoReactions.Remove(autoReaction);
+                            Database.AutoReactions.Remove(autoReaction);
                             channelsAffected.Add(subChannel.Mention);
                         }
                     }
                     if (channelsAffected.Count != 0)
                     {
-                        await database.SaveChangesAsync();
+                        await Database.SaveChangesAsync();
                     }
                 }
 

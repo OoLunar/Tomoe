@@ -18,7 +18,6 @@ namespace Tomoe.Commands
         {
             GuildConfig guildConfig = Database.GuildConfigs.First(databaseGuildConfig => databaseGuildConfig.Id == context.Guild.Id);
             DiscordRole muteRole = null;
-            bool prompted = false;
             bool databaseNeedsSaving = false; // Thank you! But our Database is in another castle!
 
             if (guildConfig.MuteRole == 0 || context.Guild.GetRole(guildConfig.MuteRole) == null)
@@ -29,7 +28,6 @@ namespace Tomoe.Commands
                     muteRole = await context.Guild.CreateRoleAsync("Muted", Permissions.None, DiscordColor.VeryDarkGray, false, false, "Used for the mute command and config.");
                     await Config.FixRolePermissions(context.Guild, muteRole, CustomEvent.Mute);
                     guildConfig.MuteRole = muteRole.Id;
-                    prompted = true;
                     databaseNeedsSaving = true;
                 }
                 else
@@ -44,11 +42,6 @@ namespace Tomoe.Commands
             else
             {
                 muteRole = context.Guild.GetRole(guildConfig.MuteRole);
-            }
-
-            if (!prompted)
-            {
-                await context.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource, new());
             }
 
             GuildMember databaseVictim = Database.GuildMembers.FirstOrDefault(guildUser => guildUser.UserId == victim.Id && guildUser.GuildId == context.Guild.Id);
