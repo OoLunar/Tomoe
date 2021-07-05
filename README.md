@@ -1,4 +1,4 @@
-![Code Size](https://img.shields.io/github/languages/code-size/OoLunar/Tomoe) ![Lines of Code](https://img.shields.io/tokei/lines/github/OoLunar/Tomoe)
+![Code Size](https://img.shields.io/github/languages/code-size/OoLunar/Tomoe?style=for-the-badge&logo=appveyor&color=blueviolet&logo=none) ![Lines of Code](https://img.shields.io/tokei/lines/github/OoLunar/Tomoe?style=for-the-badge&logo=appveyor&color=blueviolet&label=Total%20Lines%20of%20Code&logo=none)
 
 # How to setup Tomoe
 
