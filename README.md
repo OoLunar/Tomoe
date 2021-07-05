@@ -1,3 +1,5 @@
+![Code Size](https://img.shields.io/github/languages/code-size/OoLunar/Tomoe) ![Lines of Code](https://img.shields.io/tokei/lines/github/OoLunar/Tomoe)
+
 # How to setup Tomoe
 
 If you wish to host Tomoe yourself, skip on down to prerequisites. If you just want Tomoe to join your guild: https://discord.com/oauth2/authorize?client_id=481314095723839508&scope=applications.commands%20bot&permissions=8
