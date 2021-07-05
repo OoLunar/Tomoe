@@ -1,6 +1,6 @@
 # How to setup Tomoe
 
-If you wish to host Tomoe yourself, skip on down to prerequisites. If you just want Tomoe to join your guild: https://discord.com/api/oauth2/authorize?client_id=481314095723839508&permissions=8&scope=bot
+If you wish to host Tomoe yourself, skip on down to prerequisites. If you just want Tomoe to join your guild: https://discord.com/oauth2/authorize?client_id=481314095723839508&scope=applications.commands%20bot&permissions=8
 
 ## Prerequisites
 
@@ -45,22 +45,18 @@ As mentioned previously, Tomoe aims to be the #1 bot choice for Discord Moderati
 
 | Command | Implemented |
 |:-|:-:|
-| **Bot Owner Commands** | - |
-| Reboot | ✅ |
-| Stop | ✅ |
-| Update | ❌ |
 | **Moderation Commands** | - |
 | Antimeme | ✅ |
 | Autoreact | ✅ |
 | Ban | ✅ |
-| Config | ✅ |
+| Config | ❌ |
 | Doctor | ❌ |
 | Kick | ✅ |
 | Logging | ✅ |
-| Lock | ✅ |
+| Lock | ❌ |
 | Modlog | ✅ |
 | Mute | ✅ |
-| Reaction Roles | ✅ |
+| Reaction Roles | ❌ |
 | Report | ❌ |
 | Strike | ✅ |
 | Tempantimeme | ❌ |
@@ -77,22 +73,18 @@ As mentioned previously, Tomoe aims to be the #1 bot choice for Discord Moderati
 | Bot Info | ✅ |
 | Flip | ✅ |
 | GuildIcon | ✅ |
-| Help | ✅ |
 | Invite | ✅ |
 | Member Count | ✅ |
 | Ping | ✅ |
 | Profile Picture | ✅ |
 | Raw | ✅ |
 | Reminders | ❌ |
-| Repeat | ✅ |
 | Repository | ✅ |
 | Role Info | ✅ |
 | Server Info | ✅ |
 | Support | ✅ |
 | Tag | ✅ |
-| Time Of | ✅ |
-
-*Naming may change for simplicity. All commands are snake_case.
+| Time Of | ❌ |
 
 ## Why did you chose "Tomoe" as the bots name?
 
