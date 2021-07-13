@@ -53,10 +53,11 @@ namespace Tomoe.Commands
             Dictionary<string, string> keyValuePairs = new();
             keyValuePairs.Add("guild_name", context.Guild.Name);
             keyValuePairs.Add("guild_count", Public.TotalMemberCount[context.Guild.Id].ToMetric());
-            keyValuePairs.Add("person_username", victim.Username);
-            keyValuePairs.Add("person_tag", victim.Discriminator);
-            keyValuePairs.Add("person_mention", victim.Mention);
-            keyValuePairs.Add("person_id", victim.Id.ToString(CultureInfo.InvariantCulture));
+            keyValuePairs.Add("guild_id", context.Guild.Id.ToString(CultureInfo.InvariantCulture));
+            keyValuePairs.Add("victim_username", victim.Username);
+            keyValuePairs.Add("victim_tag", victim.Discriminator);
+            keyValuePairs.Add("victim_mention", victim.Mention);
+            keyValuePairs.Add("victim_id", victim.Id.ToString(CultureInfo.InvariantCulture));
             keyValuePairs.Add("moderator_username", context.Member.Username);
             keyValuePairs.Add("moderator_tag", context.Member.Discriminator);
             keyValuePairs.Add("moderator_mention", context.Member.Mention);

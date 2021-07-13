@@ -19,7 +19,7 @@ namespace Tomoe.Commands
             [ChoiceName("Antimeme")] Antimeme,
             [ChoiceName("Voiceban")] Voiceban,
             [ChoiceName("Strike")] Strike,
-            [ChoiceName("Pardon")] Pardon,
+            [ChoiceName("Pardon")] Drop,
             [ChoiceName("Restrike")] Restrike,
             [ChoiceName("Unmute")] Unmute,
             [ChoiceName("Unantimeme")] Unantimeme,
@@ -35,17 +35,20 @@ namespace Tomoe.Commands
             [ChoiceName("Custom Event")] CustomEvent,
             [ChoiceName("Unknown")] Unknown,
             [ChoiceName("Reminder")] Reminder,
-            [ChoiceName("None")] None
+            [ChoiceName("None")] None,
+            [ChoiceName("Role Creation")] RoleCreation
         }
 
         public enum DiscordEvent
         {
-            [ChoiceName("ban")] Ban,
-            [ChoiceName("kick")] Kick,
-            [ChoiceName("unban")] Unban,
-            [ChoiceName("member_joined")] MemberJoined,
-            [ChoiceName("member_left")] MemberLeft,
-            [ChoiceName("unknown")] Unknown
+            Ban,
+            Kick,
+            Unban,
+            MemberJoined,
+            MemberLeft,
+            MessageCreated,
+            MessageDeleted,
+            Unknown
         }
 
         public Database Database { private get; set; }
@@ -67,7 +70,7 @@ namespace Tomoe.Commands
             });
         }
 
-        public static async Task ModLog(DiscordGuild guild, Dictionary<string, string> parameters, CustomEvent logType = CustomEvent.Unknown, Database database = null)
+        public static async Task ModLog(DiscordGuild guild, Dictionary<string, string> parameters, CustomEvent logType = CustomEvent.Unknown, Database database = null, bool saveToDatabase = true)
         {
             database ??= Program.ServiceProvider.CreateScope().ServiceProvider.GetService<Database>();
             LogSetting logSetting = database.LogSettings.FirstOrDefault(logSetting => logSetting.GuildId == guild.Id && logSetting.CustomEvent == logType);
@@ -104,7 +107,10 @@ namespace Tomoe.Commands
             };
 
             database.ModLogs.Add(modLog);
-            await database.SaveChangesAsync();
+            if (saveToDatabase)
+            {
+                await database.SaveChangesAsync();
+            }
 
             if (logSetting != null)
             {

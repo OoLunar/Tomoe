@@ -26,7 +26,7 @@ namespace Tomoe.Commands
                 if (createRole)
                 {
                     voicebanRole = await context.Guild.CreateRoleAsync("Voicebanned", Permissions.None, DiscordColor.VeryDarkGray, false, false, "Used for the voiceban command and config.");
-                    await Config.FixRolePermissions(context.Guild, voicebanRole, CustomEvent.Voiceban);
+                    await Config.FixRolePermissions(context.Guild, context.Member, voicebanRole, CustomEvent.Voiceban, Database);
                     guildConfig.VoicebanRole = voicebanRole.Id;
                     databaseNeedsSaving = true;
                 }
@@ -92,11 +92,11 @@ namespace Tomoe.Commands
             keyValuePairs.Add("guild_name", context.Guild.Name);
             keyValuePairs.Add("guild_count", Public.TotalMemberCount[context.Guild.Id].ToMetric());
             keyValuePairs.Add("guild_id", context.Guild.Id.ToString(CultureInfo.InvariantCulture));
-            keyValuePairs.Add("person_username", guildVictim.Username);
-            keyValuePairs.Add("person_tag", guildVictim.Discriminator);
-            keyValuePairs.Add("person_mention", guildVictim.Mention);
-            keyValuePairs.Add("person_id", guildVictim.Id.ToString(CultureInfo.InvariantCulture));
-            keyValuePairs.Add("person_displayname", guildVictim.DisplayName);
+            keyValuePairs.Add("victim_username", guildVictim.Username);
+            keyValuePairs.Add("victim_tag", guildVictim.Discriminator);
+            keyValuePairs.Add("victim_mention", guildVictim.Mention);
+            keyValuePairs.Add("victim_id", guildVictim.Id.ToString(CultureInfo.InvariantCulture));
+            keyValuePairs.Add("victim_displayname", guildVictim.DisplayName);
             keyValuePairs.Add("moderator_username", context.Member.Username);
             keyValuePairs.Add("moderator_tag", context.Member.Discriminator);
             keyValuePairs.Add("moderator_mention", context.Member.Mention);

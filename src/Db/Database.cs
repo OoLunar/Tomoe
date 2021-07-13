@@ -9,9 +9,7 @@ namespace Tomoe.Db
 
     public class Database : DbContext
     {
-        public Database(DbContextOptions<Database> options) : base(options)
-        {
-        }
+        public Database(DbContextOptions<Database> options) : base(options) { }
 
         public DbSet<ReactionRole> ReactionRoles { get; set; }
         public DbSet<AutoReaction> AutoReactions { get; set; }

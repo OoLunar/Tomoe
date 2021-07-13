@@ -31,11 +31,11 @@ namespace Tomoe.Commands
             keyValuePairs.Add("guild_name", context.Guild.Name);
             keyValuePairs.Add("guild_count", Public.TotalMemberCount[context.Guild.Id].ToMetric());
             keyValuePairs.Add("guild_id", context.Guild.Id.ToString(CultureInfo.InvariantCulture));
-            keyValuePairs.Add("person_username", victimMember.Username);
-            keyValuePairs.Add("person_tag", victimMember.Discriminator);
-            keyValuePairs.Add("person_mention", victimMember.Mention);
-            keyValuePairs.Add("person_id", victimMember.Id.ToString(CultureInfo.InvariantCulture));
-            keyValuePairs.Add("person_displayname", victimMember.DisplayName);
+            keyValuePairs.Add("victim_username", victimMember.Username);
+            keyValuePairs.Add("victim_tag", victimMember.Discriminator);
+            keyValuePairs.Add("victim_mention", victimMember.Mention);
+            keyValuePairs.Add("victim_id", victimMember.Id.ToString(CultureInfo.InvariantCulture));
+            keyValuePairs.Add("victim_displayname", victimMember.DisplayName);
             keyValuePairs.Add("moderator_username", context.Member.Username);
             keyValuePairs.Add("moderator_tag", context.Member.Discriminator);
             keyValuePairs.Add("moderator_mention", context.Member.Mention);

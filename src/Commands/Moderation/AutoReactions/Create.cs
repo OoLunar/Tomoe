@@ -12,7 +12,6 @@ namespace Tomoe.Commands
     using Tomoe.Commands.Attributes;
     using Tomoe.Db;
 
-    [SlashCommandGroup("temp", "temp")]
     public partial class Moderation : SlashCommandModule
     {
         [SlashCommandGroup("autoreact", "Adds a new reaction on every message sent in a specified guild channel.")]

@@ -1,47 +1,36 @@
 namespace Tomoe.Commands
 {
-    using DSharpPlus;
-    using DSharpPlus.Entities;
-    using DSharpPlus.SlashCommands;
-    using Humanizer;
     using System.Collections.Generic;
     using System.Globalization;
     using System.Linq;
     using System.Threading.Tasks;
+    using DSharpPlus;
+    using DSharpPlus.Entities;
+    using DSharpPlus.SlashCommands;
+    using Humanizer;
     using Tomoe.Commands.Attributes;
     using Tomoe.Db;
 
     public partial class Moderation : SlashCommandModule
     {
-        [SlashCommand("antimeme", "Forces the user to use only text. No more reactions, embeds or uploading files."), Hierarchy(Permissions.ManageMessages)]
-        public async Task Antimeme(InteractionContext context, [Option("victim", "Who to antimeme?")] DiscordUser victim, [Option("reason", "Why is the victim being antimemed?")] string reason = Constants.MissingReason)
+        [SlashCommand("unmute", "Allows the user to talk in the guild again."), Hierarchy(Permissions.ManageMessages)]
+        public async Task Unmute(InteractionContext context, [Option("victim", "Who to unmute?")] DiscordUser victim, [Option("reason", "Why is the victim being unmuted?")] string reason = Constants.MissingReason)
         {
             GuildConfig guildConfig = Database.GuildConfigs.First(databaseGuildConfig => databaseGuildConfig.Id == context.Guild.Id);
-            DiscordRole antimemeRole = null;
+            DiscordRole muteRole = null;
             bool databaseNeedsSaving = false; // Thank you! But our Database is in another castle!
 
-            if (guildConfig.AntimemeRole == 0 || context.Guild.GetRole(guildConfig.AntimemeRole) == null)
+            if (guildConfig.MuteRole == 0 || context.Guild.GetRole(guildConfig.MuteRole) == null)
             {
-                bool createRole = await context.Confirm("Error: The antimeme role does not exist. Should one be created now?");
-                if (createRole)
+                await context.EditResponseAsync(new()
                 {
-                    antimemeRole = await context.Guild.CreateRoleAsync("Antimemed", Permissions.None, DiscordColor.VeryDarkGray, false, false, "Used for the antimeme command and config.");
-                    await Config.FixRolePermissions(context.Guild, context.Member, antimemeRole, CustomEvent.Antimeme, Database);
-                    guildConfig.AntimemeRole = antimemeRole.Id;
-                    databaseNeedsSaving = true;
-                }
-                else
-                {
-                    await context.EditResponseAsync(new()
-                    {
-                        Content = "Error: No antimeme role exists, and I did not recieve permission to create it."
-                    });
-                    return;
-                }
+                    Content = "Error: The mute role does not exist. Unable to remove what can't be found."
+                });
+                return;
             }
             else
             {
-                antimemeRole = context.Guild.GetRole(guildConfig.AntimemeRole);
+                muteRole = context.Guild.GetRole(guildConfig.MuteRole);
             }
 
             GuildMember databaseVictim = Database.GuildMembers.FirstOrDefault(guildUser => guildUser.UserId == victim.Id && guildUser.GuildId == context.Guild.Id);
@@ -64,11 +53,11 @@ namespace Tomoe.Commands
                 databaseNeedsSaving = true;
             }
 
-            if (databaseVictim.IsAntimemed)
+            if (!databaseVictim.IsMuted)
             {
                 await context.EditResponseAsync(new()
                 {
-                    Content = $"Error: {victim.Mention} is already antimemed!"
+                    Content = $"Error: {victim.Mention} is not muted!"
                 });
 
                 if (databaseNeedsSaving)
@@ -78,13 +67,14 @@ namespace Tomoe.Commands
                 return;
             }
 
-            databaseVictim.IsAntimemed = true;
+            databaseVictim.IsMuted = false;
+            await Database.SaveChangesAsync();
             guildVictim ??= await victim.Id.GetMember(context.Guild);
-            bool sentDm = await guildVictim.TryDmMember($"{context.User.Mention} ({context.User.Username}#{context.User.Discriminator}) has given you an antimeme in the guild {Formatter.Bold(context.Guild.Name)}.\nReason: {reason}\nNote: An antimeme prevents you from reacting to messages, sending embeds, uploading files, streaming in voice channels, and forces the push-to-talk restriction in voice channels.");
+            bool sentDm = await guildVictim.TryDmMember($"{context.User.Mention} ({context.User.Username}#{context.User.Discriminator}) has unmuted you in the guild {Formatter.Bold(context.Guild.Name)}.\nReason: {reason}\nNote: A mute prevents you from having any sort of interaction with the guild. It makes the entire guild readonly. You can't react, upload files, speak in voice channels, etc. If you believe this is a mistake, reach out to staff in their preferred methods.");
 
             if (guildVictim != null)
             {
-                await guildVictim.GrantRoleAsync(antimemeRole, $"{context.User.Mention} ({context.User.Username}#{context.User.Discriminator}) antimemed {victim.Mention} ({victim.Username}#{victim.Discriminator}).\nReason: {reason}");
+                await guildVictim.RevokeRoleAsync(muteRole, $"{context.User.Mention} ({context.User.Username}#{context.User.Discriminator}) unmuted {victim.Mention} ({victim.Username}#{victim.Discriminator}).\nReason: {reason}");
             }
 
             Dictionary<string, string> keyValuePairs = new();
@@ -102,11 +92,11 @@ namespace Tomoe.Commands
             keyValuePairs.Add("moderator_id", context.Member.Id.ToString(CultureInfo.InvariantCulture));
             keyValuePairs.Add("moderator_displayname", context.Member.DisplayName);
             keyValuePairs.Add("punishment_reason", reason);
-            await ModLog(context.Guild, keyValuePairs, CustomEvent.Antimeme, Database);
+            await ModLog(context.Guild, keyValuePairs, CustomEvent.Antimeme);
 
             await context.EditResponseAsync(new()
             {
-                Content = $"{victim.Mention} ({victim.Username}#{victim.Discriminator}) has been antimemed{(sentDm ? "" : " (failed to dm)")}.\nReason: {reason}"
+                Content = $"{victim.Mention} ({victim.Username}#{victim.Discriminator}) has been unmuted{(sentDm ? "" : " (failed to dm)")}.\nReason: {reason}"
             });
         }
     }

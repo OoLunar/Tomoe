@@ -39,7 +39,7 @@ namespace Tomoe.Commands
                     }
                 }
 
-                await FixRolePermissions(context.Guild, role, CustomEvent.Antimeme);
+                await FixRolePermissions(context.Guild, context.Member, role, CustomEvent.Antimeme, Database);
                 guildConfig.AntimemeRole = role.Id;
                 await Database.SaveChangesAsync();
 
