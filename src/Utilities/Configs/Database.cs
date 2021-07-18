@@ -56,12 +56,6 @@ namespace Tomoe.Utilities.Configs
 
             logger.Information("Connecting to the database...");
             await database.Database.EnsureCreatedAsync();
-            if (database.Database.GetPendingMigrations().Any())
-            {
-                logger.Information("Applying migrations...");
-                await database.Database.MigrateAsync();
-            }
-
             logger.Information("Database up!");
         }
     }

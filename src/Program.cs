@@ -52,18 +52,8 @@ namespace Tomoe
             logger.Information("Connecting to Discord...");
             await Client.ConnectAsync();
 
-
-            Type slashCommandModule = typeof(SlashCommandModule);
-            foreach (Type type in Assembly.GetEntryAssembly().GetTypes().Where(type => slashCommandModule.IsAssignableFrom(type) && !type.IsNested))
-            {
-                // Unregister all guild commands
-                foreach (DiscordGuild guild in slashCommandsExtension.Client.Guilds.Values)
-                {
-                    await guild.BulkOverwriteApplicationCommandsAsync(Array.Empty<DiscordApplicationCommand>());
-                }
-
-                slashCommandsExtension.RegisterCommands(type);
-            }
+            slashCommandsExtension.RegisterCommands(typeof(Commands.Moderation));
+            slashCommandsExtension.RegisterCommands(typeof(Commands.Public));
 
             Client.ComponentInteractionCreated += Commands.Listeners.ButtonClicked;
             Client.GuildMemberAdded += Commands.Listeners.PersistentRoles;
