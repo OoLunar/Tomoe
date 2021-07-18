@@ -62,14 +62,7 @@ namespace Tomoe
                     await guild.BulkOverwriteApplicationCommandsAsync(Array.Empty<DiscordApplicationCommand>());
                 }
 
-                // Shadow
-                //slashCommandsExtension.RegisterCommands(type, 719028863530827808);
-
-                // ForSaken Borders
-                slashCommandsExtension.RegisterCommands(type, 832354798153236510);
-
-                // Lioness Clubhouse
-                //slashCommandsExtension.RegisterCommands(type, 776184288823345191);
+                slashCommandsExtension.RegisterCommands(type);
             }
 
             Client.ComponentInteractionCreated += Commands.Listeners.ButtonClicked;
