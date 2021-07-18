@@ -1,4 +1,4 @@
-namespace Tomoe.Commands.Public
+namespace Tomoe.Commands
 {
     using DSharpPlus;
     using DSharpPlus.Entities;
@@ -6,42 +6,30 @@ namespace Tomoe.Commands.Public
     using Humanizer;
     using System;
     using System.Diagnostics;
+    using System.Globalization;
     using System.Linq;
-    using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
 
-    public class BotInfo : SlashCommandModule
+    public partial class Public : SlashCommandModule
     {
         [SlashCommand("bot_info", "Gets general info about the bot.")]
-        public async Task Overload(InteractionContext context)
+        public static async Task BotInfo(InteractionContext context)
         {
-            await context.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource, new()
+            DiscordEmbedBuilder embedBuilder = new()
             {
-                IsEphemeral = true
-            });
+                Title = "Bot Info",
+                Color = new DiscordColor("#7b84d1")
+            };
 
-            StringBuilder botInfo = new();
-            botInfo.Append($"Currently in {context.Client.Guilds.Count} guilds\n");
-            botInfo.Append($"Handling around {Listeners.GuildDownloadCompleted.MemberCount.Values.Sum().ToMetric()} guild members\n");
-            botInfo.Append($"Websocket Ping: {context.Client.Ping}ms\n");
-            //botInfo.Append($"Total shards: {Program.Client.ShardClients.Count}\n");
-            Process currentProcess = Process.GetCurrentProcess();
-            botInfo.Append($"Total memory used: {Math.Round(currentProcess.PrivateMemorySize64.Bytes().Megabytes, 2).ToMetric()}mb\n");
-            botInfo.Append($"Total threads open: {currentProcess.Threads.Count}");
-            currentProcess.Dispose();
+            embedBuilder.AddField("Guild Count", context.Client.Guilds.Count.ToMetric());
+            embedBuilder.AddField("Member Count", TotalMemberCount.Values.Sum().ToMetric());
+            embedBuilder.AddField("Heap Memory", GC.GetTotalMemory(true).Bytes().ToString("MB", CultureInfo.InvariantCulture));
+            embedBuilder.AddField("Thread Count", ThreadPool.ThreadCount.ToMetric());
+            embedBuilder.AddField("Websocket Ping", context.Client.Ping + "ms");
+            embedBuilder.AddField("Uptime", (Process.GetCurrentProcess().StartTime.ToUniversalTime() - DateTime.UtcNow).Humanize(3));
 
-            DiscordEmbedBuilder embedBuilder = new();
-            embedBuilder.Title = "Bot Info";
-            embedBuilder.Color = new DiscordColor("#7b84d1");
-            embedBuilder.Description = botInfo.ToString();
-            if (context.Guild != null && context.Guild.IconUrl != null)
-            {
-                embedBuilder.WithThumbnail(context.Guild.IconUrl);
-            }
-
-            DiscordWebhookBuilder webhookBuilder = new();
-            webhookBuilder.AddEmbed(embedBuilder);
-            await context.EditResponseAsync(webhookBuilder);
+            await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().AddEmbed(embedBuilder));
         }
     }
 }

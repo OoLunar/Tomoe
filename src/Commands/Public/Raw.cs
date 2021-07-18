@@ -1,40 +1,79 @@
-namespace Tomoe.Commands.Public
+namespace Tomoe.Commands
 {
     using DSharpPlus;
     using DSharpPlus.Entities;
     using DSharpPlus.Exceptions;
     using DSharpPlus.SlashCommands;
     using System;
+    using System.Collections.Generic;
     using System.Globalization;
+    using System.IO;
     using System.Linq;
+    using System.Net.Http;
+    using System.Text;
+    using System.Text.Json;
     using System.Threading.Tasks;
 
-    public class Raw : SlashCommandModule
+    public partial class Public : SlashCommandModule
     {
+        private static HttpClient HttpClient { get; set; } = new();
+
         [SlashCommand("raw", "Gets the raw version of the message provided.")]
-        public async Task Overload(InteractionContext context, [Option("Message", "The message id or link.")] string messageString)
+        public static async Task Raw(InteractionContext context, [Option("Message", "The message id or link.")] string messageString)
         {
-            DiscordMessage message = null;
+            await context.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource, new());
+
+            Dictionary<string, Stream> messageFiles = new();
+
+            DiscordMessage message;
             DiscordChannel channel = null;
             ulong messageId = 0;
             if (Uri.TryCreate(messageString, UriKind.Absolute, out Uri messageLink))
             {
-                if (messageLink.Host != "discord.com" && messageLink.Host != "discordapp.com")
+                if (messageLink.Host is not "discord.com" and not "discordapp.com")
                 {
-                    //TODO: Make a web request and try escaping the content
-                    await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+                    HttpResponseMessage httpResponseMessage = await HttpClient.GetAsync(messageLink);
+                    if (httpResponseMessage.IsSuccessStatusCode && httpResponseMessage.TrailingHeaders.TryGetValues("Content-Type", out IEnumerable<string> contentType))
                     {
-                        Content = "Message link isn't from Discord!",
-                        IsEphemeral = true
-                    });
-                    return;
+                        if (contentType.First() == "text/plain")
+                        {
+                            string sanitizedWebContent = Formatter.Sanitize(await httpResponseMessage.Content.ReadAsStringAsync());
+                            if (sanitizedWebContent.Length < 8000000)
+                            {
+                                await context.EditResponseAsync(new()
+                                {
+                                    Content = "Error: Output is greater than 8MB. Cannot upload as a message or file."
+                                });
+                                return;
+                            }
+                            else
+                            {
+                                messageFiles.Add($"{messageLink.Host}.txt", new MemoryStream(Encoding.UTF8.GetBytes(sanitizedWebContent)));
+                            }
+                        }
+                        else
+                        {
+                            await context.EditResponseAsync(new()
+                            {
+                                Content = "Error: Content Type is not plain text, will not continue."
+                            });
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        await context.EditResponseAsync(new()
+                        {
+                            Content = "Error: Web request returned an unsuccessful HTTP response status code."
+                        });
+                        return;
+                    }
                 }
                 else if (messageLink.Segments.Length != 5 || messageLink.Segments[1] != "channels/" || (ulong.TryParse(messageLink.Segments[2].Remove(messageLink.Segments[2].Length - 1), NumberStyles.Number, CultureInfo.InvariantCulture, out ulong guildId) && guildId != context.Guild.Id))
                 {
-                    await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+                    await context.EditResponseAsync(new()
                     {
-                        Content = "Message link isn't from this guild!",
-                        IsEphemeral = true
+                        Content = context.Guild == null ? "Error: Message link isn't from this dm!" : "Error: Message link isn't from this guild!"
                     });
                     return;
                 }
@@ -43,11 +82,11 @@ namespace Tomoe.Commands.Public
                     channel = context.Guild.GetChannel(channelId);
                     if (channel == null)
                     {
-                        await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+                        await context.EditResponseAsync(new()
                         {
-                            Content = $"Unknown channel <#{channelId}> ({channelId})",
-                            IsEphemeral = true
+                            Content = $"Error: Unknown channel <#{channelId}> ({channelId})"
                         });
+                        return;
                     }
                     else if (ulong.TryParse(messageLink.Segments[4], NumberStyles.Number, CultureInfo.InvariantCulture, out ulong messageLinkId))
                     {
@@ -62,10 +101,9 @@ namespace Tomoe.Commands.Public
             }
             else
             {
-                await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+                await context.EditResponseAsync(new()
                 {
-                    Content = $"{messageString} is not a message id or link!",
-                    IsEphemeral = true
+                    Content = $"Error: {messageString} is not a message id or link!"
                 });
                 return;
             }
@@ -78,8 +116,7 @@ namespace Tomoe.Commands.Public
             {
                 await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
                 {
-                    Content = "Message not found! Did you call the command in the correct channel?",
-                    IsEphemeral = true
+                    Content = "Error: Message not found! Did you call the command in the correct channel?"
                 });
                 return;
             }
@@ -87,26 +124,47 @@ namespace Tomoe.Commands.Public
             {
                 await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
                 {
-                    Content = "I don't have access to that message. Please fix my Discord permissions!",
-                    IsEphemeral = true
+                    Content = "Error: I don't have access to that message. Please fix my Discord permissions!"
                 });
                 return;
             }
 
-            if (message.Content == string.Empty && message.Embeds.Any())
+            for (int i = 0; i < message.Embeds.Count; i++)
             {
-                await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+                DiscordEmbed embed = message.Embeds[i];
+                MemoryStream memoryStream = new();
+                await JsonSerializer.SerializeAsync(memoryStream, embed);
+                memoryStream.Position = 0;
+                messageFiles.Add($"Embed {i + 1}.json", memoryStream);
+            }
+
+            string sanitizedContent = Formatter.Sanitize(message.Content);
+
+            if (sanitizedContent.Length == 0)
+            {
+                DiscordWebhookBuilder discordWebhookBuilder = new();
+                discordWebhookBuilder.AddFiles(messageFiles, true);
+                discordWebhookBuilder.Content = "No text found, turned the embeds into JSON!";
+                await context.EditResponseAsync(discordWebhookBuilder);
+            }
+            else if (sanitizedContent.Length < 2000)
+            {
+                await context.EditResponseAsync(new DiscordWebhookBuilder()
                 {
-                    Content = Constants.RawEmbed,
-                    IsEphemeral = true
-                });
+                    Content = sanitizedContent
+                }.AddFiles(messageFiles));
+            }
+            else if (sanitizedContent.Length < 80000)
+            {
+                messageFiles.Add("Message Content.txt", new MemoryStream(Encoding.UTF8.GetBytes(sanitizedContent)));
+                await context.EditResponseAsync(new DiscordWebhookBuilder().AddFiles(messageFiles));
             }
             else
             {
-                await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+                await context.EditResponseAsync(new DiscordWebhookBuilder()
                 {
-                    Content = Formatter.Sanitize(message.Content)
-                });
+                    Content = "Error: Message content is greater than 8MB. Cannot upload as a message or a file."
+                }.AddFiles(messageFiles));
             }
         }
     }

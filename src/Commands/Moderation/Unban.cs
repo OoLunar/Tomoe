@@ -1,17 +1,75 @@
-namespace Tomoe.Commands.Moderation
+namespace Tomoe.Commands
 {
     using DSharpPlus;
-    using DSharpPlus.CommandsNext;
-    using DSharpPlus.CommandsNext.Attributes;
     using DSharpPlus.Entities;
+    using DSharpPlus.Exceptions;
+    using DSharpPlus.SlashCommands;
+    using Humanizer;
+    using System.Collections.Generic;
+    using System.Globalization;
     using System.Threading.Tasks;
-    using Tomoe.Db;
+    using Tomoe.Commands.Attributes;
 
-    public class Unban : BaseCommandModule
+    public partial class Moderation : SlashCommandModule
     {
-        public Database Database { private get; set; }
+        [SlashCommand("unban", "Unbans a person from the guild."), Hierarchy(Permissions.BanMembers)]
+        public static async Task Unban(InteractionContext context, [Option("victim_id", "The Discord user id of who to unban from the guild.")] string victimIdString, [Option("reason", "Why is the victim being unbanned from the guild.")] string unbanReason = Constants.MissingReason)
+        {
+            if (!ulong.TryParse(victimIdString, NumberStyles.Number, CultureInfo.InvariantCulture, out ulong victimId))
+            {
+                await context.EditResponseAsync(new()
+                {
+                    Content = $"Error: Unknown user id {Formatter.InlineCode(victimIdString)}. To get a user's id, enable Developer Mode on the Discord Client, right click the user you banned, and at the bottom of the menu, click \"Copy ID\""
+                });
+                return;
+            }
 
-        [Command("unban"), RequireGuild, RequireUserPermissions(Permissions.BanMembers), RequireBotPermissions(Permissions.BanMembers), Aliases("fuck_come_back"), Description("Unbans the victim from the guild, allowing them to rejoin.")]
-        public async Task ByUser(CommandContext context, [Description("Who to unban.")] DiscordUser victim, [Description("Why is the vicitm being unbanned."), RemainingText] string unbanReason = Constants.MissingReason) => await Program.SendMessage(context, $"{victim.Mention} has been unbanned{(await Api.Moderation.Unban(context.Client, context.Guild, victim.Id, context.User.Id, context.Message.JumpLink.ToString(), unbanReason) ? '.' : " (Failed to dm).")}");
+            DiscordUser victim = await context.Client.GetUserAsync(victimId);
+            if (victim == null)
+            {
+                await context.EditResponseAsync(new()
+                {
+                    Content = $"Error: <@{victimId}> ({victimId}) is not a Discord user!"
+                });
+                return;
+            }
+
+            try
+            {
+                DiscordBan discordBan = await context.Guild.GetBanAsync(victimId);
+            }
+            catch (NotFoundException)
+            {
+                await context.EditResponseAsync(new()
+                {
+                    Content = $"Error: <@{victimId}> is not banned!"
+                });
+                return;
+            }
+
+            await context.Guild.UnbanMemberAsync(victim.Id, unbanReason);
+            bool sentDm = await victim.TryDmMember($"You've been unbanned from {context.Guild.Name} by {context.Member.Mention} ({Formatter.InlineCode(context.Member.Id.ToString(CultureInfo.InvariantCulture))}). Reason: {unbanReason}");
+
+            Dictionary<string, string> keyValuePairs = new();
+            keyValuePairs.Add("guild_name", context.Guild.Name);
+            keyValuePairs.Add("guild_count", Public.TotalMemberCount[context.Guild.Id].ToMetric());
+            keyValuePairs.Add("guild_id", context.Guild.Id.ToString(CultureInfo.InvariantCulture));
+            keyValuePairs.Add("victim_username", victim.Username);
+            keyValuePairs.Add("victim_tag", victim.Discriminator);
+            keyValuePairs.Add("victim_mention", victim.Mention);
+            keyValuePairs.Add("victim_id", victim.Id.ToString(CultureInfo.InvariantCulture));
+            keyValuePairs.Add("moderator_username", context.Member.Username);
+            keyValuePairs.Add("moderator_tag", context.Member.Discriminator);
+            keyValuePairs.Add("moderator_mention", context.Member.Mention);
+            keyValuePairs.Add("moderator_id", context.Member.Id.ToString(CultureInfo.InvariantCulture));
+            keyValuePairs.Add("moderator_displayname", context.Member.DisplayName);
+            keyValuePairs.Add("punishment_reason", unbanReason);
+            await ModLog(context.Guild, keyValuePairs, DiscordEvent.Ban);
+
+            await context.EditResponseAsync(new()
+            {
+                Content = $"{victim.Mention} has been unbanned{(sentDm ? "" : "(failed to dm)")}. Reason: {unbanReason}"
+            });
+        }
     }
 }

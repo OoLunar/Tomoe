@@ -1,32 +1,22 @@
-namespace Tomoe.Commands.Listeners
+namespace Tomoe.Commands
 {
     using DSharpPlus;
     using DSharpPlus.Entities;
     using DSharpPlus.EventArgs;
     using Serilog;
-    using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
 
-    public class GuildDownloadCompleted
+    public partial class Listeners
     {
-        private static readonly ILogger _logger = Log.ForContext<GuildDownloadCompleted>();
-        internal static Dictionary<ulong, int> MemberCount = new();
+        private static readonly ILogger logger = Log.ForContext<Listeners>();
 
-        /// <summary>
-        /// Changes the bot status whenever everything is ready.
-        /// </summary>
-        /// <param name="client">Used to change the bot's status.</param>
-        /// <param name="_eventArgs">Unused <see cref="ReadyEventArgs"/>.</param>
-        public static async Task Handler(DiscordClient client, GuildDownloadCompletedEventArgs eventArgs)
+        public static async Task GuildDownloadCompleted(DiscordClient discordClient, GuildDownloadCompletedEventArgs guildDownloadCompletedEventArgs)
         {
-            int totalMemberCount = 0;
-            foreach (int i in MemberCount.Values)
-            {
-                totalMemberCount += i;
-            }
-
-            _logger.Information($"Ready! Handling {eventArgs.Guilds.Count} guilds and {totalMemberCount} guild members");
-            await client.UpdateStatusAsync(new DiscordActivity("for bad things", ActivityType.Watching), UserStatus.Online);
+            int guildCount = Public.TotalMemberCount.Count;
+            int memberCount = Public.TotalMemberCount.Values.Sum();
+            logger.Information($"Guild download completed! Handling {guildCount} guilds and {memberCount} members!");
+            await discordClient.UpdateStatusAsync(new DiscordActivity("for bad things", ActivityType.Watching), UserStatus.Online);
         }
     }
 }

@@ -1,35 +1,53 @@
-namespace Tomoe.Commands.Moderation
+namespace Tomoe.Commands
 {
     using DSharpPlus;
-    using DSharpPlus.CommandsNext;
-    using DSharpPlus.CommandsNext.Attributes;
     using DSharpPlus.Entities;
-    using DSharpPlus.Exceptions;
+    using DSharpPlus.SlashCommands;
+    using Humanizer;
+    using System.Collections.Generic;
+    using System.Globalization;
     using System.Threading.Tasks;
-    using Tomoe.Commands.Moderation.Attributes;
+    using Tomoe.Commands.Attributes;
 
-    public class Kick : BaseCommandModule
+    public partial class Moderation : SlashCommandModule
     {
-        [Command("kick"), RequireGuild, RequireUserPermissions(Permissions.KickMembers), RequireBotPermissions(Permissions.KickMembers), Aliases("boot", "yeet"), Description("Kicks the victim from the guild, sending them off with a dm."), Punishment(true)]
-        public async Task ByUser(CommandContext context, [Description("Who to remove from the guild.")] DiscordUser victim, [Description("Why is the victim being removed from the guild?"), RemainingText] string kickReason = Constants.MissingReason)
+        [SlashCommand("kick", "Kicks a member from the guild, sending them off with a dm."), Hierarchy(Permissions.KickMembers)]
+        public static async Task Kick(InteractionContext context, [Option("victim", "Who to kick from the guild.")] DiscordUser victimUser, [Option("reason", "Why is the victim being kicked from the guild?")] string reason = Constants.MissingReason)
         {
-            DiscordMember guildVictim = await victim.Id.GetMember(context.Guild);
-            if (guildVictim == null)
+            DiscordMember victimMember = await victimUser.Id.GetMember(context.Guild);
+            if (victimMember == null)
             {
-                await Program.SendMessage(context, Formatter.Bold($"[Error]: User {victim.Mention} is not in the guild!"));
-            }
-            else
-            {
-                try
+                await context.EditResponseAsync(new()
                 {
-                    await Program.SendMessage(context, $"{victim.Mention} has been kicked{(await Api.Moderation.Kick(context.Guild, guildVictim, context.User.Id, context.Message.JumpLink.ToString(), kickReason) ? '.' : " (Failed to dm).")}");
+                    Content = $"Error: {victimUser.Mention} is not in the guild!"
+                });
+                return;
+            }
 
-                }
-                catch (UnauthorizedException)
-                {
-                    await Program.SendMessage(context, Formatter.Bold($"[Error]: I cannot kick {victim.Mention} due to permissions!"));
-                }
-            }
+            bool sentDm = await victimUser.TryDmMember($"You've been kicked from {context.Guild.Name} by {context.Member.Mention} ({Formatter.InlineCode(context.Member.Id.ToString(CultureInfo.InvariantCulture))}). Reason: {reason}");
+            await victimMember.RemoveAsync(reason);
+
+            Dictionary<string, string> keyValuePairs = new();
+            keyValuePairs.Add("guild_name", context.Guild.Name);
+            keyValuePairs.Add("guild_count", Public.TotalMemberCount[context.Guild.Id].ToMetric());
+            keyValuePairs.Add("guild_id", context.Guild.Id.ToString(CultureInfo.InvariantCulture));
+            keyValuePairs.Add("victim_username", victimMember.Username);
+            keyValuePairs.Add("victim_tag", victimMember.Discriminator);
+            keyValuePairs.Add("victim_mention", victimMember.Mention);
+            keyValuePairs.Add("victim_id", victimMember.Id.ToString(CultureInfo.InvariantCulture));
+            keyValuePairs.Add("victim_displayname", victimMember.DisplayName);
+            keyValuePairs.Add("moderator_username", context.Member.Username);
+            keyValuePairs.Add("moderator_tag", context.Member.Discriminator);
+            keyValuePairs.Add("moderator_mention", context.Member.Mention);
+            keyValuePairs.Add("moderator_id", context.Member.Id.ToString(CultureInfo.InvariantCulture));
+            keyValuePairs.Add("moderator_displayname", context.Member.DisplayName);
+            keyValuePairs.Add("punishment_reason", reason);
+            await ModLog(context.Guild, keyValuePairs, DiscordEvent.Ban);
+
+            await context.EditResponseAsync(new()
+            {
+                Content = $"{victimUser.Mention} has been kicked{(sentDm ? "" : "(failed to dm)")}. Reason: {reason}"
+            });
         }
     }
 }

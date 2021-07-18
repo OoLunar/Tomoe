@@ -1,51 +1,16 @@
 namespace Tomoe
 {
     using DSharpPlus;
-    using DSharpPlus.CommandsNext;
     using DSharpPlus.Entities;
     using DSharpPlus.Exceptions;
     using DSharpPlus.SlashCommands;
-    using Humanizer;
     using System;
     using System.Linq;
     using System.Threading.Tasks;
+    using Tomoe.Utilities.Types;
 
     public static class ExtensionMethods
     {
-        public static DiscordEmbedBuilder GenerateDefaultEmbed(this DiscordEmbedBuilder embedBuilder, CommandContext context, string title = null)
-        {
-            if (!string.IsNullOrEmpty(title))
-            {
-                embedBuilder.Title = title.Titleize();
-            }
-
-            embedBuilder.Color = new DiscordColor("#7b84d1");
-            embedBuilder.Author = new()
-            {
-                Name = context.Guild == null ? context.User.Username : context.Member.DisplayName,
-                IconUrl = context.User.AvatarUrl,
-                Url = context.User.AvatarUrl
-            };
-            return embedBuilder;
-        }
-
-        public static DiscordEmbedBuilder GenerateDefaultEmbed(this DiscordEmbedBuilder embedBuilder, InteractionContext context, string title = null)
-        {
-            if (!string.IsNullOrEmpty(title))
-            {
-                embedBuilder.Title = title.Titleize();
-            }
-
-            embedBuilder.Color = new DiscordColor("#7b84d1");
-            embedBuilder.Author = new()
-            {
-                Name = context.Guild == null ? context.User.Username : context.Member.DisplayName,
-                IconUrl = context.User.AvatarUrl,
-                Url = context.User.AvatarUrl
-            };
-            return embedBuilder;
-        }
-
         /// <summary>
         /// Attempts to retrieve the DiscordMember from cache, then the API if the cache does not have the member.
         /// </summary>
@@ -71,7 +36,6 @@ namespace Tomoe
 
         public static async Task<bool> TryDmMember(this DiscordUser discordUser, string message)
         {
-            // TODO: Get shared servers and try dming the member through there when dm's are off.
             bool sentDm = false;
             if (discordUser != null && !discordUser.IsBot)
             {
@@ -91,8 +55,31 @@ namespace Tomoe
             return sentDm;
         }
 
-        public static DiscordRole GetRole(this ulong roleId, DiscordGuild guild) => roleId != 0 ? guild.GetRole(roleId) : null;
-        public static bool HasPermission(this DiscordMember guildMember, Permissions permission) => !guildMember.Roles.Any() ? guildMember.Guild.EveryoneRole.HasPermission(permission) : guildMember.Roles.Any(role => role.HasPermission(permission));
-        public static bool HasPermission(this DiscordRole role, Permissions permission) => role.Permissions.HasPermission(permission);
+        public static async Task<bool> Confirm(this InteractionContext context, string prompt)
+        {
+            string id = $"{context.Guild.Id}{new Random().Next(0, 10000)}";
+            DiscordButtonComponent yes = new(ButtonStyle.Success, $"{id}-confirm", "Yes", false, new("✅"));
+            DiscordButtonComponent no = new(ButtonStyle.Danger, $"{id}-decline", "No", false, new("❌"));
+            DiscordComponent[] buttonRow = new[] { yes, no };
+            QueueButton queueButton = new(id, context.User.Id, buttonRow);
+
+            DiscordWebhookBuilder responseBuilder = new();
+            responseBuilder.Content = prompt;
+            responseBuilder.AddComponents(buttonRow);
+            await context.EditResponseAsync(responseBuilder);
+
+            bool confirmed = await queueButton.WaitAsync();
+
+            yes.Disable();
+            no.Disable();
+            DiscordWebhookBuilder editedResponse = new();
+            editedResponse.Content = Constants.Loading + ' ' + prompt;
+            editedResponse.AddComponents(buttonRow);
+            await context.EditResponseAsync(editedResponse);
+
+            return confirmed;
+        }
+
+        public static bool HasPermission(this DiscordMember guildMember, Permissions permission) => !guildMember.Roles.Any() ? guildMember.Guild.EveryoneRole.Permissions.HasPermission(permission) : guildMember.Roles.Any(role => role.Permissions.HasPermission(permission));
     }
 }

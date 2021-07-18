@@ -1,4 +1,4 @@
-namespace Tomoe.Commands.Public
+namespace Tomoe.Commands
 {
     using DSharpPlus;
     using DSharpPlus.Entities;
@@ -10,35 +10,30 @@ namespace Tomoe.Commands.Public
     using System.Text;
     using System.Threading.Tasks;
 
-    public class RoleInfo : SlashCommandModule
+    public partial class Public : SlashCommandModule
     {
         [SlashCommand("role_info", "Gets general information about a role.")]
-        public static async Task ByProgram(InteractionContext context, [Option("role", "The role to get information on.")] DiscordRole discordRole)
+        public static async Task RoleInfo(InteractionContext context, [Option("role", "The role to get information on.")] DiscordRole discordRole)
         {
-            await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
-            {
-                IsEphemeral = true
-            });
-
+            // TODO: Keep local cache of guild members with roles.
             int totalMemberCount = 0;
-            StringBuilder roleUsers = new();
-            foreach (DiscordMember member in context.Guild.Members.Values.OrderBy(member => member.DisplayName, StringComparer.CurrentCultureIgnoreCase))
+            StringBuilder roleMembers = new();
+            foreach (DiscordMember member in (await context.Guild.GetAllMembersAsync()).OrderBy(member => member.DisplayName, StringComparer.CurrentCultureIgnoreCase))
             {
                 if (member.Roles.Contains(discordRole) || discordRole.Name == "@everyone")
                 {
                     totalMemberCount++;
-                    // Max embed length is 1024. Max username length is 32. 1024 - 32 = 992.
-                    if (roleUsers.Length < 992)
+                    if ((roleMembers.Length + $"{member.Mention}, ".Length) < 1024)
                     {
-                        roleUsers.Append($"{member.Mention} ");
+                        roleMembers.Append($"{member.Mention}, ");
                     }
                 }
             }
 
             DiscordEmbedBuilder embedBuilder = new()
             {
-                Title = "Role Info for " + discordRole.Name,
-                Color = discordRole.Color.Value == 0x000000 ? new DiscordColor("#7b84d1") : discordRole.Color
+                Title = "Role Info For " + discordRole.Name,
+                Color = discordRole.Color.Value == 0 ? new DiscordColor("#7b84d1") : discordRole.Color
             };
             if (context.Guild.IconUrl != null)
             {
@@ -50,21 +45,14 @@ namespace Tomoe.Commands.Public
             embedBuilder.AddField("Hoisted", discordRole.IsHoisted.ToString(), true);
             embedBuilder.AddField("Is Managed", discordRole.IsManaged.ToString(), true);
             embedBuilder.AddField("Is Mentionable", discordRole.IsMentionable.ToString(), true);
-            embedBuilder.AddField("Role Id", discordRole.Id.ToString(CultureInfo.InvariantCulture), true);
+            embedBuilder.AddField("Role Id", Formatter.InlineCode(discordRole.Id.ToString(CultureInfo.InvariantCulture)), true);
             embedBuilder.AddField("Role Name", discordRole.Name, true);
             embedBuilder.AddField("Role Position", discordRole.Position.ToMetric(), true);
             embedBuilder.AddField("Total Member Count", totalMemberCount.ToMetric(), true);
-            string permissions = discordRole.Permissions.ToPermissionString();
-            if (string.IsNullOrEmpty(permissions))
-            {
-                permissions = "No Permissions";
-            }
-            embedBuilder.AddField("Permissions", permissions, false);
-            embedBuilder.AddField("Members", roleUsers.ToString(), false);
+            embedBuilder.AddField("Permissions", discordRole.Permissions.ToPermissionString());
+            embedBuilder.AddField("Members", roleMembers.Length == 0 ? "None." : roleMembers.ToString());
 
-            DiscordWebhookBuilder messageBuilder = new();
-            messageBuilder.AddEmbed(embedBuilder);
-            await context.EditResponseAsync(messageBuilder);
+            await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().AddEmbed(embedBuilder));
         }
     }
 }

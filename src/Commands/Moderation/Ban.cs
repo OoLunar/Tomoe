@@ -1,36 +1,56 @@
-namespace Tomoe.Commands.Moderation
+namespace Tomoe.Commands
 {
     using DSharpPlus;
-    using DSharpPlus.CommandsNext;
-    using DSharpPlus.CommandsNext.Attributes;
     using DSharpPlus.Entities;
     using DSharpPlus.Exceptions;
-    using System.Linq;
+    using DSharpPlus.SlashCommands;
+    using Humanizer;
+    using System.Collections.Generic;
+    using System.Globalization;
     using System.Threading.Tasks;
-    using Tomoe.Commands.Moderation.Attributes;
+    using Tomoe.Commands.Attributes;
 
-    public class Ban : BaseCommandModule
+    public partial class Moderation : SlashCommandModule
     {
-        [Command("ban"), RequireGuild, RequireUserPermissions(Permissions.BanMembers), RequireBotPermissions(Permissions.BanMembers), Aliases("fuck_off"), Description("Permanently bans the victim from the guild, sending them off with a dm."), Punishment(false)]
-        public async Task ByUser(CommandContext context, [Description("Who to ban.")] DiscordUser victim, [Description("Why is the victim being banned?"), RemainingText] string banReason = Constants.MissingReason)
+        [SlashCommand("ban", "Bans a member from the guild, sending them off with a dm."), Hierarchy(Permissions.BanMembers, true)]
+        public static async Task Ban(InteractionContext context, [Option("victim", "Who to ban from the guild.")] DiscordUser victimUser, [Option("reason", "Why is the victim being banned from the guild?")] string reason = Constants.MissingReason)
         {
-            if (await new Punishment(false).ExecuteCheckAsync(context, false))
+            try
             {
-                if ((await context.Guild.GetBansAsync()).Any(guildUser => guildUser.User.Id == victim.Id))
+                await context.Guild.GetBanAsync(victimUser.Id);
+                await context.EditResponseAsync(new()
                 {
-                    await Program.SendMessage(context, Formatter.Bold($"[Error]: {victim.Mention} is already banned!"));
-                    return;
-                }
-
-                try
-                {
-                    await Program.SendMessage(context, $"{victim.Mention} has been banned{(await Api.Moderation.Ban(context.Guild, victim, context.User.Id, context.Message.JumpLink.ToString(), banReason) ? '.' : " (Failed to dm).")}");
-                }
-                catch (UnauthorizedException)
-                {
-                    await Program.SendMessage(context, Formatter.Bold($"[Error]: I cannot ban {victim.Mention} due to permissions!"));
-                }
+                    Content = $"Error: {victimUser.Mention} is already banned!"
+                });
+                return;
             }
+            catch (NotFoundException) { }
+
+            DiscordMember victimMember = await victimUser.Id.GetMember(context.Guild);
+            bool sentDm = await victimUser.TryDmMember($"You've been banned from {context.Guild.Name} by {context.Member.Mention} ({Formatter.InlineCode(context.Member.Id.ToString(CultureInfo.InvariantCulture))}). Reason: {reason}");
+            await context.Guild.BanMemberAsync(victimUser.Id, 1, reason);
+
+            Dictionary<string, string> keyValuePairs = new();
+            keyValuePairs.Add("guild_name", context.Guild.Name);
+            keyValuePairs.Add("guild_count", Public.TotalMemberCount[context.Guild.Id].ToMetric());
+            keyValuePairs.Add("guild_id", context.Guild.Id.ToString(CultureInfo.InvariantCulture));
+            keyValuePairs.Add("victim_username", victimMember.Username);
+            keyValuePairs.Add("victim_tag", victimMember.Discriminator);
+            keyValuePairs.Add("victim_mention", victimMember.Mention);
+            keyValuePairs.Add("victim_id", victimMember.Id.ToString(CultureInfo.InvariantCulture));
+            keyValuePairs.Add("victim_displayname", victimMember.DisplayName);
+            keyValuePairs.Add("moderator_username", context.Member.Username);
+            keyValuePairs.Add("moderator_tag", context.Member.Discriminator);
+            keyValuePairs.Add("moderator_mention", context.Member.Mention);
+            keyValuePairs.Add("moderator_id", context.Member.Id.ToString(CultureInfo.InvariantCulture));
+            keyValuePairs.Add("moderator_displayname", context.Member.DisplayName);
+            keyValuePairs.Add("punishment_reason", reason);
+            await ModLog(context.Guild, keyValuePairs, DiscordEvent.Ban);
+
+            await context.EditResponseAsync(new()
+            {
+                Content = $"{victimUser.Mention} has been banned{(sentDm ? "" : "(failed to dm)")}. Reason: {reason}"
+            });
         }
     }
 }
