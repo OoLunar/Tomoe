@@ -1,4 +1,3 @@
-
 namespace Tomoe.Commands
 {
     using DSharpPlus;

@@ -24,6 +24,7 @@ namespace Tomoe.Commands
                         Content = $"Error: Tag `{tagName.ToLowerInvariant()}` does not exist!",
                         IsEphemeral = true
                     });
+                    return;
                 }
 
                 DiscordEmbedBuilder embedBuilder = new();

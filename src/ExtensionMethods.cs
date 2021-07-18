@@ -70,8 +70,8 @@ namespace Tomoe
 
             bool confirmed = await queueButton.WaitAsync();
 
-            yes.Disabled = true;
-            no.Disabled = true;
+            yes.Disable();
+            no.Disable();
             DiscordWebhookBuilder editedResponse = new();
             editedResponse.Content = Constants.Loading + ' ' + prompt;
             editedResponse.AddComponents(buttonRow);

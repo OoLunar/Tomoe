@@ -11,7 +11,7 @@ namespace Tomoe.Db
     {
         public Database(DbContextOptions<Database> options) : base(options) { }
 
-        public DbSet<ReactionRole> ReactionRoles { get; set; }
+        public DbSet<MenuRole> MenuRoles { get; set; }
         public DbSet<AutoReaction> AutoReactions { get; set; }
         public DbSet<ModLog> ModLogs { get; set; }
         public DbSet<Strike> Strikes { get; set; }
@@ -21,6 +21,7 @@ namespace Tomoe.Db
         public DbSet<Lock> Locks { get; set; }
         public DbSet<LogSetting> LogSettings { get; set; }
         public DbSet<Reminder> Reminders { get; set; }
+        public DbSet<PermanentButton> PermanentButtons { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
