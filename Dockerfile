@@ -2,7 +2,7 @@ FROM mcr.microsoft.com/dotnet/sdk:5.0-alpine AS build
 WORKDIR /src
 
 COPY ./ /src
-RUN dotnet restore -r linux-musl-x64 && dotnet publish -c release -r linux-musl-x64 --no-restore
+RUN dotnet restore --configfile /src/Nuget.Config -r linux-musl-x64 && dotnet publish -c release -r linux-musl-x64 --no-restore
 
 FROM alpine:latest
 WORKDIR /src
