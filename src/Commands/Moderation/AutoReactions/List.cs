@@ -17,6 +17,16 @@ namespace Tomoe.Commands
             public async Task List(InteractionContext context, [Option("channel", "Which channel to view the autoreactions on.")] DiscordChannel channel = null)
             {
                 channel ??= context.Channel;
+
+                if (channel.Type != ChannelType.Text && channel.Type != ChannelType.News && channel.Type != ChannelType.Category)
+                {
+                    await context.EditResponseAsync(new()
+                    {
+                        Content = $"Error: {channel.Mention} is not a text or category channel!"
+                    });
+                    return;
+                }
+
                 IEnumerable<AutoReaction> autoReactions = channel == null
                     ? Database.AutoReactions.Where(databaseAutoReaction => databaseAutoReaction.GuildId == context.Guild.Id && databaseAutoReaction.ChannelId == channel.Id)
                     : Database.AutoReactions.Where(databaseAutoReaction => databaseAutoReaction.GuildId == context.Guild.Id);

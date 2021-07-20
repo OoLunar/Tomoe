@@ -1,11 +1,13 @@
 namespace Tomoe.Db
 {
+    using DSharpPlus.Entities;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore.ChangeTracking;
     using System;
     using System.Collections.Generic;
     using System.Globalization;
     using System.Linq;
+    using System.Threading.Tasks;
 
     public class Database : DbContext
     {
@@ -52,6 +54,62 @@ namespace Tomoe.Db
                     guildUser => guildUser.ConvertAll(s => s.ToString(CultureInfo.InvariantCulture)),
                     guildUser => guildUser.ConvertAll(ulong.Parse)
                 ).Metadata.SetValueComparer(valueComparerUlong);
+        }
+
+        public bool AddGuildMember(DiscordMember discordMember)
+        {
+            if (discordMember == null)
+            {
+                throw new ArgumentNullException(nameof(discordMember));
+            }
+
+            bool added = false;
+            GuildMember guildMember = GuildMembers.FirstOrDefault(databaseGuildMember => databaseGuildMember.GuildId == discordMember.Guild.Id && databaseGuildMember.UserId == discordMember.Id);
+            if (guildMember == null)
+            {
+                added = true;
+                guildMember = new GuildMember()
+                {
+                    GuildId = discordMember.Guild.Id,
+                    UserId = discordMember.Id,
+                    Roles = discordMember.Roles.Except(new[] { discordMember.Guild.EveryoneRole }).Select(discordRole => discordRole.Id).ToList(),
+                    JoinedAt = discordMember.JoinedAt.UtcDateTime
+                };
+
+                GuildMembers.Add(guildMember);
+            }
+
+            return added;
+        }
+
+        public List<ulong> AddGuildMembers(IEnumerable<DiscordMember> discordMembers)
+        {
+            if (discordMembers == null)
+            {
+                throw new ArgumentNullException(nameof(discordMembers));
+            }
+
+            List<ulong> added = new();
+            List<GuildMember> guildMembers = new();
+            foreach (DiscordMember discordMember in discordMembers)
+            {
+                GuildMember guildMember = GuildMembers.FirstOrDefault(databaseGuildMember => databaseGuildMember.GuildId == discordMember.Guild.Id && databaseGuildMember.UserId == discordMember.Id);
+                if (guildMember == null)
+                {
+                    guildMember = new GuildMember()
+                    {
+                        GuildId = discordMember.Guild.Id,
+                        UserId = discordMember.Id,
+                        Roles = discordMember.Roles.Except(new[] { discordMember.Guild.EveryoneRole }).Select(discordRole => discordRole.Id).ToList(),
+                        JoinedAt = discordMember.JoinedAt.UtcDateTime
+                    };
+                }
+                guildMembers.Add(guildMember);
+                added.Add(guildMember.UserId);
+            }
+
+            GuildMembers.AddRange(guildMembers);
+            return added;
         }
     }
 }

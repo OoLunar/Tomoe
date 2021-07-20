@@ -1,20 +1,16 @@
 namespace Tomoe
 {
     using DSharpPlus;
-    using DSharpPlus.Entities;
     using DSharpPlus.SlashCommands;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using Serilog;
-    using System;
-    using System.Linq;
-    using System.Reflection;
     using System.Threading.Tasks;
     using Tomoe.Utilities.Configs;
 
     public class Program
     {
-        public static DiscordClient Client { get; private set; }
+        public static DiscordShardedClient Client { get; private set; }
         public static Config Config { get; private set; }
         public static ServiceProvider ServiceProvider { get; private set; }
 
@@ -47,13 +43,9 @@ namespace Tomoe
 
             logger.Information("Registering commands...");
             Client = new(discordConfiguration);
-            SlashCommandsExtension slashCommandsExtension = Client.UseSlashCommands(slashCommandsConfiguration);
 
             logger.Information("Connecting to Discord...");
-            await Client.ConnectAsync();
-
-            slashCommandsExtension.RegisterCommands(typeof(Commands.Moderation));
-            slashCommandsExtension.RegisterCommands(typeof(Commands.Public));
+            await Client.StartAsync();
 
             Client.ComponentInteractionCreated += Commands.Listeners.ButtonClicked;
             Client.GuildMemberAdded += Commands.Listeners.PersistentRoles;
@@ -61,16 +53,13 @@ namespace Tomoe
             Client.GuildDownloadCompleted += Commands.Listeners.GuildDownloadCompleted;
             Client.GuildAvailable += Commands.Listeners.GuildMemberCache;
             Client.GuildCreated += Commands.Listeners.GuildMemberCache;
-            slashCommandsExtension.SlashCommandErrored += Commands.Listeners.CommandErrored;
-            // Until ShardedDiscordClient is fixed
-            //foreach (SlashCommandsExtension slashCommandShardExtension in (await Client.UseSlashCommandsAsync(slashCommandsConfiguration)).Values)
-            //{
-            //    foreach (Type slashCommandClass in Assembly.GetEntryAssembly().GetTypes().Where(type => type?.GetCustomAttribute<SlashCommandAttribute>() != null && !type.IsNested))
-            //    {
-            //        slashCommandShardExtension.RegisterCommands(slashCommandClass);
-            //        slashCommandShardExtension.SlashCommandErrored += Commands.Listeners.CommandErrored.Handler;
-            //    }
-            //}
+
+            foreach (SlashCommandsExtension slashCommandShardExtension in (await Client.UseSlashCommandsAsync(slashCommandsConfiguration)).Values)
+            {
+                slashCommandShardExtension.RegisterCommands(typeof(Commands.Moderation), 832354798153236510);
+                slashCommandShardExtension.RegisterCommands(typeof(Commands.Public), 832354798153236510);
+                slashCommandShardExtension.SlashCommandErrored += Commands.Listeners.CommandErrored;
+            }
             logger.Information("Commands up!");
             await Task.Delay(-1);
         }

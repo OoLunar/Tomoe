@@ -1,6 +1,5 @@
 namespace Tomoe.Commands
 {
-    using DSharpPlus;
     using DSharpPlus.Entities;
     using DSharpPlus.SlashCommands;
     using Humanizer;

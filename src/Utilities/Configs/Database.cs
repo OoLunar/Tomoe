@@ -6,7 +6,6 @@ namespace Tomoe.Utilities.Configs
     using Npgsql;
     using Serilog;
     using System.Globalization;
-    using System.Linq;
     using System.Text.Json.Serialization;
     using System.Threading.Tasks;
 

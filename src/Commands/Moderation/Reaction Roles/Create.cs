@@ -6,7 +6,6 @@ namespace Tomoe.Commands
     using System.Collections.Generic;
     using System.Globalization;
     using System.Linq;
-    using System.Security;
     using System.Threading.Tasks;
     using Tomoe.Commands.Attributes;
     using Tomoe.Db;

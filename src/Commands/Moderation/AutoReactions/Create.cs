@@ -46,9 +46,7 @@ namespace Tomoe.Commands
                     }
                 }
 
-#pragma warning disable CS8794
-                if (channel.Type is not ChannelType.Text or not ChannelType.News or not ChannelType.Category)
-#pragma warning restore CS8794
+                if (channel.Type != ChannelType.Text && channel.Type != ChannelType.News && channel.Type != ChannelType.Category)
                 {
                     await context.EditResponseAsync(new()
                     {

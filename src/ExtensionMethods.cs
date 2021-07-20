@@ -39,17 +39,20 @@ namespace Tomoe
             bool sentDm = false;
             if (discordUser != null && !discordUser.IsBot)
             {
-                foreach (DiscordGuild discordGuild in Program.Client.Guilds.Values)
+                foreach (DiscordClient discordClient in Program.Client.ShardClients.Values)
                 {
-                    try
+                    foreach (DiscordGuild discordGuild in discordClient.Guilds.Values)
                     {
-                        DiscordMember discordMember = await discordGuild.GetMemberAsync(discordUser.Id);
-                        await (await discordMember.CreateDmChannelAsync()).SendMessageAsync(message);
-                        sentDm = true;
-                        break;
+                        try
+                        {
+                            DiscordMember discordMember = await discordGuild.GetMemberAsync(discordUser.Id);
+                            await (await discordMember.CreateDmChannelAsync()).SendMessageAsync(message);
+                            sentDm = true;
+                            break;
+                        }
+                        catch (NotFoundException) { }
+                        catch (UnauthorizedException) { }
                     }
-                    catch (NotFoundException) { }
-                    catch (UnauthorizedException) { }
                 }
             }
             return sentDm;

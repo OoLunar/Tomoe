@@ -1,6 +1,7 @@
 namespace Tomoe
 {
     using DSharpPlus.Entities;
+    using System.Linq;
 
     public class Constants
     {
@@ -10,15 +11,15 @@ namespace Tomoe
         public const string Version = "1.1.0";
 
         // Not constants, but they got no where else to go.
-        public static readonly DiscordEmoji ThumbsUp = DiscordEmoji.FromUnicode(Program.Client, "👍");
-        public static readonly DiscordEmoji ThumbsDown = DiscordEmoji.FromUnicode(Program.Client, "👎");
+        public static readonly DiscordEmoji ThumbsUp = DiscordEmoji.FromUnicode(Program.Client.ShardClients.Values.First(), "👍");
+        public static readonly DiscordEmoji ThumbsDown = DiscordEmoji.FromUnicode(Program.Client.ShardClients.Values.First(), "👎");
 
         // TODO: Grab these from config
-        public static readonly DiscordEmoji Loading = DiscordEmoji.FromGuildEmote(Program.Client, 844773853636460575);
-        public static readonly DiscordEmoji NoPermission = DiscordEmoji.FromGuildEmote(Program.Client, 844773889355415573);
+        public static readonly DiscordEmoji Loading = DiscordEmoji.FromGuildEmote(Program.Client.ShardClients.Values.First(), 844773853636460575);
+        public static readonly DiscordEmoji NoPermission = DiscordEmoji.FromGuildEmote(Program.Client.ShardClients.Values.First(), 844773889355415573);
 
-        public static readonly DiscordEmoji Check = DiscordEmoji.FromUnicode(Program.Client, "✅");
-        public static readonly DiscordEmoji Failed = DiscordEmoji.FromUnicode(Program.Client, "❌");
-        public static readonly DiscordEmoji QuestionMark = DiscordEmoji.FromUnicode(Program.Client, "❓");
+        public static readonly DiscordEmoji Check = DiscordEmoji.FromUnicode(Program.Client.ShardClients.Values.First(), "✅");
+        public static readonly DiscordEmoji Failed = DiscordEmoji.FromUnicode(Program.Client.ShardClients.Values.First(), "❌");
+        public static readonly DiscordEmoji QuestionMark = DiscordEmoji.FromUnicode(Program.Client.ShardClients.Values.First(), "❓");
     }
 }

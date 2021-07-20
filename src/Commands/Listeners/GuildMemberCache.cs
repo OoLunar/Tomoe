@@ -4,7 +4,6 @@ namespace Tomoe.Commands
     using DSharpPlus.Entities;
     using DSharpPlus.EventArgs;
     using Microsoft.Extensions.DependencyInjection;
-    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
@@ -21,8 +20,8 @@ namespace Tomoe.Commands
 
             using IServiceScope scope = Program.ServiceProvider.CreateScope();
             Database database = scope.ServiceProvider.GetService<Database>();
-            GuildConfig guildConfig = database.GuildConfigs.FirstOrDefault(databaseGuildConfig => databaseGuildConfig.Id == guildCreateEventArgs.Guild.Id);
 
+            GuildConfig guildConfig = database.GuildConfigs.FirstOrDefault(databaseGuildConfig => databaseGuildConfig.Id == guildCreateEventArgs.Guild.Id);
             if (guildConfig == null)
             {
                 guildConfig = new();
@@ -30,29 +29,22 @@ namespace Tomoe.Commands
                 database.GuildConfigs.Add(guildConfig);
             }
 
-            List<GuildMember> newGuildMembers = new();
+            List<DiscordMember> newDiscordMembers = new();
             IEnumerable<ulong> discordMembers = database.GuildMembers.Where(databaseGuildMember => databaseGuildMember.GuildId == guildCreateEventArgs.Guild.Id).Select(databaseGuildMember => databaseGuildMember.UserId);
             foreach (ulong discordMemberId in guildCreateEventArgs.Guild.Members.Keys.Except(discordMembers))
             {
                 DiscordMember discordMember = guildCreateEventArgs.Guild.Members[discordMemberId];
-                GuildMember guildMember = new()
-                {
-                    UserId = discordMemberId,
-                    GuildId = guildCreateEventArgs.Guild.Id,
-                    Roles = discordMember.Roles.Except(new[] { guildCreateEventArgs.Guild.EveryoneRole }).Select(discordRole => discordRole.Id).ToList(),
-                    JoinedAt = DateTime.UtcNow
-                };
-                newGuildMembers.Add(guildMember);
+                newDiscordMembers.Add(discordMember);
             }
 
-            database.GuildMembers.AddRange(newGuildMembers);
+            database.AddGuildMembers(newDiscordMembers);
             await database.SaveChangesAsync();
 
             if (!Public.TotalMemberCount.TryAdd(guildCreateEventArgs.Guild.Id, guildCreateEventArgs.Guild.MemberCount))
             {
                 Public.TotalMemberCount[guildCreateEventArgs.Guild.Id] += guildCreateEventArgs.Guild.MemberCount;
             }
-            logger.Information($"{guildCreateEventArgs.Guild.Name} ({guildCreateEventArgs.Guild.Id}) is ready!");
+            logger.Information($"{guildCreateEventArgs.Guild.Id}, shard {discordClient.ShardId}, {guildCreateEventArgs.Guild.Name}, {guildCreateEventArgs.Guild.MemberCount} member{(guildCreateEventArgs.Guild.MemberCount == 1 ? "" : "s")}");
         }
     }
 }

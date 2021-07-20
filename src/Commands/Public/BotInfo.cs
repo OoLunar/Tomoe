@@ -28,6 +28,7 @@ namespace Tomoe.Commands
             embedBuilder.AddField("Thread Count", ThreadPool.ThreadCount.ToMetric());
             embedBuilder.AddField("Websocket Ping", context.Client.Ping + "ms");
             embedBuilder.AddField("Uptime", (Process.GetCurrentProcess().StartTime.ToUniversalTime() - DateTime.UtcNow).Humanize(3));
+            embedBuilder.AddField("Shard Count", Program.Client.ShardClients.Count.ToMetric());
 
             await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().AddEmbed(embedBuilder));
         }

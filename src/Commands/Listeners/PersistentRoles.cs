@@ -25,10 +25,7 @@ namespace Tomoe.Commands
 
             if (guildMember == null)
             {
-                guildMember.UserId = guildMemberAddEventArgs.Member.Id;
-                guildMember.GuildId = guildMemberAddEventArgs.Guild.Id;
-                IEnumerable<ulong> newRoles = guildMemberAddEventArgs.Member.Roles.Except(new[] { guildMemberAddEventArgs.Guild.EveryoneRole }).Select(discordRole => discordRole.Id).Except(guildMember.Roles);
-                guildMember.Roles.AddRange(newRoles);
+                database.AddGuildMember(guildMemberAddEventArgs.Member);
             }
             else
             {
@@ -73,14 +70,15 @@ namespace Tomoe.Commands
 
             if (guildMember == null)
             {
-                guildMember.UserId = guildMemberRemoveEventArgs.Member.Id;
-                guildMember.GuildId = guildMemberRemoveEventArgs.Guild.Id;
+                database.AddGuildMember(guildMemberRemoveEventArgs.Member);
             }
-
-            IEnumerable<ulong> newRoles = guildMemberRemoveEventArgs.Member.Roles.Except(new[] { guildMemberRemoveEventArgs.Guild.EveryoneRole }).Select(discordRole => discordRole.Id).Except(guildMember.Roles);
-            if (newRoles.Any())
+            else
             {
-                guildMember.Roles.AddRange(newRoles);
+                IEnumerable<ulong> newRoles = guildMemberRemoveEventArgs.Member.Roles.Except(new[] { guildMemberRemoveEventArgs.Guild.EveryoneRole }).Select(discordRole => discordRole.Id).Except(guildMember.Roles);
+                if (newRoles.Any())
+                {
+                    guildMember.Roles.AddRange(newRoles);
+                }
             }
 
             Dictionary<string, string> keyValuePairs = new();
