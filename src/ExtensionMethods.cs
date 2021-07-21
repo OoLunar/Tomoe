@@ -5,6 +5,7 @@ namespace Tomoe
     using DSharpPlus.Exceptions;
     using DSharpPlus.SlashCommands;
     using System;
+    using System.Globalization;
     using System.Linq;
     using System.Threading.Tasks;
     using Tomoe.Utilities.Types;
@@ -60,11 +61,10 @@ namespace Tomoe
 
         public static async Task<bool> Confirm(this InteractionContext context, string prompt)
         {
-            string id = $"{context.Guild.Id}{new Random().Next(0, 10000)}";
-            DiscordButtonComponent yes = new(ButtonStyle.Success, $"{id}-confirm", "Yes", false, new("✅"));
-            DiscordButtonComponent no = new(ButtonStyle.Danger, $"{id}-decline", "No", false, new("❌"));
+            DiscordButtonComponent yes = new(ButtonStyle.Success, $"{context.InteractionId}-confirm", "Yes", false, new("✅"));
+            DiscordButtonComponent no = new(ButtonStyle.Danger, $"{context.InteractionId}-decline", "No", false, new("❌"));
             DiscordComponent[] buttonRow = new[] { yes, no };
-            QueueButton queueButton = new(id, context.User.Id, buttonRow);
+            QueueButton queueButton = new(context.InteractionId.ToString(CultureInfo.InvariantCulture), context.User.Id, buttonRow);
 
             DiscordWebhookBuilder responseBuilder = new();
             responseBuilder.Content = prompt;

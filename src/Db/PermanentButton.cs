@@ -4,8 +4,7 @@ namespace Tomoe.Db
 
     public enum ButtonType
     {
-        MenuRole,
-        Temporary
+        MenuRole
     }
 
     public class PermanentButton
