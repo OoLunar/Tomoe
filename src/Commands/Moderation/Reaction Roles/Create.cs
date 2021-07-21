@@ -112,7 +112,7 @@ namespace Tomoe.Commands
 
                 DiscordButtonComponent button = new(ButtonStyle.Primary, context.InteractionId + "-1", buttonText);
                 DiscordMessageBuilder messageBuilder = new();
-                messageBuilder.Content = messageContent;
+                messageBuilder.Content = messageContent.Replace("\\n", "\n");
                 messageBuilder.AddComponents(button);
                 await channel.SendMessageAsync(messageBuilder);
 

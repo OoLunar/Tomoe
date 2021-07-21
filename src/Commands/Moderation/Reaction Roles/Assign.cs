@@ -29,6 +29,9 @@ namespace Tomoe.Commands
                     options.Add(selectOption);
                 }
 
+                DiscordSelectComponentOption noneOption = new("None", "0", null, false);
+                options.Add(noneOption);
+
                 foreach (DiscordRole role in menuRoles.Except(userRoles))
                 {
                     DiscordSelectComponentOption selectOption = new(role.Name, role.Id.ToString(CultureInfo.InvariantCulture), null, false);
@@ -54,6 +57,21 @@ namespace Tomoe.Commands
                 IEnumerable<ulong> roles = componentInteractionCreateEventArgs.Values.Select(value => ulong.Parse(value, CultureInfo.InvariantCulture));
                 IEnumerable<ulong> grantRoles = roles.Where(role => !memberRoles.Contains(role));
                 IEnumerable<ulong> revokeRoles = reactionRoles.Select(reactionRole => reactionRole.RoleId).Where(role => memberRoles.Contains(role) && !roles.Contains(role));
+
+                if (roles.Any(role => role == 0))
+                {
+                    foreach (ulong roleId in reactionRoles.Select(reactionRole => reactionRole.RoleId))
+                    {
+                        await member.RevokeRoleAsync(componentInteractionCreateEventArgs.Guild.GetRole(roleId), "Select Menu");
+                    }
+
+                    await componentInteractionCreateEventArgs.Interaction.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+                    {
+                        Content = "Since you selected `None` as an option, you no longer have any menu role from this message.",
+                        IsEphemeral = true
+                    });
+                    return;
+                }
 
                 foreach (ulong roleId in grantRoles)
                 {
