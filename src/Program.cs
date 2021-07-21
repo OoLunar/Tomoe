@@ -56,8 +56,8 @@ namespace Tomoe
 
             foreach (SlashCommandsExtension slashCommandShardExtension in (await Client.UseSlashCommandsAsync(slashCommandsConfiguration)).Values)
             {
-                slashCommandShardExtension.RegisterCommands(typeof(Commands.Moderation), 730888468330315827);
-                slashCommandShardExtension.RegisterCommands(typeof(Commands.Public), 730888468330315827);
+                slashCommandShardExtension.RegisterCommands(typeof(Commands.Moderation));
+                slashCommandShardExtension.RegisterCommands(typeof(Commands.Public));
                 slashCommandShardExtension.SlashCommandErrored += Commands.Listeners.CommandErrored;
             }
             logger.Information("Commands up!");
