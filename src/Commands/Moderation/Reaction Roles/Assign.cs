@@ -46,11 +46,6 @@ namespace Tomoe.Commands
 
             public static async Task Assign(ComponentInteractionCreateEventArgs componentInteractionCreateEventArgs, string buttonId, Database database)
             {
-                await componentInteractionCreateEventArgs.Interaction.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource, new()
-                {
-                    IsEphemeral = true
-                });
-
                 string id = buttonId.Split('-')[0];
                 IEnumerable<MenuRole> reactionRoles = database.MenuRoles.Where(reactionRole => reactionRole.ButtonId == id && reactionRole.GuildId == componentInteractionCreateEventArgs.Guild.Id).ToList();
                 DiscordMember member = await componentInteractionCreateEventArgs.User.Id.GetMember(componentInteractionCreateEventArgs.Guild);
@@ -70,9 +65,10 @@ namespace Tomoe.Commands
                     await member.RevokeRoleAsync(componentInteractionCreateEventArgs.Guild.GetRole(roleId), "Select Menu");
                 }
 
-                await componentInteractionCreateEventArgs.Interaction.EditOriginalResponseAsync(new()
+                await componentInteractionCreateEventArgs.Interaction.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
                 {
-                    Content = "Assigned roles!"
+                    Content = "Assigned roles!",
+                    IsEphemeral = true
                 });
             }
         }

@@ -18,7 +18,10 @@ namespace Tomoe.Commands
             public Database Database { private get; set; }
 
             [SlashCommand("create", "Creates a new autoreaction on a channel."), Hierarchy(Permissions.ManageChannels | Permissions.ManageMessages)]
-            public async Task Create(InteractionContext context, [Option("channel", "Which guild channel to autoreact too.")] DiscordChannel channel,
+            public async Task Create(InteractionContext context,
+                [Option("channel", "Which guild channel to autoreact too.")] DiscordChannel channel,
+                [Option("message_text", "The text on the message.")] string messageContent,
+                [Option("button_text", "The text on the button.")] string buttonText,
                 [Option("role1", "Which role to add as a menu role.")] DiscordRole role1,
                 [Option("role2", "Which role to add as a menu role.")] DiscordRole role2 = null,
                 [Option("role3", "Which role to add as a menu role.")] DiscordRole role3 = null,
@@ -40,9 +43,7 @@ namespace Tomoe.Commands
                 [Option("role19", "Which role to add as a menu role.")] DiscordRole role19 = null,
                 [Option("role20", "Which role to add as a menu role.")] DiscordRole role20 = null,
                 [Option("role21", "Which role to add as a menu role.")] DiscordRole role21 = null,
-                [Option("role22", "Which role to add as a menu role.")] DiscordRole role22 = null,
-                [Option("role23", "Which role to add as a menu role.")] DiscordRole role23 = null,
-                [Option("role24", "Which role to add as a menu role.")] DiscordRole role24 = null)
+                [Option("role22", "Which role to add as a menu role.")] DiscordRole role22 = null)
             {
                 if (channel.Type != ChannelType.Text && channel.Type != ChannelType.News)
                 {
@@ -53,12 +54,21 @@ namespace Tomoe.Commands
                     return;
                 }
 
-
-                DiscordButtonComponent button = new(ButtonStyle.Primary, context.InteractionId + "-1", "Click Me!");
                 List<MenuRole> reactionRoles = new();
-                IEnumerable<DiscordRole> roles = new[] { role1, role2, role3, role4, role5, role6, role7, role8, role9, role10, role11, role12, role13, role14, role15, role16, role17, role18, role19, role20, role21, role22, role23, role24 }.Where(role => role != null);
+                IEnumerable<DiscordRole> roles = new[] { role1, role2, role3, role4, role5, role6, role7, role8, role9, role10, role11, role12, role13, role14, role15, role16, role17, role18, role19, role20, role21, role22 }.Where(role => role != null);
+                List<DiscordRole> botUnassignableRoles = new();
+                List<DiscordRole> userUnassignableRoles = new();
                 foreach (DiscordRole role in roles)
                 {
+                    if (role.Position >= context.Guild.CurrentMember.Hierarchy)
+                    {
+                        botUnassignableRoles.Add(role);
+                    }
+                    else if (role.Position >= context.Member.Hierarchy)
+                    {
+                        userUnassignableRoles.Add(role);
+                    }
+
                     MenuRole reactionRole = new()
                     {
                         GuildId = context.Guild.Id,
@@ -66,6 +76,27 @@ namespace Tomoe.Commands
                         ButtonId = context.InteractionId.ToString(CultureInfo.InvariantCulture)
                     };
                     reactionRoles.Add(reactionRole);
+                }
+
+                if (botUnassignableRoles.Count != 0)
+                {
+                    bool confirm = await context.Confirm($"Unable to assign the following roles: {string.Join(", ", botUnassignableRoles.Select(role => role.Mention))}. To fix this, move {context.Guild.CurrentMember.Mention}'s highest role above these roles. Continue anyways?");
+                    if (!confirm)
+                    {
+                        await context.EditResponseAsync(new()
+                        {
+                            Content = "Cancelled."
+                        });
+                        return;
+                    }
+                }
+                else if (userUnassignableRoles.Count != 0 && !context.Member.IsOwner && !context.Member.HasPermission(Permissions.Administrator))
+                {
+                    await context.EditResponseAsync(new()
+                    {
+                        Content = $"You're unable to assign the following roles: {string.Join(", ", userUnassignableRoles.Select(role => role.Mention))}. To fix this, ask an admin to move those roles below your highest role, or have them run the command themselves."
+                    });
+                    return;
                 }
 
                 PermanentButton permanentButton = new()
@@ -79,10 +110,11 @@ namespace Tomoe.Commands
                 Database.PermanentButtons.Add(permanentButton);
                 await Database.SaveChangesAsync();
 
+                DiscordButtonComponent button = new(ButtonStyle.Primary, context.InteractionId + "-1", buttonText);
                 DiscordMessageBuilder messageBuilder = new();
-                messageBuilder.Content = "Select Your Roles!";
+                messageBuilder.Content = messageContent;
                 messageBuilder.AddComponents(button);
-                await context.Channel.SendMessageAsync(messageBuilder);
+                await channel.SendMessageAsync(messageBuilder);
 
                 await context.EditResponseAsync(new()
                 {
