@@ -5,13 +5,14 @@ namespace Tomoe.Commands
     using DSharpPlus.SlashCommands;
     using System.Linq;
     using System.Threading.Tasks;
+    using Tomoe.Commands.Attributes;
     using Tomoe.Db;
 
     public partial class Moderation : SlashCommandModule
     {
         public partial class Config : SlashCommandModule
         {
-            [SlashCommand("antimeme", "Sets the antimeme role for the guild.")]
+            [SlashCommand("antimeme", "Sets the antimeme role for the guild."), Hierarchy(Permissions.ManageRoles)]
             public async Task Antimeme(InteractionContext context, [Option("role", "Which role to set.")] DiscordRole role = null)
             {
                 GuildConfig guildConfig = Database.GuildConfigs.First(guildConfig => guildConfig.Id == context.Guild.Id);
