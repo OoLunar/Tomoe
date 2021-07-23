@@ -1,6 +1,7 @@
 namespace Tomoe
 {
     using DSharpPlus;
+    using DSharpPlus.Entities;
     using DSharpPlus.SlashCommands;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
@@ -56,9 +57,20 @@ namespace Tomoe
 
             foreach (SlashCommandsExtension slashCommandShardExtension in (await Client.UseSlashCommandsAsync(slashCommandsConfiguration)).Values)
             {
+                // Clears all guild commands leftover from previous sessions
+                foreach (ulong guildId in slashCommandShardExtension.Client.Guilds.Keys)
+                {
+                    slashCommandShardExtension.RegisterCommands(typeof(Commands.EmptyCommand), guildId);
+                }
+#if DEBUG
+                slashCommandShardExtension.RegisterCommands(typeof(Commands.Moderation), 832354798153236510);
+                slashCommandShardExtension.RegisterCommands(typeof(Commands.Public), 832354798153236510);
+#else
                 slashCommandShardExtension.RegisterCommands(typeof(Commands.Moderation));
                 slashCommandShardExtension.RegisterCommands(typeof(Commands.Public));
+#endif
                 slashCommandShardExtension.SlashCommandErrored += Commands.Listeners.CommandErrored;
+                slashCommandShardExtension.SlashCommandExecuted += Commands.Listeners.CommandExecuted;
             }
             logger.Information("Commands up!");
             await Task.Delay(-1);
