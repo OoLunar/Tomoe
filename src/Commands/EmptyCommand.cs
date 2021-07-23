@@ -1,9 +1,6 @@
-using DSharpPlus.SlashCommands;
-
 namespace Tomoe.Commands
 {
-    public partial class EmptyCommand : SlashCommandModule
-    {
+    using DSharpPlus.SlashCommands;
 
-    }
+    public class EmptyCommand : SlashCommandModule { }
 }
