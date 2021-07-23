@@ -1,6 +1,7 @@
 {
     "discord_api_token": "discord token",
     "discord_bot_prefix": ">>",
+    "discord_debug_guild_id": 0,
     "repository_link": "https://github.com/OoLunar/Tomoe.git",
     "reaction_timeout": "30s",
     /*

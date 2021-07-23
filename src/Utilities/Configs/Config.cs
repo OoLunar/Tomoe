@@ -16,6 +16,9 @@ namespace Tomoe.Utilities.Configs
         [JsonPropertyName("discord_bot_prefix")]
         public string DiscordBotPrefix { get; set; }
 
+        [JsonPropertyName("discord_debug_guild_id")]
+        public ulong DiscordDebugGuildId { get; set; }
+
         [JsonPropertyName("repository_link")]
         public string RepositoryLink { get; set; }
 

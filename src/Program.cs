@@ -1,7 +1,6 @@
 namespace Tomoe
 {
     using DSharpPlus;
-    using DSharpPlus.Entities;
     using DSharpPlus.SlashCommands;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
@@ -42,12 +41,7 @@ namespace Tomoe
                 Services = ServiceProvider
             };
 
-            logger.Information("Registering commands...");
             Client = new(discordConfiguration);
-
-            logger.Information("Connecting to Discord...");
-            await Client.StartAsync();
-
             Client.ComponentInteractionCreated += Commands.Listeners.ButtonClicked;
             Client.GuildMemberAdded += Commands.Listeners.PersistentRoles;
             Client.GuildMemberRemoved += Commands.Listeners.PersistentRoles;
@@ -55,16 +49,16 @@ namespace Tomoe
             Client.GuildAvailable += Commands.Listeners.GuildMemberCache;
             Client.GuildCreated += Commands.Listeners.GuildMemberCache;
 
+            logger.Information("Connecting to Discord...");
+            await Client.StartAsync();
+
+
+            logger.Information("Registering commands...");
             foreach (SlashCommandsExtension slashCommandShardExtension in (await Client.UseSlashCommandsAsync(slashCommandsConfiguration)).Values)
             {
-                // Clears all guild commands leftover from previous sessions
-                foreach (ulong guildId in slashCommandShardExtension.Client.Guilds.Keys)
-                {
-                    slashCommandShardExtension.RegisterCommands(typeof(Commands.EmptyCommand), guildId);
-                }
 #if DEBUG
-                slashCommandShardExtension.RegisterCommands(typeof(Commands.Moderation), 832354798153236510);
-                slashCommandShardExtension.RegisterCommands(typeof(Commands.Public), 832354798153236510);
+                slashCommandShardExtension.RegisterCommands(typeof(Commands.Moderation), Config.DiscordDebugGuildId);
+                slashCommandShardExtension.RegisterCommands(typeof(Commands.Public), Config.DiscordDebugGuildId);
 #else
                 slashCommandShardExtension.RegisterCommands(typeof(Commands.Moderation));
                 slashCommandShardExtension.RegisterCommands(typeof(Commands.Public));
