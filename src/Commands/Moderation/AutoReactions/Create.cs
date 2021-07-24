@@ -90,10 +90,6 @@ namespace Tomoe.Commands
                             channelsAffected.Add(subChannel.Mention);
                         }
                     }
-                    if (channelsAffected.Count != 0)
-                    {
-                        await Database.SaveChangesAsync();
-                    }
                 }
 
                 Dictionary<string, string> keyValuePairs = new();
@@ -106,7 +102,7 @@ namespace Tomoe.Commands
                 keyValuePairs.Add("moderator_displayname", context.Member.DisplayName);
                 keyValuePairs.Add("channels_affected", channelsAffected.Humanize());
                 keyValuePairs.Add("channel_emoji", emoji);
-                await ModLog(context.Guild, keyValuePairs, CustomEvent.AutoReactionCreate);
+                await ModLog(context.Guild, keyValuePairs, CustomEvent.AutoReactionCreate, Database, true);
 
                 await context.EditResponseAsync(new()
                 {

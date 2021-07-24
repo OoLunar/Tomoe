@@ -4,7 +4,10 @@ namespace Tomoe.Commands
     using DSharpPlus.Entities;
     using DSharpPlus.EventArgs;
     using Microsoft.Extensions.DependencyInjection;
+    using System;
+    using System.Globalization;
     using System.Linq;
+    using System.Text.RegularExpressions;
     using System.Threading.Tasks;
     using Tomoe.Db;
 
@@ -21,7 +24,14 @@ namespace Tomoe.Commands
             Database database = scope.ServiceProvider.GetService<Database>();
             foreach (AutoReaction autoReaction in database.AutoReactions.Where(autoReaction => autoReaction.GuildId == messageCreateEventArgs.Guild.Id && autoReaction.ChannelId == messageCreateEventArgs.Channel.Id))
             {
-                await messageCreateEventArgs.Message.CreateReactionAsync(DiscordEmoji.FromName(discordClient, autoReaction.EmojiName, true));
+                DiscordEmoji discordEmoji = autoReaction.EmojiName switch
+                {
+                    _ when DiscordEmoji.TryFromName(discordClient, autoReaction.EmojiName, out DiscordEmoji emoji) => emoji,
+                    _ when DiscordEmoji.TryFromUnicode(autoReaction.EmojiName, out DiscordEmoji emoji) => emoji,
+                    _ when DiscordEmoji.TryFromGuildEmote(discordClient, ulong.Parse(autoReaction.EmojiName, CultureInfo.InvariantCulture), out DiscordEmoji emoji) => emoji,
+                    _ => throw new ArgumentException("Not an emoji")
+                };
+                await messageCreateEventArgs.Message.CreateReactionAsync(discordEmoji);
             }
         }
     }

@@ -42,12 +42,13 @@ namespace Tomoe
             };
 
             Client = new(discordConfiguration);
+            Client.MessageCreated += Commands.Listeners.AutoReactions;
             Client.ComponentInteractionCreated += Commands.Listeners.ButtonClicked;
-            Client.GuildMemberAdded += Commands.Listeners.PersistentRoles;
-            Client.GuildMemberRemoved += Commands.Listeners.PersistentRoles;
             Client.GuildDownloadCompleted += Commands.Listeners.GuildDownloadCompleted;
             Client.GuildAvailable += Commands.Listeners.GuildMemberCache;
             Client.GuildCreated += Commands.Listeners.GuildMemberCache;
+            Client.GuildMemberAdded += Commands.Listeners.PersistentRoles;
+            Client.GuildMemberRemoved += Commands.Listeners.PersistentRoles;
 
             logger.Information("Connecting to Discord...");
             await Client.StartAsync();
