@@ -29,7 +29,7 @@ namespace Tomoe.Commands
             embedBuilder.AddField("Websocket Ping", context.Client.Ping + "ms");
             embedBuilder.AddField("Uptime", (Process.GetCurrentProcess().StartTime.ToUniversalTime() - DateTime.UtcNow).Humanize(3));
             embedBuilder.AddField("Shard Count", Program.Client.ShardClients.Count.ToMetric());
-            embedBuilder.AddField("Version", "1.0.2");
+            embedBuilder.AddField("Version", "2.0.0");
 
             await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().AddEmbed(embedBuilder));
         }
