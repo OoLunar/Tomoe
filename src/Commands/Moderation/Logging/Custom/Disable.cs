@@ -7,11 +7,11 @@ namespace Tomoe.Commands
     using Tomoe.Commands.Attributes;
     using Tomoe.Db;
 
-    public partial class Moderation : SlashCommandModule
+    public partial class Moderation : ApplicationCommandModule
     {
-        public partial class Logging : SlashCommandModule
+        public partial class Logging : ApplicationCommandModule
         {
-            public partial class Tomoe : SlashCommandModule
+            public partial class Tomoe : ApplicationCommandModule
             {
                 [SlashCommand("disable", "Changes where events are logged."), Hierarchy(Permissions.ManageGuild)]
                 public async Task Disable(InteractionContext context, [Option("log_type", "Which event to change.")] CustomEvent logType)

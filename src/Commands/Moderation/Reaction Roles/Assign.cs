@@ -12,7 +12,7 @@ namespace Tomoe.Commands
 
     public partial class Moderation
     {
-        public partial class MenuRoles : SlashCommandModule
+        public partial class MenuRoles : ApplicationCommandModule
         {
             public static async Task Assign(DiscordInteraction interaction, DiscordMember member, string buttonId, Database database)
             {

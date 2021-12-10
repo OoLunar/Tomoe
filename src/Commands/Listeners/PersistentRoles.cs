@@ -21,28 +21,32 @@ namespace Tomoe.Commands
             using IServiceScope scope = Program.ServiceProvider.CreateScope();
             Database database = scope.ServiceProvider.GetService<Database>();
             GuildConfig guild = database.GuildConfigs.First(guild => guild.Id == guildMemberAddEventArgs.Guild.Id);
-            GuildMember guildMember = database.GuildMembers.FirstOrDefault(user => user.UserId == guildMemberAddEventArgs.Member.Id && user.GuildId == guildMemberAddEventArgs.Guild.Id);
+            if (guild.PersistentRoles)
+            {
 
-            if (guildMember == null)
-            {
-                database.AddGuildMember(guildMemberAddEventArgs.Member);
-            }
-            else
-            {
-                foreach (ulong discordRoleId in guildMember.Roles)
+                GuildMember guildMember = database.GuildMembers.FirstOrDefault(user => user.UserId == guildMemberAddEventArgs.Member.Id && user.GuildId == guildMemberAddEventArgs.Guild.Id);
+
+                if (guildMember == null)
                 {
-                    DiscordRole discordRole = guildMemberAddEventArgs.Guild.GetRole(discordRoleId);
-                    if (discordRole == null)
+                    database.AddGuildMember(guildMemberAddEventArgs.Member);
+                }
+                else
+                {
+                    foreach (ulong discordRoleId in guildMember.Roles)
                     {
-                        guildMember.Roles.Remove(discordRoleId);
-                    }
-                    else
-                    {
-                        try
+                        DiscordRole discordRole = guildMemberAddEventArgs.Guild.GetRole(discordRoleId);
+                        if (discordRole == null)
                         {
-                            await guildMemberAddEventArgs.Member.GrantRoleAsync(discordRole, "Persistent Roles.");
+                            guildMember.Roles.Remove(discordRoleId);
                         }
-                        catch (UnauthorizedAccessException) { }
+                        else
+                        {
+                            try
+                            {
+                                await guildMemberAddEventArgs.Member.GrantRoleAsync(discordRole, "Persistent Roles.");
+                            }
+                            catch (UnauthorizedAccessException) { }
+                        }
                     }
                 }
             }
@@ -52,7 +56,7 @@ namespace Tomoe.Commands
             keyValuePairs.Add("guild_count", Public.TotalMemberCount[guildMemberAddEventArgs.Guild.Id].ToMetric());
             keyValuePairs.Add("person_username", guildMemberAddEventArgs.Member.Username);
             keyValuePairs.Add("person_tag", guildMemberAddEventArgs.Member.Discriminator);
-            keyValuePairs.Add("person_mention", guildMemberAddEventArgs.Member.Mention);
+            keyValuePairs.Add("person_mention", $"<@{guildMemberAddEventArgs.Member.Id}>");
             keyValuePairs.Add("person_id", guildMemberAddEventArgs.Member.Id.ToString(CultureInfo.InvariantCulture));
 
             await Moderation.ModLog(guildMemberAddEventArgs.Guild, keyValuePairs, Moderation.DiscordEvent.MemberJoined, database);

@@ -11,7 +11,7 @@ namespace Tomoe.Commands
     using Tomoe.Commands.Attributes;
     using Tomoe.Db;
 
-    public partial class Moderation : SlashCommandModule
+    public partial class Moderation : ApplicationCommandModule
     {
         public enum CustomEvent
         {
@@ -175,7 +175,6 @@ namespace Tomoe.Commands
                     {
                         Content = logMessage
                     };
-                    discordMessageBuilder.WithAllowedMentions(new List<IMention>());
                     await discordChannel.SendMessageAsync(discordMessageBuilder);
                 }
                 catch (UnauthorizedException) { }

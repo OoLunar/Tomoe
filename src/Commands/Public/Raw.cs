@@ -14,7 +14,7 @@ namespace Tomoe.Commands
     using System.Text.Json;
     using System.Threading.Tasks;
 
-    public partial class Public : SlashCommandModule
+    public partial class Public : ApplicationCommandModule
     {
         private static HttpClient HttpClient { get; set; } = new();
 

@@ -11,10 +11,10 @@ namespace Tomoe.Commands
     using Tomoe.Commands.Attributes;
     using Tomoe.Db;
 
-    public partial class Moderation : SlashCommandModule
+    public partial class Moderation : ApplicationCommandModule
     {
         [SlashCommandGroup("strike", "Handles warnings or strikes for an individual.")]
-        public partial class Strikes : SlashCommandModule
+        public partial class Strikes : ApplicationCommandModule
         {
             public Database Database { private get; set; }
 

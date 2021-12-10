@@ -51,8 +51,7 @@ namespace Tomoe
                             sentDm = true;
                             break;
                         }
-                        catch (NotFoundException) { }
-                        catch (UnauthorizedException) { }
+                        catch (Exception) { }
                     }
                 }
             }

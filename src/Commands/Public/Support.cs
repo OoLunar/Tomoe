@@ -4,7 +4,7 @@ namespace Tomoe.Commands
     using DSharpPlus.SlashCommands;
     using System.Threading.Tasks;
 
-    public partial class Public : SlashCommandModule
+    public partial class Public : ApplicationCommandModule
     {
         [SlashCommand("support", "Sends the support Discord invite.")]
         public static async Task Support(InteractionContext context) => await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()

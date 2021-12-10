@@ -11,9 +11,9 @@ namespace Tomoe.Commands
     using Tomoe.Commands.Attributes;
     using Tomoe.Db;
 
-    public partial class Moderation : SlashCommandModule
+    public partial class Moderation : ApplicationCommandModule
     {
-        public partial class MenuRoles : SlashCommandModule
+        public partial class MenuRoles : ApplicationCommandModule
         {
             [SlashCommand("delete", "Deletes a menu role."), Hierarchy(Permissions.ManageChannels | Permissions.ManageMessages)]
             public async Task Delete(InteractionContext context, [Option("message_link", "The message to the menu role.")] string messageString)

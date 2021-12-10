@@ -7,11 +7,11 @@ namespace Tomoe.Commands
     using Tomoe.Commands.Attributes;
     using Tomoe.Db;
 
-    public partial class Moderation : SlashCommandModule
+    public partial class Moderation : ApplicationCommandModule
     {
-        public partial class Logging : SlashCommandModule
+        public partial class Logging : ApplicationCommandModule
         {
-            public partial class Discord : SlashCommandModule
+            public partial class Discord : ApplicationCommandModule
             {
                 [SlashCommand("enable", "Changes where events are logged."), Hierarchy(Permissions.ManageGuild)]
                 public async Task Enable(InteractionContext context, [Option("log_type", "Which event to change.")] DiscordEvent logType)

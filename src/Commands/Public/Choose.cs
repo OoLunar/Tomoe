@@ -6,7 +6,7 @@ namespace Tomoe.Commands
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
 
-    public partial class Public : SlashCommandModule
+    public partial class Public : ApplicationCommandModule
     {
         public static Regex RegexArgumentParser { get; private set; } = new("\"([^\"]+)\"|(\\S+)");
         public static Random Random { get; private set; } = new();

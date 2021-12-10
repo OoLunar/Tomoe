@@ -5,9 +5,9 @@ namespace Tomoe.Commands
     using System.Threading.Tasks;
     using Tomoe.Db;
 
-    public partial class Public : SlashCommandModule
+    public partial class Public : ApplicationCommandModule
     {
-        public partial class Tags : SlashCommandModule
+        public partial class Tags : ApplicationCommandModule
         {
             [SlashCommand("author", "Gets the author of a tag.")]
             public async Task Author(InteractionContext context, [Option("name", "Which tag to gather information on.")] string tagName)

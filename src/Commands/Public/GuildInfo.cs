@@ -9,7 +9,7 @@ namespace Tomoe.Commands
     using System.Linq;
     using System.Threading.Tasks;
 
-    public partial class Public : SlashCommandModule
+    public partial class Public : ApplicationCommandModule
     {
         private const string NotSet = "Not set.";
         private const string LinkToImage = "Link to image.";

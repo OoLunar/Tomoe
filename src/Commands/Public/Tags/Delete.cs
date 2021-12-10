@@ -7,9 +7,9 @@ namespace Tomoe.Commands
     using System.Threading.Tasks;
     using Tomoe.Db;
 
-    public partial class Public : SlashCommandModule
+    public partial class Public : ApplicationCommandModule
     {
-        public partial class Tags : SlashCommandModule
+        public partial class Tags : ApplicationCommandModule
         {
             [SlashCommand("delete", "Deletes a tag.")]
             public async Task Delete(InteractionContext context, [Option("name", "Which tag to remove permanently.")] string tagName)

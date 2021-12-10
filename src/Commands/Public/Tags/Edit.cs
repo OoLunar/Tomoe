@@ -5,9 +5,9 @@ namespace Tomoe.Commands
     using System.Threading.Tasks;
     using Tomoe.Db;
 
-    public partial class Public : SlashCommandModule
+    public partial class Public : ApplicationCommandModule
     {
-        public partial class Tags : SlashCommandModule
+        public partial class Tags : ApplicationCommandModule
         {
             [SlashCommand("edit", "Edits a tag's text.")]
             public async Task Edit(InteractionContext context, [Option("name", "Which tag to edit.")] string tagName, [Option("Tag_Content", "What to fill the tag with.")] string tagContent)

@@ -5,9 +5,9 @@ namespace Tomoe.Commands
     using System.Threading.Tasks;
     using Tomoe.Db;
 
-    public partial class Public : SlashCommandModule
+    public partial class Public : ApplicationCommandModule
     {
-        public partial class Tags : SlashCommandModule
+        public partial class Tags : ApplicationCommandModule
         {
             [SlashCommand("send", "Sends a pretermined message.")]
             public async Task Send(InteractionContext context, [Option("name", "The name of the tag to send")] string tagName)

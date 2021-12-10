@@ -1,5 +1,6 @@
 namespace Tomoe.Commands
 {
+    using DSharpPlus;
     using DSharpPlus.Entities;
     using DSharpPlus.SlashCommands;
     using Humanizer;
@@ -7,16 +8,17 @@ namespace Tomoe.Commands
     using System.Threading.Tasks;
     using Tomoe.Db;
 
-    public partial class Moderation : SlashCommandModule
+    public partial class Moderation : ApplicationCommandModule
     {
         [SlashCommandGroup("config", "Manages the bot settings.")]
-        public partial class Config : SlashCommandModule
+        public partial class Config : ApplicationCommandModule
         {
             public Database Database { private get; set; }
 
             [SlashCommand("show", "Shows the current bot settings for the server.")]
             public async Task Show(InteractionContext context)
             {
+                await context.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
                 GuildConfig guildConfig = Database.GuildConfigs.First(databaseGuildConfig => databaseGuildConfig.Id == context.Guild.Id);
 
                 string adminRoles = string.Join(", ", guildConfig.AdminRoles.Select(roleId => context.Guild.Roles[roleId].Mention));

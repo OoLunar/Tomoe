@@ -8,9 +8,9 @@ namespace Tomoe.Commands
     using System.Threading.Tasks;
     using Tomoe.Db;
 
-    public partial class Moderation : SlashCommandModule
+    public partial class Moderation : ApplicationCommandModule
     {
-        public partial class Strikes : SlashCommandModule
+        public partial class Strikes : ApplicationCommandModule
         {
             [SlashCommand("info", "Gets information on a strike.")]
             public async Task Info(InteractionContext context, [Option("strike_id", "Which strike to get information on.")] long strikeId)

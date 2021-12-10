@@ -5,7 +5,7 @@ namespace Tomoe.Commands
     using DSharpPlus.SlashCommands;
     using System.Threading.Tasks;
 
-    public partial class Public : SlashCommandModule
+    public partial class Public : ApplicationCommandModule
     {
         [SlashCommand("guild_icon", "Gets the guild's icon.")]
         public static async Task GuildIcon(InteractionContext context)

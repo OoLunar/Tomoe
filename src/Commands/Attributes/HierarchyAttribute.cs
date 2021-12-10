@@ -51,9 +51,13 @@ namespace Tomoe.Commands.Attributes
                     discordMember = await id.GetMember(context.Guild);
                 }
 
-                if (discordMember == null)
+                if (discordMember.Id.GetMember(context.Guild) == null) // Discord allows us to get the member even if they are not in the guild. At the current moment, no moderation commands mess with users who aren't in the guild. As such, we can just ignore this.
                 {
-                    continue;
+                    await context.CreateResponseAsync(new()
+                    {
+                        Content = $"Error: {discordMember.Mention} is not a member of this guild!"
+                    });
+                    return false;
                 }
                 else if (discordMember == context.Member)
                 {

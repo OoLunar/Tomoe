@@ -9,9 +9,9 @@ namespace Tomoe.Commands
     using System.Threading.Tasks;
     using Tomoe.Db;
 
-    public partial class Public : SlashCommandModule
+    public partial class Public : ApplicationCommandModule
     {
-        public partial class Tags : SlashCommandModule
+        public partial class Tags : ApplicationCommandModule
         {
             [SlashCommand("info", "Sends general information on the requested tag.")]
             public async Task Info(InteractionContext context, [Option("name", "Which tag to gather information on.")] string tagName)

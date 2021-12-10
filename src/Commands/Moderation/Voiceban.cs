@@ -11,7 +11,7 @@ namespace Tomoe.Commands
     using Tomoe.Commands.Attributes;
     using Tomoe.Db;
 
-    public partial class Moderation : SlashCommandModule
+    public partial class Moderation : ApplicationCommandModule
     {
         [SlashCommand("voiceban", "Prevents the victim from joining voice channels."), Hierarchy(Permissions.MuteMembers)]
         public async Task Voiceban(InteractionContext context, [Option("victim", "Who to voiceban?")] DiscordUser victim, [Option("reason", "Why is the victim being voicebanned?")] string reason = Constants.MissingReason)

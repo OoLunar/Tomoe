@@ -11,7 +11,7 @@ namespace Tomoe.Commands
     using Tomoe.Commands.Attributes;
     using Tomoe.Db;
 
-    public partial class Moderation : SlashCommandModule
+    public partial class Moderation : ApplicationCommandModule
     {
         [SlashCommand("mute", "Prevents a user from having any sort of interaction in the guild."), Hierarchy(Permissions.ManageMessages)]
         public async Task Mute(InteractionContext context, [Option("victim", "Who to mute?")] DiscordUser victim, [Option("reason", "Why is the victim being muted?")] string reason = Constants.MissingReason)

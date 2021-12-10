@@ -10,9 +10,9 @@ namespace Tomoe.Commands
     using System.Threading.Tasks;
     using Tomoe.Db;
 
-    public partial class Moderation : SlashCommandModule
+    public partial class Moderation : ApplicationCommandModule
     {
-        public partial class Config : SlashCommandModule
+        public partial class Config : ApplicationCommandModule
         {
             public static async Task FixRolePermissions(DiscordGuild guild, DiscordMember discordMember, DiscordRole role, CustomEvent roleType, Database database)
             {

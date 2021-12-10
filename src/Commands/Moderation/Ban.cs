@@ -2,15 +2,15 @@ namespace Tomoe.Commands
 {
     using DSharpPlus;
     using DSharpPlus.Entities;
-    using DSharpPlus.Exceptions;
     using DSharpPlus.SlashCommands;
     using Humanizer;
+    using System;
     using System.Collections.Generic;
     using System.Globalization;
     using System.Threading.Tasks;
     using Tomoe.Commands.Attributes;
 
-    public partial class Moderation : SlashCommandModule
+    public partial class Moderation : ApplicationCommandModule
     {
         [SlashCommand("ban", "Bans a member from the guild, sending them off with a dm."), Hierarchy(Permissions.BanMembers, true)]
         public static async Task Ban(InteractionContext context, [Option("victim", "Who to ban from the guild.")] DiscordUser victimUser, [Option("reason", "Why is the victim being banned from the guild?")] string reason = Constants.MissingReason)
@@ -24,7 +24,7 @@ namespace Tomoe.Commands
                 });
                 return;
             }
-            catch (NotFoundException) { }
+            catch (Exception) { }
 
             DiscordMember victimMember = await victimUser.Id.GetMember(context.Guild);
             bool sentDm = await victimUser.TryDmMember($"You've been banned from {context.Guild.Name} by {context.Member.Mention} ({Formatter.InlineCode(context.Member.Id.ToString(CultureInfo.InvariantCulture))}). Reason: {reason}");

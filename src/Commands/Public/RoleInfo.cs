@@ -10,7 +10,7 @@ namespace Tomoe.Commands
     using System.Text;
     using System.Threading.Tasks;
 
-    public partial class Public : SlashCommandModule
+    public partial class Public : ApplicationCommandModule
     {
         [SlashCommand("role_info", "Gets general information about a role.")]
         public static async Task RoleInfo(InteractionContext context, [Option("role", "The role to get information on.")] DiscordRole discordRole)

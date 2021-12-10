@@ -8,13 +8,13 @@ namespace Tomoe.Commands
     using Tomoe.Commands.Attributes;
     using Tomoe.Db;
 
-    public partial class Moderation : SlashCommandModule
+    public partial class Moderation : ApplicationCommandModule
     {
         [SlashCommandGroup("logging", "Handles how logging is done.")]
-        public partial class Logging : SlashCommandModule
+        public partial class Logging : ApplicationCommandModule
         {
             [SlashCommandGroup("tomoe", "Handles Tomoe related events for logging.")]
-            public partial class Tomoe : SlashCommandModule
+            public partial class Tomoe : ApplicationCommandModule
             {
                 public Database Database { private get; set; }
 

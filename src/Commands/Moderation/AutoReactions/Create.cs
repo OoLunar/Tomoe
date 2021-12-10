@@ -12,10 +12,10 @@ namespace Tomoe.Commands
     using Tomoe.Commands.Attributes;
     using Tomoe.Db;
 
-    public partial class Moderation : SlashCommandModule
+    public partial class Moderation : ApplicationCommandModule
     {
         [SlashCommandGroup("autoreact", "Adds a new reaction on every message sent in a specified guild channel.")]
-        public partial class AutoReactions : SlashCommandModule
+        public partial class AutoReactions : ApplicationCommandModule
         {
             private static Regex EmojiRegex { get; } = new("^<(?<animated>a)?:(?<name>[a-zA-Z0-9_]+?):(?<id>\\d+?)>$", RegexOptions.Compiled | RegexOptions.ECMAScript);
             public Database Database { private get; set; }

@@ -12,9 +12,9 @@ namespace Tomoe.Commands
     using Tomoe.Commands.Attributes;
     using Tomoe.Db;
 
-    public partial class Moderation : SlashCommandModule
+    public partial class Moderation : ApplicationCommandModule
     {
-        public partial class Strikes : SlashCommandModule
+        public partial class Strikes : ApplicationCommandModule
         {
             [SlashCommand("drop", "Drops a previously issued strike for an individual."), Hierarchy(Permissions.KickMembers)]
             public async Task Drop(InteractionContext context, [Option("strike_id", "Which strike to drop.")] long strikeId, [Option("reason", "Why is the strike being dropped?")] string reason = Constants.MissingReason)

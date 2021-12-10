@@ -60,7 +60,7 @@ namespace Tomoe.Utilities.Configs
             }
 
             // Prefer JsonSerializer.DeserializeAsync over JsonSerializer.Deserialize due to being able to send the stream directly.
-            return await JsonSerializer.DeserializeAsync<Config>(File.OpenRead(tokenFile), new() { IncludeFields = true, AllowTrailingCommas = true, ReadCommentHandling = JsonCommentHandling.Skip, PropertyNameCaseInsensitive = true });
+            return await JsonSerializer.DeserializeAsync<Config>(File.OpenRead(tokenFile), new JsonSerializerOptions() { IncludeFields = true, AllowTrailingCommas = true, ReadCommentHandling = JsonCommentHandling.Skip, PropertyNameCaseInsensitive = true });
         }
     }
 }

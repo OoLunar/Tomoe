@@ -10,10 +10,10 @@ namespace Tomoe.Commands
     using Tomoe.Commands.Attributes;
     using Tomoe.Db;
 
-    public partial class Moderation : SlashCommandModule
+    public partial class Moderation : ApplicationCommandModule
     {
         [SlashCommandGroup("menu_role", "Select which roles you want!")]
-        public partial class MenuRoles : SlashCommandModule
+        public partial class MenuRoles : ApplicationCommandModule
         {
             public Database Database { private get; set; }
 

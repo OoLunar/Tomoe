@@ -5,9 +5,9 @@ namespace Tomoe.Commands
     using System;
     using System.Threading.Tasks;
 
-    public partial class Moderation : SlashCommandModule
+    public partial class Moderation : ApplicationCommandModule
     {
-        public partial class MenuRoles : SlashCommandModule
+        public partial class MenuRoles : ApplicationCommandModule
         {
             [SlashCommand("list", "Shows all autoreactions on a channel.")]
             public async Task List(InteractionContext context, [Option("channel", "Which channel to view the autoreactions on.")] DiscordChannel channel = null)

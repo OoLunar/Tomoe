@@ -7,9 +7,9 @@ namespace Tomoe.Commands
     using System.Threading.Tasks;
     using Tomoe.Db;
 
-    public partial class Moderation : SlashCommandModule
+    public partial class Moderation : ApplicationCommandModule
     {
-        public partial class Strikes : SlashCommandModule
+        public partial class Strikes : ApplicationCommandModule
         {
             [SlashCommand("history", "Gets information on a user.")]
             public async Task History(InteractionContext context, [Option("user", "Who")] DiscordUser victim)

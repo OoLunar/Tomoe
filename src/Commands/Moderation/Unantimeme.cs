@@ -11,7 +11,7 @@ namespace Tomoe.Commands
     using Tomoe.Commands.Attributes;
     using Tomoe.Db;
 
-    public partial class Moderation : SlashCommandModule
+    public partial class Moderation : ApplicationCommandModule
     {
         [SlashCommand("unantimeme", "Removes an antimeme from the victim. They can now react, send embeds or upload files."), Hierarchy(Permissions.ManageMessages)]
         public async Task Unantimeme(InteractionContext context, [Option("victim", "Who to unantimeme?")] DiscordUser victim, [Option("reason", "Why is the victim being unantimemed?")] string reason = Constants.MissingReason)

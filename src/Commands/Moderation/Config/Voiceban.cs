@@ -8,9 +8,9 @@ namespace Tomoe.Commands
     using Tomoe.Commands.Attributes;
     using Tomoe.Db;
 
-    public partial class Moderation : SlashCommandModule
+    public partial class Moderation : ApplicationCommandModule
     {
-        public partial class Config : SlashCommandModule
+        public partial class Config : ApplicationCommandModule
         {
             [SlashCommand("voiceban", "Sets the voiceban role for the guild."), Hierarchy(Permissions.ManageRoles)]
             public async Task Voiceban(InteractionContext context, [Option("role", "Which role to set.")] DiscordRole role = null)
