@@ -4,9 +4,13 @@ namespace Tomoe.Commands
     using DSharpPlus.Entities;
     using DSharpPlus.EventArgs;
     using Humanizer;
+    using Microsoft.Extensions.DependencyInjection;
     using Serilog;
+    using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using Tomoe.Db;
 
     public partial class Listeners
     {
