@@ -9,6 +9,6 @@ WORKDIR /src
 
 COPY --from=build /src/bin/Release/net6.0/linux-musl-x64/publish /src
 COPY ./res /src/res
-RUN apk upgrade --update-cache --available && apk add openssl libstdc++ && rm -rf /var/cache/apk/*
+RUN apk upgrade --update-cache --available && apk add openssl libstdc++ icu-libs && rm -rf /var/cache/apk/*
 
-ENTRYPOINT DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 /src/Tomoe
+ENTRYPOINT /src/Tomoe
