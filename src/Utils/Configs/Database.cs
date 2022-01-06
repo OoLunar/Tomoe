@@ -1,7 +1,7 @@
+using System.Text.Json.Serialization;
+
 namespace Tomoe.Utils.Configs
 {
-    using System.Text.Json.Serialization;
-
     public class Database
     {
         [JsonPropertyName("application_name")]

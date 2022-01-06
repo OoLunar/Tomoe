@@ -1,10 +1,10 @@
+using DSharpPlus.Entities;
+using System;
+using System.Threading.Tasks;
+using Tomoe.Commands.Listeners;
+
 namespace Tomoe.Utils.Types
 {
-    using DSharpPlus.Entities;
-    using System;
-    using System.Threading.Tasks;
-    using Tomoe.Commands.Listeners;
-
     public class Queue : IDisposable
     {
         public delegate Task ReactionHandler(QueueEventArgs eventArgs);

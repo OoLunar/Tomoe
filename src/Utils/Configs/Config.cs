@@ -1,9 +1,9 @@
+using System;
+using System.Text.Json.Serialization;
+using Tomoe.Utils.Converters;
+
 namespace Tomoe.Utils.Configs
 {
-    using System;
-    using System.Text.Json.Serialization;
-    using Tomoe.Utils.Converters;
-
     public class Config
     {
         [JsonPropertyName("discord_api_token")]

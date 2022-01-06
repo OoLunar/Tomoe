@@ -1,16 +1,16 @@
+using DSharpPlus;
+using DSharpPlus.CommandsNext;
+using DSharpPlus.Entities;
+using DSharpPlus.EventArgs;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using System.Linq;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using Tomoe.Db;
+
 namespace Tomoe.Commands.Listeners
 {
-    using DSharpPlus;
-    using DSharpPlus.CommandsNext;
-    using DSharpPlus.Entities;
-    using DSharpPlus.EventArgs;
-    using Microsoft.EntityFrameworkCore;
-    using Microsoft.Extensions.DependencyInjection;
-    using System.Linq;
-    using System.Text.RegularExpressions;
-    using System.Threading.Tasks;
-    using Tomoe.Db;
-
     public class MessageRecieved
     {
         public static readonly Regex InviteRegex = new(@"disc(?:ord)?(?:(?:app)?\.com\/invite|(?:\.gg))\/([A-z0-9-]{2,})", RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.IgnoreCase);

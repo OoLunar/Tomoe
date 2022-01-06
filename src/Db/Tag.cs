@@ -1,8 +1,8 @@
+using System;
+using System.ComponentModel.DataAnnotations;
+
 namespace Tomoe.Db
 {
-    using System;
-    using System.ComponentModel.DataAnnotations;
-
     public class Tag
     {
         [Key] public int Id { get; internal set; }

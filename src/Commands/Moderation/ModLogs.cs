@@ -1,10 +1,10 @@
+using DSharpPlus;
+using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Attributes;
+using System.Threading.Tasks;
+
 namespace Tomoe.Commands.Moderation
 {
-    using DSharpPlus;
-    using DSharpPlus.CommandsNext;
-    using DSharpPlus.CommandsNext.Attributes;
-    using System.Threading.Tasks;
-
     public class ModLogs : BaseCommandModule
     {
         [Command("modlog"), Description("Logs something to the modlog."), Aliases("mod_log", "log", "ml", "mod_logs", "modlogs", "mls"), RequireUserPermissions(Permissions.ManageGuild)]

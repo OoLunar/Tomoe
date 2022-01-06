@@ -1,10 +1,10 @@
+using DSharpPlus;
+using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Attributes;
+using System.Threading.Tasks;
+
 namespace Tomoe.Commands.Public
 {
-    using DSharpPlus;
-    using DSharpPlus.CommandsNext;
-    using DSharpPlus.CommandsNext.Attributes;
-    using System.Threading.Tasks;
-
     public class Invite : BaseCommandModule
     {
         [Command("invite"), Description("Sends the link to add Tomoe to a guild without an embed."), Aliases("link")]

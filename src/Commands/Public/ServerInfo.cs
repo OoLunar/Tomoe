@@ -1,14 +1,14 @@
+using DSharpPlus;
+using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.Entities;
+using Humanizer;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+
 namespace Tomoe.Commands.Public
 {
-    using DSharpPlus;
-    using DSharpPlus.CommandsNext;
-    using DSharpPlus.CommandsNext.Attributes;
-    using DSharpPlus.Entities;
-    using Humanizer;
-    using System;
-    using System.Linq;
-    using System.Threading.Tasks;
-
     public class ServerInfo : BaseCommandModule
     {
         [Command("server_info"), Description("Gets general info about the server."), Aliases("guild_info")]

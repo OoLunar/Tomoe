@@ -1,14 +1,14 @@
+using DSharpPlus;
+using DSharpPlus.Entities;
+using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Tomoe.Db;
+
 namespace Tomoe.Api
 {
-    using DSharpPlus;
-    using DSharpPlus.Entities;
-    using Microsoft.Extensions.DependencyInjection;
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Tomoe.Db;
-
     public partial class Moderation
     {
         public class Lockdown

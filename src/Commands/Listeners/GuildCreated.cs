@@ -1,17 +1,17 @@
+using DSharpPlus;
+using DSharpPlus.Entities;
+using DSharpPlus.EventArgs;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Serilog;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Tomoe.Db;
+using static Tomoe.Api.Moderation;
+
 namespace Tomoe.Commands.Listeners
 {
-    using DSharpPlus;
-    using DSharpPlus.Entities;
-    using DSharpPlus.EventArgs;
-    using Microsoft.EntityFrameworkCore;
-    using Microsoft.Extensions.DependencyInjection;
-    using Serilog;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Tomoe.Db;
-    using static Tomoe.Api.Moderation;
-
     public class GuildCreated
     {
         private static readonly ILogger _logger = Log.ForContext<GuildCreated>();

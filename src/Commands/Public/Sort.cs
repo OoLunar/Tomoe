@@ -1,10 +1,10 @@
+using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Attributes;
+using System.Linq;
+using System.Threading.Tasks;
+
 namespace Tomoe.Commands.Public
 {
-    using DSharpPlus.CommandsNext;
-    using DSharpPlus.CommandsNext.Attributes;
-    using System.Linq;
-    using System.Threading.Tasks;
-
     public class Sort : BaseCommandModule
     {
         [Command("sort"), Description("Organized a line seperated list alphabetically.")]

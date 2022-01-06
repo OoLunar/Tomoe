@@ -1,7 +1,7 @@
+using DSharpPlus.Entities;
+
 namespace Tomoe
 {
-    using DSharpPlus.Entities;
-
     public class Constants
     {
         public const string MissingReason = "**[Notice: No reason was provided.]**";

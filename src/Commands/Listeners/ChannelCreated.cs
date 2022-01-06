@@ -1,14 +1,14 @@
+using DSharpPlus;
+using DSharpPlus.Entities;
+using DSharpPlus.EventArgs;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using System.Threading.Tasks;
+using Tomoe.Db;
+using static Tomoe.Api.Moderation;
+
 namespace Tomoe.Commands.Listeners
 {
-    using DSharpPlus;
-    using DSharpPlus.Entities;
-    using DSharpPlus.EventArgs;
-    using Microsoft.EntityFrameworkCore;
-    using Microsoft.Extensions.DependencyInjection;
-    using System.Threading.Tasks;
-    using Tomoe.Db;
-    using static Tomoe.Api.Moderation;
-
     public class ChannelCreated
     {
         /// <summary>

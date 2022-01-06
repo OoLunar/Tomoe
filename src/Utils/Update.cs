@@ -1,12 +1,12 @@
+using DSharpPlus.CommandsNext;
+using DSharpPlus.Entities;
+using Serilog;
+using System;
+using System.Linq;
+using System.Timers;
+
 namespace Tomoe.Utils
 {
-    using DSharpPlus.CommandsNext;
-    using DSharpPlus.Entities;
-    using Serilog;
-    using System;
-    using System.Linq;
-    using System.Timers;
-
     public class Update
     {
         private static readonly ILogger _logger = Log.ForContext<Update>();

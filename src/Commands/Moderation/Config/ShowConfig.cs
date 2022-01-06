@@ -1,15 +1,15 @@
+using DSharpPlus;
+using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.Entities;
+using Humanizer;
+using Microsoft.EntityFrameworkCore;
+using System.Linq;
+using System.Threading.Tasks;
+using Tomoe.Db;
+
 namespace Tomoe.Commands.Moderation
 {
-    using DSharpPlus;
-    using DSharpPlus.CommandsNext;
-    using DSharpPlus.CommandsNext.Attributes;
-    using DSharpPlus.Entities;
-    using Humanizer;
-    using Microsoft.EntityFrameworkCore;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Tomoe.Db;
-
     [Group("config"), RequireGuild, Description("Shows and sets settings for the guild."), RequireUserPermissions(Permissions.ManageGuild)]
     public partial class Config : BaseCommandModule
     {

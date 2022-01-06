@@ -1,9 +1,9 @@
+using System;
+using System.ComponentModel.DataAnnotations;
+using Tomoe.Api;
+
 namespace Tomoe.Db
 {
-    using Api;
-    using System;
-    using System.ComponentModel.DataAnnotations;
-
     public class Reminder
     {
         [Key] public int Id { get; internal set; }

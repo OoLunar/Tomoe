@@ -1,15 +1,15 @@
+using DSharpPlus;
+using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.Entities;
+using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+using Tomoe.Db;
+
 namespace Tomoe.Commands.Moderation
 {
-    using DSharpPlus;
-    using DSharpPlus.CommandsNext;
-    using DSharpPlus.CommandsNext.Attributes;
-    using DSharpPlus.Entities;
-    using Microsoft.Extensions.DependencyInjection;
-    using System;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Tomoe.Db;
-
     public partial class Config : BaseCommandModule
     {
         [Command("fix_permissions"), Aliases("fix_perms"), RequireUserPermissions(Permissions.ManageChannels | Permissions.ManageRoles), Description("Fixes channel permissions for the punishment roles.")]

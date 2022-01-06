@@ -1,18 +1,18 @@
+using DSharpPlus;
+using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.Entities;
+using DSharpPlus.Interactivity;
+using DSharpPlus.Interactivity.Extensions;
+using Humanizer;
+using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Tomoe.Db;
+
 namespace Tomoe.Commands.Public
 {
-    using DSharpPlus;
-    using DSharpPlus.CommandsNext;
-    using DSharpPlus.CommandsNext.Attributes;
-    using DSharpPlus.Entities;
-    using DSharpPlus.Interactivity;
-    using DSharpPlus.Interactivity.Extensions;
-    using Humanizer;
-    using Microsoft.EntityFrameworkCore;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Tomoe.Db;
-
     [Group("tag"), Description("Sends a pre-specified message."), RequireGuild]
     public class Tags : BaseCommandModule
     {

@@ -1,20 +1,20 @@
+using DSharpPlus;
+using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.Entities;
+using DSharpPlus.Interactivity;
+using DSharpPlus.Interactivity.Extensions;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Threading.Tasks;
+using Tomoe.Commands.Moderation.Attributes;
+using Tomoe.Db;
+
 namespace Tomoe.Commands.Moderation
 {
-    using DSharpPlus;
-    using DSharpPlus.CommandsNext;
-    using DSharpPlus.CommandsNext.Attributes;
-    using DSharpPlus.Entities;
-    using DSharpPlus.Interactivity;
-    using DSharpPlus.Interactivity.Extensions;
-    using Microsoft.EntityFrameworkCore;
-    using System;
-    using System.Collections.Generic;
-    using System.Globalization;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Tomoe.Commands.Moderation.Attributes;
-    using Tomoe.Db;
-
     [Group("strike"), RequireGuild, Description("Assigns a strike to a specific individual."), Aliases("warn"), RequireUserPermissions(Permissions.KickMembers)]
     public class Strikes : BaseCommandModule
     {

@@ -1,13 +1,13 @@
+using DSharpPlus;
+using DSharpPlus.Entities;
+using DSharpPlus.EventArgs;
+using Microsoft.Extensions.DependencyInjection;
+using System.Linq;
+using System.Threading.Tasks;
+using Tomoe.Db;
+
 namespace Tomoe.Utils
 {
-    using DSharpPlus;
-    using DSharpPlus.Entities;
-    using DSharpPlus.EventArgs;
-    using Microsoft.Extensions.DependencyInjection;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Tomoe.Db;
-
     public class AutoReactionListener
     {
         public static async Task Handler(DiscordClient client, MessageCreateEventArgs eventArgs)

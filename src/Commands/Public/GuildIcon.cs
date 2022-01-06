@@ -1,9 +1,9 @@
+using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Attributes;
+using System.Threading.Tasks;
+
 namespace Tomoe.Commands.Public
 {
-    using DSharpPlus.CommandsNext;
-    using DSharpPlus.CommandsNext.Attributes;
-    using System.Threading.Tasks;
-
     public class GuildIcon : BaseCommandModule
     {
         [Command("guild_icon"), Description("Gets the guild's icon."), Aliases("guild_pfp")]

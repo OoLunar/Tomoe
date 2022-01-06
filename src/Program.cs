@@ -1,25 +1,26 @@
+using DSharpPlus;
+using DSharpPlus.CommandsNext;
+using DSharpPlus.Entities;
+using DSharpPlus.Exceptions;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Npgsql;
+using Serilog;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Net;
+using System.Net.Http;
+using System.Text.Json;
+using System.Threading.Tasks;
+using Tomoe.Commands.Listeners;
+using Tomoe.Db;
+using Tomoe.Utils;
+
 namespace Tomoe
 {
-    using DSharpPlus;
-    using DSharpPlus.CommandsNext;
-    using DSharpPlus.Entities;
-    using DSharpPlus.Exceptions;
-    using Microsoft.EntityFrameworkCore;
-    using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Logging;
-    using Npgsql;
-    using Serilog;
-    using System;
-    using System.Collections.Generic;
-    using System.Globalization;
-    using System.IO;
-    using System.Net;
-    using System.Text.Json;
-    using System.Threading.Tasks;
-    using Tomoe.Commands.Listeners;
-    using Tomoe.Db;
-    using Tomoe.Utils;
-
     public class Program
     {
         public static DiscordShardedClient Client { get; private set; }
@@ -50,13 +51,13 @@ namespace Tomoe
             else
             {
                 // No config file could be found. Download it for them and inform them of the issue.
-                WebClient webClient = new();
-                webClient.DownloadFile("https://raw.githubusercontent.com/OoLunar/Tomoe/master/res/config.jsonc", "res/config.jsonc");
+                HttpClient httpClient = new();
+                File.WriteAllBytes("res/config.jsonc", await httpClient.GetByteArrayAsync("https://raw.githubusercontent.com/OoLunar/Tomoe/master/res/config.jsonc"));
                 Console.WriteLine("The config file was downloaded. Please go fill out \"res/config.jsonc\". It is recommended to use \"res/config.jsonc.prod\" if you intend on contributing to Tomoe.");
                 Environment.Exit(1);
             }
             // Prefer JsonSerializer.DeserializeAsync over JsonSerializer.Deserialize due to being able to send the stream directly.
-            Config = await JsonSerializer.DeserializeAsync<Utils.Configs.Config>(File.OpenRead(tokenFile), new() { IncludeFields = true, AllowTrailingCommas = true, ReadCommentHandling = JsonCommentHandling.Skip, PropertyNameCaseInsensitive = true });
+            Config = await JsonSerializer.DeserializeAsync<Utils.Configs.Config>(File.OpenRead(tokenFile), new JsonSerializerOptions() { IncludeFields = true, AllowTrailingCommas = true, ReadCommentHandling = JsonCommentHandling.Skip, PropertyNameCaseInsensitive = true });
 
             // Setup Logger
             // Follow the Config.Logger.ShowId option.

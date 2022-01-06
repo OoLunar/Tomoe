@@ -1,17 +1,17 @@
+using DSharpPlus;
+using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.Entities;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+using Tomoe.Db;
+using Tomoe.Utils.Types;
+using static Tomoe.Api.Moderation;
+
 namespace Tomoe.Commands.Moderation
 {
-    using DSharpPlus;
-    using DSharpPlus.CommandsNext;
-    using DSharpPlus.CommandsNext.Attributes;
-    using DSharpPlus.Entities;
-    using Microsoft.EntityFrameworkCore;
-    using System;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Tomoe.Db;
-    using Tomoe.Utils.Types;
-    using static Tomoe.Api.Moderation;
-
     public partial class Config : BaseCommandModule
     {
         [Command("antimeme"), RequireBotPermissions(Permissions.ManageRoles | Permissions.ManageChannels), RequireUserPermissions(Permissions.ManageMessages), Description("Creates or assigns the `Antimeme` role. The antimeme role prevents reacting to messages, embedding links, uploading files, streaming and forces push-to-talk. The intention of this role is to prevent abuse of Discord's rich messaging features, or when someone is being really annoying by conversating with every known method except through words.")]

@@ -1,14 +1,14 @@
+using DSharpPlus;
+using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Converters;
+using DSharpPlus.Entities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using System.Threading.Tasks;
+using Tomoe.Db;
+
 namespace Tomoe.Utils.Converters
 {
-    using DSharpPlus;
-    using DSharpPlus.CommandsNext;
-    using DSharpPlus.CommandsNext.Converters;
-    using DSharpPlus.Entities;
-    using Microsoft.EntityFrameworkCore;
-    using Microsoft.Extensions.DependencyInjection;
-    using System.Threading.Tasks;
-    using Tomoe.Db;
-
     public class TagConverter : IArgumentConverter<Tag>
     {
         public async Task<Optional<Tag>> ConvertAsync(string value, CommandContext context)

@@ -1,12 +1,12 @@
+using DSharpPlus;
+using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.Entities;
+using System.Threading.Tasks;
+using Tomoe.Db;
+
 namespace Tomoe.Commands.Moderation
 {
-    using DSharpPlus;
-    using DSharpPlus.CommandsNext;
-    using DSharpPlus.CommandsNext.Attributes;
-    using DSharpPlus.Entities;
-    using System.Threading.Tasks;
-    using Tomoe.Db;
-
     [Group("unlock"), Description("Unlocks a channel, role or the entire server."), Aliases("unlock_down", "unlockdown"), RequireGuild, RequireUserPermissions(Permissions.ManageRoles | Permissions.ManageChannels), RequireBotPermissions(Permissions.ManageRoles | Permissions.ManageChannels)]
     public class Unlockdown : BaseCommandModule
     {

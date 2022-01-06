@@ -1,13 +1,13 @@
+using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Converters;
+using DSharpPlus.Entities;
+using Humanizer;
+using System;
+using System.Threading.Tasks;
+using static Tomoe.Api.Moderation;
+
 namespace Tomoe.Utils.Converters
 {
-    using DSharpPlus.CommandsNext;
-    using DSharpPlus.CommandsNext.Converters;
-    using DSharpPlus.Entities;
-    using Humanizer;
-    using System;
-    using System.Threading.Tasks;
-    using static Tomoe.Api.Moderation;
-
     public class LogTypeConverter : IArgumentConverter<LogType>
     {
         public Task<Optional<LogType>> ConvertAsync(string value, CommandContext ctx)

@@ -1,14 +1,14 @@
+using DSharpPlus;
+using DSharpPlus.CommandsNext;
+using DSharpPlus.EventArgs;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Tomoe.Db;
+
 namespace Tomoe.Utils
 {
-    using DSharpPlus;
-    using DSharpPlus.CommandsNext;
-    using DSharpPlus.EventArgs;
-    using Microsoft.EntityFrameworkCore;
-    using Microsoft.Extensions.DependencyInjection;
-    using System.Collections.Generic;
-    using System.Threading.Tasks;
-    using Tomoe.Db;
-
     public class CommandHandler
     {
         public static async Task Handler(DiscordClient client, MessageCreateEventArgs eventArgs)

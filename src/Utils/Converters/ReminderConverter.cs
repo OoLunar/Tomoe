@@ -1,15 +1,15 @@
+using DSharpPlus;
+using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Converters;
+using DSharpPlus.Entities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using System.Globalization;
+using System.Threading.Tasks;
+using Tomoe.Db;
+
 namespace Tomoe.Utils.Converters
 {
-    using DSharpPlus;
-    using DSharpPlus.CommandsNext;
-    using DSharpPlus.CommandsNext.Converters;
-    using DSharpPlus.Entities;
-    using Microsoft.EntityFrameworkCore;
-    using Microsoft.Extensions.DependencyInjection;
-    using System.Globalization;
-    using System.Threading.Tasks;
-    using Tomoe.Db;
-
     public class ReminderConverter : IArgumentConverter<Reminder>
     {
         public async Task<Optional<Reminder>> ConvertAsync(string value, CommandContext context)

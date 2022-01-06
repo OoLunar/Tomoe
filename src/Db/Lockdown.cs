@@ -1,8 +1,8 @@
+using DSharpPlus;
+using System.ComponentModel.DataAnnotations;
+
 namespace Tomoe.Db
 {
-    using DSharpPlus;
-    using System.ComponentModel.DataAnnotations;
-
     public class Lock
     {
         [Key] public int Id { get; internal set; }

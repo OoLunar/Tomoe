@@ -1,13 +1,13 @@
+using DSharpPlus;
+using DSharpPlus.Entities;
+using Humanizer;
+using Microsoft.Extensions.DependencyInjection;
+using System.Linq;
+using System.Threading.Tasks;
+using Tomoe.Db;
+
 namespace Tomoe.Api
 {
-    using DSharpPlus;
-    using DSharpPlus.Entities;
-    using Humanizer;
-    using Microsoft.Extensions.DependencyInjection;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Tomoe.Db;
-
     public partial class Moderation
     {
         public class Logging

@@ -41,6 +41,7 @@ dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:sug
 # Modifier preferences
 dotnet_style_require_accessibility_modifiers = for_non_interface_members:suggestion
 dotnet_code_quality.CA1822.api_surface = none
+dotnet_code_quality.CA1725.api_surface = none
 
 # Expression-level preferences
 dotnet_style_coalesce_expression = true:suggestion
@@ -115,7 +116,7 @@ csharp_style_unused_value_assignment_preference = discard_variable:suggestion
 csharp_style_unused_value_expression_statement_preference = none
 
 # 'using' directive preferences
-csharp_using_directive_placement = inside_namespace:suggestion
+csharp_using_directive_placement = outside_namespace:warning
 
 #### C# Formatting Rules ####
 
@@ -184,29 +185,19 @@ dotnet_naming_rule.non_field_members_should_be_pascal_case.style = pascal_case
 
 dotnet_naming_symbols.interface.applicable_kinds = interface
 dotnet_naming_symbols.interface.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
-dotnet_naming_symbols.interface.required_modifiers =
 
 dotnet_naming_symbols.types.applicable_kinds = class, struct, interface, enum
 dotnet_naming_symbols.types.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
-dotnet_naming_symbols.types.required_modifiers =
 
 dotnet_naming_symbols.non_field_members.applicable_kinds = property, event, method
 dotnet_naming_symbols.non_field_members.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
-dotnet_naming_symbols.non_field_members.required_modifiers =
 
 # Naming styles
 
-dotnet_naming_style.pascal_case.required_prefix =
-dotnet_naming_style.pascal_case.required_suffix =
-dotnet_naming_style.pascal_case.word_separator =
 dotnet_naming_style.pascal_case.capitalization = pascal_case
 
 dotnet_naming_style.begins_with_i.required_prefix = I
-dotnet_naming_style.begins_with_i.required_suffix =
-dotnet_naming_style.begins_with_i.word_separator =
 dotnet_naming_style.begins_with_i.capitalization = pascal_case
-
-[*.cs]
 
 # IDE0065: Misplaced using directive
 dotnet_diagnostic.IDE0065.severity = suggestion

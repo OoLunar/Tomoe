@@ -1,14 +1,14 @@
+using DSharpPlus;
+using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.Entities;
+using System;
+using System.Threading.Tasks;
+using Tomoe.Commands.Moderation.Attributes;
+using Tomoe.Db;
+
 namespace Tomoe.Commands.Moderation
 {
-    using DSharpPlus;
-    using DSharpPlus.CommandsNext;
-    using DSharpPlus.CommandsNext.Attributes;
-    using DSharpPlus.Entities;
-    using System;
-    using System.Threading.Tasks;
-    using Tomoe.Commands.Moderation.Attributes;
-    using Tomoe.Db;
-
     public class MuteMemeBan : BaseCommandModule
     {
         public Database Database { private get; set; }

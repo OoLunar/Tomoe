@@ -1,13 +1,13 @@
+using DSharpPlus;
+using DSharpPlus.EventArgs;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Tomoe.Utils.Types;
+
 namespace Tomoe.Commands.Listeners
 {
-    using DSharpPlus;
-    using DSharpPlus.EventArgs;
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Tomoe.Utils.Types;
-
     public class ReactionAdded
     {
         internal static readonly List<Queue> QueueList = new();

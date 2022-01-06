@@ -1,10 +1,10 @@
+using DSharpPlus;
+using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Attributes;
+using System.Threading.Tasks;
+
 namespace Tomoe.Commands.Public
 {
-    using DSharpPlus;
-    using DSharpPlus.CommandsNext;
-    using DSharpPlus.CommandsNext.Attributes;
-    using System.Threading.Tasks;
-
     public class Support : BaseCommandModule
     {
         [Command("support"), Description("Sends the support Discord invite."), Aliases("discord", "guild")]

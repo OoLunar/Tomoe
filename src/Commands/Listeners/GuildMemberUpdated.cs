@@ -1,13 +1,13 @@
+using DSharpPlus;
+using DSharpPlus.EventArgs;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using System.Linq;
+using System.Threading.Tasks;
+using Tomoe.Db;
+
 namespace Tomoe.Commands.Listeners
 {
-    using DSharpPlus;
-    using DSharpPlus.EventArgs;
-    using Microsoft.EntityFrameworkCore;
-    using Microsoft.Extensions.DependencyInjection;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Tomoe.Db;
-
     public class GuildMemberUpdated
     {
         /// <summary>

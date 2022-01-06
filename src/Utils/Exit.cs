@@ -1,11 +1,11 @@
+using DSharpPlus.Entities;
+using Microsoft.Extensions.DependencyInjection;
+using Serilog;
+using System;
+using Tomoe.Db;
+
 namespace Tomoe.Utils
 {
-    using DSharpPlus.Entities;
-    using Microsoft.Extensions.DependencyInjection;
-    using Serilog;
-    using System;
-    using Tomoe.Db;
-
     public class Quit
     {
         private static readonly ILogger _logger = Log.ForContext<Quit>();

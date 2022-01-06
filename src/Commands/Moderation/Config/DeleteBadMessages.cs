@@ -1,10 +1,10 @@
+using DSharpPlus;
+using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Attributes;
+using System.Threading.Tasks;
+
 namespace Tomoe.Commands.Moderation
 {
-    using DSharpPlus;
-    using DSharpPlus.CommandsNext;
-    using DSharpPlus.CommandsNext.Attributes;
-    using System.Threading.Tasks;
-
     public partial class Config : BaseCommandModule
     {
         [Command("auto_delete")]
@@ -22,4 +22,3 @@ namespace Tomoe.Commands.Moderation
         }
     }
 }
-

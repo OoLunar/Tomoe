@@ -1,8 +1,8 @@
+using System;
+using System.Runtime.Serialization;
+
 namespace Tomoe.Utils.Exceptions
 {
-    using System;
-    using System.Runtime.Serialization;
-
     [Serializable]
     public class HierarchyException : Exception
     {

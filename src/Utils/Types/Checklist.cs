@@ -1,12 +1,12 @@
+using DSharpPlus;
+using DSharpPlus.CommandsNext;
+using DSharpPlus.Entities;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
 namespace Tomoe.Utils.Types
 {
-    using DSharpPlus;
-    using DSharpPlus.CommandsNext;
-    using DSharpPlus.Entities;
-    using System;
-    using System.Collections.Generic;
-    using System.Threading.Tasks;
-
     /// <summary>
     /// A checklist that is managed through a <see cref="DiscordMessage"/>.
     /// </summary>

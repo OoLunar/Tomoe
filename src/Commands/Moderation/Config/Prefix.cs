@@ -1,12 +1,12 @@
+using DSharpPlus;
+using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Attributes;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
 namespace Tomoe.Commands.Moderation
 {
-    using DSharpPlus;
-    using DSharpPlus.CommandsNext;
-    using DSharpPlus.CommandsNext.Attributes;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-
     public partial class Config : BaseCommandModule
     {
         [Command("prefixes"), Description("Shows currently allowed prefixes.")]
@@ -40,4 +40,3 @@ namespace Tomoe.Commands.Moderation
         }
     }
 }
-

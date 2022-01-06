@@ -1,12 +1,12 @@
+using DSharpPlus;
+using DSharpPlus.Entities;
+using DSharpPlus.EventArgs;
+using Serilog;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
 namespace Tomoe.Commands.Listeners
 {
-    using DSharpPlus;
-    using DSharpPlus.Entities;
-    using DSharpPlus.EventArgs;
-    using Serilog;
-    using System.Collections.Generic;
-    using System.Threading.Tasks;
-
     public class GuildDownloadCompleted
     {
         private static readonly ILogger _logger = Log.ForContext<GuildDownloadCompleted>();

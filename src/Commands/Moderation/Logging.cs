@@ -1,12 +1,12 @@
+using DSharpPlus;
+using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.Entities;
+using Humanizer;
+using System.Threading.Tasks;
+
 namespace Tomoe.Commands.Moderation
 {
-    using DSharpPlus;
-    using DSharpPlus.CommandsNext;
-    using DSharpPlus.CommandsNext.Attributes;
-    using DSharpPlus.Entities;
-    using Humanizer;
-    using System.Threading.Tasks;
-
     public class Logging : BaseCommandModule
     {
         [Command("logging"), RequireGuild, RequireUserPermissions(Permissions.ManageChannels), Aliases("logs"), Description("Sets which logs go into what channel.")]

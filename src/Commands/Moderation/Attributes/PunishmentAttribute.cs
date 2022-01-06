@@ -1,20 +1,19 @@
+using DSharpPlus;
+using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.CommandsNext.Converters;
+using DSharpPlus.Entities;
+using DSharpPlus.Exceptions;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using Tomoe.Utils.Exceptions;
+using Tomoe.Utils.Types;
+
 namespace Tomoe.Commands.Moderation.Attributes
 {
-    using DSharpPlus;
-    using DSharpPlus.CommandsNext;
-    using DSharpPlus.CommandsNext.Attributes;
-    using DSharpPlus.CommandsNext.Converters;
-    using DSharpPlus.Entities;
-    using DSharpPlus.Exceptions;
-    using System;
-    using System.Collections.Generic;
-    using System.Globalization;
-    using System.Linq;
-    using System.Text.RegularExpressions;
-    using System.Threading.Tasks;
-    using Tomoe.Utils.Exceptions;
-    using Tomoe.Utils.Types;
-
     [AttributeUsage(AttributeTargets.All, AllowMultiple = false)]
     public class Punishment : CheckBaseAttribute
     {

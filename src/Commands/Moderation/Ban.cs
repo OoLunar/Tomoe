@@ -1,14 +1,14 @@
+using DSharpPlus;
+using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.Entities;
+using DSharpPlus.Exceptions;
+using System.Linq;
+using System.Threading.Tasks;
+using Tomoe.Commands.Moderation.Attributes;
+
 namespace Tomoe.Commands.Moderation
 {
-    using DSharpPlus;
-    using DSharpPlus.CommandsNext;
-    using DSharpPlus.CommandsNext.Attributes;
-    using DSharpPlus.Entities;
-    using DSharpPlus.Exceptions;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Tomoe.Commands.Moderation.Attributes;
-
     public class Ban : BaseCommandModule
     {
         [Command("ban"), RequireGuild, RequireUserPermissions(Permissions.BanMembers), RequireBotPermissions(Permissions.BanMembers), Aliases("fuck_off"), Description("Permanently bans the victim from the guild, sending them off with a dm."), Punishment(false)]

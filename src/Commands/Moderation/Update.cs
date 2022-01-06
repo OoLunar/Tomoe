@@ -1,16 +1,16 @@
+using DSharpPlus;
+using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.Entities;
+using LibGit2Sharp;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+using Tomoe.Utils;
+using Tomoe.Utils.Types;
+
 namespace Tomoe.Commands.Moderation
 {
-    using DSharpPlus;
-    using DSharpPlus.CommandsNext;
-    using DSharpPlus.CommandsNext.Attributes;
-    using DSharpPlus.Entities;
-    using LibGit2Sharp;
-    using System;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Tomoe.Utils;
-    using Tomoe.Utils.Types;
-
     public class Update : BaseCommandModule
     {
         [Command("update"), RequireOwner, Description("Updates the bot to the latest version. Branch is set in the config.")]

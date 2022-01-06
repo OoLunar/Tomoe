@@ -1,8 +1,8 @@
+using Serilog.Events;
+using System.Text.Json.Serialization;
+
 namespace Tomoe.Utils.Configs
 {
-    using Serilog.Events;
-    using System.Text.Json.Serialization;
-
     public class Logger
     {
         [JsonPropertyName("tomoe"), JsonConverter(typeof(JsonStringEnumConverter))]

@@ -1,11 +1,11 @@
+using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Converters;
+using DSharpPlus.Entities;
+using System.Threading.Tasks;
+using static Tomoe.Api.Moderation;
+
 namespace Tomoe.Utils.Converters
 {
-    using DSharpPlus.CommandsNext;
-    using DSharpPlus.CommandsNext.Converters;
-    using DSharpPlus.Entities;
-    using System.Threading.Tasks;
-    using static Tomoe.Api.Moderation;
-
     public class RoleActionConverter : IArgumentConverter<RoleAction>
     {
         public Task<Optional<RoleAction>> ConvertAsync(string value, CommandContext ctx) => value.ToLowerInvariant() switch

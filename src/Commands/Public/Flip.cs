@@ -1,10 +1,10 @@
+using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Attributes;
+using System;
+using System.Threading.Tasks;
+
 namespace Tomoe.Commands.Public
 {
-    using DSharpPlus.CommandsNext;
-    using DSharpPlus.CommandsNext.Attributes;
-    using System;
-    using System.Threading.Tasks;
-
     public class Flip : BaseCommandModule
     {
         private static readonly Random _random = new();

@@ -1,15 +1,15 @@
+using DSharpPlus;
+using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Converters;
+using DSharpPlus.Entities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using System.Globalization;
+using System.Threading.Tasks;
+using Tomoe.Db;
+
 namespace Tomoe.Utils.Converters
 {
-    using DSharpPlus;
-    using DSharpPlus.CommandsNext;
-    using DSharpPlus.CommandsNext.Converters;
-    using DSharpPlus.Entities;
-    using Microsoft.EntityFrameworkCore;
-    using Microsoft.Extensions.DependencyInjection;
-    using System.Globalization;
-    using System.Threading.Tasks;
-    using Tomoe.Db;
-
     public class StrikeConverter : IArgumentConverter<Strike>
     {
         public async Task<Optional<Strike>> ConvertAsync(string value, CommandContext context)

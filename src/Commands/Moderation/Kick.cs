@@ -1,13 +1,13 @@
+using DSharpPlus;
+using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.Entities;
+using DSharpPlus.Exceptions;
+using System.Threading.Tasks;
+using Tomoe.Commands.Moderation.Attributes;
+
 namespace Tomoe.Commands.Moderation
 {
-    using DSharpPlus;
-    using DSharpPlus.CommandsNext;
-    using DSharpPlus.CommandsNext.Attributes;
-    using DSharpPlus.Entities;
-    using DSharpPlus.Exceptions;
-    using System.Threading.Tasks;
-    using Tomoe.Commands.Moderation.Attributes;
-
     public class Kick : BaseCommandModule
     {
         [Command("kick"), RequireGuild, RequireUserPermissions(Permissions.KickMembers), RequireBotPermissions(Permissions.KickMembers), Aliases("boot", "yeet"), Description("Kicks the victim from the guild, sending them off with a dm."), Punishment(true)]

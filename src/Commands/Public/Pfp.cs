@@ -1,11 +1,11 @@
+using DSharpPlus;
+using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.Entities;
+using System.Threading.Tasks;
+
 namespace Tomoe.Commands.Public
 {
-    using DSharpPlus;
-    using DSharpPlus.CommandsNext;
-    using DSharpPlus.CommandsNext.Attributes;
-    using DSharpPlus.Entities;
-    using System.Threading.Tasks;
-
     public class ProfilePicture : BaseCommandModule
     {
         [Command("profile_picture"), Description("Gets the profile picture of the requested user. Defaults to the requestor when no user is specified."), Aliases("pfp", "avatar")]

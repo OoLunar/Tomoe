@@ -1,15 +1,16 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Design;
+using Npgsql;
+using System;
+using System.Globalization;
+using System.IO;
+using System.Net;
+using System.Net.Http;
+using System.Text.Json;
+using Tomoe.Utils.Configs;
+
 namespace Tomoe.Db
 {
-    using Microsoft.EntityFrameworkCore;
-    using Microsoft.EntityFrameworkCore.Design;
-    using Npgsql;
-    using System;
-    using System.Globalization;
-    using System.IO;
-    using System.Net;
-    using System.Text.Json;
-    using Utils.Configs;
-
     public class BloggingContextFactory : IDesignTimeDbContextFactory<Database>
     {
         public Database CreateDbContext(string[] args)
@@ -32,14 +33,14 @@ namespace Tomoe.Db
             else
             {
                 // No config file could be found. Download it for them and inform them of the issue.
-                WebClient webClient = new();
-                webClient.DownloadFile("https://raw.githubusercontent.com/OoLunar/Tomoe/master/res/config.jsonc", "res/config.jsonc");
+                HttpClient httpClient = new();
+                File.WriteAllBytes("res/config.jsonc", httpClient.GetByteArrayAsync("https://raw.githubusercontent.com/OoLunar/Tomoe/master/res/config.jsonc").GetAwaiter().GetResult());
                 Console.WriteLine("The config file was downloaded. Please go fill out \"res/config.jsonc\". It is recommended to use \"res/config.jsonc.prod\" if you intend on contributing to Tomoe.");
                 Environment.Exit(1);
             }
 
             // Prefer JsonSerializer.DeserializeAsync over JsonSerializer.Deserialize due to being able to send the stream directly.
-            Config config = JsonSerializer.Deserialize<Config>(File.ReadAllText(tokenFile), new JsonSerializerOptions() {IncludeFields = true, AllowTrailingCommas = true, ReadCommentHandling = JsonCommentHandling.Skip, PropertyNameCaseInsensitive = true});
+            Config config = JsonSerializer.Deserialize<Config>(File.ReadAllText(tokenFile), new JsonSerializerOptions() { IncludeFields = true, AllowTrailingCommas = true, ReadCommentHandling = JsonCommentHandling.Skip, PropertyNameCaseInsensitive = true });
 
             DbContextOptionsBuilder<Database> options = new();
             NpgsqlConnectionStringBuilder connectionBuilder = new();

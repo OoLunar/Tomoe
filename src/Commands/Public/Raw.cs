@@ -1,11 +1,11 @@
+using DSharpPlus;
+using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.Entities;
+using System.Threading.Tasks;
+
 namespace Tomoe.Commands.Public
 {
-    using DSharpPlus;
-    using DSharpPlus.CommandsNext;
-    using DSharpPlus.CommandsNext.Attributes;
-    using DSharpPlus.Entities;
-    using System.Threading.Tasks;
-
     public class Raw : BaseCommandModule
     {
         [Command("raw"), Description("Gets the raw version of the message provided."), Aliases("source")]

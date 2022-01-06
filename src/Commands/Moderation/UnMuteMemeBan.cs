@@ -1,15 +1,15 @@
+using DSharpPlus;
+using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.Entities;
+using System;
+using System.Threading.Tasks;
+using Tomoe.Commands.Moderation.Attributes;
+using Tomoe.Db;
+using static Tomoe.Api.Moderation;
+
 namespace Tomoe.Commands.Moderation
 {
-    using DSharpPlus;
-    using DSharpPlus.CommandsNext;
-    using DSharpPlus.CommandsNext.Attributes;
-    using DSharpPlus.Entities;
-    using System;
-    using System.Threading.Tasks;
-    using Tomoe.Commands.Moderation.Attributes;
-    using Tomoe.Db;
-    using static Tomoe.Api.Moderation;
-
     public class UnMuteMemeBan : BaseCommandModule
     {
         public Database Database { private get; set; }

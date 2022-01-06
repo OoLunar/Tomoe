@@ -1,11 +1,11 @@
+using DSharpPlus;
+using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Converters;
+using DSharpPlus.Entities;
+using System.Threading.Tasks;
+
 namespace Tomoe.Utils.Converters
 {
-    using DSharpPlus;
-    using DSharpPlus.CommandsNext;
-    using DSharpPlus.CommandsNext.Converters;
-    using DSharpPlus.Entities;
-    using System.Threading.Tasks;
-
     public class ImageFormatConverter : IArgumentConverter<ImageFormat>
     {
         public Task<Optional<ImageFormat>> ConvertAsync(string value, CommandContext ctx) => value.ToLowerInvariant() switch

@@ -1,13 +1,13 @@
+using DSharpPlus;
+using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.Entities;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
 namespace Tomoe.Commands.Moderation
 {
-    using DSharpPlus;
-    using DSharpPlus.CommandsNext;
-    using DSharpPlus.CommandsNext.Attributes;
-    using DSharpPlus.Entities;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-
     public partial class Config : BaseCommandModule
     {
         [Command("ignored_channels"), Aliases("hidden_channels", "channel_ignored"), Description("Shows all ignored channels.")]
@@ -41,6 +41,3 @@ namespace Tomoe.Commands.Moderation
         }
     }
 }
-
-
-

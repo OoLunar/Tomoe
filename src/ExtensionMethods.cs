@@ -1,14 +1,14 @@
+using DSharpPlus;
+using DSharpPlus.CommandsNext;
+using DSharpPlus.Entities;
+using DSharpPlus.Exceptions;
+using Humanizer;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+
 namespace Tomoe
 {
-    using DSharpPlus;
-    using DSharpPlus.CommandsNext;
-    using DSharpPlus.Entities;
-    using DSharpPlus.Exceptions;
-    using Humanizer;
-    using System;
-    using System.Linq;
-    using System.Threading.Tasks;
-
     public static class ExtensionMethods
     {
         public static DiscordEmbedBuilder GenerateDefaultEmbed(this DiscordEmbedBuilder embedBuilder, CommandContext context, string title = null)

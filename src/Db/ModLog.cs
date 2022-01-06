@@ -1,8 +1,8 @@
+using System.ComponentModel.DataAnnotations;
+using Tomoe.Api;
+
 namespace Tomoe.Db
 {
-    using Api;
-    using System.ComponentModel.DataAnnotations;
-
     public class ModLog
     {
         [Key] public int Id { get; internal set; }
