@@ -130,7 +130,6 @@ namespace Tomoe
             Client.MessageReactionAdded += ReactionAdded.Handler;
             Client.MessageReactionAdded += ReactionRoleAdded.Handler;
             Client.MessageReactionRemoved += ReactionRoleRemoved.Handler;
-            Console.CancelKeyPress += Quit.ConsoleShutdown;
             await CommandService.Launch(Client, ServiceProvider);
             await Client.StartAsync();
             await Task.Delay(-1);
