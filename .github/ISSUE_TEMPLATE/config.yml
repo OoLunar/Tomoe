@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security Flaw
+    url: https://discord.gg/DFqMheA8Be
+    about: "Join our Discord and DM ModMail#7807. Debating on the severity, either an issue will be opened or it will be silently and quickly handled."
+  - name: Quick Support
+    url: https://discord.gg/DFqMheA8Be
+    about: "Join the Discord, head over to the #moonlight channel and ask your question there!"

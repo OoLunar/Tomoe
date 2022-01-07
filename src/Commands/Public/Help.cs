@@ -98,7 +98,7 @@ namespace Tomoe.Commands.Public
             else if (command.Overloads.Count == 1) // One overload, put the usage on the main embed too.
             {
                 StringBuilder commandUsage = new();
-                commandUsage.Append($"`>>{command.QualifiedName}");
+                commandUsage.Append(CultureInfo.InvariantCulture, $"`>>{command.QualifiedName}");
                 foreach (CommandArgument argument in command.Overloads[0].Arguments)
                 {
                     commandUsage.Append(argument.IsOptional ? $" [{argument.Name}]" : $" {argument.Name}");

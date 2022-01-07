@@ -4,6 +4,7 @@ using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using Humanizer;
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -28,7 +29,7 @@ namespace Tomoe.Commands.Public
             embedBuilder.AddField($"Features", string.IsNullOrWhiteSpace(features) ? "None" : features);
             embedBuilder.AddField($"Explicit Content Filter", context.Guild.ExplicitContentFilter.ToString(), true);
             embedBuilder.AddField($"Icon url", context.Guild.IconUrl == null ? "No icon set!" : Formatter.MaskedUrl("Link to image", new(context.Guild.IconUrl.Replace(".jpg", ".png?size=1024"))), true);
-            embedBuilder.AddField($"Id", context.Guild.Id.ToString(), true);
+            embedBuilder.AddField($"Id", context.Guild.Id.ToString(CultureInfo.InvariantCulture), true);
             embedBuilder.AddField($"Is Large", context.Guild.IsLarge.ToString(), true);
             embedBuilder.AddField($"Max Members", context.Guild.MaxMembers.HasValue ? context.Guild.MaxMembers.Value.ToMetric() : "Unknown", true);
             embedBuilder.AddField($"Member Count", context.Guild.MemberCount.ToMetric(), true);

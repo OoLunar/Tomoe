@@ -149,7 +149,7 @@ namespace Tomoe.Commands.Moderation
                 RoleAction.Mute => "Configuring permissions for mute role. Preventing role from sending messages, reacting to messages and speaking in voice channels.",
                 RoleAction.Antimeme => "Configuring permissions for antimeme role. Preventing role from reacting to messages, embedding links and uploading files. In voice channels, preventing role from streaming and forcing push-to-talk.",
                 RoleAction.Voiceban => "Configuring permissions for voiceban role. Preventing role from connecting to voice channels.",
-                _ => "Not configuring unknown role action."
+                RoleAction.None or _ => throw new NotImplementedException(),
             };
 
             switch (roleAction)

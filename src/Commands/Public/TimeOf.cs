@@ -23,7 +23,7 @@ namespace Tomoe.Commands.Public
             StringBuilder timestamps = new();
             for (int i = 0; i < messages.Length; i++)
             {
-                timestamps.Append($"{Formatter.InlineCode(messages[i].ToString(CultureInfo.InvariantCulture))} => {Formatter.InlineCode(messages[i].GetSnowflakeTime().ToString("yyyy'-'MM'-'dd' 'HH':'mm':'ss'.'ffff", CultureInfo.InvariantCulture))}\n");
+                timestamps.Append(CultureInfo.InvariantCulture, $"{Formatter.InlineCode(messages[i].ToString(CultureInfo.InvariantCulture))} => {Formatter.InlineCode(messages[i].GetSnowflakeTime().ToString("yyyy'-'MM'-'dd' 'HH':'mm':'ss'.'ffff", CultureInfo.InvariantCulture))}\n");
             }
 
             if (messages.Length > 10)

@@ -13,10 +13,10 @@ namespace Tomoe.Commands.Listeners
         /// <summary>
         ///	Stores the users roles before they leave in case they wish to rejoin.
         /// </summary>
-        /// <param name="_client">Unused <see cref="DiscordClient"/>.</param>
+        /// <param name="client">Unused <see cref="DiscordClient"/>.</param>
         /// <param name="eventArgs">Used to get the roles.</param>
         /// <returns></returns>
-        public static async Task Handler(DiscordClient _client, GuildMemberRemoveEventArgs eventArgs)
+        public static async Task Handler(DiscordClient client, GuildMemberRemoveEventArgs eventArgs)
         {
             GuildDownloadCompleted.MemberCount[eventArgs.Guild.Id]--;
             using IServiceScope scope = Program.ServiceProvider.CreateScope();

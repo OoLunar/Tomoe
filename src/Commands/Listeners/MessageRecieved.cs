@@ -4,6 +4,7 @@ using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -43,7 +44,7 @@ namespace Tomoe.Commands.Listeners
                 || authorMember.HasPermission(Permissions.ManageMessages)
                 || authorMember.HasPermission(Permissions.Administrator)
                 || eventArgs.Guild.OwnerId == eventArgs.Author.Id
-                || guildConfig.AdminRoles.ConvertAll(role => role.ToString()).Intersect(authorMember.Roles.ToList().ConvertAll(role => role.ToString())).Any()
+                || guildConfig.AdminRoles.ConvertAll(role => role.ToString(CultureInfo.InvariantCulture)).Intersect(authorMember.Roles.ToList().ConvertAll(role => role.ToString())).Any()
               )
             {
                 return;

@@ -15,9 +15,9 @@ namespace Tomoe.Commands.Listeners
         /// <summary>
         /// Custom reaction handler. InteractivityExtension.WaitForReactionAsync() is difficult to use with a lot of code. This allows for easy "yes" or "no" reaction prompts, or reaction prompts with custom emoji's that only require creating a new <see cref="Queue"/>.
         /// </summary>
-        /// <param name="_client">Unused <see cref="DiscordClient"/>.</param>
+        /// <param name="client">Unused <see cref="DiscordClient"/>.</param>
         /// <param name="eventArgs">Used to get the reaction and who's reacting.</param>
-        public static async Task Handler(DiscordClient _client, MessageReactionAddEventArgs eventArgs)
+        public static async Task Handler(DiscordClient client, MessageReactionAddEventArgs eventArgs)
         {
             // Call ToList to create a clone, which prevents https://stackoverflow.com/questions/33703494/foreach-collection-was-modified-enumeration-operation-may-not-execute
             foreach (Queue queue in QueueList.ToList())

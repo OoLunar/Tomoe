@@ -18,9 +18,9 @@ namespace Tomoe.Commands.Listeners
         /// <summary>
         /// Used to add the guild to the database and log when the guild is available.
         /// </summary>
-        /// <param name="_client">Unused <see cref="DiscordClient"/>.</param>
+        /// <param name="client">Unused <see cref="DiscordClient"/>.</param>
         /// <param name="eventArgs">Used to get the guild id and guild name.</param>
-        public static async Task Handler(DiscordClient _client, GuildCreateEventArgs eventArgs)
+        public static async Task Handler(DiscordClient client, GuildCreateEventArgs eventArgs)
         {
             using IServiceScope scope = Program.ServiceProvider.CreateScope();
             Database database = scope.ServiceProvider.GetService<Database>();

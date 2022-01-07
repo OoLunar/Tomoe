@@ -6,6 +6,7 @@ using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 using System.Threading.Tasks;
 using Tomoe.Db;
@@ -89,7 +90,7 @@ namespace Tomoe.Commands.Moderation
             StringBuilder stringBuilder = new();
             foreach (ReactionRole reactionRole in Api.Moderation.ReactionRoles.Get(context.Guild.Id, context.Channel, message.Id))
             {
-                stringBuilder.AppendLine($"{DiscordEmoji.FromName(context.Client, reactionRole.EmojiName, true)} => {context.Guild.GetRole(reactionRole.RoleId).Mention}");
+                stringBuilder.AppendLine(CultureInfo.InvariantCulture, $"{DiscordEmoji.FromName(context.Client, reactionRole.EmojiName, true)} => {context.Guild.GetRole(reactionRole.RoleId).Mention}");
             }
 
             DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder().GenerateDefaultEmbed(context, $"Reaction Roles on Message");

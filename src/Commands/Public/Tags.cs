@@ -7,6 +7,7 @@ using DSharpPlus.Interactivity.Extensions;
 using Humanizer;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Tomoe.Db;
@@ -166,8 +167,8 @@ namespace Tomoe.Commands.Public
             embedBuilder.Title += $" `{tag.Name}`";
             embedBuilder.AddField("Name", tag.Name, true);
             embedBuilder.AddField("Owner", $"<@{tag.OwnerId}> ({tag.OwnerId})", true);
-            embedBuilder.AddField("Created At", tag.CreatedAt.ToString() + " UTC", true);
-            embedBuilder.AddField("Use Count", tag.Uses.ToString(), true);
+            embedBuilder.AddField("Created At", tag.CreatedAt.ToString(CultureInfo.InvariantCulture) + " UTC", true);
+            embedBuilder.AddField("Use Count", tag.Uses.ToString(CultureInfo.InvariantCulture), true);
             embedBuilder.AddField("Type", tag.IsAlias ? "Alias" : "Tag", true);
             if (tag.IsAlias)
             {
@@ -177,7 +178,7 @@ namespace Tomoe.Commands.Public
             else
             {
                 List<string> aliasList = await Database.Tags.Where(databaseTag => databaseTag.TagId == tag.TagId && databaseTag.IsAlias && databaseTag.GuildId == context.Guild.Id).Select(tag => tag.Name).ToListAsync();
-                embedBuilder.AddField("Total Alias Count", aliasList.Count.ToString(), true);
+                embedBuilder.AddField("Total Alias Count", aliasList.Count.ToString(CultureInfo.InvariantCulture), true);
                 if (aliasList.Count == 0)
                 {
                     embedBuilder.AddField("Aliases", "None");
@@ -220,8 +221,8 @@ namespace Tomoe.Commands.Public
             DiscordEmbedBuilder embedBuilder = new();
             embedBuilder.Color = new DiscordColor("#7b84d1");
             embedBuilder.Title = "Tag info on ".Titleize() + discordUser.DisplayName;
-            embedBuilder.AddField("Total Tags Created", Database.Tags.Where(databaseTag => databaseTag.OwnerId == discordUser.Id).Count().ToString(), true);
-            embedBuilder.AddField("Total Tags Guild Created", Database.Tags.Where(databaseTag => databaseTag.OwnerId == discordUser.Id && databaseTag.GuildId == context.Guild.Id).Count().ToString(), true);
+            embedBuilder.AddField("Total Tags Created", Database.Tags.Count(databaseTag => databaseTag.OwnerId == discordUser.Id).ToString(CultureInfo.InvariantCulture), true);
+            embedBuilder.AddField("Total Tags Guild Created", Database.Tags.Count(databaseTag => databaseTag.OwnerId == discordUser.Id && databaseTag.GuildId == context.Guild.Id).ToString(CultureInfo.InvariantCulture), true);
             List<string> tagTitlesEnumerable = Database.Tags.Where(databaseTag => databaseTag.OwnerId == discordUser.Id).Select(databaseTag => databaseTag.Name).ToList();
             string tagTitles = tagTitlesEnumerable.Count == 0 ? "None" : '`' + tagTitlesEnumerable.Aggregate((total, part) => total + "`, `" + part) + '`';
             embedBuilder.AddField("Guild Tags", tagTitles, true);

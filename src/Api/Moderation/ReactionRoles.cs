@@ -30,7 +30,7 @@ namespace Tomoe.Api
                     {
                         _ when DiscordEmoji.TryFromName(discordClient, emojiRoleList[i], out DiscordEmoji emoji) => emoji,
                         _ when DiscordEmoji.TryFromUnicode(emojiRoleList[i], out DiscordEmoji emoji) => emoji,
-                        _ when DiscordEmoji.TryFromGuildEmote(discordClient, ulong.Parse(emojiRoleList[i]), out DiscordEmoji emoji) => emoji,
+                        _ when DiscordEmoji.TryFromGuildEmote(discordClient, ulong.Parse(emojiRoleList[i], CultureInfo.InvariantCulture), out DiscordEmoji emoji) => emoji,
                         _ => throw new ArgumentException("Not an emoji")
                     };
 

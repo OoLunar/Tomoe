@@ -1,0 +1,41 @@
+name: .NET Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: self-hosted
+    if: "!contains(toJSON(github.event.commits.*.message), '[ci-skip]')"
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 6.0.x
+      - name: Build Windows
+        run: dotnet publish -c Debug -r win-x64 --self-contained -p:PublishSingleFile=true -p:PublishReadyToRun=true -p:EnableCompressionInSingleFile=true -p:DebugType=embedded
+      - name: Upload Windows Artifact
+        uses: actions/upload-artifact@v2.2.4
+        with:
+          name: Tomoe_Windows_Nightly
+          path: /srv/tomoe_actions_runner/_work/Tomoe/Tomoe/src/Tomoe/bin/Debug/net6.0/win-x64/publish
+      - name: Build OSX
+        run: dotnet publish -c Debug -r osx-x64 --self-contained -p:PublishSingleFile=true -p:PublishReadyToRun=true -p:EnableCompressionInSingleFile=true -p:DebugType=embedded
+      - name: Upload OSX Artifact
+        uses: actions/upload-artifact@v2.2.4
+        with:
+          name: Tomoe_OSX_Nightly
+          path: /srv/tomoe_actions_runner/_work/Tomoe/Tomoe/src/Tomoe/bin/Debug/net6.0/osx-x64/publish
+      - name: Build Linux
+        run: dotnet publish -c Debug -r linux-x64 --self-contained -p:PublishSingleFile=true -p:PublishReadyToRun=true -p:EnableCompressionInSingleFile=true -p:DebugType=embedded
+      - name: Upload Linux Artifact
+        uses: actions/upload-artifact@v2.2.4
+        with:
+          name: Tomoe_Linux_Nightly
+          path: /srv/tomoe_actions_runner/_work/Tomoe/Tomoe/src/Tomoe/bin/Debug/net6.0/linux-x64/publish
+        if: ${{ github.event_name == 'push' }}

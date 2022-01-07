@@ -7,6 +7,7 @@ using DSharpPlus.Interactivity.Extensions;
 using Humanizer;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -56,7 +57,7 @@ namespace Tomoe.Commands.Public
                         totalMemberCount++;
                         if (roleUsers.Length < 992)
                         {
-                            roleUsers.Append($"{member.Mention} "); // Max embed length is 1024. Max username length is 32. 1024 - 32 = 992.
+                            roleUsers.Append(CultureInfo.InvariantCulture, $"{member.Mention} "); // Max embed length is 1024. Max username length is 32. 1024 - 32 = 992.
                         }
                     }
                 }
@@ -68,7 +69,7 @@ namespace Tomoe.Commands.Public
                 embedBuilder.AddField("Hoisted", discordRole.IsHoisted.ToString(), true);
                 embedBuilder.AddField("Is Managed", discordRole.IsManaged.ToString(), true);
                 embedBuilder.AddField("Is Mentionable", discordRole.IsMentionable.ToString(), true);
-                embedBuilder.AddField("Role Id", discordRole.Id.ToString(), true);
+                embedBuilder.AddField("Role Id", discordRole.Id.ToString(CultureInfo.InvariantCulture), true);
                 embedBuilder.AddField("Role Name", discordRole.Name, true);
                 embedBuilder.AddField("Role Position", discordRole.Position.ToMetric(), true);
                 embedBuilder.AddField("Total Member Count", totalMemberCount.ToMetric(), true);

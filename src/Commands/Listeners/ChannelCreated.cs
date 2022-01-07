@@ -14,10 +14,10 @@ namespace Tomoe.Commands.Listeners
         /// <summary>
         /// Overrides channel permissions for the guild's punishment roles, if configured.
         /// </summary>
-        /// <param name="_client">Unused <see cref="DiscordClient"/>.</param>
+        /// <param name="client">Unused <see cref="DiscordClient"/>.</param>
         /// <param name="eventArgs">ChannelCreateEventArgs that are used to retrieve the guild and the channel.</param>
         /// <returns></returns>
-        public static async Task Handler(DiscordClient _client, ChannelCreateEventArgs eventArgs)
+        public static async Task Handler(DiscordClient client, ChannelCreateEventArgs eventArgs)
         {
             if (eventArgs.Guild == null)
             {

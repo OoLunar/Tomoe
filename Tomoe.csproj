@@ -7,6 +7,7 @@
             https://api.nuget.org/v3/index.json;
             https://nuget.emzi0767.com/api/v3/index.json
         </RestoreAdditionalProjectSources>
+        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="DSharpPlus" Version="4.2.0-nightly-01056" />

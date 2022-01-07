@@ -5,6 +5,7 @@ using DSharpPlus.Entities;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -52,7 +53,7 @@ namespace Tomoe.Commands.Moderation
             StringBuilder stringBuilder = new();
             foreach (AutoReaction autoReaction in Api.Moderation.AutoReactions.List(context.Guild.Id, channel.Id))
             {
-                stringBuilder.AppendLine($"{DiscordEmoji.FromName(context.Client, autoReaction.EmojiName, true)}");
+                stringBuilder.AppendLine(CultureInfo.InvariantCulture, $"{DiscordEmoji.FromName(context.Client, autoReaction.EmojiName, true)}");
             }
 
             DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder().GenerateDefaultEmbed(context, $"Autoreactions in channel {channel.Mention}");

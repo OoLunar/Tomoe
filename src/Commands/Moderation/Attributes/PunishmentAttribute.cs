@@ -17,8 +17,6 @@ namespace Tomoe.Commands.Moderation.Attributes
     [AttributeUsage(AttributeTargets.All, AllowMultiple = false)]
     public class Punishment : CheckBaseAttribute
     {
-        private Regex UserRegex { get; }
-
         /// <summary>
         /// If the user is allowed to use the moderator command on themself.
         /// </summary>
@@ -28,11 +26,7 @@ namespace Tomoe.Commands.Moderation.Attributes
         /// Inserts safety checks to test if the user is allowed to execute the command on the victim. This attribute should be paired with the <see cref="RequireGuildAttribute"/> attribute.
         /// </summary>
         /// <param name="canSelfPunish">If the user is allowed to use the moderator command on themself.</param>
-        public Punishment(bool canSelfPunish = true)
-        {
-            CanSelfPunish = canSelfPunish;
-            UserRegex = new Regex("^<@\\!?(\\d+?)>$", RegexOptions.Compiled | RegexOptions.ECMAScript);
-        }
+        public Punishment(bool canSelfPunish = true) => CanSelfPunish = canSelfPunish;
 
         /// <summary>
         /// Executed when DSharpPlus is doing attribute checks on the command before running.

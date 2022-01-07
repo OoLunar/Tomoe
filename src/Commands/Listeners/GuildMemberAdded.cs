@@ -14,10 +14,10 @@ namespace Tomoe.Commands.Listeners
         /// <summary>
         /// Attempts to make sure the user's roles persist. Will put the user into the database if they don't exist already.
         /// </summary>
-        /// <param name="_client">Unused <see cref="DiscordClient"/>.</param>
+        /// <param name="client">Unused <see cref="DiscordClient"/>.</param>
         /// <param name="eventArgs">Used to get the user id and to apply the roles to the user.</param>
         /// <returns></returns>
-        public static async Task Handler(DiscordClient _client, GuildMemberAddEventArgs eventArgs)
+        public static async Task Handler(DiscordClient client, GuildMemberAddEventArgs eventArgs)
         {
             GuildDownloadCompleted.MemberCount[eventArgs.Guild.Id]++;
             using IServiceScope scope = Program.ServiceProvider.CreateScope();

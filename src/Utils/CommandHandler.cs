@@ -23,7 +23,7 @@ namespace Tomoe.Utils
                 commandStart = eventArgs.Message.GetStringPrefixLength(Program.Config.DiscordBotPrefix);
                 if (commandStart != -1)
                 {
-                    prefix = eventArgs.Message.Content.Substring(0, commandStart);
+                    prefix = eventArgs.Message.Content[..commandStart];
                 }
             }
             else
@@ -51,7 +51,7 @@ namespace Tomoe.Utils
                     commandStart = eventArgs.Message.GetStringPrefixLength(guildPrefix);
                     if (commandStart != -1)
                     {
-                        prefix = eventArgs.Message.Content.Substring(0, commandStart);
+                        prefix = eventArgs.Message.Content[..commandStart];
                         break;
                     }
                 }
@@ -63,7 +63,7 @@ namespace Tomoe.Utils
                 commandStart = eventArgs.Message.GetMentionPrefixLength(Program.Client.CurrentUser);
                 if (commandStart != -1)
                 {
-                    prefix = eventArgs.Message.Content.Substring(0, commandStart);
+                    prefix = eventArgs.Message.Content[..commandStart];
                 }
                 else
                 {
