@@ -12,6 +12,6 @@ namespace Tomoe.Commands.Common
         private IConfiguration Configuration { get; set; } = null!;
 
         [Command("support"), Description("Sends the support Discord invite."), Aliases("discord")]
-        public async Task Overload(CommandContext context) => await context.RespondAsync(Formatter.EmbedlessUrl(Configuration.GetValue("discord:invite", new Uri("https://discord.gg/Bsv7zSFygc"))));
+        public async Task SupportAsync(CommandContext context) => await context.RespondAsync(Formatter.EmbedlessUrl(Configuration.GetValue("discord:invite", new Uri("https://discord.gg/Bsv7zSFygc"))));
     }
 }

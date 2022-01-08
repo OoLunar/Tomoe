@@ -8,6 +8,6 @@ namespace Tomoe.Commands.Common
     public class MemberCount : BaseCommandModule
     {
         [Command("member_count"), Description("Sends the approximate member count."), Aliases("mc")]
-        public async Task Overload(CommandContext context) => await context.RespondAsync($"Member count: {context.Guild.MemberCount.ToMetric()}");
+        public async Task MemberCountAsync(CommandContext context) => await context.RespondAsync($"Member count: {context.Guild.MemberCount.ToMetric()}");
     }
 }

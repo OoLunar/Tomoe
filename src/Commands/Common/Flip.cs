@@ -8,9 +8,9 @@ namespace Tomoe.Commands.Common
     public class Flip : BaseCommandModule
     {
         [Command("flip"), Description("A simple heads or tails command."), Aliases("choose", "pick")]
-        public async Task Overload(CommandContext context) => await context.RespondAsync(Random.Shared.Next(0, 2) == 0 ? "Heads" : "Tails");
+        public async Task FlipAsync(CommandContext context) => await context.RespondAsync(Random.Shared.Next(0, 2) == 0 ? "Heads" : "Tails");
 
         [Command("flip")]
-        public async Task Overload(CommandContext context, [Description("Have Tomoe pick from the choices listed.")] params string[] choices) => await context.RespondAsync(choices[Random.Shared.Next(0, choices.Length)]);
+        public async Task FlipAsync(CommandContext context, [Description("Have Tomoe pick from the choices listed.")] params string[] choices) => await context.RespondAsync(choices[Random.Shared.Next(0, choices.Length)]);
     }
 }

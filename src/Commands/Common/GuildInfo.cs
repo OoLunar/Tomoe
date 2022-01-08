@@ -10,10 +10,10 @@ using System.Threading.Tasks;
 
 namespace Tomoe.Commands.Common
 {
-    public class ServerInfo : BaseCommandModule
+    public class GuildInfo : BaseCommandModule
     {
-        [Command("server_info"), Description("Gets general info about the server."), Aliases("guild_info")]
-        public async Task Overload(CommandContext context)
+        [Command("guild_info"), Description("Gets general info about the guild."), Aliases("server_info")]
+        public async Task ServerInfoAsync(CommandContext context)
         {
             DiscordEmbedBuilder embedBuilder = new();
             embedBuilder.Color = new DiscordColor("#7b84d1");

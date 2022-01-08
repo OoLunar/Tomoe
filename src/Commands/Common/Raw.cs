@@ -13,7 +13,7 @@ namespace Tomoe.Commands.Common
     public class Raw : BaseCommandModule
     {
         [Command("raw"), Description("Gets the raw version of the message provided."), Aliases("source")]
-        public async Task Overload(CommandContext context, [Description("The message id or jumplink to the message.")] DiscordMessage message)
+        public async Task RawAsync(CommandContext context, [Description("The message id or jumplink to the message.")] DiscordMessage message)
         {
             DiscordMessageBuilder messageBuilder = new();
             if (message.Content.Length != 0)

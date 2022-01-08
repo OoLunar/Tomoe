@@ -17,7 +17,7 @@ namespace Tomoe.Commands.Common
     public class Help : BaseCommandModule
     {
         [Command("help"), Description("Sends the help menu!")]
-        public async Task Overload(CommandContext context)
+        public async Task HelpAsync(CommandContext context)
         {
             List<Page> pages = new();
             DiscordEmbedBuilder embedBuilder = new();
@@ -62,7 +62,7 @@ namespace Tomoe.Commands.Common
         }
 
         [Command("help")]
-        public async Task Overload(CommandContext context, [Description("Which command to search for."), RemainingText] string commandName)
+        public async Task HelpAsync(CommandContext context, [Description("Which command to search for."), RemainingText] string commandName)
         {
             commandName = commandName.ToLowerInvariant();
             Command? command = context.CommandsNext.RegisteredCommands.Values.FirstOrDefault(command => command.Name == commandName.Split(' ').First() || command.Aliases.Contains(commandName.Split(' ').First()));

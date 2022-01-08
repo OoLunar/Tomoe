@@ -1,10 +1,5 @@
 bin/
 obj/
 logs/
-res/config.jsonc.prod
-res/*.db
-res/*.bak
-*.db
-.obsidian
-.vscode
-.vs
+res/config.json.prod
+.vscode/

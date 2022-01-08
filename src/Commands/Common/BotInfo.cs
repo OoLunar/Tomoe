@@ -13,7 +13,7 @@ namespace Tomoe.Commands.Common
     public class BotInfo : BaseCommandModule
     {
         [Command("bot_info"), Description("Gets general info about the bot.")]
-        public async Task Overload(CommandContext context)
+        public async Task BotInfoAsync(CommandContext context)
         {
             DiscordEmbedBuilder embedBuilder = new();
             embedBuilder.Title = "Bot Info";

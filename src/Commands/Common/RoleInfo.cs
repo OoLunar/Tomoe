@@ -16,7 +16,7 @@ namespace Tomoe.Commands.Common
     public class RoleInfo : BaseCommandModule
     {
         [Command("role_info"), Description("Gets information about a server role.")]
-        public async Task Overload(CommandContext context, DiscordRole discordRole)
+        public async Task RoleInfoAsync(CommandContext context, DiscordRole discordRole)
         {
             List<Page> pages = new();
             int totalMemberCount = 0;

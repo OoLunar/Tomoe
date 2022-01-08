@@ -8,6 +8,6 @@ namespace Tomoe.Commands.Common
     public class Sort : BaseCommandModule
     {
         [Command("sort"), Description("Organized a line seperated list alphabetically.")]
-        public async Task Overload(CommandContext context, bool trim = true, [Description("A line seperated list.")] params string[] list) => await context.RespondAsync(string.Join('\n', trim ? list.Select(item => item.Trim()).OrderBy(x => x) : list.OrderBy(x => x)));
+        public async Task SortAsync(CommandContext context, bool trim = true, [Description("A line seperated list.")] params string[] list) => await context.RespondAsync(string.Join('\n', trim ? list.Select(item => item.Trim()).OrderBy(x => x) : list.OrderBy(x => x)));
     }
 }
