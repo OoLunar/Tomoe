@@ -1,0 +1,27 @@
+{
+    "repository_link": "https://github.com/OoLunar/Tomoe",
+    "discord": {
+        "token": "discord token",
+        "pagination_timeout": "0:05",
+        "prefixes": [
+            ">>"
+        ]
+    },
+    "logging": {
+        "disabled": false,
+        "level": "Information",
+        "format": "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u4}] [{ThreadId}] {SourceContext}: {Message:lj}{NewLine}{Exception}",
+        "rollingInterval": "Day",
+        "overrides": {
+            "Tomoe": "Debug"
+        }
+    },
+    "database": {
+        "applicationName": "Tomoe Discord Bot",
+        "databaseName": "tomoe",
+        "host": "localhost",
+        "username": "tomoe",
+        "port": 5432,
+        "password": "Use https://argon2.online/, with the argon2id algorithm, and a memory cost of 1024 KiB, a iteration count of 2, and a parallelism of 1."
+    }
+}

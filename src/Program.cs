@@ -1,186 +1,144 @@
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
-using DSharpPlus.Entities;
-using DSharpPlus.Exceptions;
+using DSharpPlus.CommandsNext.Converters;
+using DSharpPlus.Interactivity;
+using DSharpPlus.Interactivity.Enums;
+using DSharpPlus.Interactivity.Extensions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Npgsql;
 using Serilog;
+using Serilog.Events;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Net.Http;
-using System.Text.Json;
+using System.Linq;
+using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
-using Tomoe.Commands.Listeners;
-using Tomoe.Db;
+using Tomoe.Models;
 using Tomoe.Utils;
 
 namespace Tomoe
 {
     public class Program
     {
-        public static DiscordShardedClient Client { get; private set; }
-        public static Utils.Configs.Config Config { get; private set; }
-        public static IServiceProvider ServiceProvider { get; private set; }
+        private static DiscordShardedClient DiscordShardedClient { get; set; } = null!;
 
-        public static void Main() => MainAsync().ConfigureAwait(false).GetAwaiter().GetResult();
-
-        public static async Task MainAsync()
+        public static async Task Main(string[] args)
         {
-            // Setup Config
-            // Look for Environment variables for Docker. If the variable is set, but doesn't exist, assume it was improper configuration and exit.
-            string tokenFile = Environment.GetEnvironmentVariable("CONFIG_FILE");
-            if (tokenFile != null && !File.Exists(tokenFile))
-            {
-                Console.WriteLine($"The config file \"{tokenFile}\" does not exist. Consider removed the $CONFIG_FILE environment variable or making sure the file exists.");
-                Environment.Exit(1);
-            }
-            else if (File.Exists("res/config.jsonc.prod"))
-            {
-                // Look for production file first. Contributers are expected not to fill out res/config.jsonc, but res/config.jsonc.prod instead.
-                tokenFile = "res/config.jsonc.prod";
-            }
-            else if (File.Exists("res/config.jsonc"))
-            {
-                tokenFile = "res/config.jsonc";
-            }
-            else
-            {
-                // No config file could be found. Download it for them and inform them of the issue.
-                HttpClient httpClient = new();
-                File.WriteAllBytes("res/config.jsonc", await httpClient.GetByteArrayAsync("https://raw.githubusercontent.com/OoLunar/Tomoe/master/res/config.jsonc"));
-                Console.WriteLine("The config file was downloaded. Please go fill out \"res/config.jsonc\". It is recommended to use \"res/config.jsonc.prod\" if you intend on contributing to Tomoe.");
-                Environment.Exit(1);
-            }
-            // Prefer JsonSerializer.DeserializeAsync over JsonSerializer.Deserialize due to being able to send the stream directly.
-            Config = await JsonSerializer.DeserializeAsync<Utils.Configs.Config>(File.OpenRead(tokenFile), new JsonSerializerOptions() { IncludeFields = true, AllowTrailingCommas = true, ReadCommentHandling = JsonCommentHandling.Skip, PropertyNameCaseInsensitive = true });
+            FileUtils.CreateDefaultConfig();
+            IServiceCollection services = new ServiceCollection();
 
-            // Setup Logger
-            // Follow the Config.Logger.ShowId option.
-            string outputTemplate = Config.Logger.ShowId ? "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u4}] [{ThreadId}] {SourceContext}: {Message:lj}{NewLine}{Exception}" : "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u4}] {SourceContext}: {Message:lj}{NewLine}{Exception}";
-            LoggerConfiguration loggerConfiguration = new LoggerConfiguration()
-                .Enrich.WithThreadId()
-                .MinimumLevel.Is(Config.Logger.Tomoe)
-                // Per library settings.
-                .MinimumLevel.Override("DSharpPlus", Config.Logger.Discord)
-                .MinimumLevel.Override("Microsoft.EntityFrameworkCore", Config.Logger.Database)
-                // Use custom theme because the default one stinks
-                .WriteTo.Console(theme: LoggerTheme.Lunar, outputTemplate: outputTemplate);
+            ConfigurationBuilder configurationBuilder = new();
+            configurationBuilder.Sources.Clear();
+            configurationBuilder.AddJsonFile(Path.Join(FileUtils.GetConfigPath(), "config.json"), true, true);
+            configurationBuilder.AddJsonFile(Path.Join(FileUtils.GetConfigPath(), "config.json.prod"), true, true);
+            configurationBuilder.AddEnvironmentVariables("TOMOE_");
+            configurationBuilder.AddCommandLine(args);
+            IConfigurationRoot? configuration = configurationBuilder.Build();
+            services.AddSingleton(configuration);
 
-            if (Config.Logger.SaveToFile)
+            services.AddLogging(loggingBuilder => // Setup logging with default values specified, in case no configs, env vars or cmd args are provided. Default values still allow for clean error codes, which are somewhat helpful in debugging.
             {
-                loggerConfiguration.WriteTo.File($"logs/{DateTime.Now.ToLocalTime().ToString("yyyy'-'MM'-'dd' 'HH':'mm':'ss", CultureInfo.InvariantCulture)}.log", rollingInterval: RollingInterval.Day, outputTemplate: outputTemplate);
-            }
+                LoggerConfiguration loggerConfiguration = new LoggerConfiguration()
+                    .Enrich.WithThreadId()
+                    .MinimumLevel.Is(configuration.GetValue("logging:level", LogEventLevel.Information))
+                    .WriteTo.Console(theme: LoggerTheme.Lunar, outputTemplate: configuration.GetValue("logging:format", "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u4}] [{ThreadId}] {SourceContext}: {Message:lj}{NewLine}{Exception}"));
 
-            Log.Logger = loggerConfiguration.CreateLogger();
-            // Setup services
-            ServiceCollection services = new();
-            // Database has scoped lifetime by default
-            services.AddDbContext<Database>(options =>
+                // Allow specific namespace log level overrides, which allows us to hush output from things like the database basic SELECT queries on the Information level.
+                foreach (IConfigurationSection logOverride in configuration.GetSection("logging:overrides").GetChildren())
+                {
+                    loggerConfiguration.MinimumLevel.Override(logOverride.Key, Enum.Parse<LogEventLevel>(logOverride.Value));
+                }
+
+                loggerConfiguration.WriteTo.File($"logs/{DateTime.Now.ToUniversalTime().ToString("yyyy'-'MM'-'dd' 'HH'_'mm'_'ss", CultureInfo.InvariantCulture)}.log", rollingInterval: configuration.GetValue("logging:rollingInterval", RollingInterval.Day), outputTemplate: configuration.GetValue("logging:format", "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u4}] [{ThreadId}] {SourceContext}: {Message:lj}{NewLine}{Exception}"));
+                Log.Logger = loggerConfiguration.CreateLogger().ForContext<Program>();
+
+                loggingBuilder.ClearProviders();
+                if (!configuration.GetValue("logging:disabled", false))
+                {
+                    loggingBuilder.AddSerilog(Log.Logger, dispose: true);
+                }
+            });
+
+            services.AddDbContext<DatabaseContext>(options =>
             {
                 NpgsqlConnectionStringBuilder connectionBuilder = new();
-                connectionBuilder.ApplicationName = Config.Database.ApplicationName;
-                connectionBuilder.Database = Config.Database.DatabaseName;
-                connectionBuilder.Host = Config.Database.Host;
-                connectionBuilder.Username = Config.Database.Username;
-                connectionBuilder.Port = Config.Database.Port;
-                if (!string.IsNullOrEmpty(Config.Database.Password))
-                {
-                    connectionBuilder.Password = Config.Database.Password;
-                }
-                options.UseNpgsql(connectionBuilder.ToString(), options => options.EnableRetryOnFailure());
+                connectionBuilder.ApplicationName = configuration.GetValue("database:applicationName", "Tomoe Discord Bot");
+                connectionBuilder.Database = configuration.GetValue("database:databaseName", "tomoe");
+                connectionBuilder.Host = configuration.GetValue("database:host", "localhost");
+                connectionBuilder.Username = configuration.GetValue("database:username", "tomoe");
+                connectionBuilder.Port = configuration.GetValue("database:port", 5432);
+                connectionBuilder.Password = configuration.GetValue<string>("database:password");
+                connectionBuilder.Timeout = 30;
+                options.UseNpgsql(connectionBuilder.ToString(), options => options.EnableRetryOnFailure(5));
                 options.UseSnakeCaseNamingConvention(CultureInfo.InvariantCulture);
-#if DEBUG
-                options.EnableSensitiveDataLogging();
-#endif
-                options.EnableDetailedErrors();
-                options.UseLoggerFactory(ServiceProvider.GetService<ILoggerFactory>());
+
+                DatabaseContext databaseContext = new((DbContextOptions<DatabaseContext>)options.Options);
+                databaseContext.Database.EnsureCreated();
             }, ServiceLifetime.Transient);
-            services.AddLogging(loggingBuilder => loggingBuilder.AddSerilog(Log.Logger));
-            ServiceProvider = services.BuildServiceProvider();
-            await ServiceProvider.GetService<Database>().Database.EnsureCreatedAsync();
 
-            // Setup Discord
-            DiscordConfiguration discordConfiguration = new()
+            CancellationTokenSource cancellationTokenSource = new();
+            Console.CancelKeyPress += (sender, e) =>
             {
-                AutoReconnect = true,
-                Token = Config.DiscordApiToken,
-                TokenType = TokenType.Bot,
-                UseRelativeRatelimit = true,
-                MessageCacheSize = 512,
-                LoggerFactory = ServiceProvider.GetService<ILoggerFactory>(),
-                Intents = DiscordIntents.All
+                e.Cancel = true;
+                DiscordShardedClient.StopAsync().GetAwaiter().GetResult();
+                cancellationTokenSource.Cancel();
             };
+            services.AddSingleton(cancellationTokenSource);
+            ServiceProvider? serviceProvider = services.BuildServiceProvider();
 
-            // Setup event listeners
-            Client = new(discordConfiguration);
-            Client.ChannelCreated += ChannelCreated.Handler;
-            Client.GuildAvailable += GuildAvailable.Handler;
-            Client.GuildCreated += GuildCreated.Handler;
-            Client.GuildDownloadCompleted += GuildDownloadCompleted.Handler;
-            Client.GuildMemberAdded += GuildMemberAdded.Handler;
-            Client.GuildMemberRemoved += GuildMemberRemoved.Handler;
-            Client.GuildMemberUpdated += GuildMemberUpdated.Handler;
-            Client.MessageCreated += AutoReactionListener.Handler;
-            Client.MessageCreated += CommandHandler.Handler;
-            Client.MessageCreated += MessageRecieved.Handler;
-            Client.MessageReactionAdded += ReactionAdded.Handler;
-            Client.MessageReactionAdded += ReactionRoleAdded.Handler;
-            Client.MessageReactionRemoved += ReactionRoleRemoved.Handler;
-            await CommandService.Launch(Client, ServiceProvider);
-            await Client.StartAsync();
-            await Task.Delay(-1);
-        }
+            DiscordConfiguration discordConfiguration = new();
+            discordConfiguration.LoggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
+            discordConfiguration.Token = configuration.GetValue<string>("discord:token");
+            discordConfiguration.Intents = DiscordIntents.DirectMessages | DiscordIntents.DirectMessageReactions // Allow text commands to be used in DM's
+                | DiscordIntents.GuildBans // Logging
+                | DiscordIntents.GuildMembers | DiscordIntents.GuildPresences // Caching
+                | DiscordIntents.GuildMessages | DiscordIntents.GuildMessageReactions // Allow text commands to be used
+                | DiscordIntents.Guilds; // Logging and config events
 
-        /// <summary>
-        /// Used to sucessfully filter out unwanted messages and to always reply to the command. The `content` or `embed` can be null, but one must have a value.
-        /// </summary>
-        /// <param name="context">CommandContext, used for the user Id, the channel Id, the message Id and to get the member object.</param>
-        /// <param name="content">The message to send</param>
-        /// <param name="embed">The embed to send. Best paired with <see cref="ExtensionMethods.GenerateDefaultEmbed">GenerateDefaultEmbed</see></param>
-        /// <param name="mentions">A list of mentions to add to the user who issued the command.</param>
-        /// <returns>The DiscordMessage sent</returns>
-        public static async Task<DiscordMessage> SendMessage(CommandContext context, string content = null, DiscordEmbed embed = null, params IMention[] mentions)
-        {
-            if (content is null && embed is null)
+            // TODO: Prefix resolver
+            CommandsNextConfiguration commandsNextConfiguration = new();
+            commandsNextConfiguration.EnableDefaultHelp = false;
+            commandsNextConfiguration.Services = serviceProvider;
+            commandsNextConfiguration.StringPrefixes = configuration.GetValue("discord:prefixes", new[] { ">>" });
+
+            InteractivityConfiguration interactivityConfiguration = new();
+            interactivityConfiguration.AckPaginationButtons = true;
+            interactivityConfiguration.ButtonBehavior = ButtonPaginationBehavior.Disable;
+            interactivityConfiguration.Timeout = configuration.GetValue("discord:pagination_timeout", TimeSpan.FromMinutes(5));
+
+            DiscordShardedClient = new(discordConfiguration);
+            IReadOnlyDictionary<int, CommandsNextExtension>? commandsNextExtensions = await DiscordShardedClient.UseCommandsNextAsync(commandsNextConfiguration);
+            MethodInfo registerConverterMethod = typeof(CommandsNextExtension).GetMethod(nameof(CommandsNextExtension.RegisterConverter))!;
+            foreach (CommandsNextExtension commandsNextExtension in commandsNextExtensions.Values)
             {
-                throw new ArgumentNullException(nameof(content), "Either content or embed needs to hold a value.");
+                // Converters
+                foreach (Type? converter in typeof(Program).Assembly.GetTypes().Where(t => t.IsAssignableTo(typeof(IArgumentConverter))).ToList())
+                {
+                    registerConverterMethod.MakeGenericMethod(converter.GetInterfaces()[0].GenericTypeArguments).Invoke(commandsNextExtension, new object[] { converter.GetConstructor(Array.Empty<Type>())!.Invoke(Array.Empty<object>()) });
+                }
+
+                // Commands
+                commandsNextExtension.RegisterCommands(typeof(Program).Assembly);
+
+                // TODO: Add an EventListener attribute which specifies which events the class should be registered on.
             }
 
-            // Ping the person who invoked the command, and whoever else is required
-            List<IMention> mentionList = new();
-            mentionList.AddRange(mentions);
-            mentionList.Add(new UserMention(context.User.Id));
-
-            // Reply to the message that invoked this command
-            DiscordMessageBuilder messageBuilder = new();
-            messageBuilder.WithReply(context.Message.Id, true);
-            messageBuilder.WithAllowedMentions(mentionList);
-            messageBuilder.HasTTS(false);
-            if (content != null)
-            {
-                messageBuilder.Content = content;
-            }
-
-            if (embed != null)
-            {
-                messageBuilder.Embed = embed;
-            }
+            await DiscordShardedClient.UseInteractivityAsync(interactivityConfiguration);
+            await DiscordShardedClient.StartAsync();
 
             try
             {
-                return await messageBuilder.SendAsync(context.Channel);
+                await Task.Delay(-1, cancellationTokenSource.Token);
             }
-            catch (UnauthorizedException)
+            catch (TaskCanceledException)
             {
-                return await context.Member.SendMessageAsync(messageBuilder);
-            }
-            catch (Exception)
-            {
-                throw;
+                Log.Information("Shutdown requested! Shutting down...");
             }
         }
     }
