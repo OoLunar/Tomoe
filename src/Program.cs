@@ -5,7 +5,9 @@ namespace Tomoe
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using Serilog;
+    using System;
     using System.Threading.Tasks;
+    using System.Timers;
     using Tomoe.Utilities.Configs;
 
     public class Program
@@ -68,6 +70,13 @@ namespace Tomoe
                 slashCommandShardExtension.SlashCommandExecuted += Commands.Listeners.CommandExecuted;
             }
             logger.Information("Commands up!");
+
+            Timer timer = new();
+            timer.AutoReset = true;
+            timer.Interval = TimeSpan.FromMinutes(1).TotalMilliseconds;
+            timer.Elapsed += Commands.Moderation.TempRoleEventAsync;
+            timer.Start();
+            logger.Information("Started temporary roles event.");
             await Task.Delay(-1);
         }
     }
