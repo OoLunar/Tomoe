@@ -23,37 +23,9 @@ namespace Tomoe.Db
         public DbSet<LogSetting> LogSettings { get; set; }
         public DbSet<Reminder> Reminders { get; set; }
         public DbSet<PermanentButton> PermanentButtons { get; set; }
+        public DbSet<TempRoleModel> TemporaryRoles { get; set; }
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            // Convert List<ulong> to List<string> due to weird behaviour of EFCore + Postgres
-            ValueComparer valueComparerUlong = new ValueComparer<List<ulong>>(
-                (c1, c2) => c1.SequenceEqual(c2),
-                c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
-                c => c.ToList()
-            );
-
-            modelBuilder.Entity<GuildConfig>()
-                .Property(guild => guild.IgnoredChannels)
-                .HasConversion(
-                    ignoredChannels => ignoredChannels.ConvertAll(s => s.ToString(CultureInfo.InvariantCulture)),
-                    ignoredChannels => ignoredChannels.ConvertAll(ulong.Parse)
-                );
-
-            modelBuilder.Entity<GuildConfig>()
-                .Property(guild => guild.AdminRoles)
-                .HasConversion(
-                    adminRoles => adminRoles.ConvertAll(s => s.ToString(CultureInfo.InvariantCulture)),
-                    adminRoles => adminRoles.ConvertAll(ulong.Parse)
-                ).Metadata.SetValueComparer(valueComparerUlong);
-
-            modelBuilder.Entity<GuildMember>()
-                .Property(guildUser => guildUser.Roles)
-                .HasConversion(
-                    guildUser => guildUser.ConvertAll(s => s.ToString(CultureInfo.InvariantCulture)),
-                    guildUser => guildUser.ConvertAll(ulong.Parse)
-                ).Metadata.SetValueComparer(valueComparerUlong);
-        }
+        protected override void OnModelCreating(ModelBuilder modelBuilder) { }
 
         public bool AddGuildMember(DiscordMember discordMember)
         {
