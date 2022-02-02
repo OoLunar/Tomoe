@@ -155,6 +155,8 @@ namespace Tomoe.Commands
                 // Replace "{guildName}" with "ForSaken Borders"
                 logMessage = logMessage.Replace($"{{{key}}}", value);
             }
+            logMessage = logMessage.Replace("\\n", "\n");
+            logMessage = logMessage.Replace("\\t", "  ");
 
             ModLog modLog = new()
             {

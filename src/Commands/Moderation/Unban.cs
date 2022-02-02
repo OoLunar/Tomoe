@@ -64,7 +64,7 @@ namespace Tomoe.Commands
             keyValuePairs.Add("moderator_id", context.Member.Id.ToString(CultureInfo.InvariantCulture));
             keyValuePairs.Add("moderator_displayname", context.Member.DisplayName);
             keyValuePairs.Add("punishment_reason", unbanReason);
-            await ModLog(context.Guild, keyValuePairs, DiscordEvent.Ban);
+            await ModLog(context.Guild, keyValuePairs, DiscordEvent.Unban);
 
             await context.EditResponseAsync(new()
             {

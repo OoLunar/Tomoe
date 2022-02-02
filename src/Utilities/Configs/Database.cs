@@ -54,7 +54,7 @@ namespace Tomoe.Utilities.Configs
             Db.Database database = scope.ServiceProvider.GetService<Db.Database>();
 
             logger.Information("Connecting to the database...");
-            await database.Database.EnsureCreatedAsync();
+            //await database.Database.EnsureCreatedAsync();
             logger.Information("Database up!");
         }
     }
