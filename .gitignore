@@ -3,3 +3,5 @@ obj/
 logs/
 res/config.json.prod
 .vscode/
+
+*.old

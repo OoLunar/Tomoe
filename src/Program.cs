@@ -19,6 +19,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Tomoe.Attributes;
 using Tomoe.Models;
 using Tomoe.Utils;
 
@@ -27,6 +28,7 @@ namespace Tomoe
     public class Program
     {
         private static DiscordShardedClient DiscordShardedClient { get; set; } = null!;
+        internal static ServiceProvider ServiceProvider { get; set; } = null!;
 
         public static async Task Main(string[] args)
         {
@@ -90,10 +92,10 @@ namespace Tomoe
                 cancellationTokenSource.Cancel();
             };
             services.AddSingleton(cancellationTokenSource);
-            ServiceProvider? serviceProvider = services.BuildServiceProvider();
+            ServiceProvider = services.BuildServiceProvider();
 
             DiscordConfiguration discordConfiguration = new();
-            discordConfiguration.LoggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
+            discordConfiguration.LoggerFactory = ServiceProvider.GetRequiredService<ILoggerFactory>();
             discordConfiguration.Token = configuration.GetValue<string>("discord:token");
             discordConfiguration.Intents = DiscordIntents.DirectMessages | DiscordIntents.DirectMessageReactions // Allow text commands to be used in DM's
                 | DiscordIntents.GuildBans // Logging
@@ -104,7 +106,7 @@ namespace Tomoe
             // TODO: Prefix resolver
             CommandsNextConfiguration commandsNextConfiguration = new();
             commandsNextConfiguration.EnableDefaultHelp = false;
-            commandsNextConfiguration.Services = serviceProvider;
+            commandsNextConfiguration.Services = ServiceProvider;
             commandsNextConfiguration.StringPrefixes = configuration.GetValue("discord:prefixes", new[] { ">>" });
 
             InteractivityConfiguration interactivityConfiguration = new();
@@ -125,8 +127,20 @@ namespace Tomoe
 
                 // Commands
                 commandsNextExtension.RegisterCommands(typeof(Program).Assembly);
+            }
 
-                // TODO: Add an EventListener attribute which specifies which events the class should be registered on.
+            EventInfo[] dSharpPlusEvents = typeof(DiscordShardedClient).GetEvents();
+            foreach (Type type in typeof(Program).Assembly.GetTypes().Where(t => t.GetMethods().Any(method => method.GetCustomAttribute<SubscribeToEventAttribute>() != null)))
+            {
+                foreach (MethodInfo methodInfo in type.GetMethods())
+                {
+                    SubscribeToEventAttribute? subscribeToEventAttribute = methodInfo.GetCustomAttribute<SubscribeToEventAttribute>();
+                    if (subscribeToEventAttribute != null)
+                    {
+                        EventInfo? discordEvent = dSharpPlusEvents.FirstOrDefault(e => e.Name == subscribeToEventAttribute.EventName) ?? throw new CustomAttributeFormatException($"Event {subscribeToEventAttribute.EventName} not found.");
+                        discordEvent.AddEventHandler(DiscordShardedClient, Delegate.CreateDelegate(discordEvent.EventHandlerType!, type, methodInfo.Name));
+                    }
+                }
             }
 
             await DiscordShardedClient.UseInteractivityAsync(interactivityConfiguration);

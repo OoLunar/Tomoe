@@ -34,8 +34,6 @@ namespace Tomoe.Models
             optionsBuilder.UseSnakeCaseNamingConvention(CultureInfo.InvariantCulture);
 
             DatabaseContext databaseContext = new(optionsBuilder.Options);
-            databaseContext.Database.EnsureCreated();
-
             return databaseContext;
         }
     }
