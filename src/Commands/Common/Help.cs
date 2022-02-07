@@ -36,7 +36,7 @@ namespace Tomoe.Commands.Common
                     continue;
                 }
                 embedBuilder.Title = $"Help - {section.Titleize()} Commands";
-                embedBuilder.Description = "Note that all commands are [cAsE iNsEnSiTiVe](https://en.wiktionary.org/wiki/case_insensitive#Adjective). All commands have PascalCase and snake_case varients.";
+                embedBuilder.WithFooter("Note that all commands are cAsE iNsEnSiTiVe.");
                 List<Command> sectionCommands = GetSectionCommands(context, section);
                 foreach (Command command in sectionCommands)
                 {
