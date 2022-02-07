@@ -1,10 +1,13 @@
+using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using Humanizer;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Tomoe.Enums;
@@ -13,10 +16,21 @@ namespace Tomoe.Commands.Moderation
 {
     public class Clear : BaseCommandModule
     {
-        [Command("clear"), Description("Clears messages from chat."), Cooldown(1, 300, CooldownBucketType.Channel)]
+        [Command("clear"), Description("Clears messages from chat."), Cooldown(1, 300, CooldownBucketType.Channel), RequireGuild]
         public async Task ClearChannelAsync(CommandContext context, DiscordChannel? channel = null, int messageCount = 5, DiscordMessage? beforeMessage = null, DiscordMessage? afterMessage = null, FilterType filterType = FilterType.AllMessages, string? filterTypeArgument = null)
         {
             channel ??= context.Channel;
+            if (!channel.PermissionsFor(context.Member).HasPermission(Permissions.ManageMessages))
+            {
+                await context.RespondAsync(Formatter.Bold($"[Error]: You cannot clear messages in {channel.Mention} due to Discord permissions!"));
+                return;
+            }
+            else if (!channel.PermissionsFor(context.Guild.CurrentMember).HasPermission(Permissions.ManageMessages))
+            {
+                await context.RespondAsync(Formatter.Bold($"[Error]: I cannot clear messages in {channel.Mention} due to Discord permissions!"));
+                return;
+            }
+
             if (messageCount is <= 2 or > 100)
             {
                 await context.RespondAsync("Invalid message count. Please select a range between 2-100.");
@@ -83,9 +97,21 @@ namespace Tomoe.Commands.Moderation
                 return;
             }
             int totalMessageCount = 0;
+            Dictionary<DiscordChannel, bool> failedChannels = new(); // true if they failed, false I failed
 
             foreach (DiscordChannel channel in context.Guild.Channels.Values)
             {
+                if (!channel.PermissionsFor(context.Member).HasPermission(Permissions.ManageMessages))
+                {
+                    failedChannels.Add(channel, true);
+                    continue;
+                }
+                else if (!channel.PermissionsFor(context.Guild.CurrentMember).HasPermission(Permissions.ManageMessages))
+                {
+                    failedChannels.Add(channel, false);
+                    continue;
+                }
+
                 IEnumerable<DiscordMessage> messages = await channel.GetMessagesAsync(messageCount);
                 if (!messages.Any())
                 {
@@ -110,7 +136,18 @@ namespace Tomoe.Commands.Moderation
                 await channel.DeleteMessagesAsync(messages);
                 totalMessageCount += messages.Count();
             }
-            await context.RespondAsync($"Cleared {totalMessageCount.ToMetric()} messages.");
+
+            StringBuilder sb = new();
+            sb.AppendLine(CultureInfo.InvariantCulture, $"Cleared {totalMessageCount.ToMetric()} messages.");
+            if (failedChannels.Count != 0)
+            {
+                sb.AppendLine("[Error]: Failed to clear messages in the following channels due to Discord permissions:");
+                foreach (KeyValuePair<DiscordChannel, bool> kvp in failedChannels)
+                {
+                    sb.AppendLine(kvp.Value ? $"{kvp.Key.Mention} (I)" : $"{kvp.Key.Mention} (You)");
+                }
+            }
+            await context.RespondAsync(sb.ToString());
         }
 
         public IEnumerable<DiscordMessage> FilterPhrase(IEnumerable<DiscordMessage> messages, string? phrase = null) => string.IsNullOrWhiteSpace(phrase) ? messages : messages.Where(message => message.Content.Contains(phrase, StringComparison.InvariantCultureIgnoreCase));

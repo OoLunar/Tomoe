@@ -5,6 +5,7 @@ using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
+using Tomoe.Utils;
 
 namespace Tomoe.Commands.Moderation
 {
@@ -18,13 +19,13 @@ namespace Tomoe.Commands.Moderation
         public async Task KickAsync(CommandContext context, [Description("Who's getting kicked?")] DiscordMember offender, [Description("Why are they getting kicked?"), RemainingText] string reason = Constants.NoReasonSpecified)
         {
             // Check if the executing user can kick members.
-            if (!context.Member.Permissions.HasPermission(Permissions.KickMembers))
+            if (!context.Member.CanExecute(Permissions.KickMembers, offender))
             {
                 await context.RespondAsync(Formatter.Bold($"[Error]: You cannot kick {offender.Mention} due to Discord permissions!"));
                 return;
             }
             // Check if the bot can kick members.
-            else if (!context.Guild.CurrentMember.Permissions.HasPermission(Permissions.KickMembers))
+            else if (!context.Guild.CurrentMember.CanExecute(Permissions.KickMembers, offender))
             {
                 await context.RespondAsync(Formatter.Bold($"[Error]: I cannot kick {offender.Mention} due to Discord permissions!"));
                 return;

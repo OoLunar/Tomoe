@@ -5,6 +5,7 @@ using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
+using Tomoe.Utils;
 
 namespace Tomoe.Commands.Moderation
 {
@@ -18,13 +19,13 @@ namespace Tomoe.Commands.Moderation
         public async Task MuteUserAsync(CommandContext context, [Description("Who's getting muted?")] DiscordMember offender, [Description("How long will they be muted?")] TimeSpan timeSpan, [Description("Why are they getting muted?"), RemainingText] string reason = Constants.NoReasonSpecified)
         {
             // Check if the executing user can mute members.
-            if (!context.Member.Permissions.HasPermission(Permissions.ModerateMembers))
+            if (!context.Member.CanExecute(Permissions.ModerateMembers, offender))
             {
                 await context.RespondAsync(Formatter.Bold($"[Error]: You cannot mute {offender.Mention} due to Discord permissions!"));
                 return;
             }
             // Check if the bot can mute members.
-            else if (!context.Guild.CurrentMember.Permissions.HasPermission(Permissions.ModerateMembers))
+            else if (!context.Guild.CurrentMember.CanExecute(Permissions.ModerateMembers, offender))
             {
                 await context.RespondAsync(Formatter.Bold($"[Error]: I cannot mute {offender.Mention} due to Discord permissions!"));
                 return;
