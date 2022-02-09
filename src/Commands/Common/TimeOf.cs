@@ -17,7 +17,7 @@ namespace Tomoe.Commands.Common
     public class TimeOf : BaseCommandModule
     {
         [Command("time_of"), Description("Gets the time of the messages linked."), Aliases("when_was", "timestamp")]
-        public async Task TimeOfAsync(CommandContext context, params ulong[] messages)
+        public async Task TimeOfAsync(CommandContext context, [Description("Which messages to get the time of.")] params ulong[] messages)
         {
             messages = messages.Distinct().OrderBy(snowflake => snowflake).ToArray();
             StringBuilder timestamps = new();
@@ -57,7 +57,7 @@ namespace Tomoe.Commands.Common
         }
 
         [Command("time_of")]
-        public async Task TimeOfAsync(CommandContext context, params string[] messages)
+        public async Task TimeOfAsync(CommandContext context, [Description("A list of links that go to a Discord message.")] params string[] messages)
         {
             List<ulong> messageIds = new();
             Dictionary<string, string> invalidMessages = new();

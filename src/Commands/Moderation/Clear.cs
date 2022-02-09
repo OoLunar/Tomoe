@@ -17,7 +17,7 @@ namespace Tomoe.Commands.Moderation
     public class Clear : BaseCommandModule
     {
         [Command("clear"), Description("Clears messages from chat."), Cooldown(1, 300, CooldownBucketType.Channel), RequireGuild]
-        public async Task ClearChannelAsync(CommandContext context, DiscordChannel? channel = null, int messageCount = 5, DiscordMessage? beforeMessage = null, DiscordMessage? afterMessage = null, FilterType filterType = FilterType.AllMessages, string? filterTypeArgument = null)
+        public async Task ClearChannelAsync(CommandContext context, [Description("Which channel to clear the messages from.")] DiscordChannel? channel = null, [Description("How many messages to clear.")] int messageCount = 5, [Description("Which message to stop clearing at.")] DiscordMessage? beforeMessage = null, [Description("Which message to start clearing at.")] DiscordMessage? afterMessage = null, [Description("What type of messages to clear.")] FilterType filterType = FilterType.AllMessages, [Description("An optional argument that may be required when using certain kinds of filter types.")] string? filterTypeArgument = null)
         {
             channel ??= context.Channel;
             if (!channel.PermissionsFor(context.Member).HasPermission(Permissions.ManageMessages))
@@ -84,7 +84,7 @@ namespace Tomoe.Commands.Moderation
         }
 
         [Command("clear"), Description("Clears messages from chat."), Cooldown(1, 300, CooldownBucketType.Global)]
-        public async Task ClearUsersAsync(CommandContext context, int messageCount = 5, FilterType filterType = FilterType.AllMessages, string? filterTypeArgument = null, params ulong[] userIds)
+        public async Task ClearUsersAsync(CommandContext context, [Description("How many messages to clear.")] int messageCount = 5, [Description("What type of messages to clear.")] FilterType filterType = FilterType.AllMessages, [Description("An optional argument that may be required when using certain kinds of filter types.")] string? filterTypeArgument = null, [Description("Which messages to delete that belong to these users.")] params ulong[] userIds)
         {
             if (messageCount is <= 2 or > 100)
             {

@@ -117,7 +117,7 @@ namespace Tomoe.Commands.Common
                 foreach (CommandArgument argument in command.Overloads[0].Arguments)
                 {
                     commandUsage.Append(argument.IsOptional ? $" [{argument.Name}]" : $" {argument.Name}");
-                    embedBuilder.AddField(argument.IsOptional ? $"Optional Argument: {argument.Name}" : $"Required Argument: {argument.Name}", $"{argument.Description ?? $"No argument description was found. Open up a {Formatter.MaskedUrl("Github Issue", new("https://github.com/OoLunar/Tomoe/issues/new?assignees=OoLunar&labels=bug%2C+documentation%2C+enhancement&template=missing-command-argument-description.md&title=%5BMissing+Command+Arugment+Description%5D"))} about it please!"}\nDefault Value: {argument.DefaultValue ?? "None."}\nType: {argument.Type.Name.Humanize()}", true);
+                    embedBuilder.AddField(argument.IsOptional ? $"Optional Argument: {argument.Name}" : $"Required Argument: {argument.Name}", $"{argument.Description ?? $"No argument description was found. Open up a {Formatter.MaskedUrl("Github Issue", new("https://github.com/OoLunar/Tomoe/issues/new?assignees=OoLunar&labels=bug%2C+documentation%2C+enhancement&template=missing-command-argument-description.md&title=%5BMissing+Command+Arugment+Description%5D"))} about it please!"}\nDefault Value: {argument.DefaultValue ?? "None."}\nType: {argument.Type.Name.Humanize()}", false);
                 }
                 commandUsage.Append('`');
                 embedBuilder.AddField("Command Usage", commandUsage.ToString());
@@ -182,7 +182,7 @@ namespace Tomoe.Commands.Common
                     foreach (CommandArgument argument in commandOverloads[i].Arguments)
                     {
                         embedBuilder.Description += argument.IsOptional ? $" [{argument.Name}]" : $" {argument.Name}";
-                        embedBuilder.AddField(argument.IsOptional ? $"(Optional) {argument.Name}" : $"(Required) {argument.Name}", $"{argument.Description ?? $"No argument description was found. Open up a {Formatter.MaskedUrl("Github Issue", new("https://github.com/OoLunar/Tomoe/issues/new?assignees=OoLunar&labels=bug%2C+documentation%2C+enhancement&template=missing-command-argument-description.md&title=%5BMissing+Command+Arugment+Description%5D"))} about it please!"}\nDefault Value: {argument.DefaultValue ?? "None."}\nType: {argument.Type.Name.Humanize()}", true);
+                        embedBuilder.AddField(argument.IsOptional ? $"(Optional) {argument.Name}" : $"(Required) {argument.Name}", $"{argument.Description ?? $"No argument description was found. Open up a {Formatter.MaskedUrl("Github Issue", new("https://github.com/OoLunar/Tomoe/issues/new?assignees=OoLunar&labels=bug%2C+documentation%2C+enhancement&template=missing-command-argument-description.md&title=%5BMissing+Command+Arugment+Description%5D"))} about it please!"}\nDefault Value: {argument.DefaultValue ?? "None."}\nType: {argument.Type.Name.Humanize()}", false);
                     }
                 }
 

@@ -18,7 +18,7 @@ namespace Tomoe.Commands.Common
 
         [Command("poll")]
         [Description("Creates a public message for people to vote on.")]
-        public async Task PollAsync(CommandContext context, string question, TimeSpan timeout, DiscordChannel? channel = null, params string[] wordAndEmojiList)
+        public async Task PollAsync(CommandContext context, [Description("The question for people to vote on. Use quotes (\"Like this\") to use multiple words.")] string question, [Description("When to end the poll.")] TimeSpan timeout, [Description("Which channel to post the poll in. Defaults to the current channel.")] DiscordChannel? channel = null, [Description("A list of options to choose from.")] params string[] wordAndEmojiList)
         {
             channel ??= context.Channel;
             if (wordAndEmojiList.Length < 2)

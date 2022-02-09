@@ -23,10 +23,10 @@ namespace Tomoe.Commands.Server
         public DatabaseContext Database { private get; init; } = null!;
 
         [Command("add"), Description("Adds an auto reaction to a channel.")]
-        public async Task AddAsync(CommandContext context, DiscordChannel channel, params DiscordEmoji[] emojis) => await AddAsync(context, channel, FilterType.AllMessages, null, emojis);
+        public async Task AddAsync(CommandContext context, [Description("Which channel to auto-react in.")] DiscordChannel channel, [Description("Which emojis to react with.")] params DiscordEmoji[] emojis) => await AddAsync(context, channel, FilterType.AllMessages, null, emojis);
 
         [Command("add"), Description("Adds an auto reaction to a channel."),]
-        public async Task AddAsync(CommandContext context, DiscordChannel channel, FilterType filterType, string? filterTypeInput = null, params DiscordEmoji[] emojis)
+        public async Task AddAsync(CommandContext context, [Description("Which channel to auto-react in.")] DiscordChannel channel, [Description("Filter out messages that shouldn't be reacted to.")] FilterType filterType, [Description("An optional argument that may be required when using certain kinds of filter types.")] string? filterTypeInput = null, [Description("Which emojis to react with.")] params DiscordEmoji[] emojis)
         {
             if (emojis.Length == 0)
             {
@@ -77,7 +77,7 @@ namespace Tomoe.Commands.Server
         }
 
         [Command("remove"), Description("Removes an auto reaction from a channel.")]
-        public async Task RemoveAsync(CommandContext context, params Guid[] ids)
+        public async Task RemoveAsync(CommandContext context, [Description("Which auto reactions to remove. Ids can be grabbed from the list command.")] params Guid[] ids)
         {
             IEnumerable<AutoReactionModel>? autoReaction = Database.AutoReactions.Where(databaseAutoReaction => ids.Contains(databaseAutoReaction.Id));
             if (autoReaction == null)
@@ -93,7 +93,7 @@ namespace Tomoe.Commands.Server
         }
 
         [Command("list"), Description("Lists all auto reactions in a channel.")]
-        public async Task ListAsync(CommandContext context, params Guid[] ids)
+        public async Task ListAsync(CommandContext context, [Description("Optionally list specific auto reactions for more information on them.")] params Guid[] ids)
         {
             List<Page> embeds = new();
             foreach (AutoReactionModel autoReaction in Database.AutoReactions.Where(databaseAutoReaction => ids.Contains(databaseAutoReaction.Id)))
@@ -120,7 +120,7 @@ namespace Tomoe.Commands.Server
         }
 
         [Command("list"), Description("Lists all auto reactions in a channel.")]
-        public async Task ListAsync(CommandContext context, FilterType filterType)
+        public async Task ListAsync(CommandContext context, [Description("List all auto reactions which match this filter.")] FilterType filterType)
         {
             List<Page> embeds = new();
             foreach (AutoReactionModel autoReaction in Database.AutoReactions.Where(databaseAutoReaction => databaseAutoReaction.FilterType == filterType && databaseAutoReaction.GuildId == context.Guild.Id))
@@ -146,7 +146,7 @@ namespace Tomoe.Commands.Server
         }
 
         [Command("list"), Description("Lists all auto reactions in a channel.")]
-        public async Task ListAsync(CommandContext context, params DiscordEmoji[] emojis)
+        public async Task ListAsync(CommandContext context, [Description("List all auto reactions that use the requested emojis.")] params DiscordEmoji[] emojis)
         {
             List<Page> embeds = new();
 
@@ -174,7 +174,7 @@ namespace Tomoe.Commands.Server
         }
 
         [Command("list"), Description("Lists all auto reactions in a channel.")]
-        public async Task ListAsync(CommandContext context, DiscordChannel channel)
+        public async Task ListAsync(CommandContext context, [Description("List all of the requested channel's auto reactions.")] DiscordChannel channel)
         {
             List<Page> embeds = new();
             foreach (AutoReactionModel autoReaction in Database.AutoReactions.Where(databaseAutoReaction => databaseAutoReaction.ChannelId == channel.Id && databaseAutoReaction.GuildId == context.Guild.Id))
