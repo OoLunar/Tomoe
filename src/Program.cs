@@ -20,6 +20,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Tomoe.Attributes;
+using Tomoe.Commands.Common;
 using Tomoe.Models;
 using Tomoe.Utils;
 
@@ -27,8 +28,9 @@ namespace Tomoe
 {
     public class Program
     {
-        private static DiscordShardedClient DiscordShardedClient { get; set; } = null!;
+        internal static DiscordShardedClient DiscordShardedClient { get; set; } = null!;
         internal static ServiceProvider ServiceProvider { get; set; } = null!;
+        internal static bool BotReady { get; set; }
 
         public static async Task Main(string[] args)
         {
@@ -92,6 +94,14 @@ namespace Tomoe
                 cancellationTokenSource.Cancel();
             };
             services.AddSingleton(cancellationTokenSource);
+
+            services.AddSingleton(serviceProvider =>
+            {
+                DatabaseList<PollModel> pollModelList = new(services.BuildServiceProvider());
+                pollModelList.PollExpired += Poll.VoteExpired;
+                return pollModelList;
+            });
+
             ServiceProvider = services.BuildServiceProvider();
 
             DiscordConfiguration discordConfiguration = new();

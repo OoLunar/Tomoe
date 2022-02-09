@@ -10,6 +10,7 @@ namespace Tomoe.Models
         public DbSet<SnowflakePermissionsModel> SnowflakePerms { get; init; } = null!;
         public DbSet<AutoReactionModel> AutoReactions { get; init; } = null!;
         public DbSet<AutoMentionModel> AutoMentions { get; init; } = null!;
+        public DbSet<PollModel> Polls { get; init; } = null!;
 
         public DatabaseContext(DbContextOptions<DatabaseContext> options) : base(options) { }
 

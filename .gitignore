@@ -5,3 +5,4 @@ res/config.json.prod
 .vscode/
 
 *.old
+src/Commands/Test/
