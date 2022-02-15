@@ -1,12 +1,12 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.CommandsNext.Converters;
 using DSharpPlus.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Tomoe.Models;
 using Tomoe.Utils;
 
@@ -14,7 +14,7 @@ namespace Tomoe.Commands.Common
 {
     public class Poll : BaseCommandModule
     {
-        public DatabaseList<PollModel> PollModelList { private get; set; } = null!;
+        public DatabaseList<PollModel, Guid> PollModelList { private get; set; } = null!;
 
         [Command("poll")]
         [Description("Creates a public message for people to vote on.")]
@@ -102,7 +102,7 @@ namespace Tomoe.Commands.Common
                 return;
             }
 
-            DatabaseList<PollModel> pollModelList = (DatabaseList<PollModel>)sender!;
+            DatabaseList<PollModel, Guid> pollModelList = (DatabaseList<PollModel, Guid>)sender!;
 
             string winner;
             KeyValuePair<string, ulong[]> winnerVote = pollModel.Votes.FirstOrDefault(x => x.Value.Length > 0);

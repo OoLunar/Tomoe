@@ -1,3 +1,11 @@
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Converters;
@@ -11,14 +19,6 @@ using Microsoft.Extensions.Logging;
 using Npgsql;
 using Serilog;
 using Serilog.Events;
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
 using Tomoe.Attributes;
 using Tomoe.Commands.Common;
 using Tomoe.Models;
@@ -97,7 +97,7 @@ namespace Tomoe
 
             services.AddSingleton(serviceProvider =>
             {
-                DatabaseList<PollModel> pollModelList = new(services.BuildServiceProvider());
+                DatabaseList<PollModel, Guid> pollModelList = new(services.BuildServiceProvider());
                 pollModelList.PollExpired += Poll.VoteExpired;
                 return pollModelList;
             });

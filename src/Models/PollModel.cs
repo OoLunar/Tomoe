@@ -6,7 +6,7 @@ using Tomoe.Interfaces;
 
 namespace Tomoe.Models
 {
-    public class PollModel : IExpires
+    public class PollModel : IExpires<Guid>
     {
         [Key]
         public Guid Id { get; init; }
