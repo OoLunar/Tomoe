@@ -1,6 +1,6 @@
+using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.EventArgs;
-using System.Threading.Tasks;
 using Tomoe.Attributes;
 
 namespace Tomoe.Events

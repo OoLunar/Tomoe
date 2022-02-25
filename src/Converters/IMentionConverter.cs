@@ -1,19 +1,38 @@
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Threading.Tasks;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Converters;
 using DSharpPlus.Entities;
-using System.Globalization;
-using System.Threading.Tasks;
 
 namespace Tomoe.Converters
 {
     public class IMentionConverter : IArgumentConverter<IMention>
     {
-        // TODO: Fully implement this horrible piece of code that not even the creator loves.
-        public Task<Optional<IMention>> ConvertAsync(string value, CommandContext ctx) => Task.FromResult(!value.Contains('<') ? Optional.FromNoValue<IMention>() : Optional.FromValue<IMention>(value[0..3] switch
+        [SuppressMessage("Roslyn", "IDE0046", Justification = "Don't fall down the ternary operator rabbit hole")]
+        public Task<Optional<IMention>> ConvertAsync(string value, CommandContext ctx)
         {
-            "<@!" => new UserMention(ulong.Parse(value[3..^1], CultureInfo.InvariantCulture)),
-            "<@&" => new RoleMention(ulong.Parse(value[3..^1], CultureInfo.InvariantCulture)),
-            _ => new UserMention(ulong.Parse(value[3..^1], CultureInfo.InvariantCulture))
-        }));
+            if (value.StartsWith("<@&", true, CultureInfo.InvariantCulture))
+            {
+                return Task.FromResult(Optional.FromValue<IMention>(new RoleMention(ulong.Parse(value.AsSpan(3, value.Length - 4), NumberStyles.Number, CultureInfo.InvariantCulture))));
+            }
+            else if (value.StartsWith("<@!", true, CultureInfo.InvariantCulture))
+            {
+                return Task.FromResult(Optional.FromValue<IMention>(new UserMention(ulong.Parse(value.AsSpan(3, value.Length - 4), NumberStyles.Number, CultureInfo.InvariantCulture))));
+            }
+            else if (value.StartsWith("<@", true, CultureInfo.InvariantCulture))
+            {
+                return Task.FromResult(Optional.FromValue<IMention>(new UserMention(ulong.Parse(value.AsSpan(2, value.Length - 3), NumberStyles.Number, CultureInfo.InvariantCulture))));
+            }
+            else if (value == "@everyone")
+            {
+                return Task.FromResult(Optional.FromValue<IMention>(new EveryoneMention()));
+            }
+            else
+            {
+                return Task.FromResult(Optional.FromNoValue<IMention>());
+            }
+        }
     }
 }
