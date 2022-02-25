@@ -1,7 +1,7 @@
 ![Code Size](https://img.shields.io/github/languages/code-size/OoLunar/Tomoe?style=for-the-badge&logo=appveyor&color=blueviolet&logo=none)![Lines of Code](https://img.shields.io/tokei/lines/github/OoLunar/Tomoe?style=for-the-badge&logo=appveyor&color=blueviolet&label=Total%20Lines%20of%20Code&logo=none)[![Discord](https://img.shields.io/discord/832354798153236510?style=for-the-badge&color=blueviolet&label=Chat%20On%20Discord&logo=discord)](https://discord.gg/5gm3pUt8Fg)
 
 # HOLD IT!
-Tomoe is currently going under an extensive rewrite. No part of this project should really be used. If you want to help with the code, checkout the rewrite/remora branch. Thank you!
+Tomoe is currently going under an extensive rewrite. No part of this project should really be used. If you want to help with the code, checkout the [rewrite/DSP_3.0](https://github.com/OoLunar/Tomoe/tree/rewrite/DSP_3.0) branch. Thank you!
 
 # How to setup Tomoe
 
@@ -9,20 +9,20 @@ If you wish to host Tomoe yourself, skip on down to prerequisites. If you just w
 
 ## Prerequisites
 
-Tomoe uses dotnet 5.0. You can get it from [Microsoft](https://dotnet.microsoft.com/download/dotnet/5.0). On Windows, I develop Tomoe using Visual Studio Code and [Windows Terminal](https://www.microsoft.com/en-us/p/windows-terminal/9n0dx20hk701). On Ubuntu, I use Visual Studio Code and Gnome Terminal. Tomoe works on Windows 10 Home and Ubuntu 20.04/20.10. Mac support seems just fine. Mono is not supported due to DSharpPlus intentionally choosing not to support it.
+Tomoe uses dotnet 6.0. You can get it from [Microsoft](https://dotnet.microsoft.com/download/dotnet/6.0). Tomoe should work on all OS' that .NET is supported on. Mono is not supported due to DSharpPlus intentionally choosing not to support it.
 
 ## Setup
 
 * Run a PostgreSQL instance that is reachable by the bot
-* Edit your `res/config.jsonc` file. If you're planning on contributing to the bot, copy the `res/config.jsonc` file to `config.jsonc.prod` and edit that instead.
+* Edit your `res/config.json` file. If you're planning on contributing to the bot, copy the `res/config.json` file to `config.json.prod` and edit that instead.
 
 ``` bash
 git clone https://github.com/OoLunar/Tomoe.git
 cd Tomoe
-dotnet restore --configfile /src/Nuget.Config
+dotnet restore
 ```
 
-Be sure to edit your config file `res/config.jsonc` .
+Be sure to edit your config file `res/config.json` .
 
 ``` bash
 dotnet run
