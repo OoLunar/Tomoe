@@ -21,6 +21,7 @@ using Serilog;
 using Serilog.Events;
 using Tomoe.Attributes;
 using Tomoe.Commands.Common;
+using Tomoe.Commands.Moderation;
 using Tomoe.Models;
 using Tomoe.Utils;
 
@@ -98,7 +99,14 @@ namespace Tomoe
             services.AddSingleton(serviceProvider =>
             {
                 DatabaseList<PollModel, Guid> pollModelList = new(services.BuildServiceProvider());
-                pollModelList.PollExpired += Poll.VoteExpired;
+                pollModelList.ItemExpired += Poll.VoteExpired;
+                return pollModelList;
+            });
+
+            services.AddSingleton(serviceProvider =>
+            {
+                DatabaseList<TempRoleModel, Guid> pollModelList = new(services.BuildServiceProvider());
+                pollModelList.ItemExpired += TempRole.RoleExpired;
                 return pollModelList;
             });
 

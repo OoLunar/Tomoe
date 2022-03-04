@@ -15,7 +15,7 @@ namespace Tomoe.Models
         public ulong MessageId { get; set; }
         public ulong UserId { get; init; }
         public string Question { get; init; } = null!;
-        public DateTime ExpiresAt { get; init; }
+        public DateTime ExpiresAt { get; internal set; }
         [Column(TypeName = "jsonb")]
         public Dictionary<string, ulong[]> Votes { get; init; } = new();
     }

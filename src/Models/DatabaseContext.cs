@@ -9,6 +9,7 @@ namespace Tomoe.Models
     {
         public DbSet<PollModel> Polls { get; init; } = null!;
         public DbSet<AutoModel<IMention>> AutoMentions { get; init; } = null!;
+        public DbSet<TempRoleModel> TempRoles { get; init; } = null!;
 
         public DatabaseContext(DbContextOptions<DatabaseContext> options) : base(options) { }
 

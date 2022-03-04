@@ -22,8 +22,8 @@ namespace Tomoe.Utils
         where TObject : class, IExpires<TObjectId>
     {
         [SuppressMessage("Roslyn", "CA1711", Justification = "The event args rely on T")]
-        public delegate Task PollExpiredEventArgs(object? sender, TObject expiredPoll);
-        public event PollExpiredEventArgs PollExpired = null!;
+        public delegate Task ItemExpiredEventArgs(object? sender, TObject expiredPoll);
+        public event ItemExpiredEventArgs ItemExpired = null!;
 
         private Timer UpdateTimer { get; init; } = new();
         private Timer ExpireTimer { get; init; } = new();
@@ -206,7 +206,7 @@ namespace Tomoe.Utils
             Items.Clear();
 
             DateTime cacheTime = DateTime.UtcNow.AddMilliseconds(UpdateTimer.Interval); // We do this since EFCore doesn't bother evaluating this client side before executing the query.
-            foreach (TObject item in database.Set<TObject>().Where(x => x.ExpiresAt > cacheTime))
+            foreach (TObject item in database.Set<TObject>().Where(x => x.ExpiresAt >= cacheTime || x.ExpiresAt < DateTime.UtcNow).AsEnumerable())
             {
                 Items.Add(item);
             }
@@ -223,7 +223,7 @@ namespace Tomoe.Utils
             {
                 if (item.ExpiresAt <= DateTime.UtcNow)
                 {
-                    if (PollExpired == null) // No event handlers registered
+                    if (ItemExpired == null) // No event handlers registered
                     {
                         Remove(item);
                     }
@@ -238,7 +238,7 @@ namespace Tomoe.Utils
                         }
                         else
                         {
-                            await PollExpired(this, foundItem);
+                            await ItemExpired(this, foundItem);
                         }
                     }
                 }
