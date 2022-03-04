@@ -85,127 +85,126 @@ namespace Tomoe.Commands.Moderation
                 return;
             }
 
-            Logger<TempRole> Logger = Program.ServiceProvider.GetService<Logger<TempRole>>()!;
+            Logger<TempRole> logger = Program.ServiceProvider.GetService<Logger<TempRole>>()!;
             DiscordClient client = Program.DiscordShardedClient.GetShard(tempRoleModel.GuildId);
-            DatabaseList<TempRoleModel, Guid> tempRoleList = (DatabaseList<TempRoleModel, Guid>)sender!;
+            DatabaseList<TempRoleModel, Guid> tempRoleModelList = (DatabaseList<TempRoleModel, Guid>)sender!;
 
             if (client == null)
             {
-                Logger.LogWarning("Failed to get client for guild {GuildId}", tempRoleModel.GuildId);
-                return;
-            }
-            else if (!client.Guilds.TryGetValue(tempRoleModel.GuildId, out DiscordGuild? guild) || guild == null)
-            {
-                Logger.LogWarning("Failed to get guild {GuildId} from cache, going to try making a rest request.", tempRoleModel.GuildId);
+                logger.LogTrace("{TempRoleModelId}: Failed to get client for guild {GuildId}. Testing to see if the guild still exists...", tempRoleModel.Id, tempRoleModel.GuildId);
                 try
                 {
-                    guild = await client.GetGuildAsync(tempRoleModel.GuildId);
+                    await Program.DiscordShardedClient.ShardClients[0].GetGuildAsync(tempRoleModel.GuildId);
+                    client = Program.DiscordShardedClient.ShardClients[0];
+                    logger.LogWarning("{TempRoleModelId}: Guild {GuildId} still exists. Must be a library bug.", tempRoleModel.Id, tempRoleModel.GuildId);
                 }
                 catch (NotFoundException) // Guild's been deleted.
                 {
-                    Logger.LogWarning("Failed to get guild {GuildId} from cache as it's been deleted.", tempRoleModel.GuildId);
+                    logger.LogDebug("{TempRoleModelId}: Failed to get guild {GuildId} from cache as it's been deleted.", tempRoleModel.Id, tempRoleModel.GuildId);
                     DatabaseContext database = Program.ServiceProvider.GetService<DatabaseContext>()!;
                     database.TempRoles.RemoveRange(database.TempRoles.Where(x => x.GuildId == tempRoleModel.GuildId));
                     await database.SaveChangesAsync();
-                    tempRoleList.Remove(tempRoleModel);
+                    tempRoleModelList.Remove(tempRoleModel);
                     return;
                 }
                 catch (DiscordException error)
                 {
-                    Logger.LogError(error, "Failed to get guild {GuildId} from rest request. Error: (HTTP {HTTPCode}) {JsonError}", tempRoleModel.GuildId, error.WebResponse.ResponseCode, error.JsonMessage);
+                    logger.LogInformation(error, "{TempRoleModelId}: Failed to get guild {GuildId} from rest request. Error: (HTTP {HTTPCode}) {JsonError}", tempRoleModel.Id, tempRoleModel.GuildId, error.WebResponse.ResponseCode, error.JsonMessage);
                     return;
                 }
                 return;
             }
-            else if (guild.IsUnavailable)
+
+            DiscordGuild guild = client.Guilds[tempRoleModel.GuildId];
+            if (guild.IsUnavailable)
             {
-                Logger.LogWarning("Guild {GuildId} is unavailable, not revoking temporary role. Adding a 5 minute delay.", tempRoleModel.GuildId);
+                logger.LogDebug("{TempRoleModelId}: Guild {GuildId} is unavailable, not revoking temporary role. Adding a 5 minute delay.", tempRoleModel.Id, tempRoleModel.GuildId);
                 tempRoleModel.ExpiresAt = DateTime.UtcNow.AddMinutes(5);
-                tempRoleList.Update(tempRoleModel);
+                tempRoleModelList.Update(tempRoleModel);
                 return;
             }
-            else if (!guild.Members.TryGetValue(tempRoleModel.Assignee, out DiscordMember? assignee) || assignee == null)
+
+            if (!guild.Members.TryGetValue(tempRoleModel.Assignee, out DiscordMember? assignee) || assignee == null)
             {
-                Logger.LogWarning("Failed to get member {Assignee} from guild {GuildId} from cache, going to try making a rest request.", tempRoleModel.Assignee, tempRoleModel.GuildId);
+                logger.LogWarning("Failed to get member {Assignee} from guild {GuildId} from cache, going to try making a rest request.", tempRoleModel.Assignee, tempRoleModel.GuildId);
                 try
                 {
                     assignee = await guild.GetMemberAsync(tempRoleModel.Assignee);
                 }
                 catch (NotFoundException) // Assignee left.
                 {
-                    Logger.LogWarning("Failed to get member {Assignee} from guild {GuildId} from cache as the member has left.", tempRoleModel.Assignee, tempRoleModel.GuildId);
+                    logger.LogWarning("Failed to get member {Assignee} from guild {GuildId} from cache as the member has left.", tempRoleModel.Assignee, tempRoleModel.GuildId);
                     DatabaseContext database = Program.ServiceProvider.GetService<DatabaseContext>()!;
                     database.TempRoles.RemoveRange(database.TempRoles.Where(x => x.Assignee == tempRoleModel.Assignee && x.GuildId == tempRoleModel.GuildId));
                     await database.SaveChangesAsync();
-                    tempRoleList.Remove(tempRoleModel);
+                    tempRoleModelList.Remove(tempRoleModel);
                     return;
                 }
                 catch (DiscordException error)
                 {
-                    Logger.LogError(error, "Failed to get member {Assignee} from guild {GuildId} from rest request. Error: (HTTP {HTTPCode}) {JsonError}", tempRoleModel.Assignee, tempRoleModel.GuildId, error.WebResponse.ResponseCode, error.JsonMessage);
+                    logger.LogError(error, "Failed to get member {Assignee} from guild {GuildId} from rest request. Error: (HTTP {HTTPCode}) {JsonError}", tempRoleModel.Assignee, tempRoleModel.GuildId, error.WebResponse.ResponseCode, error.JsonMessage);
                     return;
                 }
                 return;
             }
-            else if (!guild.Roles.TryGetValue(tempRoleModel.RoleId, out DiscordRole? role) || role == null)
+
+            if (!guild.Roles.TryGetValue(tempRoleModel.RoleId, out DiscordRole? role) || role == null)
             {
-                Logger.LogInformation("Failed to get role {RoleId} from guild {GuildId} from cache. Assuming it's deleted.", tempRoleModel.RoleId, tempRoleModel.GuildId);
+                logger.LogInformation("Failed to get role {RoleId} from guild {GuildId} from cache. Assuming it's deleted.", tempRoleModel.RoleId, tempRoleModel.GuildId);
                 DatabaseContext database = Program.ServiceProvider.GetService<DatabaseContext>()!;
                 database.TempRoles.RemoveRange(database.TempRoles.Where(x => x.RoleId == tempRoleModel.RoleId && x.GuildId == tempRoleModel.GuildId));
                 await database.SaveChangesAsync();
-                tempRoleList.Remove(tempRoleModel);
+                tempRoleModelList.Remove(tempRoleModel);
                 return;
             }
-            else if (!assignee.Roles.Contains(assignee.Guild.GetRole(tempRoleModel.RoleId)))
-            {
-                tempRoleList.Remove(tempRoleModel);
-                return;
-            }
-            else
-            {
-                string dmMessage;
 
+            if (!assignee.Roles.Contains(assignee.Guild.GetRole(tempRoleModel.RoleId)))
+            {
+                tempRoleModelList.Remove(tempRoleModel);
+                return;
+            }
+
+            string dmMessage;
+            try
+            {
+                await assignee.RevokeRoleAsync(role);
+                dmMessage = $"{assignee.Mention} ({Formatter.InlineCode(assignee.Id.ToString(CultureInfo.InvariantCulture))})'s temporary role {role.Name} ({Formatter.InlineCode(role.Id.ToString(CultureInfo.InvariantCulture))}) in {guild.Name} has sucessfully expired.";
+            }
+            catch (DiscordException error)
+            {
+                dmMessage = $"{assignee.Mention} ({Formatter.InlineCode(assignee.Id.ToString(CultureInfo.InvariantCulture))})'s temporary role {role.Name} ({Formatter.InlineCode(role.Id.ToString(CultureInfo.InvariantCulture))}) in {guild.Name} has failed to correctly expire. This means the role was not removed, and you'll need to do it by hand. Error: (HTTP {error.WebResponse.ResponseCode}) {Formatter.InlineCode(error.Message)}";
+                logger.LogError(error, "Failed to revoke role {RoleId} from member {Assignee} in guild {GuildId}. Error: (HTTP {HTTPCode}) {JsonError}", tempRoleModel.RoleId, tempRoleModel.Assignee, tempRoleModel.GuildId, error.WebResponse.ResponseCode, error.JsonMessage);
+                return;
+            }
+
+            if (!guild.Members.TryGetValue(tempRoleModel.Assigner, out DiscordMember? assigner) || assigner == null)
+            {
+                logger.LogWarning("Failed to get member {Assigner} from guild {GuildId} from cache, going to try making a rest request.", tempRoleModel.Assigner, tempRoleModel.GuildId);
                 try
                 {
-                    await assignee.RevokeRoleAsync(role);
-                    dmMessage = $"{assignee.Mention} ({Formatter.InlineCode(assignee.Id.ToString(CultureInfo.InvariantCulture))})'s temporary role {role.Name} ({Formatter.InlineCode(role.Id.ToString(CultureInfo.InvariantCulture))}) in {guild.Name} has sucessfully expired.";
+                    assigner = await guild.GetMemberAsync(tempRoleModel.Assigner);
+                }
+                catch (NotFoundException) // Assigner left.
+                {
+                    logger.LogWarning("Failed to get member {Assignee} from guild {GuildId} from cache as the member has left.", tempRoleModel.Assigner, tempRoleModel.GuildId);
+                    return;
                 }
                 catch (DiscordException error)
                 {
-                    dmMessage = $"{assignee.Mention} ({Formatter.InlineCode(assignee.Id.ToString(CultureInfo.InvariantCulture))})'s temporary role {role.Name} ({Formatter.InlineCode(role.Id.ToString(CultureInfo.InvariantCulture))}) in {guild.Name} has failed to correctly expire. Error: (HTTP {error.WebResponse.ResponseCode}) {Formatter.InlineCode(error.Message)}";
-                    Logger.LogError(error, "Failed to revoke role {RoleId} from member {Assignee} in guild {GuildId}. Error: (HTTP {HTTPCode}) {JsonError}", tempRoleModel.RoleId, tempRoleModel.Assignee, tempRoleModel.GuildId, error.WebResponse.ResponseCode, error.JsonMessage);
+                    logger.LogError(error, "Failed to get member {Assignee} from guild {GuildId} from rest request. Error: (HTTP {HTTPCode}) {JsonError}", tempRoleModel.Assigner, tempRoleModel.GuildId, error.WebResponse.ResponseCode, error.JsonMessage);
                     return;
                 }
-
-                if (!guild.Members.TryGetValue(tempRoleModel.Assigner, out DiscordMember? assigner) || assigner == null)
-                {
-                    Logger.LogWarning("Failed to get member {Assigner} from guild {GuildId} from cache, going to try making a rest request.", tempRoleModel.Assigner, tempRoleModel.GuildId);
-                    try
-                    {
-                        assigner = await guild.GetMemberAsync(tempRoleModel.Assigner);
-                    }
-                    catch (NotFoundException) // Assigner left.
-                    {
-                        Logger.LogWarning("Failed to get member {Assignee} from guild {GuildId} from cache as the member has left.", tempRoleModel.Assigner, tempRoleModel.GuildId);
-                        return;
-                    }
-                    catch (DiscordException error)
-                    {
-                        Logger.LogError(error, "Failed to get member {Assignee} from guild {GuildId} from rest request. Error: (HTTP {HTTPCode}) {JsonError}", tempRoleModel.Assigner, tempRoleModel.GuildId, error.WebResponse.ResponseCode, error.JsonMessage);
-                        return;
-                    }
-                }
-
-                try
-                {
-                    await assigner.SendMessageAsync(dmMessage);
-                }
-                catch (DiscordException)
-                {
-                    // Ignore.
-                }
-                tempRoleList.Remove(tempRoleModel);
             }
+
+            try
+            {
+                await assigner.SendMessageAsync(dmMessage);
+            }
+            catch (DiscordException)
+            {
+                // Ignore.
+            }
+            tempRoleModelList.Remove(tempRoleModel);
         }
     }
 }

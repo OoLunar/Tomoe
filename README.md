@@ -70,7 +70,7 @@ As mentioned previously, Tomoe aims to be the #1 bot choice for Discord Moderati
 | Strike | ❌ |
 | Temp Ban | ❌ |
 | Temp Lock | ❌ |
-| Temp Mute | ❌ |
+| Temp Role | ✅ |
 | Unban | ✅ |
 | Unmute | ✅ |
 | **Public commands** | - |

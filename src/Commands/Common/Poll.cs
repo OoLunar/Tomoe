@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using DSharpPlus;
@@ -73,12 +74,13 @@ namespace Tomoe.Commands.Common
                     buttons.Clear();
                 }
 
+                string[] splitList = wordOrEmoji.Split(" ");
                 DiscordButtonComponent button;
-                Optional<DiscordEmoji> isEmoji = await emojiArgumentConverter.ConvertAsync(wordOrEmoji, context);
-                button = isEmoji.IsDefined(out DiscordEmoji? emoji) && emoji != null
-                                                        ? (new(ButtonStyle.Secondary, $"poll\v{poll.Id}\v{wordOrEmoji}", null, false, new DiscordComponentEmoji(emoji)))
-                                                        : (new(ButtonStyle.Secondary, $"poll\v{poll.Id}\v{wordOrEmoji}", wordOrEmoji));
-
+                button = !wordOrEmoji.StartsWith(" ", true, CultureInfo.InvariantCulture)
+                    && (await emojiArgumentConverter.ConvertAsync(splitList[0], context)).IsDefined(out DiscordEmoji? emoji)
+                    && emoji != null
+                        ? (new(ButtonStyle.Secondary, $"poll\v{poll.Id}\v{wordOrEmoji}", string.Join(' ', splitList.Skip(1)), false, new DiscordComponentEmoji(emoji)))
+                        : (new(ButtonStyle.Secondary, $"poll\v{poll.Id}\v{wordOrEmoji}", wordOrEmoji));
                 buttons.Add(button);
             }
             buttons.Add(new DiscordButtonComponent(ButtonStyle.Danger, $"poll\v{poll.Id}\v\tcancel", "Remove my vote!"));
@@ -157,7 +159,7 @@ namespace Tomoe.Commands.Common
             DiscordGuild guild = client.Guilds[pollModel.GuildId];
             if (guild.IsUnavailable)
             {
-                logger.LogDebug("{PollId}: Guild {GuildId} is unavailable, not revoking temporary role. Adding a 5 minute delay.", pollModel.Id, pollModel.GuildId);
+                logger.LogDebug("{PollId}: Guild {GuildId} is unavailable, not executing the poll. Adding a 5 minute delay.", pollModel.Id, pollModel.GuildId);
                 pollModel.ExpiresAt = DateTime.UtcNow.AddMinutes(5);
                 pollModelList.Update(pollModel);
                 return;
