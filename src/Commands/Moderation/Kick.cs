@@ -1,10 +1,10 @@
+using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using DSharpPlus.Exceptions;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Threading.Tasks;
 using Tomoe.Utils;
 
 namespace Tomoe.Commands.Moderation
@@ -21,13 +21,13 @@ namespace Tomoe.Commands.Moderation
             // Check if the executing user can kick members.
             if (!context.Member.CanExecute(Permissions.KickMembers, offender))
             {
-                await context.RespondAsync(Formatter.Bold($"[Error]: You cannot kick {offender.Mention} due to Discord permissions!"));
+                await context.RespondAsync($"[Error]: You cannot kick {offender.Mention} due to Discord permissions!");
                 return;
             }
             // Check if the bot can kick members.
             else if (!context.Guild.CurrentMember.CanExecute(Permissions.KickMembers, offender))
             {
-                await context.RespondAsync(Formatter.Bold($"[Error]: I cannot kick {offender.Mention} due to Discord permissions!"));
+                await context.RespondAsync($"[Error]: I cannot kick {offender.Mention} due to Discord permissions!");
                 return;
             }
 
@@ -38,7 +38,7 @@ namespace Tomoe.Commands.Moderation
                 DiscordDmChannel dmChannel = await offender.CreateDmChannelAsync();
                 await dmChannel.SendMessageAsync($"You have been kicked from {context.Guild.Name} ({context.Guild.Id}) by {context.Member.Username}#{context.Member.Discriminator} ({context.Member.Id}) for the following reason:\n{reason}");
             }
-            catch (Exception)
+            catch (DiscordException)
             {
                 dmSuccess = false;
             }
@@ -48,10 +48,10 @@ namespace Tomoe.Commands.Moderation
             {
                 await offender.RemoveAsync(reason);
             }
-            catch (Exception error)
+            catch (DiscordException error)
             {
-                await context.RespondAsync(Formatter.Bold($"[Error]: Failed to kick {offender.Mention}: {error.Message}"));
-                Logger.LogWarning("Uncaught exception: {@Exception}", error);
+                await context.RespondAsync($"[Error]: Failed to kick {offender.Mention}. Error: (HTTP {error.WebResponse.ResponseCode}) {error.JsonMessage}");
+                Logger.LogWarning(error, "Failed to kick {Offender} from guild {GuildId}. Error: (HTTP {HTTPCode}) {JsonError}", offender.Id, context.Guild.Id, error.WebResponse.ResponseCode, error.JsonMessage);
                 return;
             }
 

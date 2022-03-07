@@ -1,11 +1,11 @@
+using System.Linq;
+using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using DSharpPlus.Exceptions;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Tomoe.Commands.Moderation
 {
@@ -21,20 +21,20 @@ namespace Tomoe.Commands.Moderation
             // Check if the user is already banned.
             if (!(await context.Guild.GetBansAsync()).Any(guildUser => guildUser.User.Id == offender.Id))
             {
-                await context.RespondAsync(Formatter.Bold($"[Error]: {offender.Mention} ({offender.Id}) is not banned!"));
+                await context.RespondAsync($"[Error]: {offender.Mention} ({offender.Id}) is not banned!");
                 return;
             }
 
             // Check if the executing user can unban members
             if (!context.Member.Permissions.HasPermission(Permissions.BanMembers))
             {
-                await context.RespondAsync(Formatter.Bold($"[Error]: You cannot unban {offender.Mention} due to Discord permissions!"));
+                await context.RespondAsync($"[Error]: You cannot unban {offender.Mention} due to Discord permissions!");
                 return;
             }
             // Check if the bot can unban members
             else if (!context.Guild.CurrentMember.Permissions.HasPermission(Permissions.BanMembers))
             {
-                await context.RespondAsync(Formatter.Bold($"[Error]: I cannot unban {offender.Mention} due to Discord permissions!"));
+                await context.RespondAsync($"[Error]: I cannot unban {offender.Mention} due to Discord permissions!");
                 return;
             }
 
@@ -43,10 +43,10 @@ namespace Tomoe.Commands.Moderation
             {
                 await context.Guild.UnbanMemberAsync(offender, reason);
             }
-            catch (Exception error)
+            catch (DiscordException error)
             {
-                await context.RespondAsync(Formatter.Bold($"[Error]: Failed to unban {offender.Mention}: {error.Message}"));
-                Logger.LogWarning("Uncaught exception: {@Exception}", error);
+                await context.RespondAsync($"[Error]: Failed to unban {offender.Mention}. Error: (HTTP {error.WebResponse.ResponseCode}) {error.JsonMessage}");
+                Logger.LogWarning(error, "Failed to unban {Offender} from guild {GuildId}. Error: (HTTP {HTTPCode}) {JsonError}", offender.Id, context.Guild.Id, error.WebResponse.ResponseCode, error.JsonMessage);
                 return;
             }
 

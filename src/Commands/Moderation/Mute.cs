@@ -1,10 +1,11 @@
+using System;
+using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using DSharpPlus.Exceptions;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Threading.Tasks;
 using Tomoe.Utils;
 
 namespace Tomoe.Commands.Moderation
@@ -21,13 +22,13 @@ namespace Tomoe.Commands.Moderation
             // Check if the executing user can mute members.
             if (!context.Member.CanExecute(Permissions.ModerateMembers, offender))
             {
-                await context.RespondAsync(Formatter.Bold($"[Error]: You cannot mute {offender.Mention} due to Discord permissions!"));
+                await context.RespondAsync($"[Error]: You cannot mute {offender.Mention} due to Discord permissions!");
                 return;
             }
             // Check if the bot can mute members.
             else if (!context.Guild.CurrentMember.CanExecute(Permissions.ModerateMembers, offender))
             {
-                await context.RespondAsync(Formatter.Bold($"[Error]: I cannot mute {offender.Mention} due to Discord permissions!"));
+                await context.RespondAsync($"[Error]: I cannot mute {offender.Mention} due to Discord permissions!");
                 return;
             }
 
@@ -38,7 +39,7 @@ namespace Tomoe.Commands.Moderation
                 DiscordDmChannel dmChannel = await offender.CreateDmChannelAsync();
                 await dmChannel.SendMessageAsync($"You have been muted from {context.Guild.Name} ({context.Guild.Id}) by {context.Member.Username}#{context.Member.Discriminator} ({context.Member.Id}) for the following reason:\n{reason}");
             }
-            catch (Exception)
+            catch (DiscordException)
             {
                 dmSuccess = false;
             }
@@ -48,10 +49,10 @@ namespace Tomoe.Commands.Moderation
             {
                 await offender.TimeoutAsync(DateTime.UtcNow.Add(timeSpan), reason);
             }
-            catch (Exception error)
+            catch (DiscordException error)
             {
-                await context.RespondAsync(Formatter.Bold($"[Error]: Failed to mute {offender.Mention}: {error.Message}"));
-                Logger.LogWarning("Uncaught exception: {@Exception}", error);
+                await context.RespondAsync($"[Error]: Failed to mute {offender.Mention}. Error: (HTTP {error.WebResponse.ResponseCode}) {error.JsonMessage}");
+                Logger.LogWarning(error, "Failed to mute {Offender} from guild {GuildId}. Error: (HTTP {HTTPCode}) {JsonError}", offender.Id, context.Guild.Id, error.WebResponse.ResponseCode, error.JsonMessage);
                 return;
             }
 

@@ -61,7 +61,7 @@ namespace Tomoe.Commands.Moderation
             }
             catch (DiscordException error)
             {
-                await context.RespondAsync($"[Error]: I was unable to assign the role {role.Mention} ({Formatter.InlineCode(role.Id.ToString(CultureInfo.InvariantCulture))}) to {member.Mention}! Error: {error.WebResponse.ResponseCode}, {Formatter.InlineCode(error.JsonMessage)}");
+                await context.RespondAsync($"[Error]: Failed to assign the role {role.Mention} ({Formatter.InlineCode(role.Id.ToString(CultureInfo.InvariantCulture))}) to {member.Mention}. Error: {error.WebResponse.ResponseCode}, {Formatter.InlineCode(error.JsonMessage)}");
                 return;
             }
 
@@ -126,14 +126,14 @@ namespace Tomoe.Commands.Moderation
 
             if (!guild.Members.TryGetValue(tempRoleModel.Assignee, out DiscordMember? assignee) || assignee == null)
             {
-                logger.LogWarning("Failed to get member {Assignee} from guild {GuildId} from cache, going to try making a rest request.", tempRoleModel.Assignee, tempRoleModel.GuildId);
+                logger.LogWarning("{TempRoleModelId}: Failed to get member {Assignee} from guild {GuildId} from cache, going to try making a rest request.", tempRoleModel.Id, tempRoleModel.Assignee, tempRoleModel.GuildId);
                 try
                 {
                     assignee = await guild.GetMemberAsync(tempRoleModel.Assignee);
                 }
                 catch (NotFoundException) // Assignee left.
                 {
-                    logger.LogWarning("Failed to get member {Assignee} from guild {GuildId} from cache as the member has left.", tempRoleModel.Assignee, tempRoleModel.GuildId);
+                    logger.LogWarning("{TempRoleModelId}: Failed to get member {Assignee} from guild {GuildId} from cache as the member has left.", tempRoleModel.Id, tempRoleModel.Assignee, tempRoleModel.GuildId);
                     DatabaseContext database = Program.ServiceProvider.GetService<DatabaseContext>()!;
                     database.TempRoles.RemoveRange(database.TempRoles.Where(x => x.Assignee == tempRoleModel.Assignee && x.GuildId == tempRoleModel.GuildId));
                     await database.SaveChangesAsync();
@@ -142,7 +142,7 @@ namespace Tomoe.Commands.Moderation
                 }
                 catch (DiscordException error)
                 {
-                    logger.LogError(error, "Failed to get member {Assignee} from guild {GuildId} from rest request. Error: (HTTP {HTTPCode}) {JsonError}", tempRoleModel.Assignee, tempRoleModel.GuildId, error.WebResponse.ResponseCode, error.JsonMessage);
+                    logger.LogError(error, "{TempRoleModelId}: Failed to get member {Assignee} from guild {GuildId} from rest request. Error: (HTTP {HTTPCode}) {JsonError}", tempRoleModel.Id, tempRoleModel.Assignee, tempRoleModel.GuildId, error.WebResponse.ResponseCode, error.JsonMessage);
                     return;
                 }
                 return;
@@ -150,7 +150,7 @@ namespace Tomoe.Commands.Moderation
 
             if (!guild.Roles.TryGetValue(tempRoleModel.RoleId, out DiscordRole? role) || role == null)
             {
-                logger.LogInformation("Failed to get role {RoleId} from guild {GuildId} from cache. Assuming it's deleted.", tempRoleModel.RoleId, tempRoleModel.GuildId);
+                logger.LogInformation("{TempRoleModelId}: Failed to get role {RoleId} from guild {GuildId} from cache. Assuming it's deleted.", tempRoleModel.Id, tempRoleModel.RoleId, tempRoleModel.GuildId);
                 DatabaseContext database = Program.ServiceProvider.GetService<DatabaseContext>()!;
                 database.TempRoles.RemoveRange(database.TempRoles.Where(x => x.RoleId == tempRoleModel.RoleId && x.GuildId == tempRoleModel.GuildId));
                 await database.SaveChangesAsync();
@@ -173,25 +173,25 @@ namespace Tomoe.Commands.Moderation
             catch (DiscordException error)
             {
                 dmMessage = $"{assignee.Mention} ({Formatter.InlineCode(assignee.Id.ToString(CultureInfo.InvariantCulture))})'s temporary role {role.Name} ({Formatter.InlineCode(role.Id.ToString(CultureInfo.InvariantCulture))}) in {guild.Name} has failed to correctly expire. This means the role was not removed, and you'll need to do it by hand. Error: (HTTP {error.WebResponse.ResponseCode}) {Formatter.InlineCode(error.Message)}";
-                logger.LogError(error, "Failed to revoke role {RoleId} from member {Assignee} in guild {GuildId}. Error: (HTTP {HTTPCode}) {JsonError}", tempRoleModel.RoleId, tempRoleModel.Assignee, tempRoleModel.GuildId, error.WebResponse.ResponseCode, error.JsonMessage);
+                logger.LogError(error, "{TempRoleModelId}: Failed to revoke role {RoleId} from member {Assignee} in guild {GuildId}. Error: (HTTP {HTTPCode}) {JsonError}", tempRoleModel.Id, tempRoleModel.RoleId, tempRoleModel.Assignee, tempRoleModel.GuildId, error.WebResponse.ResponseCode, error.JsonMessage);
                 return;
             }
 
             if (!guild.Members.TryGetValue(tempRoleModel.Assigner, out DiscordMember? assigner) || assigner == null)
             {
-                logger.LogWarning("Failed to get member {Assigner} from guild {GuildId} from cache, going to try making a rest request.", tempRoleModel.Assigner, tempRoleModel.GuildId);
+                logger.LogWarning("{TempRoleModelId}: Failed to get member {Assigner} from guild {GuildId} from cache, going to try making a rest request.", tempRoleModel.Id, tempRoleModel.Assigner, tempRoleModel.GuildId);
                 try
                 {
                     assigner = await guild.GetMemberAsync(tempRoleModel.Assigner);
                 }
                 catch (NotFoundException) // Assigner left.
                 {
-                    logger.LogWarning("Failed to get member {Assignee} from guild {GuildId} from cache as the member has left.", tempRoleModel.Assigner, tempRoleModel.GuildId);
+                    logger.LogWarning("{TempRoleModelId}: Failed to get member {Assignee} from guild {GuildId} from cache as the member has left.", tempRoleModel.Id, tempRoleModel.Assigner, tempRoleModel.GuildId);
                     return;
                 }
                 catch (DiscordException error)
                 {
-                    logger.LogError(error, "Failed to get member {Assignee} from guild {GuildId} from rest request. Error: (HTTP {HTTPCode}) {JsonError}", tempRoleModel.Assigner, tempRoleModel.GuildId, error.WebResponse.ResponseCode, error.JsonMessage);
+                    logger.LogError(error, "{TempRoleModelId}: Failed to get member {Assignee} from guild {GuildId} from rest request. Error: (HTTP {HTTPCode}) {JsonError}", tempRoleModel.Id, tempRoleModel.Assigner, tempRoleModel.GuildId, error.WebResponse.ResponseCode, error.JsonMessage);
                     return;
                 }
             }

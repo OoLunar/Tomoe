@@ -1,8 +1,3 @@
-using DSharpPlus;
-using DSharpPlus.CommandsNext;
-using DSharpPlus.CommandsNext.Attributes;
-using DSharpPlus.Entities;
-using Humanizer;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -10,24 +5,33 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using DSharpPlus;
+using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.Entities;
+using DSharpPlus.Exceptions;
+using Humanizer;
+using Microsoft.Extensions.Logging;
 using Tomoe.Enums;
 
 namespace Tomoe.Commands.Moderation
 {
     public class Clear : BaseCommandModule
     {
-        [Command("clear"), Description("Clears messages from chat."), Cooldown(1, 300, CooldownBucketType.Channel), RequireGuild]
+        public ILogger<Clear> Logger { private get; init; } = null!;
+
+        [Command("clear"), Description("Clears messages from chat."), RequireGuild]
         public async Task ClearChannelAsync(CommandContext context, [Description("Which channel to clear the messages from.")] DiscordChannel? channel = null, [Description("How many messages to clear.")] int messageCount = 5, [Description("Which message to stop clearing at.")] DiscordMessage? beforeMessage = null, [Description("Which message to start clearing at.")] DiscordMessage? afterMessage = null, [Description("What type of messages to clear.")] FilterType filterType = FilterType.AllMessages, [Description("An optional argument that may be required when using certain kinds of filter types.")] string? filterTypeArgument = null)
         {
             channel ??= context.Channel;
             if (!channel.PermissionsFor(context.Member).HasPermission(Permissions.ManageMessages))
             {
-                await context.RespondAsync(Formatter.Bold($"[Error]: You cannot clear messages in {channel.Mention} due to Discord permissions!"));
+                await context.RespondAsync($"[Error]: You cannot clear messages in {channel.Mention} due to Discord permissions!");
                 return;
             }
             else if (!channel.PermissionsFor(context.Guild.CurrentMember).HasPermission(Permissions.ManageMessages))
             {
-                await context.RespondAsync(Formatter.Bold($"[Error]: I cannot clear messages in {channel.Mention} due to Discord permissions!"));
+                await context.RespondAsync($"[Error]: I cannot clear messages in {channel.Mention} due to Discord permissions!");
                 return;
             }
 
@@ -79,11 +83,21 @@ namespace Tomoe.Commands.Moderation
                 FilterType.Regex => FilterRegex(messages, filterTypeArgument),
                 _ => throw new ArgumentOutOfRangeException(nameof(filterType), filterType, null)
             };
-            await channel.DeleteMessagesAsync(messages);
+
+            try
+            {
+                await channel.DeleteMessagesAsync(messages);
+            }
+            catch (DiscordException error)
+            {
+                await context.RespondAsync($"[Error]: Failed to clear {messages.Count().ToMetric()} messages. Error: (HTTP {error.WebResponse.ResponseCode}) {error.JsonMessage}");
+                Logger.LogWarning(error, "Failed to clear {MessageCount} from guild {GuildId}. Error: (HTTP {HTTPCode}) {JsonError}", messages.Count().ToMetric(), context.Guild.Id, error.WebResponse.ResponseCode, error.JsonMessage);
+                return;
+            }
             await context.RespondAsync($"Cleared {messages.Count().ToMetric()} messages.");
         }
 
-        [Command("clear"), Description("Clears messages from chat."), Cooldown(1, 300, CooldownBucketType.Global)]
+        [Command("clear"), Description("Clears messages from chat.")]
         public async Task ClearUsersAsync(CommandContext context, [Description("How many messages to clear.")] int messageCount = 5, [Description("What type of messages to clear.")] FilterType filterType = FilterType.AllMessages, [Description("An optional argument that may be required when using certain kinds of filter types.")] string? filterTypeArgument = null, [Description("Which messages to delete that belong to these users.")] params ulong[] userIds)
         {
             if (messageCount is <= 2 or > 100)
@@ -133,7 +147,16 @@ namespace Tomoe.Commands.Moderation
                     FilterType.Regex => FilterRegex(messages, filterTypeArgument),
                     _ => throw new ArgumentOutOfRangeException(nameof(filterType), filterType, null)
                 };
-                await channel.DeleteMessagesAsync(messages);
+                try
+                {
+                    await channel.DeleteMessagesAsync(messages);
+                }
+                catch (DiscordException error)
+                {
+                    failedChannels.Add(channel, false);
+                    Logger.LogWarning(error, "Failed to clear {MessageCount} in channel {ChannelId} from guild {GuildId}. Error: (HTTP {HTTPCode}) {JsonError}", messages.Count().ToMetric(), context.Channel.Id, context.Guild.Id, error.WebResponse.ResponseCode, error.JsonMessage);
+                    return;
+                }
                 totalMessageCount += messages.Count();
             }
 
