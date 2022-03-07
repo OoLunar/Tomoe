@@ -1,7 +1,7 @@
-using DSharpPlus.CommandsNext;
-using DSharpPlus.CommandsNext.Attributes;
 using System;
 using System.Threading.Tasks;
+using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Attributes;
 
 namespace Tomoe.Commands.Common
 {

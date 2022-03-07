@@ -1,12 +1,12 @@
-using DSharpPlus;
-using DSharpPlus.CommandsNext;
-using DSharpPlus.CommandsNext.Attributes;
-using DSharpPlus.Entities;
 using System.IO;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using DSharpPlus;
+using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.Entities;
 
 namespace Tomoe.Commands.Common
 {
@@ -18,13 +18,14 @@ namespace Tomoe.Commands.Common
             DiscordMessageBuilder messageBuilder = new();
             if (message.Content.Length != 0)
             {
-                if (message.Content.Length > 2000)
+                string escapedContent = Formatter.Sanitize(message.Content);
+                if (escapedContent.Length > 2000)
                 {
                     messageBuilder.WithFile("Message.md", new MemoryStream(Encoding.UTF8.GetBytes(message.Content)));
                 }
                 else
                 {
-                    messageBuilder.WithContent(Formatter.Sanitize(message.Content));
+                    messageBuilder.WithContent(escapedContent);
                 }
             }
 

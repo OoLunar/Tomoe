@@ -1,18 +1,18 @@
-using DSharpPlus.CommandsNext;
-using DSharpPlus.CommandsNext.Attributes;
-using DSharpPlus.Entities;
-using Humanizer;
 using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
+using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.Entities;
+using Humanizer;
 
 namespace Tomoe.Commands.Common
 {
     public class BotInfo : BaseCommandModule
     {
-        [Command("bot_info"), Description("Gets general info about the bot.")]
+        [Command("bot_info"), Description("Gets general info about the bot."), Aliases("bot_stats")]
         public async Task BotInfoAsync(CommandContext context)
         {
             DiscordEmbedBuilder embedBuilder = new();

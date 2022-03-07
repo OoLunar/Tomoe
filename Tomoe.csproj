@@ -12,6 +12,11 @@
         <NoWarn>CA1848</NoWarn>
     </PropertyGroup>
     <ItemGroup>
+        <!--
+        <ProjectReference Include="../../DSharpPlus/interactivity/DSharpPlus/DSharpPlus.csproj" />
+        <ProjectReference Include="../../DSharpPlus/interactivity/DSharpPlus.CommandsNext/DSharpPlus.CommandsNext.csproj" />
+        <ProjectReference Include="../../DSharpPlus/interactivity/DSharpPlus.Interactivity/DSharpPlus.Interactivity.csproj" />
+        -->
         <PackageReference Include="DSharpPlus" Version="4.2.0-nightly-01083" />
         <PackageReference Include="DSharpPlus.CommandsNext" Version="4.2.0-nightly-01083" />
         <PackageReference Include="DSharpPlus.Interactivity" Version="4.2.0-nightly-01083" />

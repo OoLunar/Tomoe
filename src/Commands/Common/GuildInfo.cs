@@ -1,19 +1,19 @@
+using System;
+using System.Globalization;
+using System.Linq;
+using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using Humanizer;
-using System;
-using System.Globalization;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Tomoe.Commands.Common
 {
     public class GuildInfo : BaseCommandModule
     {
-        [Command("guild_info"), Description("Gets general info about the guild."), Aliases("server_info")]
-        public async Task ServerInfoAsync(CommandContext context)
+        [Command("guild_info"), Description("Gets general info about the guild."), Aliases("guild_stats", "server_info", "server_stats")]
+        public async Task GuildInfoAsync(CommandContext context)
         {
             DiscordEmbedBuilder embedBuilder = new();
             embedBuilder.Color = new DiscordColor("#7b84d1");

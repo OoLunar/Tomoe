@@ -23,7 +23,7 @@ namespace Tomoe.Commands.Common
 
         [Command("poll")]
         [Description("Creates a public message for people to vote on.")]
-        public async Task PollAsync(CommandContext context, [Description("The question for people to vote on. Use quotes (\"Like this\") to use multiple words.")] string question, [Description("When to end the poll.")] TimeSpan timeout, [Description("Which channel to post the poll in. Defaults to the current channel.")] DiscordChannel? channel = null, [Description("A list of options to choose from.")] params string[] wordAndEmojiList)
+        public async Task PollAsync(CommandContext context, [Description("The question for people to vote on. Use quotes `\"Like this\"` to use multiple words.")] string question, [Description("When to end the poll.")] TimeSpan timeout, [Description("Which channel to post the poll in. Defaults to the current channel.")] DiscordChannel? channel = null, [Description("A list of options to choose from."), RemainingText] params string[] wordAndEmojiList)
         {
             channel ??= context.Channel;
             if (wordAndEmojiList.Length < 2)
@@ -38,17 +38,27 @@ namespace Tomoe.Commands.Common
             }
             else if (wordAndEmojiList.Distinct().Count() != wordAndEmojiList.Length)
             {
-                await context.RespondAsync("There may not be any duplicate buttons.");
+                await context.RespondAsync("There may not be any duplicate choices.");
+                return;
+            }
+            else if (!channel.PermissionsFor(context.Member).HasPermission(Permissions.AccessChannels))
+            {
+                // Treat it as CNext can't find the channel; silently fail.
                 return;
             }
             else if (!channel.PermissionsFor(context.Member).HasPermission(Permissions.SendMessages))
             {
-                await context.RespondAsync($"[Error]: You cannot create a poll in {channel.Mention} due to Discord permissions!");
+                await context.RespondAsync($"[Error]: You cannot create a poll in {channel.Mention} since you're missing the {Permissions.SendMessages.Humanize()} permission.");
+                return;
+            }
+            else if (!channel.PermissionsFor(context.Guild.CurrentMember).HasPermission(Permissions.AccessChannels))
+            {
+                await context.RespondAsync($"[Error]: I cannot create a poll in {channel.Mention} since I'm missing the {Permissions.AccessChannels.Humanize()} permission.");
                 return;
             }
             else if (!channel.PermissionsFor(context.Guild.CurrentMember).HasPermission(Permissions.SendMessages))
             {
-                await context.RespondAsync($"[Error]: I cannot create a poll in {channel.Mention} due to Discord permissions!");
+                await context.RespondAsync($"[Error]: I cannot create a poll in {channel.Mention} since I'm missing the {Permissions.SendMessages.Humanize()} permission.");
                 return;
             }
 
@@ -199,12 +209,12 @@ namespace Tomoe.Commands.Common
                 DatabaseContext database = Program.ServiceProvider.GetService<DatabaseContext>()!;
                 database.Polls.RemoveRange(database.Polls.Where(x => x.GuildId == pollModel.GuildId && x.MessageId == pollModel.MessageId));
                 await database.SaveChangesAsync();
-                // TODO: Log
+                logger.LogDebug("{PollId}: Removed poll from database due to deleted message ({MessageId}) in guild {GuildId}.", pollModel.Id, pollModel.MessageId, pollModel.GuildId);
                 return;
             }
             catch (DiscordException error)
             {
-                logger.LogInformation(error, "{PollId}: Failed to get message {MessageId} from rest request. Error: (HTTP {HTTPCode}) {JsonError}", pollModel.Id, pollModel.MessageId, error.WebResponse.ResponseCode, error.JsonMessage);
+                logger.LogWarning(error, "{PollId}: Failed to get message {MessageId} from rest request. Error: (HTTP {HTTPCode}) {JsonError}", pollModel.Id, pollModel.MessageId, error.WebResponse.ResponseCode, error.JsonMessage);
                 return;
             }
 
@@ -214,11 +224,11 @@ namespace Tomoe.Commands.Common
             }
             else if (!channel.PermissionsFor(guild.CurrentMember).HasPermission(Permissions.SendMessages))
             {
-                await SendDm(logger, guild, pollModel, message, winnerString, await EditMessage(logger, pollModel, channel, message));
+                await SendDm(logger, guild, pollModel, message, winnerString, await EditMessage(logger, pollModel, message));
             }
             else
             {
-                await EditMessage(logger, pollModel, channel, message);
+                await EditMessage(logger, pollModel, message);
                 DiscordMessageBuilder builder = new();
                 builder.WithReply(message.Id, false, false);
                 builder.WithContent(winnerString);
@@ -231,19 +241,19 @@ namespace Tomoe.Commands.Common
         {
             if (!guild.Members.TryGetValue(pollModel.UserId, out DiscordMember? member))
             {
-                logger.LogTrace("Failed to get member {UserId} from cache, going to try making a rest request.", pollModel.UserId);
+                logger.LogTrace("{PollId}: Failed to get member {UserId} in guild {GuildId} from cache, going to try making a rest request.", pollModel.Id, pollModel.UserId, pollModel.GuildId);
                 try
                 {
                     member = await guild.GetMemberAsync(pollModel.UserId);
                 }
                 catch (NotFoundException) // Member has left the guild.
                 {
-                    logger.LogDebug("Failed to get member {UserId} as they've left the guild.", pollModel.UserId);
+                    logger.LogDebug("{PollId}: Failed to get member {UserId} as they've left guild {GuildId}.", pollModel.Id, pollModel.UserId, pollModel.GuildId);
                     return false;
                 }
                 catch (DiscordException error)
                 {
-                    logger.LogInformation(error, "Failed to get member {UserId} from rest request. Error: (HTTP {HTTPCode}) {JsonError}", pollModel.UserId, error.WebResponse.ResponseCode, error.JsonMessage);
+                    logger.LogInformation(error, "{PollId}: Failed to get member {UserId} in guild {GuildId} from rest request. Error: (HTTP {HTTPCode}) {JsonError}", pollModel.Id, pollModel.UserId, pollModel.GuildId, error.WebResponse.ResponseCode, error.JsonMessage);
                     return false;
                 }
             }
@@ -268,14 +278,14 @@ namespace Tomoe.Commands.Common
             }
             catch (DiscordException)
             {
-                logger.LogDebug("Failed to send DM to member {UserId}.", pollModel.UserId);
+                logger.LogDebug("{PollId}: Failed to send DM to member {UserId} from guild {GuildId}.", pollModel.Id, pollModel.UserId, pollModel.GuildId);
                 return false;
             }
 
             return true;
         }
 
-        private static async Task<bool> EditMessage(Logger<Poll> logger, PollModel pollModel, DiscordChannel channel, DiscordMessage message)
+        private static async Task<bool> EditMessage(Logger<Poll> logger, PollModel pollModel, DiscordMessage message)
         {
             try
             {
@@ -284,7 +294,7 @@ namespace Tomoe.Commands.Common
             }
             catch (DiscordException error)
             {
-                logger.LogDebug(error, "Failed to edit message {MessageId} in channel {ChannelId} in guild {GuildId}. Error: (HTTP {HTTPCode}) {JsonError}", message.Id, channel.Id, channel.GuildId, error.WebResponse.ResponseCode, error.JsonMessage);
+                logger.LogDebug(error, "{PollId}: Failed to edit message {MessageId} in channel {ChannelId} in guild {GuildId}. Error: (HTTP {HTTPCode}) {JsonError}", pollModel.Id, pollModel.MessageId, pollModel.ChannelId, pollModel.GuildId, error.WebResponse.ResponseCode, error.JsonMessage);
                 return false;
             }
         }
