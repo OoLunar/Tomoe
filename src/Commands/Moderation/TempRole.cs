@@ -17,8 +17,8 @@ namespace Tomoe.Commands.Moderation
 {
     public class TempRole : BaseCommandModule
     {
-        public DatabaseList<TempRoleModel, Guid> TempRoleModelList { private get; set; } = null!;
-        public Logger<TempRole> Logger { private get; set; } = null!;
+        public DatabaseList<TempRoleModel, Guid> TempRoleModelList { private get; init; } = null!;
+        public Logger<TempRole> Logger { private get; init; } = null!;
 
         [Command("temprole"), Description("Temporarily assign a role to a user for the specified amount of time."), RequireGuild]
         public async Task TempRoleAsync(CommandContext context, DiscordMember member, DiscordRole role, TimeSpan? timeSpan = null)

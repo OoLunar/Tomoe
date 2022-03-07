@@ -12,8 +12,8 @@ namespace Tomoe.Commands.Server
 {
     public abstract class AutoCommand<T> : BaseCommandModule where T : class?
     {
-        public DatabaseContext Database { get; set; } = null!;
-        public Logger<AutoCommand<T>> Logger { get; set; } = null!;
+        public DatabaseContext Database { get; init; } = null!;
+        public Logger<AutoCommand<T>> Logger { get; init; } = null!;
 
         public virtual Task AddAsync(CommandContext context, DiscordChannel channel, params T[] value) => AddAsync(context, channel, FilterType.AllMessages, null, value);
         public virtual async Task AddAsync(CommandContext context, DiscordChannel channel, FilterType filterType, string? filter, params T[] value)

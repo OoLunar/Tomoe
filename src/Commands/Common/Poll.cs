@@ -19,7 +19,7 @@ namespace Tomoe.Commands.Common
 {
     public class Poll : BaseCommandModule
     {
-        public DatabaseList<PollModel, Guid> PollModelList { private get; set; } = null!;
+        public DatabaseList<PollModel, Guid> PollModelList { private get; init; } = null!;
 
         [Command("poll")]
         [Description("Creates a public message for people to vote on.")]
