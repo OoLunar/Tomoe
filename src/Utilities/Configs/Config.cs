@@ -3,6 +3,7 @@ namespace Tomoe.Utilities.Configs
     using System;
     using System.IO;
     using System.Net;
+    using System.Net.Http;
     using System.Text.Json;
     using System.Text.Json.Serialization;
     using System.Threading.Tasks;
@@ -53,8 +54,12 @@ namespace Tomoe.Utilities.Configs
             else
             {
                 // No config file could be found. Download it for them and inform them of the issue.
-                WebClient webClient = new();
-                webClient.DownloadFile("https://raw.githubusercontent.com/OoLunar/Tomoe/master/res/config.jsonc", "res/config.jsonc");
+                HttpClient httpClient = new();
+                httpClient.DefaultRequestHeaders.Add("UserAgent", "Tomoe/2.1.2 (DSharpPlus v4.2.0-nightly-01084)");
+
+                FileStream file = File.Open("res/config.jsonc", FileMode.OpenOrCreate, FileAccess.Write);
+                await (await httpClient.GetStreamAsync("https://raw.githubusercontent.com/OoLunar/Tomoe/master/res/config.jsonc")).CopyToAsync(file);
+                file.Close();
                 Console.WriteLine("The config file was downloaded. Please go fill out \"res/config.jsonc\". It is recommended to use \"res/config.jsonc.prod\" if you intend on contributing to Tomoe.");
                 Environment.Exit(1);
             }

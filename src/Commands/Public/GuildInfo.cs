@@ -57,7 +57,6 @@ namespace Tomoe.Commands
             embedBuilder.AddField("Splash Url", context.Guild.SplashUrl == null ? NotSet : Formatter.MaskedUrl(LinkToImage, new(splashUrl), splashUrl), true);
             embedBuilder.AddField("Vanity Url", string.IsNullOrEmpty(context.Guild.VanityUrlCode) ? NotSet : $"discord.gg/{context.Guild.VanityUrlCode}", true);
             embedBuilder.AddField("Verification Level", context.Guild.VerificationLevel.Humanize(), true);
-            embedBuilder.AddField("Voice Region", context.Guild.VoiceRegion.Name, true);
 
             await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().AddEmbed(embedBuilder));
         }
