@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Threading.Tasks;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Converters;
@@ -5,9 +6,9 @@ using DSharpPlus.Entities;
 using Humanizer;
 using Tomoe.Enums;
 
-
 namespace Tomoe.Converters
 {
+    [DisplayName("Filter Type")]
     public class FilterTypeConverter : IArgumentConverter<FilterType>
     {
         public Task<Optional<FilterType>> ConvertAsync(string value, CommandContext ctx)

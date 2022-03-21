@@ -1,11 +1,11 @@
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 using Tomoe.Attributes;
 using Tomoe.Models;
 
@@ -43,7 +43,17 @@ namespace Tomoe.Events
                     PollModel? pollModel = database.Polls.FirstOrDefault(x => x.Id == pollId);
                     if (pollModel == null)
                     {
-                        await componentInteractionCreateEventArgs.Interaction.EditOriginalResponseAsync(new DiscordWebhookBuilder().WithContent("[Error]: This poll has ended. Your vote was not casted."));
+                        string content = "[Error]: This poll has ended.";
+                        if (idParts[2] != "\tview")
+                        {
+                            content += "Your vote was not casted.";
+                        }
+                        await componentInteractionCreateEventArgs.Interaction.EditOriginalResponseAsync(new DiscordWebhookBuilder().WithContent(content));
+                        return;
+                    }
+                    else if (idParts[2] == "\tview")
+                    {
+                        await componentInteractionCreateEventArgs.Interaction.EditOriginalResponseAsync(new DiscordWebhookBuilder().WithContent(string.Join('\n', pollModel.Votes.OrderBy(x => x.Value.Length).Select(x => $"{x.Key} => {x.Value.Length}"))));
                         return;
                     }
 

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -135,12 +136,14 @@ namespace Tomoe
             DiscordShardedClient = new(discordConfiguration);
             IReadOnlyDictionary<int, CommandsNextExtension>? commandsNextExtensions = await DiscordShardedClient.UseCommandsNextAsync(commandsNextConfiguration);
             MethodInfo registerConverterMethod = typeof(CommandsNextExtension).GetMethod(nameof(CommandsNextExtension.RegisterConverter))!;
+            MethodInfo registerUserFriendlyNameMethod = typeof(CommandsNextExtension).GetMethod(nameof(CommandsNextExtension.RegisterUserFriendlyTypeName))!;
             foreach (CommandsNextExtension commandsNextExtension in commandsNextExtensions.Values)
             {
                 // Converters
                 foreach (Type? converter in typeof(Program).Assembly.GetTypes().Where(t => t.IsAssignableTo(typeof(IArgumentConverter))).ToList())
                 {
                     registerConverterMethod.MakeGenericMethod(converter.GetInterfaces()[0].GenericTypeArguments).Invoke(commandsNextExtension, new object[] { converter.GetConstructor(Array.Empty<Type>())!.Invoke(Array.Empty<object>()) });
+                    registerUserFriendlyNameMethod.MakeGenericMethod(converter.GetInterfaces()[0].GenericTypeArguments).Invoke(commandsNextExtension, new object[] { converter.GetCustomAttribute<DisplayNameAttribute>()?.DisplayName ?? throw new InvalidOperationException($"Converter {converter.FullName} is missing a user friendly type name.") });
                 }
 
                 // Commands

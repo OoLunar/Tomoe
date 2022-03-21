@@ -16,22 +16,37 @@ namespace Tomoe.Commands.Server
     public class AutoMention : AutoCommand<IMention>
     {
         [Command("add")]
-        public override async Task AddAsync(CommandContext context, DiscordChannel channel, params IMention[] value) => await base.AddAsync(context, channel, value);
+        public override Task AddAsync(CommandContext context, DiscordChannel channel, params IMention[] value) => base.AddAsync(context, channel, value);
 
         [Command("add")]
-        public override async Task AddAsync(CommandContext context, DiscordChannel channel, FilterType filterType, string? filter, params IMention[] value) => await base.AddAsync(context, channel, filterType, filter, value);
+        public override Task AddAsync(CommandContext context, DiscordChannel channel, FilterType filterType, string? filter, params IMention[] value) => base.AddAsync(context, channel, filterType, filter, value);
 
         [Command("remove"), RequireUserPermissions(Permissions.ManageMessages)]
-        public override async Task RemoveAsync(CommandContext context, params Guid[] ids) => await base.RemoveAsync(context, ids);
+        public override Task RemoveAsync(CommandContext context, params Guid[] ids) => base.RemoveAsync(context, ids);
 
         [Command("remove"), RequireUserPermissions(Permissions.ManageMessages)]
-        public override async Task RemoveAsync(CommandContext context, params DiscordChannel[] channels) => await base.RemoveAsync(context, channels);
+        public override Task RemoveAsync(CommandContext context, params DiscordChannel[] channels) => base.RemoveAsync(context, channels);
 
         [Command("remove"), RequireUserPermissions(Permissions.ManageMessages)]
-        public override async Task RemoveAsync(CommandContext context, params KeyValuePair<FilterType, string?>[] filterTypes) => await base.RemoveAsync(context, filterTypes);
+        public override Task RemoveAsync(CommandContext context, [RemainingText] params KeyValuePair<FilterType, string?>[] filterTypes) => base.RemoveAsync(context, filterTypes);
 
         [Command("remove"), RequireUserPermissions(Permissions.ManageMessages)]
-        public override async Task RemoveAsync(CommandContext context, params IMention[] values) => await base.RemoveAsync(context, values);
+        public override Task RemoveAsync(CommandContext context, params IMention[] values) => base.RemoveAsync(context, values);
+
+        [Command("list"), RequireUserPermissions(Permissions.ManageMessages)]
+        public override Task ListAsync(CommandContext context) => base.ListAsync(context);
+
+        [Command("list"), RequireUserPermissions(Permissions.ManageMessages)]
+        public override Task ListAsync(CommandContext context, [RemainingText] params Guid[] ids) => base.ListAsync(context, ids);
+
+        [Command("list"), RequireUserPermissions(Permissions.ManageMessages)]
+        public override Task ListAsync(CommandContext context, [RemainingText] params DiscordChannel[] channels) => base.ListAsync(context, channels);
+
+        [Command("list"), RequireUserPermissions(Permissions.ManageMessages)]
+        public override Task ListAsync(CommandContext context, [RemainingText] params KeyValuePair<FilterType, string?>[] filterTypes) => base.ListAsync(context, filterTypes);
+
+        [Command("list"), RequireUserPermissions(Permissions.ManageMessages)]
+        public override Task ListAsync(CommandContext context, [RemainingText] IMention mention) => base.ListAsync(context, mention);
 
         public override async Task BeforeExecutionAsync(CommandContext ctx)
         {

@@ -2,8 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
+using DSharpPlus.Interactivity;
+using DSharpPlus.Interactivity.Enums;
+using DSharpPlus.Interactivity.Extensions;
+using Humanizer;
 using Microsoft.Extensions.Logging;
 using Tomoe.Enums;
 using Tomoe.Models;
@@ -64,35 +69,47 @@ namespace Tomoe.Commands.Server
             await Database.SaveChangesAsync();
         }
 
-        public virtual async Task RemoveAsync(CommandContext context, params Guid[] ids)
+        public virtual Task RemoveAsync(CommandContext context, params Guid[] ids)
         {
             Database.Set<AutoModel<T>>().RemoveRange(Database.Set<AutoModel<T>>().Where(x => ids.Contains(x.Id)));
-            await Database.SaveChangesAsync();
+            return Database.SaveChangesAsync();
         }
 
-        public virtual async Task RemoveAsync(CommandContext context, params DiscordChannel[] channels)
+        public virtual Task RemoveAsync(CommandContext context, params DiscordChannel[] channels)
         {
             IEnumerable<ulong>? channelIds = channels.Select(x => x.Id);
             Database.Set<AutoModel<T>>().RemoveRange(Database.Set<AutoModel<T>>().Where(x => channelIds.Contains(x.ChannelId)));
-            await Database.SaveChangesAsync();
+            return Database.SaveChangesAsync();
         }
 
-        public virtual async Task RemoveAsync(CommandContext context, params KeyValuePair<FilterType, string?>[] filterTypes)
+        public virtual Task RemoveAsync(CommandContext context, params KeyValuePair<FilterType, string?>[] filterTypes)
         {
             Database.Set<AutoModel<T>>().RemoveRange(Database.Set<AutoModel<T>>().Where(x => filterTypes.Any(y => y.Key == x.FilterType && y.Value == x.Filter)));
-            await Database.SaveChangesAsync();
+            return Database.SaveChangesAsync();
         }
 
-        public virtual async Task RemoveAsync(CommandContext context, params T[] values)
+        public virtual Task RemoveAsync(CommandContext context, params T[] values)
         {
             Database.Set<AutoModel<T>>().RemoveRange(Database.Set<AutoModel<T>>().Where(x => x.Values.SequenceEqual(values)));
-            await Database.SaveChangesAsync();
+            return Database.SaveChangesAsync();
         }
 
-        //Task ListAsync(CommandContext context);
-        //Task ListAsync(CommandContext context, params Guid[] ids);
-        //Task ListAsync(CommandContext context, params DiscordChannel[] channels);
-        //Task ListAsync(CommandContext context, params KeyValuePair<FilterType, string?>[] filterTypes);
-        //Task ListAsync(CommandContext context, T value);
+        public virtual Task ListAsync(CommandContext context) => PaginateAsync(context, Database.Set<AutoModel<T>>().Where(x => x.GuildId == context.Guild.Id));
+        public virtual Task ListAsync(CommandContext context, params Guid[] ids) => PaginateAsync(context, Database.Set<AutoModel<T>>().Where(x => ids.Contains(x.Id) && context.Guild.Id == x.GuildId));
+        public virtual Task ListAsync(CommandContext context, params DiscordChannel[] channels)
+        {
+            ulong[] channelIds = channels.Select(channel => channel.Id).ToArray();
+            IEnumerable<AutoModel<T>> autoModels = Database.Set<AutoModel<T>>().Where(x => channelIds.Contains(x.ChannelId) && context.Guild.Id == x.GuildId);
+            return PaginateAsync(context, autoModels);
+        }
+        public virtual Task ListAsync(CommandContext context, params KeyValuePair<FilterType, string?>[] filterTypes) => PaginateAsync(context, Database.Set<AutoModel<T>>().Where(x => x.GuildId == context.Guild.Id && filterTypes.Any(y => x.FilterType == y.Key && x.Filter == y.Value)));
+        public virtual Task ListAsync(CommandContext context, T value) => PaginateAsync(context, Database.Set<AutoModel<T>>().Where(x => x.GuildId == context.Guild.Id && x.Values.Contains(value)));
+
+        private async Task PaginateAsync(CommandContext context, IEnumerable<AutoModel<T>> autoModels)
+        {
+            string linedIds = string.Join('\n', autoModels.Select(x => $"{Formatter.InlineCode(x.Id.ToString())} => {x.Values.Humanize()}"));
+            InteractivityExtension interactivity = context.Client.GetInteractivity();
+            await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, interactivity.GeneratePagesInContent(linedIds, SplitType.Line));
+        }
     }
 }

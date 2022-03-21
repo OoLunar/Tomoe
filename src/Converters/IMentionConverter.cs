@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Threading.Tasks;
@@ -8,6 +9,7 @@ using DSharpPlus.Entities;
 
 namespace Tomoe.Converters
 {
+    [DisplayName("User or Channel Mention")]
     public class IMentionConverter : IArgumentConverter<IMention>
     {
         [SuppressMessage("Roslyn", "IDE0046", Justification = "Don't fall down the ternary operator rabbit hole")]
