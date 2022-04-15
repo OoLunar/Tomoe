@@ -8,14 +8,10 @@
         <NoWarn>CA1848</NoWarn>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="DSharpPlus" Version="4.2.0-nightly-01099" />
-        <PackageReference Include="DSharpPlus.CommandsNext" Version="4.2.0-nightly-01099" />
-        <PackageReference Include="DSharpPlus.Interactivity" Version="4.2.0-nightly-01099" />
-        <!--
-        <ProjectReference Include="../../DSharpPlus/DSharpPlus/DSharpPlus/DSharpPlus.csproj" />
-        <ProjectReference Include="../../DSharpPlus/DSharpPlus/DSharpPlus.CommandsNext/DSharpPlus.CommandsNext.csproj" />
-        <ProjectReference Include="../../DSharpPlus/DSharpPlus/DSharpPlus.Interactivity/DSharpPlus.Interactivity.csproj" />
-        -->
+        <PackageReference Include="Serilog.Formatting.Compact" Version="1.1.0" />
+        <PackageReference Include="DSharpPlus" Version="4.2.0" />
+        <PackageReference Include="DSharpPlus.CommandsNext" Version="4.2.0" />
+        <PackageReference Include="DSharpPlus.Interactivity" Version="4.2.0" />
         <PackageReference Include="SixLabors.Fonts" Version="1.0.0-beta16" />
         <PackageReference Include="SixLabors.ImageSharp" Version="2.1.0" />
         <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="1.0.0-beta14" />

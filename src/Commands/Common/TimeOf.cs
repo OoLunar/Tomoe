@@ -28,14 +28,16 @@ namespace Tomoe.Commands.Common
 
             if (messages.Length > 10)
             {
-                DiscordEmbedBuilder embedBuilder = new();
-                embedBuilder.Title = $"Timestamps for {messages.Length} messages!";
-                embedBuilder.Color = new DiscordColor("#7b84d1");
-                embedBuilder.Author = new()
+                DiscordEmbedBuilder embedBuilder = new()
                 {
-                    Name = context.Guild == null ? context.User.Username : context.Member.DisplayName,
-                    IconUrl = context.User.AvatarUrl,
-                    Url = context.User.AvatarUrl
+                    Title = $"Timestamps for {messages.Length} messages!",
+                    Color = new DiscordColor("#7b84d1"),
+                    Author = new()
+                    {
+                        Name = context.Guild == null ? context.User.Username : context.Member.DisplayName,
+                        IconUrl = context.User.AvatarUrl,
+                        Url = context.User.AvatarUrl
+                    }
                 };
 
                 InteractivityExtension interactivity = context.Client.GetInteractivity();

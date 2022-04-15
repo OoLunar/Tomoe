@@ -73,14 +73,16 @@ namespace Tomoe
 
             services.AddDbContext<DatabaseContext>(options =>
             {
-                NpgsqlConnectionStringBuilder connectionBuilder = new();
-                connectionBuilder.ApplicationName = configuration.GetValue("database:applicationName", "Tomoe Discord Bot");
-                connectionBuilder.Database = configuration.GetValue("database:databaseName", "tomoe");
-                connectionBuilder.Host = configuration.GetValue("database:host", "localhost");
-                connectionBuilder.Username = configuration.GetValue("database:username", "tomoe");
-                connectionBuilder.Port = configuration.GetValue("database:port", 5432);
-                connectionBuilder.Password = configuration.GetValue<string>("database:password");
-                connectionBuilder.Timeout = 30;
+                NpgsqlConnectionStringBuilder connectionBuilder = new()
+                {
+                    ApplicationName = configuration.GetValue("database:applicationName", "Tomoe Discord Bot"),
+                    Database = configuration.GetValue("database:databaseName", "tomoe"),
+                    Host = configuration.GetValue("database:host", "localhost"),
+                    Username = configuration.GetValue("database:username", "tomoe"),
+                    Port = configuration.GetValue("database:port", 5432),
+                    Password = configuration.GetValue<string>("database:password"),
+                    Timeout = 30
+                };
                 options.UseNpgsql(connectionBuilder.ToString(), options => options.EnableRetryOnFailure(5));
                 options.UseSnakeCaseNamingConvention(CultureInfo.InvariantCulture);
 
@@ -113,25 +115,31 @@ namespace Tomoe
 
             ServiceProvider = services.BuildServiceProvider();
 
-            DiscordConfiguration discordConfiguration = new();
-            discordConfiguration.LoggerFactory = ServiceProvider.GetRequiredService<ILoggerFactory>();
-            discordConfiguration.Token = configuration.GetValue<string>("discord:token");
-            discordConfiguration.Intents = DiscordIntents.DirectMessages | DiscordIntents.DirectMessageReactions // Allow text commands to be used in DM's
-                | DiscordIntents.GuildBans // Logging
-                | DiscordIntents.GuildMembers | DiscordIntents.GuildPresences // Caching
-                | DiscordIntents.GuildMessages | DiscordIntents.GuildMessageReactions // Allow text commands to be used
-                | DiscordIntents.Guilds; // Logging and config events
+            DiscordConfiguration discordConfiguration = new()
+            {
+                LoggerFactory = ServiceProvider.GetRequiredService<ILoggerFactory>(),
+                Token = configuration.GetValue<string>("discord:token"),
+                Intents = DiscordIntents.DirectMessages | DiscordIntents.DirectMessageReactions // Allow text commands to be used in DM's
+                          | DiscordIntents.GuildBans // Logging
+                          | DiscordIntents.GuildMembers | DiscordIntents.GuildPresences // Caching
+                          | DiscordIntents.GuildMessages | DiscordIntents.GuildMessageReactions // Allow text commands to be used
+                          | DiscordIntents.Guilds // Logging and config events
+            };
 
             // TODO: Prefix resolver
-            CommandsNextConfiguration commandsNextConfiguration = new();
-            commandsNextConfiguration.EnableDefaultHelp = false;
-            commandsNextConfiguration.Services = ServiceProvider;
-            commandsNextConfiguration.StringPrefixes = configuration.GetValue("discord:prefixes", new[] { ">>" });
+            CommandsNextConfiguration commandsNextConfiguration = new()
+            {
+                EnableDefaultHelp = false,
+                Services = ServiceProvider,
+                StringPrefixes = configuration.GetValue("discord:prefixes", new[] { ">>" })
+            };
 
-            InteractivityConfiguration interactivityConfiguration = new();
-            interactivityConfiguration.AckPaginationButtons = true;
-            interactivityConfiguration.ButtonBehavior = ButtonPaginationBehavior.Disable;
-            interactivityConfiguration.Timeout = configuration.GetValue("discord:pagination_timeout", TimeSpan.FromMinutes(5));
+            InteractivityConfiguration interactivityConfiguration = new()
+            {
+                AckPaginationButtons = true,
+                ButtonBehavior = ButtonPaginationBehavior.Disable,
+                Timeout = configuration.GetValue("discord:pagination_timeout", TimeSpan.FromMinutes(5))
+            };
 
             DiscordShardedClient = new(discordConfiguration);
             IReadOnlyDictionary<int, CommandsNextExtension>? commandsNextExtensions = await DiscordShardedClient.UseCommandsNextAsync(commandsNextConfiguration);

@@ -1,9 +1,9 @@
+using System.Globalization;
+using System.IO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
-using System.Globalization;
-using System.IO;
 using Tomoe.Utils;
 
 namespace Tomoe.Models
@@ -23,13 +23,15 @@ namespace Tomoe.Models
             IConfigurationRoot configuration = configurationBuilder.Build();
 
             DbContextOptionsBuilder<DatabaseContext> optionsBuilder = new();
-            NpgsqlConnectionStringBuilder connectionBuilder = new();
-            connectionBuilder.ApplicationName = configuration.GetValue("database:applicationName", "Tomoe Discord Bot");
-            connectionBuilder.Database = configuration.GetValue("database:databaseName", "tomoe");
-            connectionBuilder.Host = configuration.GetValue("database:host", "localhost");
-            connectionBuilder.Username = configuration.GetValue("database:username", "tomoe");
-            connectionBuilder.Port = configuration.GetValue("database:port", 5432);
-            connectionBuilder.Password = configuration.GetValue<string>("database:password");
+            NpgsqlConnectionStringBuilder connectionBuilder = new()
+            {
+                ApplicationName = configuration.GetValue("database:applicationName", "Tomoe Discord Bot"),
+                Database = configuration.GetValue("database:databaseName", "tomoe"),
+                Host = configuration.GetValue("database:host", "localhost"),
+                Username = configuration.GetValue("database:username", "tomoe"),
+                Port = configuration.GetValue("database:port", 5432),
+                Password = configuration.GetValue<string>("database:password")
+            };
             optionsBuilder.UseNpgsql(connectionBuilder.ToString(), options => options.EnableRetryOnFailure(5));
             optionsBuilder.UseSnakeCaseNamingConvention(CultureInfo.InvariantCulture);
 

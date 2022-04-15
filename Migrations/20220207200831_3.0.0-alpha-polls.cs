@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore.Migrations;
 
@@ -8,9 +8,7 @@ namespace Tomoe.Migrations
 {
     public partial class _300alphapolls : Migration
     {
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.CreateTable(
+        protected override void Up(MigrationBuilder migrationBuilder) => migrationBuilder.CreateTable(
                 name: "polls",
                 columns: table => new
                 {
@@ -22,16 +20,9 @@ namespace Tomoe.Migrations
                     timeout = table.Column<TimeSpan>(type: "interval", nullable: false),
                     votes = table.Column<Dictionary<string, int>>(type: "jsonb", nullable: false)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_polls", x => x.id);
-                });
-        }
+                constraints: table => table.PrimaryKey("pk_polls", x => x.id));
 
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.DropTable(
+        protected override void Down(MigrationBuilder migrationBuilder) => migrationBuilder.DropTable(
                 name: "polls");
-        }
     }
 }

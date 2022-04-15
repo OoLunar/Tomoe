@@ -35,15 +35,17 @@ namespace Tomoe.Commands.Common
                 }
             }
 
-            DiscordEmbedBuilder embedBuilder = new();
-            embedBuilder.Title = $"Role Info for {discordRole.Name}";
-            embedBuilder.Author = new()
+            DiscordEmbedBuilder embedBuilder = new()
             {
-                Name = context.Member.DisplayName,
-                IconUrl = context.User.AvatarUrl,
-                Url = context.User.AvatarUrl
+                Title = $"Role Info for {discordRole.Name}",
+                Author = new()
+                {
+                    Name = context.Member.DisplayName,
+                    IconUrl = context.User.AvatarUrl,
+                    Url = context.User.AvatarUrl
+                },
+                Color = discordRole.Color.Value == 0x000000 ? Optional.FromNoValue<DiscordColor>() : discordRole.Color
             };
-            embedBuilder.Color = discordRole.Color.Value == 0x000000 ? Optional.FromNoValue<DiscordColor>() : discordRole.Color;
             embedBuilder.AddField("Color", discordRole.Color.ToString(), true);
             embedBuilder.AddField("Created At", discordRole.CreationTimestamp.UtcDateTime.ToOrdinalWords(), true);
             embedBuilder.AddField("Hoisted", discordRole.IsHoisted.ToString(), true);

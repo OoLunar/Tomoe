@@ -50,8 +50,10 @@ namespace Tomoe.Events
             IEnumerable<DiscordRole> memberMenuRoles = member.Roles.Intersect(menuRoles);
             if (string.Equals(idParts[2], "select", StringComparison.OrdinalIgnoreCase))
             {
-                List<DiscordSelectComponentOption> options = new();
-                options.Add(new DiscordSelectComponentOption("No Roles", "0", "Removes all roles from you.", false, new DiscordComponentEmoji("❌")));
+                List<DiscordSelectComponentOption> options = new()
+                {
+                    new DiscordSelectComponentOption("No Roles", "0", "Removes all roles from you.", false, new DiscordComponentEmoji("❌"))
+                };
                 foreach (DiscordRole role in memberMenuRoles)
                 {
                     options.Add(new DiscordSelectComponentOption(role.Name, role.Id.ToString(CultureInfo.InvariantCulture), $"Removes the \"{role.Name}\" role from you.", true, new DiscordComponentEmoji("✅")));

@@ -15,9 +15,11 @@ namespace Tomoe.Commands.Common
         [Command("bot_info"), Description("Gets general info about the bot."), Aliases("bot_stats")]
         public async Task BotInfoAsync(CommandContext context)
         {
-            DiscordEmbedBuilder embedBuilder = new();
-            embedBuilder.Title = "Bot Info";
-            embedBuilder.Color = new DiscordColor("#7b84d1");
+            DiscordEmbedBuilder embedBuilder = new()
+            {
+                Title = "Bot Info",
+                Color = new DiscordColor("#7b84d1")
+            };
             embedBuilder.AddField("Heap Memory", GC.GetTotalMemory(true).Bytes().ToString("MB", CultureInfo.InvariantCulture), true);
             embedBuilder.AddField("Process Memory", Process.GetCurrentProcess().WorkingSet64.Bytes().ToString("MB", CultureInfo.InvariantCulture), true);
             embedBuilder.AddField("Thread Count", ThreadPool.ThreadCount.ToMetric(), true);

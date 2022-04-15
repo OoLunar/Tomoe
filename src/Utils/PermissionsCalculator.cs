@@ -1,6 +1,6 @@
+using System;
 using DSharpPlus;
 using DSharpPlus.Entities;
-using System;
 
 namespace Tomoe.Utils
 {

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using DSharpPlus;
@@ -14,11 +13,7 @@ using Emzi0767.Utilities;
 using Humanizer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using SixLabors.Fonts;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Drawing.Processing;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
 using Tomoe.Models;
 using Tomoe.Utils;
 
@@ -104,8 +99,10 @@ namespace Tomoe.Commands.Common
             actionRowComponents.Add(new DiscordActionRowComponent(buttons));
             buttons.Clear();
 
-            DiscordMessageBuilder builder = new();
-            builder.Content = $"{question}\nThe poll ends {Formatter.Timestamp(timeout)}";
+            DiscordMessageBuilder builder = new()
+            {
+                Content = $"{question}\nThe poll ends {Formatter.Timestamp(timeout)}"
+            };
             builder.AddComponents(actionRowComponents);
 
             DiscordMessage message;
@@ -117,8 +114,10 @@ namespace Tomoe.Commands.Common
             {
                 message = await channel.SendMessageAsync(builder);
 
-                DiscordMessageBuilder responseBuilder = new();
-                responseBuilder.Content = "Poll created!";
+                DiscordMessageBuilder responseBuilder = new()
+                {
+                    Content = "Poll created!"
+                };
                 responseBuilder.AddComponents(new DiscordButtonComponent(ButtonStyle.Primary, $"poll\v{poll.Id}\v\tview", "View poll!", false));
                 await context.RespondAsync(responseBuilder);
             }
@@ -282,8 +281,10 @@ namespace Tomoe.Commands.Common
 
             try
             {
-                DiscordMessageBuilder builder = new();
-                builder.Content = messageContent;
+                DiscordMessageBuilder builder = new()
+                {
+                    Content = messageContent
+                };
                 builder.AddComponents(new DiscordActionRowComponent(new[] { new DiscordLinkButtonComponent(message.JumpLink.ToString(), "View Poll") }));
                 await member.SendMessageAsync(builder);
             }
@@ -300,44 +301,11 @@ namespace Tomoe.Commands.Common
         {
             try
             {
-                DiscordMessageBuilder builder = new();
-                builder.Content = Formatter.Strike(pollModel.Question) + "\nThe poll has ended! Thanks for submitting your vote!";
+                DiscordMessageBuilder builder = new()
+                {
+                    Content = Formatter.Strike(pollModel.Question) + "\nThe poll has ended! Thanks for submitting your vote!"
+                };
                 builder.AddComponents(message.Components.Select(component => new DiscordActionRowComponent(component.Components.Select(x => ((DiscordButtonComponent)x).Disable()))));
-
-                if (!SystemFonts.TryGet("SansSerif", CultureInfo.InvariantCulture, out FontFamily sansSerifFont))
-                {
-                    // Unable to load the font, this means no histogram
-                    await message.ModifyAsync(builder);
-                    return true;
-                }
-
-                using MemoryStream memoryStream = new();
-                // Generate a histogram of the votes
-                SortedList<int, string> results = new(new Dictionary<int, string>(pollModel.Votes.Select(x => new KeyValuePair<int, string>(x.Value.Length, x.Key))), default);
-                using (Image<Rgba32> image = new(1024, 1024))
-                {
-                    float average = (float)results.Keys.Sum() / results.Count; // This is shown on the left side of the histogram
-                    int imageSize = image.Size().Width;
-                    int padding = imageSize / 10;
-                    image.Mutate(x => x.BackgroundColor(Color.GhostWhite));
-                    Pen blackPen = new(Color.Black, imageSize / 50);
-                    FontRectangle textBox = TextMeasurer.MeasureBounds("Total Number of Polls", new(new Font(sansSerifFont, 48)));
-                    image.Mutate(x => x.DrawPolygon(blackPen, new PointF((imageSize / 2) - textBox.Width, padding), new PointF((imageSize / 2) + textBox.Width, padding)));
-                    image.Mutate(x => x.DrawText("Total Number of Polls", new(sansSerifFont, 48), Color.Black, new PointF((imageSize / 2) - (textBox.Width / 2), padding)));
-
-                    DrawingOptions emptyDrawingOptions = new(); // Because there's nothing wrong with the default drawing options
-                    float lastX = padding;
-                    foreach (KeyValuePair<int, string> result in results)
-                    {
-                        float barWidth = (imageSize - (padding * 2) - (int)blackPen.StrokeWidth) / average;
-                        float barHeight = (imageSize - (padding * 2) - (int)blackPen.StrokeWidth) * result.Key / average;
-                        lastX += barWidth;
-                        image.Mutate(x => x.Draw(emptyDrawingOptions, blackPen, new RectangleF(lastX, padding, image.Width, image.Height)));
-                    }
-                    image.SaveAsPng(memoryStream);
-                }
-
-                builder.WithFile("histogram.png", memoryStream);
                 await message.ModifyAsync(builder);
                 return true;
             }

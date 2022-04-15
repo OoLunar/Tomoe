@@ -13,16 +13,18 @@ namespace Tomoe.Commands.Common
         [Command("guild_info"), Description("Gets general info about the guild."), Aliases("guild_stats", "server_info", "server_stats")]
         public async Task GuildInfoAsync(CommandContext context)
         {
-            DiscordEmbedBuilder embedBuilder = new();
-            embedBuilder.Title = context.Guild.Name;
-            embedBuilder.Color = new DiscordColor("#7b84d1");
-            embedBuilder.Author = new()
+            DiscordEmbedBuilder embedBuilder = new()
             {
-                Name = context.Member.DisplayName,
-                IconUrl = context.User.AvatarUrl,
-                Url = context.User.AvatarUrl
+                Title = context.Guild.Name,
+                Color = new DiscordColor("#7b84d1"),
+                Author = new()
+                {
+                    Name = context.Member.DisplayName,
+                    IconUrl = context.User.AvatarUrl,
+                    Url = context.User.AvatarUrl
+                },
+                Footer = new() { IconUrl = context.Guild.BannerUrl }
             };
-            embedBuilder.Footer = new() { IconUrl = context.Guild.BannerUrl };
 
             string features = string.Join(", ", context.Guild.Features.Select(feature => feature.ToLowerInvariant().Titleize()));
             embedBuilder.AddField("Owner", context.Guild.Owner.Mention, true);

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore.Migrations;
 
@@ -91,10 +91,7 @@ namespace Tomoe.Migrations
                     guild_id = table.Column<decimal>(type: "numeric(20,0)", nullable: false),
                     regex = table.Column<string>(type: "text", nullable: true)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_auto_reactions", x => x.id);
-                });
+                constraints: table => table.PrimaryKey("pk_auto_reactions", x => x.id));
 
             migrationBuilder.CreateTable(
                 name: "guild_configs",
@@ -102,10 +99,7 @@ namespace Tomoe.Migrations
                 {
                     guild_id = table.Column<decimal>(type: "numeric(20,0)", nullable: false)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_guild_configs", x => x.guild_id);
-                });
+                constraints: table => table.PrimaryKey("pk_guild_configs", x => x.guild_id));
 
             migrationBuilder.CreateTable(
                 name: "snowflake_perms",
@@ -115,10 +109,7 @@ namespace Tomoe.Migrations
                     guild_id = table.Column<decimal>(type: "numeric(20,0)", nullable: false),
                     permissions = table.Column<int>(type: "integer", nullable: false)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_snowflake_perms", x => x.snowflake_id);
-                });
+                constraints: table => table.PrimaryKey("pk_snowflake_perms", x => x.snowflake_id));
 
             migrationBuilder.CreateTable(
                 name: "tags",
@@ -133,10 +124,7 @@ namespace Tomoe.Migrations
                     name = table.Column<string>(type: "text", nullable: false),
                     usage_count = table.Column<int>(type: "integer", nullable: false)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_tags", x => x.id);
-                });
+                constraints: table => table.PrimaryKey("pk_tags", x => x.id));
 
             migrationBuilder.CreateTable(
                 name: "emoji_data",

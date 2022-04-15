@@ -20,13 +20,15 @@ namespace Tomoe.Commands.Common
         public async Task HelpAsync(CommandContext context)
         {
             List<Page> pages = new();
-            DiscordEmbedBuilder embedBuilder = new();
-            embedBuilder.Color = new DiscordColor("#7b84d1");
-            embedBuilder.Author = new()
+            DiscordEmbedBuilder embedBuilder = new()
             {
-                Name = context.Guild == null ? context.User.Username : context.Member.DisplayName,
-                IconUrl = context.User.AvatarUrl,
-                Url = context.User.AvatarUrl
+                Color = new DiscordColor("#7b84d1"),
+                Author = new()
+                {
+                    Name = context.Guild == null ? context.User.Username : context.Member.DisplayName,
+                    IconUrl = context.User.AvatarUrl,
+                    Url = context.User.AvatarUrl
+                }
             };
 
             foreach (string section in GetSections())
@@ -95,17 +97,19 @@ namespace Tomoe.Commands.Common
             command ??= groupCommand;
 
             List<Page> pages = new();
-            DiscordEmbedBuilder embedBuilder = new();
-            embedBuilder.Color = new DiscordColor("#7b84d1");
-            embedBuilder.Author = new()
+            DiscordEmbedBuilder embedBuilder = new()
             {
-                Name = context.Guild == null ? context.User.Username : context.Member.DisplayName,
-                IconUrl = context.User.AvatarUrl,
-                Url = context.User.AvatarUrl
-            };
+                Color = new DiscordColor("#7b84d1"),
+                Author = new()
+                {
+                    Name = context.Guild == null ? context.User.Username : context.Member.DisplayName,
+                    IconUrl = context.User.AvatarUrl,
+                    Url = context.User.AvatarUrl
+                },
 
-            embedBuilder.Title = context.Prefix + command!.QualifiedName;
-            embedBuilder.Description = command.Description;
+                Title = context.Prefix + command!.QualifiedName,
+                Description = command.Description
+            };
             if (command.Overloads.Count == 0) // No overload, put the usage on the main embed.
             {
                 embedBuilder.AddField("Command Usage", $"`>>{command.QualifiedName}`");
@@ -162,15 +166,17 @@ namespace Tomoe.Commands.Common
             List<CommandOverload> commandOverloads = command.Overloads.OrderBy(overload => overload.Priority).ThenBy(overload => overload.Arguments.Count).ToList();
             for (int i = 0; i < commandOverloads.Count; i++) // Create the pages
             {
-                DiscordEmbedBuilder embedBuilder = new();
-                embedBuilder.Title = context.Prefix + command.QualifiedName;
-                embedBuilder.Description = command.Description + $"\nUsage: `>>{command.QualifiedName}";
-                embedBuilder.Color = new DiscordColor("#7b84d1");
-                embedBuilder.Author = new()
+                DiscordEmbedBuilder embedBuilder = new()
                 {
-                    Name = context.Guild == null ? context.User.Username : context.Member.DisplayName,
-                    IconUrl = context.User.AvatarUrl,
-                    Url = context.User.AvatarUrl
+                    Title = context.Prefix + command.QualifiedName,
+                    Description = command.Description + $"\nUsage: `>>{command.QualifiedName}",
+                    Color = new DiscordColor("#7b84d1"),
+                    Author = new()
+                    {
+                        Name = context.Guild == null ? context.User.Username : context.Member.DisplayName,
+                        IconUrl = context.User.AvatarUrl,
+                        Url = context.User.AvatarUrl
+                    }
                 };
 
                 if (commandOverloads[i].Arguments.Count == 0)

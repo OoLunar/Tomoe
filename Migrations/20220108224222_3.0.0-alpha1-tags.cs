@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore.Migrations;
 
@@ -16,10 +16,7 @@ namespace Tomoe.Migrations
                 {
                     guild_id = table.Column<decimal>(type: "numeric(20,0)", nullable: false)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_guild_configs", x => x.guild_id);
-                });
+                constraints: table => table.PrimaryKey("pk_guild_configs", x => x.guild_id));
 
             migrationBuilder.CreateTable(
                 name: "snowflake_perms",
@@ -29,10 +26,7 @@ namespace Tomoe.Migrations
                     guild_id = table.Column<decimal>(type: "numeric(20,0)", nullable: false),
                     permissions = table.Column<int>(type: "integer", nullable: false)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_snowflake_perms", x => x.snowflake_id);
-                });
+                constraints: table => table.PrimaryKey("pk_snowflake_perms", x => x.snowflake_id));
 
             migrationBuilder.CreateTable(
                 name: "tags",
@@ -47,10 +41,7 @@ namespace Tomoe.Migrations
                     author_id = table.Column<decimal>(type: "numeric(20,0)", nullable: false),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_tags", x => x.id);
-                });
+                constraints: table => table.PrimaryKey("pk_tags", x => x.id));
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
