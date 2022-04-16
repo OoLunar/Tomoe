@@ -154,8 +154,8 @@ namespace Tomoe.Commands.Common
         }
 
         private static string[] GetSections() => typeof(Program).Assembly.GetTypes().Where(type => type.FullName!.StartsWith("Tomoe.Commands", true, CultureInfo.InvariantCulture)).Select(type => type.FullName!.Split('.')[2].ToLowerInvariant()).Distinct().ToArray();
-        private static List<Command> GetSectionCommands(CommandContext context, string section) => context.CommandsNext.RegisteredCommands.Values.Distinct().Where(command => command.Module.ModuleType.FullName!.StartsWith($"Tomoe.Commands.{section.Titleize()}", true, CultureInfo.InvariantCulture) && !command.IsHidden).OrderBy(command => command.QualifiedName).ToList();
-        private static string GetSection(Command command) => typeof(Program).Assembly.GetTypes().First(type => type.FullName! == command.Module.ModuleType.FullName!).FullName!.Split('.')[2];
+        private static List<Command> GetSectionCommands(CommandContext context, string section) => context.CommandsNext.RegisteredCommands.Values.Distinct().Where(command => command.Module!.ModuleType.FullName!.StartsWith($"Tomoe.Commands.{section.Titleize()}", true, CultureInfo.InvariantCulture) && !command.IsHidden).OrderBy(command => command.QualifiedName).ToList();
+        private static string GetSection(Command command) => typeof(Program).Assembly.GetTypes().First(type => type.FullName! == command.Module!.ModuleType.FullName!).FullName!.Split('.')[2];
 
         private static List<DiscordEmbedBuilder> GetCommandOverloads(CommandContext context, Command command)
         {
