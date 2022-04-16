@@ -25,7 +25,7 @@ namespace Tomoe.Commands.Common
                 Color = new DiscordColor("#7b84d1"),
                 Author = new()
                 {
-                    Name = context.Guild == null ? context.User.Username : context.Member.DisplayName,
+                    Name = context.Member?.DisplayName ?? context.User.Username,
                     IconUrl = context.User.AvatarUrl,
                     Url = context.User.AvatarUrl
                 }
@@ -64,14 +64,13 @@ namespace Tomoe.Commands.Common
         }
 
         [Command("help")]
-        public async Task HelpAsync(CommandContext context, [Description("Which command to search for."), RemainingText] string commandName)
+        public Task HelpAsync(CommandContext context, [Description("Which command to search for."), RemainingText] string commandName)
         {
             commandName = commandName.ToLowerInvariant();
             Command? command = context.CommandsNext.RegisteredCommands.Values.FirstOrDefault(command => command.Name == commandName.Split(' ').First() || command.Aliases.Contains(commandName.Split(' ').First()));
             if (command == null)
             {
-                await context.RespondAsync($"Command {Formatter.InlineCode(Formatter.Sanitize(commandName))} not found!");
-                return;
+                return context.RespondAsync($"Command {Formatter.InlineCode(Formatter.Sanitize(commandName))} not found!");
             }
 
             CommandGroup? groupCommand = command as CommandGroup;
@@ -89,8 +88,7 @@ namespace Tomoe.Commands.Common
 
                 if (commandName.Contains(' '))
                 {
-                    await context.RespondAsync($"Subcommand {Formatter.InlineCode(Formatter.Sanitize(commandName))} not found!");
-                    return;
+                    return context.RespondAsync($"Subcommand {Formatter.InlineCode(Formatter.Sanitize(commandName))} not found!");
                 }
             }
 
@@ -102,7 +100,7 @@ namespace Tomoe.Commands.Common
                 Color = new DiscordColor("#7b84d1"),
                 Author = new()
                 {
-                    Name = context.Guild == null ? context.User.Username : context.Member.DisplayName,
+                    Name = context.Member?.DisplayName ?? context.User.Username,
                     IconUrl = context.User.AvatarUrl,
                     Url = context.User.AvatarUrl
                 },
@@ -146,12 +144,12 @@ namespace Tomoe.Commands.Common
 
             if (pages.Count == 1)
             {
-                await context.RespondAsync(null, pages[0].Embed);
+                return context.RespondAsync(pages[0].Embed);
             }
             else
             {
                 InteractivityExtension interactivity = context.Client.GetInteractivity();
-                await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, pages);
+                return interactivity.SendPaginatedMessageAsync(context.Channel, context.User, pages);
             }
         }
 
@@ -173,7 +171,7 @@ namespace Tomoe.Commands.Common
                     Color = new DiscordColor("#7b84d1"),
                     Author = new()
                     {
-                        Name = context.Guild == null ? context.User.Username : context.Member.DisplayName,
+                        Name = context.Member?.DisplayName ?? context.User.Username,
                         IconUrl = context.User.AvatarUrl,
                         Url = context.User.AvatarUrl
                     }

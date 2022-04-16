@@ -13,21 +13,19 @@ namespace Tomoe.Commands.Common
     public class Raw : BaseCommandModule
     {
         [Command("raw"), Description("Gets the raw version of the message provided."), Aliases("source")]
-        public async Task RawAsync(CommandContext context, [Description("Should the message be JSONfied or should we attempt to escape it?")] bool jsonfied = false, [Description("The message id or jumplink to the message.")] DiscordMessage? message = null)
+        public Task RawAsync(CommandContext context, [Description("Should the message be JSONfied or should we attempt to escape it?")] bool jsonfied = false, [Description("The message id or jumplink to the message.")] DiscordMessage? message = null)
         {
             message ??= context.Message.ReferencedMessage;
             if (message is null)
             {
-                await context.RespondAsync("No message provided. Please give a link or reply to a message to use this command.");
-                return;
+                return context.RespondAsync("No message provided. Please give a link or reply to a message to use this command.");
             }
 
             DiscordMessageBuilder messageBuilder = new();
             if (jsonfied)
             {
                 messageBuilder.WithFile("Message.json", new MemoryStream(Encoding.UTF8.GetBytes(DSharpPlus.Net.Serialization.DiscordJson.SerializeObject(message))));
-                await context.RespondAsync(messageBuilder);
-                return;
+                return context.RespondAsync(messageBuilder);
             }
 
             if (message.Content.Length != 0)
@@ -56,7 +54,7 @@ namespace Tomoe.Commands.Common
                 }
             }
 
-            await context.RespondAsync(messageBuilder);
+            return context.RespondAsync(messageBuilder);
         }
     }
 }

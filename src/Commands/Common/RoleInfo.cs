@@ -15,8 +15,8 @@ namespace Tomoe.Commands.Common
 {
     public class RoleInfo : BaseCommandModule
     {
-        [Command("role_info"), Description("Gets information about a server role.")]
-        public async Task RoleInfoAsync(CommandContext context, [Description("Which role to get info on.")] DiscordRole discordRole)
+        [Command("role_info"), Description("Gets information about a server role."), RequireGuild]
+        public Task RoleInfoAsync(CommandContext context, [Description("Which role to get info on.")] DiscordRole discordRole)
         {
             List<Page> pages = new();
             int totalMemberCount = 0;
@@ -40,7 +40,7 @@ namespace Tomoe.Commands.Common
                 Title = $"Role Info for {discordRole.Name}",
                 Author = new()
                 {
-                    Name = context.Member.DisplayName,
+                    Name = context.Member!.DisplayName,
                     IconUrl = context.User.AvatarUrl,
                     Url = context.User.AvatarUrl
                 },
@@ -59,7 +59,7 @@ namespace Tomoe.Commands.Common
             embedBuilder.AddField("Permissions", string.IsNullOrWhiteSpace(permissions) ? "No permissions." : permissions + ".", false);
             embedBuilder.AddField("Members", roleUsers.ToString(), false);
 
-            await context.RespondAsync(embedBuilder);
+            return context.RespondAsync(embedBuilder);
         }
     }
 }

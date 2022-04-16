@@ -11,7 +11,7 @@ namespace Tomoe.Commands.Common
     public class GuildInfo : BaseCommandModule
     {
         [Command("guild_info"), Description("Gets general info about the guild."), Aliases("guild_stats", "server_info", "server_stats")]
-        public async Task GuildInfoAsync(CommandContext context)
+        public Task GuildInfoAsync(CommandContext context)
         {
             DiscordEmbedBuilder embedBuilder = new()
             {
@@ -19,7 +19,7 @@ namespace Tomoe.Commands.Common
                 Color = new DiscordColor("#7b84d1"),
                 Author = new()
                 {
-                    Name = context.Member.DisplayName,
+                    Name = context.Member?.DisplayName ?? context.User.Username,
                     IconUrl = context.User.AvatarUrl,
                     Url = context.User.AvatarUrl
                 },
@@ -46,7 +46,7 @@ namespace Tomoe.Commands.Common
                 };
             }
 
-            await context.RespondAsync(null, embedBuilder.Build());
+            return context.RespondAsync(embedBuilder.Build());
         }
     }
 }

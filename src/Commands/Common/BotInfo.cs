@@ -13,7 +13,7 @@ namespace Tomoe.Commands.Common
     public class BotInfo : BaseCommandModule
     {
         [Command("bot_info"), Description("Gets general info about the bot."), Aliases("bot_stats")]
-        public async Task BotInfoAsync(CommandContext context)
+        public Task BotInfoAsync(CommandContext context)
         {
             DiscordEmbedBuilder embedBuilder = new()
             {
@@ -27,7 +27,7 @@ namespace Tomoe.Commands.Common
             embedBuilder.AddField("Guild Count", context.Client.Guilds.Count.ToMetric(), true);
             //embedBuilder.AddField("Member Count", DatabaseContext.GuildConfigs.Select(guildConfig => guildConfig.MemberCount).Sum().ToMetric(), true);
 
-            await context.RespondAsync(embedBuilder.Build());
+            return context.RespondAsync(embedBuilder.Build());
         }
     }
 }

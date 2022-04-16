@@ -17,7 +17,7 @@ namespace Tomoe.Commands.Common
     public class TimeOf : BaseCommandModule
     {
         [Command("time_of"), Description("Gets the time of the messages linked."), Aliases("when_was", "timestamp")]
-        public async Task TimeOfAsync(CommandContext context, [Description("Which messages to get the time of.")] params ulong[] messages)
+        public Task TimeOfAsync(CommandContext context, [Description("Which messages to get the time of.")] params ulong[] messages)
         {
             messages = messages.Distinct().OrderBy(snowflake => snowflake).ToArray();
             StringBuilder timestamps = new();
@@ -34,7 +34,7 @@ namespace Tomoe.Commands.Common
                     Color = new DiscordColor("#7b84d1"),
                     Author = new()
                     {
-                        Name = context.Guild == null ? context.User.Username : context.Member.DisplayName,
+                        Name = context.Member?.DisplayName ?? context.User.Username,
                         IconUrl = context.User.AvatarUrl,
                         Url = context.User.AvatarUrl
                     }
@@ -43,23 +43,18 @@ namespace Tomoe.Commands.Common
                 InteractivityExtension interactivity = context.Client.GetInteractivity();
                 Page[] pages = interactivity.GeneratePagesInEmbed(timestamps.ToString(), SplitType.Line, embedBuilder).ToArray();
 
-                if (pages.Length == 1)
-                {
-                    await context.RespondAsync(null, pages[0].Embed);
-                }
-                else
-                {
-                    await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, pages);
-                }
+                return pages.Length == 1
+                    ? context.RespondAsync(pages[0].Embed)
+                    : interactivity.SendPaginatedMessageAsync(context.Channel, context.User, pages);
             }
             else
             {
-                await context.RespondAsync(timestamps.ToString());
+                return context.RespondAsync(timestamps.ToString());
             }
         }
 
         [Command("time_of")]
-        public async Task TimeOfAsync(CommandContext context, [Description("A list of links that go to a Discord message.")] params string[] messages)
+        public Task TimeOfAsync(CommandContext context, [Description("A list of links that go to a Discord message.")] params string[] messages)
         {
             List<ulong> messageIds = new();
             Dictionary<string, string> invalidMessages = new();
@@ -83,11 +78,9 @@ namespace Tomoe.Commands.Common
                 invalidMessages.Add(message, "Not a valid url.");
             }
 
-            if (invalidMessages.Any())
-            {
-                await context.RespondAsync($"Failed to get the time of the following messages:\n{string.Join('\n', invalidMessages.Select(pair => pair.Key + " - " + pair.Value))}");
-            }
-            await TimeOfAsync(context, messageIds.ToArray());
+            return invalidMessages.Count != 0
+                ? context.RespondAsync($"Failed to get the time of the following messages:\n{string.Join('\n', invalidMessages.Select(pair => pair.Key + " - " + pair.Value))}")
+                : TimeOfAsync(context, messageIds.ToArray());
         }
     }
 }

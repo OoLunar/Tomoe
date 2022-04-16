@@ -126,7 +126,7 @@ namespace Tomoe.Commands.Common
             PollModelList.Update(poll);
         }
 
-        public static async Task VoteExpired(object? sender, PollModel pollModel)
+        public static async Task VoteExpiredAsync(object? sender, PollModel pollModel)
         {
             if (!Program.BotReady)
             {
@@ -230,15 +230,15 @@ namespace Tomoe.Commands.Common
 
             if (!channel.PermissionsFor(guild.CurrentMember).HasPermission(Permissions.AccessChannels))
             {
-                await SendDm(logger, guild, pollModel, message, winnerString, true);
+                await SendDmAsync(logger, guild, pollModel, message, winnerString, true);
             }
             else if (!channel.PermissionsFor(guild.CurrentMember).HasPermission(Permissions.SendMessages))
             {
-                await SendDm(logger, guild, pollModel, message, winnerString, await EditMessage(logger, pollModel, message));
+                await SendDmAsync(logger, guild, pollModel, message, winnerString, await EditMessageAsync(logger, pollModel, message));
             }
             else
             {
-                await EditMessage(logger, pollModel, message);
+                await EditMessageAsync(logger, pollModel, message);
                 DiscordMessageBuilder builder = new();
                 builder.WithReply(message.Id, false, false);
                 builder.WithContent(winnerString);
@@ -247,7 +247,7 @@ namespace Tomoe.Commands.Common
             }
         }
 
-        private static async Task<bool> SendDm(Logger<Poll> logger, DiscordGuild guild, PollModel pollModel, DiscordMessage message, string content, bool failedToEdit = false)
+        private static async Task<bool> SendDmAsync(Logger<Poll> logger, DiscordGuild guild, PollModel pollModel, DiscordMessage message, string content, bool failedToEdit = false)
         {
             if (!guild.Members.TryGetValue(pollModel.UserId, out DiscordMember? member))
             {
@@ -297,7 +297,7 @@ namespace Tomoe.Commands.Common
             return true;
         }
 
-        private static async Task<bool> EditMessage(Logger<Poll> logger, PollModel pollModel, DiscordMessage message)
+        private static async Task<bool> EditMessageAsync(Logger<Poll> logger, PollModel pollModel, DiscordMessage message)
         {
             try
             {

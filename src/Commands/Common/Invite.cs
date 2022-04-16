@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
@@ -8,6 +9,22 @@ namespace Tomoe.Commands.Common
     public class Invite : BaseCommandModule
     {
         [Command("invite"), Description("Sends the link to add Tomoe to a guild without an embed.")]
-        public async Task InviteAsync(CommandContext context) => await context.RespondAsync(Formatter.EmbedlessUrl(new($"https://discord.com/api/oauth2/authorize?client_id={context.Client.CurrentUser.Id}&permissions=8&scope=bot")));
+        public Task InviteAsync(CommandContext context) => context.RespondAsync(Formatter.EmbedlessUrl(new($"https://discord.com/api/oauth2/authorize?client_id={context.Client.CurrentUser.Id}&scope=bot${GetPermissions()}")));
+
+        private static string GetPermissions()
+        {
+            Permissions requiredPermissions = 0;
+            foreach (RequirePermissionsAttribute requirePermissionsAttribute in typeof(Program).Assembly.GetCustomAttributes(typeof(RequirePermissionsAttribute), true).OfType<RequirePermissionsAttribute>())
+            {
+                requiredPermissions |= requirePermissionsAttribute.Permissions;
+            }
+
+            foreach (RequireBotPermissionsAttribute requireBotPermissionsAttribute in typeof(Program).Assembly.GetCustomAttributes(typeof(RequireBotPermissionsAttribute), true).OfType<RequireBotPermissionsAttribute>())
+            {
+                requiredPermissions |= requireBotPermissionsAttribute.Permissions;
+            }
+
+            return requiredPermissions == 0 ? "" : $"&permissions={requiredPermissions}";
+        }
     }
 }
