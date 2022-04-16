@@ -15,7 +15,7 @@ namespace Tomoe.Events
     public class MenuRoleAssigned
     {
         [SubscribeToEvent(nameof(DiscordShardedClient.ComponentInteractionCreated))]
-        public static async Task HandleButtonPress(DiscordClient client, ComponentInteractionCreateEventArgs componentInteractionCreateEventArgs)
+        public static async Task HandleButtonPressAsync(DiscordClient client, ComponentInteractionCreateEventArgs componentInteractionCreateEventArgs)
         {
             if (!componentInteractionCreateEventArgs.Id.StartsWith("menurole\v", StringComparison.InvariantCultureIgnoreCase))
             {

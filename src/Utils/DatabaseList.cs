@@ -212,8 +212,8 @@ namespace Tomoe.Utils
             }
         }
 
-        private void Expire(object? sender, ElapsedEventArgs e) => Expire();
-        private async void Expire()
+        private void Expire(object? sender, ElapsedEventArgs e) => ExpireAsync();
+        private async void ExpireAsync()
         {
             TObject[] items = new TObject[Items.Count];
             Items.CopyTo(items, 0);

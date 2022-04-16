@@ -19,7 +19,7 @@ namespace Tomoe.Events
     {
         // Do NOT look at this code unless you're willing to clean it up.
         [SubscribeToEvent(nameof(DiscordShardedClient.MessageCreated))]
-        public static async Task MessageCreated(DiscordClient client, MessageCreateEventArgs messageCreateEventArgs)
+        public static async Task MessageCreatedAsync(DiscordClient client, MessageCreateEventArgs messageCreateEventArgs)
         {
             if (messageCreateEventArgs.Guild == null || messageCreateEventArgs.Author.IsCurrent)
             {
