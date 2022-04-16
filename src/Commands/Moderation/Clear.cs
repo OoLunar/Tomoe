@@ -20,6 +20,10 @@ namespace Tomoe.Commands.Moderation
     {
         public ILogger<Clear> Logger { private get; init; } = null!;
 
+        // We do this for the invite command. The clear command utilizes both role permissions and channel overwrites. If an admin really wants to lock down on permissions, I'd like for Tomoe not to struggle one bit.
+        [RequirePermissions(Permissions.ManageMessages)]
+        public void PseudoMethod() { }
+
         [Command("clear"), Description("Clears messages from chat."), RequireGuild]
         public async Task ClearChannelAsync(CommandContext context, [Description("Which channel to clear the messages from.")] DiscordChannel? channel = null, [Description("How many messages to clear.")] int messageCount = 5, [Description("Which message to stop clearing at.")] DiscordMessage? beforeMessage = null, [Description("Which message to start clearing at.")] DiscordMessage? afterMessage = null, [Description("What type of messages to clear.")] FilterType filterType = FilterType.AllMessages, [Description("An optional argument that may be required when using certain kinds of filter types.")] string? filterTypeArgument = null)
         {
@@ -111,7 +115,7 @@ namespace Tomoe.Commands.Moderation
                 return;
             }
             int totalMessageCount = 0;
-            Dictionary<DiscordChannel, bool> failedChannels = new(); // true if they failed, false I failed
+            Dictionary<DiscordChannel, bool> failedChannels = new(); // true if they failed, false if I failed
 
             foreach (DiscordChannel channel in context.Guild.Channels.Values)
             {
