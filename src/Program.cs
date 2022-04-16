@@ -102,14 +102,14 @@ namespace Tomoe
             services.AddSingleton(serviceProvider =>
             {
                 DatabaseList<PollModel, Guid> pollModelList = new(services.BuildServiceProvider());
-                pollModelList.ItemExpired += Poll.VoteExpired;
+                pollModelList.ItemExpired += Poll.VoteExpiredAsync;
                 return pollModelList;
             });
 
             services.AddSingleton(serviceProvider =>
             {
                 DatabaseList<TempRoleModel, Guid> pollModelList = new(services.BuildServiceProvider());
-                pollModelList.ItemExpired += TempRole.RoleExpired;
+                pollModelList.ItemExpired += TempRole.RoleExpiredAsync;
                 return pollModelList;
             });
 
