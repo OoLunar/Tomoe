@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
@@ -13,28 +12,13 @@ namespace Tomoe.Commands.Moderation
     {
         public ILogger<Unban> Logger { private get; init; } = null!;
 
-        [RequireGuild]
-        [Command("unban")]
-        [Description("Unbans a user from the server.")]
+        [Command("unban"), Description("Unbans a user from the server."), RequireGuild, RequirePermissions(Permissions.BanMembers)]
         public async Task UnbanAsync(CommandContext context, [Description("Who's getting unbanned?")] DiscordUser offender, [Description("Why are they getting unbanned?"), RemainingText] string reason = Constants.NoReasonSpecified)
         {
             // Check if the user is already banned.
-            if (!(await context.Guild.GetBansAsync()).Any(guildUser => guildUser.User.Id == offender.Id))
+            if ((await context.Guild.GetBanAsync(offender.Id)) == null)
             {
                 await context.RespondAsync($"[Error]: {offender.Mention} ({offender.Id}) is not banned!");
-                return;
-            }
-
-            // Check if the executing user can unban members
-            if (!context.Member.Permissions.HasPermission(Permissions.BanMembers))
-            {
-                await context.RespondAsync($"[Error]: You cannot unban {offender.Mention} due to Discord permissions!");
-                return;
-            }
-            // Check if the bot can unban members
-            else if (!context.Guild.CurrentMember.Permissions.HasPermission(Permissions.BanMembers))
-            {
-                await context.RespondAsync($"[Error]: I cannot unban {offender.Mention} due to Discord permissions!");
                 return;
             }
 

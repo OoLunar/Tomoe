@@ -12,30 +12,15 @@ namespace Tomoe.Commands.Moderation
     {
         public ILogger<Unmute> Logger { private get; init; } = null!;
 
-        [RequireGuild]
-        [Command("unmute")]
-        [Description("Unmutes a user from the server.")]
+        [Command("unmute"), Description("Unmutes a member from the server."), RequireGuild, RequirePermissions(Permissions.ModerateMembers)]
         public async Task UnmuteAsync(CommandContext context, [Description("Who's getting unmuted?")] DiscordMember offender, [Description("Why are they getting unmuted?"), RemainingText] string reason = Constants.NoReasonSpecified)
         {
-            // Check if the executing user can unmute members.
-            if (!context.Member.Permissions.HasPermission(Permissions.ModerateMembers))
-            {
-                await context.RespondAsync($"[Error]: You cannot unmute {offender.Mention} due to Discord permissions!");
-                return;
-            }
-            // Check if the bot can unmute members.
-            else if (!context.Guild.CurrentMember.Permissions.HasPermission(Permissions.ModerateMembers))
-            {
-                await context.RespondAsync($"[Error]: I cannot unmute {offender.Mention} due to Discord permissions!");
-                return;
-            }
-
             // Attempt to Dm the user.
             bool dmSuccess = true;
             try
             {
                 DiscordDmChannel dmChannel = await offender.CreateDmChannelAsync();
-                await dmChannel.SendMessageAsync($"You have been unmuted from {context.Guild.Name} ({context.Guild.Id}) by {context.Member.Username}#{context.Member.Discriminator} ({context.Member.Id}) for the following reason:\n{reason}");
+                await dmChannel.SendMessageAsync($"You have been unmuted from {context.Guild.Name} ({context.Guild.Id}) by {context.Member!.Username}#{context.Member.Discriminator} ({context.Member.Id}) for the following reason:\n{reason}");
             }
             catch (DiscordException)
             {
@@ -55,8 +40,6 @@ namespace Tomoe.Commands.Moderation
             }
 
             await context.RespondAsync(Formatter.Bold($"{offender.Mention} ({offender.Id}) has been unmuted{(dmSuccess ? null : " (Failed to DM)")}!"));
-
-            // TODO: Modlog
         }
     }
 }

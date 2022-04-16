@@ -97,7 +97,7 @@ namespace Tomoe.Commands.Moderation
             await context.RespondAsync($"Cleared {messages.Count().ToMetric()} messages.");
         }
 
-        [Command("clear"), Description("Clears messages from chat.")]
+        [Command("clear"), Description("Clears messages from chat."), RequireGuild]
         public async Task ClearUsersAsync(CommandContext context, [Description("How many messages to clear.")] int messageCount = 5, [Description("What type of messages to clear.")] FilterType filterType = FilterType.AllMessages, [Description("An optional argument that may be required when using certain kinds of filter types.")] string? filterTypeArgument = null, [Description("Which messages to delete that belong to these users.")] params ulong[] userIds)
         {
             if (messageCount is <= 2 or > 100)
@@ -173,14 +173,14 @@ namespace Tomoe.Commands.Moderation
             await context.RespondAsync(sb.ToString());
         }
 
-        public IEnumerable<DiscordMessage> FilterPhrase(IEnumerable<DiscordMessage> messages, string? phrase = null) => string.IsNullOrWhiteSpace(phrase) ? messages : messages.Where(message => message.Content.Contains(phrase, StringComparison.InvariantCultureIgnoreCase));
-        public IEnumerable<DiscordMessage> FilterCommand(IEnumerable<DiscordMessage> messages) => messages.Where(message => message.Author.IsBot);
-        public IEnumerable<DiscordMessage> FilterEmbed(IEnumerable<DiscordMessage> messages) => messages.Where(message => message.Embeds.Count != 0);
-        public IEnumerable<DiscordMessage> FilterFile(IEnumerable<DiscordMessage> messages) => messages.Where(message => message.Attachments.Count != 0);
-        public IEnumerable<DiscordMessage> FilterAttachment(IEnumerable<DiscordMessage> messages) => messages.Where(message => message.Attachments.Count != 0 || message.Embeds.Count != 0);
-        public IEnumerable<DiscordMessage> FilterUserPing(IEnumerable<DiscordMessage> messages) => messages.Where(message => message.MentionedUsers.Count != 0);
-        public IEnumerable<DiscordMessage> FilterRolePing(IEnumerable<DiscordMessage> messages) => messages.Where(message => message.MentionedRoles.Count != 0 || message.MentionEveryone);
-        public IEnumerable<DiscordMessage> FilterPing(IEnumerable<DiscordMessage> messages) => messages.Where(message => message.MentionedUsers.Count != 0 || message.MentionedRoles.Count != 0);
-        public IEnumerable<DiscordMessage> FilterRegex(IEnumerable<DiscordMessage> messages, string? regex = null) => string.IsNullOrWhiteSpace(regex) ? messages : messages.Where(message => Regex.Matches(message.Content, regex).Count != 0);
+        public static IEnumerable<DiscordMessage> FilterPhrase(IEnumerable<DiscordMessage> messages, string? phrase = null) => string.IsNullOrWhiteSpace(phrase) ? messages : messages.Where(message => message.Content.Contains(phrase, StringComparison.InvariantCultureIgnoreCase));
+        public static IEnumerable<DiscordMessage> FilterCommand(IEnumerable<DiscordMessage> messages) => messages.Where(message => message.Author.IsBot);
+        public static IEnumerable<DiscordMessage> FilterEmbed(IEnumerable<DiscordMessage> messages) => messages.Where(message => message.Embeds.Count != 0);
+        public static IEnumerable<DiscordMessage> FilterFile(IEnumerable<DiscordMessage> messages) => messages.Where(message => message.Attachments.Count != 0);
+        public static IEnumerable<DiscordMessage> FilterAttachment(IEnumerable<DiscordMessage> messages) => messages.Where(message => message.Attachments.Count != 0 || message.Embeds.Count != 0);
+        public static IEnumerable<DiscordMessage> FilterUserPing(IEnumerable<DiscordMessage> messages) => messages.Where(message => message.MentionedUsers.Count != 0);
+        public static IEnumerable<DiscordMessage> FilterRolePing(IEnumerable<DiscordMessage> messages) => messages.Where(message => message.MentionedRoles.Count != 0 || message.MentionEveryone);
+        public static IEnumerable<DiscordMessage> FilterPing(IEnumerable<DiscordMessage> messages) => messages.Where(message => message.MentionedUsers.Count != 0 || message.MentionedRoles.Count != 0);
+        public static IEnumerable<DiscordMessage> FilterRegex(IEnumerable<DiscordMessage> messages, string? regex = null) => string.IsNullOrWhiteSpace(regex) ? messages : messages.Where(message => Regex.Matches(message.Content, regex).Count != 0);
     }
 }

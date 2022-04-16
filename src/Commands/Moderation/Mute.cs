@@ -14,13 +14,11 @@ namespace Tomoe.Commands.Moderation
     {
         public ILogger<Mute> Logger { private get; init; } = null!;
 
-        [RequireGuild]
-        [Command("mute")]
-        [Description("Using the Discord Timeout feature, the user is unable to communicate with their guild members.")]
+        [Command("mute"), Description("Mutes a user or member from the server."), RequireGuild, RequirePermissions(Permissions.ModerateMembers)]
         public async Task MuteUserAsync(CommandContext context, [Description("Who's getting muted?")] DiscordMember offender, [Description("How long will they be muted?")] TimeSpan timeSpan, [Description("Why are they getting muted?"), RemainingText] string reason = Constants.NoReasonSpecified)
         {
             // Check if the executing user can mute members.
-            if (!context.Member.CanExecute(Permissions.ModerateMembers, offender))
+            if (!context.Member!.CanExecute(Permissions.ModerateMembers, offender))
             {
                 await context.RespondAsync($"[Error]: You cannot mute {offender.Mention} due to Discord permissions!");
                 return;
@@ -37,7 +35,7 @@ namespace Tomoe.Commands.Moderation
             try
             {
                 DiscordDmChannel dmChannel = await offender.CreateDmChannelAsync();
-                await dmChannel.SendMessageAsync($"You have been muted from {context.Guild.Name} ({context.Guild.Id}) by {context.Member.Username}#{context.Member.Discriminator} ({context.Member.Id}) for the following reason:\n{reason}");
+                await dmChannel.SendMessageAsync($"You have been muted from {context.Guild.Name} ({context.Guild.Id}) by {context.Member!.Username}#{context.Member.Discriminator} ({context.Member.Id}) for the following reason:\n{reason}");
             }
             catch (DiscordException)
             {
@@ -57,8 +55,6 @@ namespace Tomoe.Commands.Moderation
             }
 
             await context.RespondAsync(Formatter.Bold($"{offender.Mention} ({offender.Id}) has been muted{(dmSuccess ? null : " (Failed to DM)")}! The mute will be removed {Formatter.Timestamp(timeSpan)}!"));
-
-            // TODO: Modlog
         }
     }
 }

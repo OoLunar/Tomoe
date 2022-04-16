@@ -20,17 +20,17 @@ namespace Tomoe.Commands.Moderation
         public DatabaseList<TempRoleModel, Guid> TempRoleModelList { private get; init; } = null!;
         public Logger<TempRole> Logger { private get; init; } = null!;
 
-        [Command("temprole"), Description("Temporarily assign a role to a user for the specified amount of time."), RequireGuild]
+        [Command("temprole"), Description("Temporarily assign a role to a user for the specified amount of time."), RequireGuild, RequirePermissions(Permissions.ManageRoles)]
         public async Task TempRoleAsync(CommandContext context, DiscordMember member, DiscordRole role, TimeSpan? timeSpan = null)
         {
             // Check if the executing user can give roles to the member.
-            if (!context.Member.CanExecute(Permissions.ManageRoles, member))
+            if (!context.Member!.CanExecute(Permissions.ManageRoles, member))
             {
                 await context.RespondAsync($"[Error]: You cannot assign roles to {member.Mention} due to Discord permissions!");
                 return;
             }
             // Check if the role is higher than the assigners's highest role.
-            else if (role.Position >= context.Member.Hierarchy)
+            else if (role.Position >= context.Member!.Hierarchy)
             {
                 await context.RespondAsync($"[Error]: {role.Mention} ({Formatter.InlineCode(role.Id.ToString(CultureInfo.InvariantCulture))}) is higher than {context.Member.Mention}'s highest role!");
                 return;
@@ -78,7 +78,7 @@ namespace Tomoe.Commands.Moderation
             await context.RespondAsync($"{member.Mention} will now have the role {role.Mention} ({Formatter.InlineCode(role.Id.ToString(CultureInfo.InvariantCulture))}) for {timeSpan.Value.Humanize()}.");
         }
 
-        public static async Task RoleExpired(object? sender, TempRoleModel tempRoleModel)
+        public static async Task RoleExpiredAsync(object? sender, TempRoleModel tempRoleModel)
         {
             if (!Program.BotReady)
             {

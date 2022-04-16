@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
@@ -14,95 +13,39 @@ namespace Tomoe.Commands.Moderation
     {
         public ILogger<Ban> Logger { private get; init; } = null!;
 
-        [RequireGuild]
-        [Command("ban")]
-        [Description("Bans a user from the server.")]
-        public async Task BanAsync(CommandContext context, [Description("Who's getting banned?")] DiscordMember offender, [Description("Why are they getting banned?"), RemainingText] string reason = Constants.NoReasonSpecified) => await BanAsync(context, offender, 1, reason);
-
-        [RequireGuild]
-        [Command("ban")]
-        [Description("Bans a user from the server.")]
-        public async Task BanAsync(CommandContext context, [Description("Who's getting banned?")] DiscordMember offender, [Description("Delete their messages in the past X days (0-7)")] int deleteDays = 1, [Description("Why are they getting banned?"), RemainingText] string reason = Constants.NoReasonSpecified)
+        [Command("ban"), Description("Bans a user or member from the server."), RequireGuild, RequirePermissions(Permissions.BanMembers)]
+        public async Task BanAsync(CommandContext context, [Description("Who's being banned.")] DiscordUser offender, [Description("Delete their messages within the past X days.")] int deleteDays = 1, [Description("Why they're being banned."), RemainingText] string reason = Constants.NoReasonSpecified)
         {
-            // Check if the user is already banned.
-            if ((await context.Guild.GetBansAsync()).Any(guildUser => guildUser.User.Id == offender.Id))
+            // Check if the user is already banned
+            if ((await context.Guild.GetBanAsync(offender.Id)) != null)
             {
-                await context.RespondAsync($"[Error]: {offender.Mention} ({offender.Id}) is already banned!");
+                await context.RespondAsync($"[Error]: {offender.Mention} is already banned!");
                 return;
             }
 
-            // Check if the executing user can ban the offender.
-            if (!context.Member.CanExecute(Permissions.BanMembers, offender))
+            bool successfullyMessaged = false;
+            if (offender is DiscordMember memberOffender)
             {
-                await context.RespondAsync($"[Error]: You cannot ban {offender.Mention} due to Discord permissions!");
-                return;
-            }
-            // Check if the bot can ban the offender.
-            else if (!context.Guild.CurrentMember.CanExecute(Permissions.BanMembers, offender))
-            {
-                await context.RespondAsync($"[Error]: I cannot ban {offender.Mention} due to Discord permissions!");
-                return;
+                if (!context.Member!.CanExecute(Permissions.BanMembers, memberOffender))
+                {
+                    await context.RespondAsync($"[Error]: You cannot ban {memberOffender.Mention} due to Discord permissions!");
+                    return;
+                }
+                else if (!context.Guild.CurrentMember.CanExecute(Permissions.BanMembers, memberOffender))
+                {
+                    await context.RespondAsync($"[Error]: I cannot ban {memberOffender.Mention} due to Discord permissions!");
+                    return;
+                }
+
+                try
+                {
+                    DiscordDmChannel dmChannel = await memberOffender.CreateDmChannelAsync();
+                    await dmChannel.SendMessageAsync($"You have been banned from {context.Guild.Name} ({context.Guild.Id}) by {context.Member!.Username}#{context.Member.Discriminator} ({context.Member.Id}) for the following reason:\n{reason}");
+                    successfullyMessaged = true;
+                }
+                catch (DiscordException) { }
             }
 
-            // Attempt to Dm the user.
-            bool dmSuccess = true;
-            try
-            {
-                DiscordDmChannel dmChannel = await offender.CreateDmChannelAsync();
-                await dmChannel.SendMessageAsync($"You have been banned from {context.Guild.Name} ({context.Guild.Id}) by {context.Member.Username}#{context.Member.Discriminator} ({context.Member.Id}) for the following reason:\n{reason}");
-            }
-            catch (DiscordException)
-            {
-                dmSuccess = false;
-            }
-
-            // Attempt to ban the user.
-            try
-            {
-                await context.Guild.BanMemberAsync(offender, deleteDays, reason);
-            }
-            catch (DiscordException error)
-            {
-                await context.RespondAsync($"[Error]: Failed to ban {offender.Mention}. Error: (HTTP {error.WebResponse.ResponseCode}) {error.JsonMessage}");
-                Logger.LogWarning(error, "Failed to ban {Offender} from guild {GuildId}. Error: (HTTP {HTTPCode}) {JsonError}", offender.Id, context.Guild.Id, error.WebResponse.ResponseCode, error.JsonMessage);
-                return;
-            }
-
-            await context.RespondAsync($"{offender.Mention} ({offender.Id}) has been banned{(dmSuccess ? null : " (Failed to DM)")}.");
-
-            // TODO: Modlog
-        }
-
-        [RequireGuild]
-        [Command("ban")]
-        [Description("Bans a user from the server.")]
-        public async Task BanAsync(CommandContext context, [Description("Who's getting banned?")] DiscordUser offender, [Description("Why are they getting banned?"), RemainingText] string reason = Constants.NoReasonSpecified) => await BanAsync(context, offender, 1, reason);
-
-        [RequireGuild]
-        [Command("ban")]
-        [Description("Bans a user from the server.")]
-        public async Task BanAsync(CommandContext context, [Description("Who's getting banned?")] DiscordUser offender, [Description("Delete their messages in the past X days (0-7)")] int deleteDays = 1, [Description("Why are they getting banned?"), RemainingText] string reason = Constants.NoReasonSpecified)
-        {
-            // Check if the user is already banned.
-            if ((await context.Guild.GetBansAsync()).Any(guildUser => guildUser.User.Id == offender.Id))
-            {
-                await context.RespondAsync($"[Error]: {offender.Mention} ({offender.Id}) is already banned!");
-                return;
-            }
-            // Make sure the executing user can ban members.
-            else if (!context.Member.Permissions.HasPermission(Permissions.BanMembers))
-            {
-                await context.RespondAsync($"[Error]: You cannot ban {offender.Mention} due to Discord permissions!");
-                return;
-            }
-            // Make sure the bot can ban members.
-            else if (!context.Guild.CurrentMember.Permissions.HasPermission(Permissions.BanMembers))
-            {
-                await context.RespondAsync($"[Error]: I cannot ban {offender.Mention} due to Discord permissions!");
-                return;
-            }
-
-            // Attempt to ban the user.
             try
             {
                 await context.Guild.BanMemberAsync(offender.Id, deleteDays, reason);
@@ -114,9 +57,7 @@ namespace Tomoe.Commands.Moderation
                 return;
             }
 
-            await context.RespondAsync($"{offender.Mention} ({offender.Id}) has been banned (Failed to DM).");
-
-            // TODO: Modlog
+            await context.RespondAsync(Formatter.Bold($"{offender.Mention} ({offender.Id}) has been banned{(successfullyMessaged ? null : " (Failed to DM)")}!"));
         }
     }
 }
