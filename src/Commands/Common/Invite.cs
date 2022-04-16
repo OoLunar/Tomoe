@@ -24,6 +24,16 @@ namespace Tomoe.Commands.Common
                 requiredPermissions |= requireBotPermissionsAttribute.Permissions;
             }
 
+            foreach (RequirePermissionsAttribute requirePermissionsAttribute in typeof(Program).Assembly.DefinedTypes.SelectMany(x => x.GetCustomAttributes(typeof(RequirePermissionsAttribute), true).OfType<RequirePermissionsAttribute>()))
+            {
+                requiredPermissions |= requirePermissionsAttribute.Permissions;
+            }
+
+            foreach (RequireBotPermissionsAttribute requireBotPermissionsAttribute in typeof(Program).Assembly.DefinedTypes.SelectMany(x => x.GetCustomAttributes(typeof(RequireBotPermissionsAttribute), true).OfType<RequireBotPermissionsAttribute>()))
+            {
+                requiredPermissions |= requireBotPermissionsAttribute.Permissions;
+            }
+
             return requiredPermissions == 0 ? "" : $"&permissions={(long)requiredPermissions}";
         }
     }

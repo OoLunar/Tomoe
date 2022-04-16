@@ -12,7 +12,7 @@ using Tomoe.Enums;
 
 namespace Tomoe.Commands.Server
 {
-    [Group("auto_mention")]
+    [Group("auto_mention"), Description("Automatically mentions a user or role upon a match to a message's content."), RequireGuild, RequireBotPermissions(Permissions.SendMessages | Permissions.ReadMessageHistory | Permissions.SendMessagesInThreads | Permissions.AccessChannels)]
     public class AutoMention : AutoCommand<IMention>
     {
         [Command("add")]
@@ -50,11 +50,11 @@ namespace Tomoe.Commands.Server
 
         public override async Task BeforeExecutionAsync(CommandContext ctx)
         {
-            switch (ctx.Command.Name)
+            switch (ctx.Command!.Name)
             {
                 case "add":
                     DiscordChannel channel = (DiscordChannel)await ctx.CommandsNext.ConvertArgument<DiscordChannel>(ctx.RawArguments[0], ctx);
-                    Permissions memberChannelPermissions = ctx.Member.PermissionsIn(channel);
+                    Permissions memberChannelPermissions = ctx.Member!.PermissionsIn(channel);
                     Permissions botChannelPermissions = ctx.Guild.CurrentMember.PermissionsIn(channel);
                     string channelOrThread = channel.IsThread ? "thread" : "channel";
 
@@ -184,7 +184,7 @@ namespace Tomoe.Commands.Server
 
         public override async Task AfterExecutionAsync(CommandContext ctx)
         {
-            switch (ctx.Command.Name)
+            switch (ctx.Command!.Name)
             {
                 case "add":
                     int mentionCount = ctx.Message.MentionedUsers.Count + ctx.Message.MentionedRoles.Count + (ctx.Message.MentionEveryone ? 1 : 0);

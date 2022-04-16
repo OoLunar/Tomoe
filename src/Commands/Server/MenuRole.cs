@@ -13,7 +13,7 @@ using Tomoe.Models;
 
 namespace Tomoe.Commands.Server
 {
-    [Group("menu_role")]
+    [Group("menu_role"), Description("Creates a button for users to click to get a role."), RequireGuild, RequireBotPermissions(Permissions.SendMessages), RequirePermissions(Permissions.ManageRoles)]
     public class MenuRole : BaseCommandModule
     {
         public DatabaseContext Database { private get; init; } = null!;
@@ -21,7 +21,7 @@ namespace Tomoe.Commands.Server
         [Command("add")]
         public async Task AddAsync(CommandContext context, DiscordChannel channel, string messageText = "Select your custom roles!", string buttonText = "Menu Roles!", [RemainingText] params DiscordRole[] roles)
         {
-            if (!context.Member.Permissions.HasPermission(Permissions.ManageRoles))
+            if (!context.Member!.Permissions.HasPermission(Permissions.ManageRoles))
             {
                 await context.RespondAsync($"[Error]: You're missing the {Permissions.ManageRoles.Humanize()} permission!");
                 return;
@@ -114,7 +114,7 @@ namespace Tomoe.Commands.Server
         [Command("add")]
         public async Task AddAsync(CommandContext context, DiscordMessage message, [RemainingText] params DiscordRole[] roles)
         {
-            if (!context.Member.Permissions.HasPermission(Permissions.ManageRoles))
+            if (!context.Member!.Permissions.HasPermission(Permissions.ManageRoles))
             {
                 await context.RespondAsync($"[Error]: You're missing the {Permissions.ManageRoles.Humanize()} permission!");
                 return;
@@ -223,7 +223,7 @@ namespace Tomoe.Commands.Server
         [Command("remove")]
         public async Task RemoveAsync(CommandContext context, DiscordMessage message, [RemainingText] params DiscordRole[] roles)
         {
-            if (!context.Member.Permissions.HasPermission(Permissions.ManageRoles))
+            if (!context.Member!.Permissions.HasPermission(Permissions.ManageRoles))
             {
                 await context.RespondAsync($"[Error]: You're missing the {Permissions.ManageRoles.Humanize()} permission!");
                 return;

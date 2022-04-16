@@ -55,8 +55,7 @@ namespace Tomoe.Commands.Common
             embedBuilder.AddField("Role Name", discordRole.Name, true);
             embedBuilder.AddField("Role Position", discordRole.Position.ToMetric(), true);
             embedBuilder.AddField("Role Member Count", totalMemberCount.ToMetric(), true);
-            string permissions = discordRole.Permissions.ToPermissionString();
-            embedBuilder.AddField("Permissions", string.IsNullOrWhiteSpace(permissions) ? "No permissions." : permissions + ".", false);
+            embedBuilder.AddField("Permissions", discordRole.Permissions == Permissions.None ? "No permissions." : discordRole.Permissions.ToPermissionString() + ".", false);
             embedBuilder.AddField("Members", roleUsers.ToString(), false);
 
             return context.RespondAsync(embedBuilder);
