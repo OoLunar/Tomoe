@@ -30,6 +30,7 @@ namespace Tomoe
 {
     public class Program
     {
+        internal static Dictionary<ulong, int> Guilds = new();
         internal static DiscordShardedClient DiscordShardedClient { get; set; } = null!;
         internal static ServiceProvider ServiceProvider { get; set; } = null!;
         internal static bool BotReady { get; set; }
@@ -111,6 +112,13 @@ namespace Tomoe
                 DatabaseList<TempRoleModel, Guid> pollModelList = new(services.BuildServiceProvider());
                 pollModelList.ItemExpired += TempRole.RoleExpiredAsync;
                 return pollModelList;
+            });
+
+            services.AddSingleton(serviceProvider =>
+            {
+                DatabaseList<ReminderModel, int> reminderList = new(services.BuildServiceProvider());
+                //reminderList.ItemExpired += TempRole.RoleExpiredAsync;
+                return reminderList;
             });
 
             ServiceProvider = services.BuildServiceProvider();

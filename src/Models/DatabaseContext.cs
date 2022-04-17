@@ -11,6 +11,8 @@ namespace Tomoe.Models
         public DbSet<AutoModel<IMention>> AutoMentions { get; init; } = null!;
         public DbSet<TempRoleModel> TempRoles { get; init; } = null!;
         public DbSet<MenuRoleModel> MenuRoles { get; init; } = null!;
+        public DbSet<ReminderModel> Reminders { get; init; } = null!;
+        public DbSet<MemberModel> GuildMembers { get; init; } = null!;
 
         public DatabaseContext(DbContextOptions<DatabaseContext> options) : base(options) { }
 

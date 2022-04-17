@@ -59,11 +59,11 @@ As mentioned previously, Tomoe aims to be the #1 bot choice for Discord Moderati
 | Ban | ✅ |
 | Clear | ✅ |
 | Config | ❌ |
-| Doctor | ❌ |
+| Doctor | ✅ |
 | Kick | ✅ |
 | Lock | ❌ |
 | Logging | ❌ |
-| Menu Roles | ❌ |
+| Menu Roles | ✅ |
 | Modlog | ❌ |
 | Mute | ✅ |
 | Report | ❌ |

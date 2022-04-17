@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Tomoe.Models;
@@ -12,9 +13,10 @@ using Tomoe.Models;
 namespace Tomoe.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20220416194020_3.0.0-alpha-reminders-rewrite")]
+    partial class _300alpharemindersrewrite
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -55,52 +57,6 @@ namespace Tomoe.Migrations
                         .HasName("pk_auto_mentions");
 
                     b.ToTable("auto_mentions", (string)null);
-                });
-
-            modelBuilder.Entity("Tomoe.Models.MemberModel", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<decimal>("GuildId")
-                        .HasColumnType("numeric(20,0)")
-                        .HasColumnName("guild_id");
-
-                    b.Property<bool>("IsAntimemed")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_antimemed");
-
-                    b.Property<bool>("IsInGuild")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_in_guild");
-
-                    b.Property<bool>("IsMuted")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_muted");
-
-                    b.Property<bool>("IsVoicebanned")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_voicebanned");
-
-                    b.Property<DateTime>("JoinedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("joined_at");
-
-                    b.Property<decimal[]>("Roles")
-                        .IsRequired()
-                        .HasColumnType("numeric(20,0)[]")
-                        .HasColumnName("roles");
-
-                    b.Property<decimal>("UserId")
-                        .HasColumnType("numeric(20,0)")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("Id")
-                        .HasName("pk_guild_members");
-
-                    b.ToTable("guild_members", (string)null);
                 });
 
             modelBuilder.Entity("Tomoe.Models.MenuRoleModel", b =>

@@ -18,7 +18,7 @@ using Tomoe.Models;
 
 namespace Tomoe.Events
 {
-    public class PollVoteEvent
+    public class PollVote
     {
         [SubscribeToEvent(nameof(DiscordClient.ComponentInteractionCreated))]
         public static async Task PollAsync(DiscordClient client, ComponentInteractionCreateEventArgs componentInteractionCreateEventArgs)

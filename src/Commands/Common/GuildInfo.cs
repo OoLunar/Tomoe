@@ -31,7 +31,7 @@ namespace Tomoe.Commands.Common
             embedBuilder.AddField("Created At", $"{Formatter.Timestamp(context.Guild.CreationTimestamp.UtcDateTime, TimestampFormat.LongDateTime)}, {Formatter.Timestamp(context.Guild.CreationTimestamp.UtcDateTime, TimestampFormat.RelativeTime)}", false);
             embedBuilder.AddField("Currently Scheduled Events", context.Guild.ScheduledEvents.Count.ToMetric(), true);
             embedBuilder.AddField("Emoji Count", context.Guild.Emojis.Count.ToMetric(), true);
-            embedBuilder.AddField("Member Count", context.Guild.MemberCount.ToMetric(), true);
+            embedBuilder.AddField("Member Count", Program.Guilds[context.Guild.Id].ToMetric(), true);
             embedBuilder.AddField("Role Count", context.Guild.Roles.Count.ToMetric(), true);
             embedBuilder.AddField("Sticker Count", context.Guild.Stickers.Count.ToMetric(), true);
             embedBuilder.AddField("Your Channel Count", context.Guild.Channels.Where((channel, _) => !channel.Value.IsCategory && channel.Value.PermissionsFor(context.Member).HasPermission(Permissions.AccessChannels)).Count().ToMetric(), true);
