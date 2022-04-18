@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -7,9 +7,7 @@ namespace Tomoe.Migrations
 {
     public partial class _300alphausercache : Migration
     {
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.CreateTable(
+        protected override void Up(MigrationBuilder migrationBuilder) => migrationBuilder.CreateTable(
                 name: "guild_members",
                 columns: table => new
                 {
@@ -23,16 +21,9 @@ namespace Tomoe.Migrations
                     joined_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     is_in_guild = table.Column<bool>(type: "boolean", nullable: false)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_guild_members", x => x.id);
-                });
-        }
+                constraints: table => table.PrimaryKey("pk_guild_members", x => x.id));
 
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.DropTable(
+        protected override void Down(MigrationBuilder migrationBuilder) => migrationBuilder.DropTable(
                 name: "guild_members");
-        }
     }
 }

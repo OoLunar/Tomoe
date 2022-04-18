@@ -222,5 +222,13 @@ namespace Tomoe.Events
             database.UpdateRange(updateMembers);
             await database.SaveChangesAsync();
         }
+
+        [SubscribeToEvent(nameof(DiscordShardedClient.GuildDownloadCompleted))]
+        public static Task GuildDownloadCompleteAsync(DiscordClient client, GuildDownloadCompletedEventArgs ready)
+        {
+            ILogger logger = Log.Logger.ForContext<MemberCache>();
+            logger.Information("Guild download completed. Handling {GuildCount} guilds and {MemberCount} members.", Program.Guilds.Count, Program.Guilds.Values.Sum().ToMetric());
+            return Task.CompletedTask;
+        }
     }
 }
