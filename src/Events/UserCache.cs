@@ -140,13 +140,87 @@ namespace Tomoe.Events
                 GuildId = guildMemberRemoveEventArgs.Guild.Id,
                 Roles = new(guildMemberRemoveEventArgs.Member.Roles.OrderBy(x => x.Position).Select(x => x.Id)),
                 JoinedAt = guildMemberRemoveEventArgs.Member.JoinedAt.UtcDateTime,
-                IsInGuild = true
             };
             memberModel.IsInGuild = false;
 
             database.Update(memberModel);
             Program.Guilds[guildMemberRemoveEventArgs.Guild.Id]--;
             return database.SaveChangesAsync();
+        }
+
+        [SubscribeToEvent(nameof(DiscordClient.GuildMemberUpdated))]
+        public static Task GuildMemberUpdatedAsync(DiscordClient client, GuildMemberUpdateEventArgs guildMemberUpdateEventArgs)
+        {
+            DatabaseContext database = Program.ServiceProvider.GetService<DatabaseContext>()!;
+            if (!guildMemberUpdateEventArgs.RolesBefore.SequenceEqual(guildMemberUpdateEventArgs.RolesAfter))
+            {
+                MemberModel? memberModel = database.GuildMembers.FirstOrDefault(x => x.UserId == guildMemberUpdateEventArgs.Member.Id && x.GuildId == guildMemberUpdateEventArgs.Guild.Id);
+                if (memberModel == null)
+                {
+                    memberModel = new()
+                    {
+                        UserId = guildMemberUpdateEventArgs.Member.Id,
+                        GuildId = guildMemberUpdateEventArgs.Guild.Id,
+                        Roles = new(guildMemberUpdateEventArgs.RolesAfter.OrderBy(x => x.Position).Select(x => x.Id)),
+                        JoinedAt = guildMemberUpdateEventArgs.Member.JoinedAt.UtcDateTime,
+                        IsInGuild = true
+                    };
+                }
+                else
+                {
+                    memberModel.Roles = new(guildMemberUpdateEventArgs.RolesAfter.OrderBy(x => x.Position).Select(x => x.Id));
+                }
+
+                database.Update(memberModel);
+                return database.SaveChangesAsync();
+            }
+            return Task.CompletedTask;
+        }
+
+        [SubscribeToEvent(nameof(DiscordClient.GuildMembersChunked))]
+        public static async Task GuildMembersChunkAsync(DiscordClient client, GuildMembersChunkEventArgs guildMembersChunkEventArgs)
+        {
+            DatabaseContext database = Program.ServiceProvider.GetService<DatabaseContext>()!;
+
+            IEnumerable<ulong> chunkMemberIds = guildMembersChunkEventArgs.Members.Select(x => x.Id);
+            DiscordMember[] indexedMembers = guildMembersChunkEventArgs.Members.ToArray();
+            List<MemberModel> updateMembers = new();
+
+            foreach (MemberModel memberModel in database.GuildMembers.AsNoTracking().Where(x => chunkMemberIds.Contains(x.UserId) && guildMembersChunkEventArgs.Guild.Id == x.GuildId).AsEnumerable())
+            {
+                DiscordMember discordMember = indexedMembers[memberModel.UserId];
+                bool updated = false;
+
+                // Returning member
+                if (!memberModel.IsInGuild)
+                {
+                    // If the guild config says to restore roles, do so. If not, update the roles.
+                    GuildConfigModel? guildConfig = database.GuildConfigs.FirstOrDefault(x => x.GuildId == guildMembersChunkEventArgs.Guild.Id);
+                    if (guildConfig != null && guildConfig.RestoreRoles)
+                    {
+                        await discordMember.ReplaceRolesAsync(memberModel.Roles.Select(x => guildMembersChunkEventArgs.Guild.Roles[x]).Concat(discordMember.Roles), "Role restoration");
+                    }
+
+                    memberModel.IsInGuild = true;
+                    updated = true;
+                }
+
+                // New or updated member
+                IEnumerable<ulong> memberRoles = guildMembersChunkEventArgs.Guild.Members[memberModel.UserId].Roles.OrderBy(x => x.Position).Select(x => x.Id);
+                if (!memberModel.Roles.SequenceEqual(memberRoles))
+                {
+                    memberModel.Roles = new(memberRoles);
+                    updated = true;
+                }
+
+                if (updated)
+                {
+                    updateMembers.Add(memberModel);
+                }
+            }
+
+            database.UpdateRange(updateMembers);
+            await database.SaveChangesAsync();
         }
     }
 }
