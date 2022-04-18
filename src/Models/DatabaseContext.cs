@@ -13,6 +13,7 @@ namespace Tomoe.Models
         public DbSet<MenuRoleModel> MenuRoles { get; init; } = null!;
         public DbSet<ReminderModel> Reminders { get; init; } = null!;
         public DbSet<MemberModel> GuildMembers { get; init; } = null!;
+        public DbSet<GuildConfigModel> GuildConfigs { get; init; } = null!;
 
         public DatabaseContext(DbContextOptions<DatabaseContext> options) : base(options) { }
 

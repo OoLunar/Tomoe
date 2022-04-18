@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using DSharpPlus.CommandsNext;
@@ -24,8 +25,8 @@ namespace Tomoe.Commands.Common
             embedBuilder.AddField("Process Memory", Process.GetCurrentProcess().WorkingSet64.Bytes().ToString("MB", CultureInfo.InvariantCulture), true);
             embedBuilder.AddField("Thread Count", ThreadPool.ThreadCount.ToMetric(), true);
             embedBuilder.AddField("Uptime", (Process.GetCurrentProcess().StartTime - DateTime.Now).Humanize(3), true);
-            embedBuilder.AddField("Guild Count", context.Client.Guilds.Count.ToMetric(), true);
-            //embedBuilder.AddField("Member Count", DatabaseContext.GuildConfigs.Select(guildConfig => guildConfig.MemberCount).Sum().ToMetric(), true);
+            embedBuilder.AddField("Guild Count", Program.Guilds.Count.ToMetric(), true);
+            embedBuilder.AddField("Member Count", Program.Guilds.Values.Sum().ToMetric(), true);
 
             return context.RespondAsync(embedBuilder.Build());
         }

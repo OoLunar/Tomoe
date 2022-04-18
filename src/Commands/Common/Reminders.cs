@@ -118,7 +118,7 @@ namespace Tomoe.Commands.Common
             await context.RespondAsync($"Reminder `{id}` removed.");
         }
 
-        public static Task ExpireAsync(object? sender, ReminderModel reminder)
+        public static Task ReminderExpiredAsync(object? sender, ReminderModel reminder)
         {
             if (!Program.BotReady)
             {
@@ -126,44 +126,118 @@ namespace Tomoe.Commands.Common
             }
 
             Logger<Reminders> logger = Program.ServiceProvider.GetService<Logger<Reminders>>()!;
+            DatabaseContext database = Program.ServiceProvider.GetService<DatabaseContext>()!;
             DatabaseList<ReminderModel, int> reminderModelList = (DatabaseList<ReminderModel, int>)sender!;
             return reminder.GuildId == null
-                ? SendDmReminderAsync(reminderModelList, reminder, logger, Program.DiscordShardedClient.GetShard(0))
+                ? SendDmReminderAsync(reminderModelList, reminder, database, logger, Program.DiscordShardedClient.GetShard(0))
                 : SendGuildReminderAsync(reminderModelList, reminder, logger, Program.DiscordShardedClient.GetShard(reminder.GuildId.Value));
         }
 
-        private static async Task SendDmReminderAsync(DatabaseList<ReminderModel, int> reminderModelList, ReminderModel reminder, Logger<Reminders> logger, DiscordClient client)
+        private static async Task SendDmReminderAsync(DatabaseList<ReminderModel, int> reminderModelList, ReminderModel reminder, DatabaseContext database, Logger<Reminders> logger, DiscordClient client)
         {
-            try
+            bool foundDmChannel = client.PrivateChannels.TryGetValue(reminder.UserId, out DiscordDmChannel? dm) && dm != null;
+            IAsyncEnumerable<DiscordDmChannel> dmChannels = AsyncEnumerable.Empty<DiscordDmChannel>();
+            if (foundDmChannel)
             {
-                if (client.PrivateChannels.TryGetValue(reminder.UserId, out DiscordDmChannel? dmChannel) || dmChannel == null)
+                dmChannels.Prepend(dm);
+            }
+            else
+            {
+                IEnumerable<ulong> sharedGuilds = database.GuildMembers.Where(x => x.UserId == reminder.UserId && x.IsInGuild).Select(x => x.GuildId);
+                dmChannels = GetDiscordDmChannelsAsync(client, logger, reminder.UserId, sharedGuilds);
+            }
+
+            bool dmSent = false;
+            await foreach (DiscordDmChannel dmChannel in dmChannels)
+            {
+                try
                 {
-                    //if(client.)
-                    logger.LogWarning($"Failed to send reminder to {reminder.UserId}.");
-                    return;
+                    await dmChannel.SendMessageAsync($"Reminder set on {Formatter.Timestamp(reminder.SetAt, TimestampFormat.ShortDateTime)} ({Formatter.Timestamp(reminder.SetAt, TimestampFormat.RelativeTime)}): {reminder.Content}\nLink: {reminder.MessageLink}");
+                    reminderModelList.Remove(reminder);
+                    dmSent = true;
+                    break;
+                }
+                catch (DiscordException)
+                {
+                    logger.LogWarning("Unable to DM {UserId} their reminder {MessageLink} due to lack of connections.", reminder.UserId, reminder.MessageLink);
+                }
+            }
+
+            if (!dmSent)
+            {
+                logger.LogWarning("Unable to DM {UserId} their reminder {MessageLink} due to lack of connections.", reminder.UserId, reminder.MessageLink);
+            }
+        }
+
+        private static async IAsyncEnumerable<DiscordDmChannel> GetDiscordDmChannelsAsync(DiscordClient client, Logger<Reminders> logger, ulong userId, IEnumerable<ulong> guildIds)
+        {
+            foreach (ulong guildId in guildIds)
+            {
+                if (!client.Guilds.TryGetValue(guildId, out DiscordGuild? guild) || guild == null)
+                {
+                    continue;
                 }
 
-                await dmChannel.SendMessageAsync(embed: new DiscordEmbedBuilder()
+                if (!guild.Members.TryGetValue(userId, out DiscordMember? member) || member == null)
                 {
-                    Title = "Reminder",
-                    Description = reminder.Content,
-                    Color = new DiscordColor("#7b84d1"),
-                    Footer = new()
+                    try
                     {
-                        Text = $"This message will expire in {Formatter.Timestamp(reminder.ExpiresAt, TimestampFormat.RelativeTime)}"
+                        member = await guild.GetMemberAsync(userId);
+                        break;
                     }
-                });
+                    catch (DiscordException error)
+                    {
+                        logger.LogError(error, "Failed to get member with id {UserId} from guild with id {GuildId}: (HTTP {HTTPCode}) {JsonMessage}", userId, guildId, error.WebResponse.ResponseCode, error.JsonMessage);
+                        continue;
+                    }
+                }
+
+                if (member != null)
+                {
+
+                    DiscordDmChannel dmChannel;
+                    try
+                    {
+                        dmChannel = await member.CreateDmChannelAsync();
+                    }
+                    catch (DiscordException)
+                    {
+                        continue;
+                    }
+                    yield return dmChannel;
+                }
+
             }
-            catch (DiscordException error)
-            {
-                logger.LogError(error, "Failed to send reminder {ReminderId} to {UserId}: (HTTP {HTTPCode}) {JsonMessage}", reminder.Id, reminder.UserId, error.WebResponse.ResponseCode, error.JsonMessage);
-            }
-            reminderModelList.Remove(reminder);
+
+            yield break;
         }
 
         private static async Task SendGuildReminderAsync(DatabaseList<ReminderModel, int> reminderModelList, ReminderModel reminder, Logger<Reminders> logger, DiscordClient client)
         {
-
+            if (!client.Guilds.TryGetValue(reminder.GuildId!.Value, out DiscordGuild? guild) || guild == null)
+            {
+                await SendDmReminderAsync(reminderModelList, reminder, Program.ServiceProvider.GetService<DatabaseContext>()!, logger, client);
+            }
+            else if (!guild.Channels.TryGetValue(reminder.ChannelId, out DiscordChannel? channel) || channel == null)
+            {
+                await SendDmReminderAsync(reminderModelList, reminder, Program.ServiceProvider.GetService<DatabaseContext>()!, logger, client);
+            }
+            else if (!channel.PermissionsFor(guild.CurrentMember).HasPermission(Permissions.SendMessages))
+            {
+                await SendDmReminderAsync(reminderModelList, reminder, Program.ServiceProvider.GetService<DatabaseContext>()!, logger, client);
+            }
+            else
+            {
+                try
+                {
+                    await channel.SendMessageAsync($"Reminder set on {Formatter.Timestamp(reminder.SetAt, TimestampFormat.ShortDateTime)} ({Formatter.Timestamp(reminder.SetAt, TimestampFormat.RelativeTime)}): {reminder.Content}\nLink: {reminder.MessageLink}");
+                    reminderModelList.Remove(reminder);
+                }
+                catch (DiscordException)
+                {
+                    await SendDmReminderAsync(reminderModelList, reminder, Program.ServiceProvider.GetService<DatabaseContext>()!, logger, client);
+                }
+            }
         }
     }
 }

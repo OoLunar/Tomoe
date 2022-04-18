@@ -117,7 +117,7 @@ namespace Tomoe
             services.AddSingleton(serviceProvider =>
             {
                 DatabaseList<ReminderModel, int> reminderList = new(services.BuildServiceProvider());
-                //reminderList.ItemExpired += TempRole.RoleExpiredAsync;
+                reminderList.ItemExpired += Reminders.ReminderExpiredAsync;
                 return reminderList;
             });
 

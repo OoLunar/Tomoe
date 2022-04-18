@@ -34,5 +34,6 @@
         <PackageReference Include="Serilog.Extensions.Hosting" Version="4.2.0" />
         <PackageReference Include="Serilog.Sinks.Console" Version="4.0.1" />
         <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
+        <PackageReference Include="System.Linq.Async" Version="6.0.1" />
     </ItemGroup>
 </Project>
