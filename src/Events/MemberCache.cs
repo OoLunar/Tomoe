@@ -14,12 +14,12 @@ using Tomoe.Models;
 
 namespace Tomoe.Events
 {
-    public class UserCache
+    public class MemberCache
     {
         [SubscribeToEvent(nameof(DiscordClient.GuildAvailable))]
         public static async Task GuildAvailableAsync(DiscordClient client, GuildCreateEventArgs guildCreateEventArgs)
         {
-            DatabaseContext database = Program.ServiceProvider.GetService<DatabaseContext>()!;
+            DatabaseContext database = Program.ServiceProvider.GetRequiredService<DatabaseContext>();
             Dictionary<ulong, MemberModel> allMemberModels = database.GuildMembers.AsNoTracking().Where(x => x.GuildId == guildCreateEventArgs.Guild.Id).AsEnumerable().ToDictionary(x => x.UserId, x => x);
 
             List<MemberModel> updateMembers = new();
@@ -87,7 +87,7 @@ namespace Tomoe.Events
             database.GuildMembers.AddRange(addMembers);
             database.GuildMembers.RemoveRange(removeMembers);
 
-            ILogger logger = Log.Logger.ForContext<UserCache>();
+            ILogger logger = Log.Logger.ForContext<MemberCache>();
             if (logger != null)
             {
                 logger.Information("{GuildId}, {MemberCount} members, shard {ShardId}, {GuildName}", guildCreateEventArgs.Guild.Id, guildCreateEventArgs.Guild.MemberCount.ToMetric(), client.ShardId, guildCreateEventArgs.Guild.Name);
@@ -99,7 +99,7 @@ namespace Tomoe.Events
         [SubscribeToEvent(nameof(DiscordClient.GuildMemberAdded))]
         public static async Task GuildMemberAddedAsync(DiscordClient client, GuildMemberAddEventArgs guildMemberAddEventArgs)
         {
-            DatabaseContext database = Program.ServiceProvider.GetService<DatabaseContext>()!;
+            DatabaseContext database = Program.ServiceProvider.GetRequiredService<DatabaseContext>();
             MemberModel? memberModel = database.GuildMembers.FirstOrDefault(x => x.UserId == guildMemberAddEventArgs.Member.Id && x.GuildId == guildMemberAddEventArgs.Guild.Id);
             if (memberModel == null)
             {
@@ -132,7 +132,7 @@ namespace Tomoe.Events
         [SubscribeToEvent(nameof(DiscordClient.GuildMemberRemoved))]
         public static Task GuildMemberRemovedAsync(DiscordClient client, GuildMemberRemoveEventArgs guildMemberRemoveEventArgs)
         {
-            DatabaseContext database = Program.ServiceProvider.GetService<DatabaseContext>()!;
+            DatabaseContext database = Program.ServiceProvider.GetRequiredService<DatabaseContext>();
             MemberModel? memberModel = database.GuildMembers.FirstOrDefault(x => x.UserId == guildMemberRemoveEventArgs.Member.Id && x.GuildId == guildMemberRemoveEventArgs.Guild.Id);
             memberModel ??= new() // This shouldn't happen but it's here for edge-cases.
             {
@@ -151,7 +151,7 @@ namespace Tomoe.Events
         [SubscribeToEvent(nameof(DiscordClient.GuildMemberUpdated))]
         public static Task GuildMemberUpdatedAsync(DiscordClient client, GuildMemberUpdateEventArgs guildMemberUpdateEventArgs)
         {
-            DatabaseContext database = Program.ServiceProvider.GetService<DatabaseContext>()!;
+            DatabaseContext database = Program.ServiceProvider.GetRequiredService<DatabaseContext>();
             if (!guildMemberUpdateEventArgs.RolesBefore.SequenceEqual(guildMemberUpdateEventArgs.RolesAfter))
             {
                 MemberModel? memberModel = database.GuildMembers.FirstOrDefault(x => x.UserId == guildMemberUpdateEventArgs.Member.Id && x.GuildId == guildMemberUpdateEventArgs.Guild.Id);
@@ -180,7 +180,7 @@ namespace Tomoe.Events
         [SubscribeToEvent(nameof(DiscordClient.GuildMembersChunked))]
         public static async Task GuildMembersChunkAsync(DiscordClient client, GuildMembersChunkEventArgs guildMembersChunkEventArgs)
         {
-            DatabaseContext database = Program.ServiceProvider.GetService<DatabaseContext>()!;
+            DatabaseContext database = Program.ServiceProvider.GetRequiredService<DatabaseContext>();
 
             IEnumerable<ulong> chunkMemberIds = guildMembersChunkEventArgs.Members.Select(x => x.Id);
             DiscordMember[] indexedMembers = guildMembersChunkEventArgs.Members.ToArray();
