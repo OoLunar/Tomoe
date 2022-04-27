@@ -17,8 +17,13 @@ namespace Tomoe.Commands
             public static async Task Assign(DiscordInteraction interaction, DiscordMember member, string buttonId, Database database)
             {
                 string id = buttonId.Split('-')[0];
-                IEnumerable<DiscordRole> menuRoles = database.MenuRoles.Where(reactionRole => reactionRole.GuildId == interaction.GuildId && reactionRole.ButtonId == id).Select(reactionRole => interaction.Guild.GetRole(reactionRole.RoleId));
-                menuRoles = menuRoles.OrderByDescending(role => role.Position);
+                IEnumerable<DiscordRole> menuRoles = database.MenuRoles
+                    .Where(reactionRole => reactionRole.GuildId == interaction.GuildId && reactionRole.ButtonId == id)
+                    .AsEnumerable()
+                    .Select(reactionRole => interaction.Guild.GetRole(reactionRole.RoleId))
+                    .Where(role => role != null)
+                    .OrderByDescending(role => role.Position);
+
                 IEnumerable<DiscordRole> userRoles = member.Roles.Where(role => menuRoles.Contains(role));
                 userRoles = userRoles.OrderByDescending(role => role.Position);
                 List<DiscordSelectComponentOption> options = new();
