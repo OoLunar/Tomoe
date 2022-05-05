@@ -16,7 +16,6 @@ namespace Tomoe
 
         // TODO: Grab these from config
         public static readonly DiscordEmoji Loading = DiscordEmoji.FromGuildEmote(Program.Client.ShardClients.Values.First(), 844773853636460575);
-        public static readonly DiscordEmoji NoPermission = DiscordEmoji.FromGuildEmote(Program.Client.ShardClients.Values.First(), 844773889355415573);
 
         public static readonly DiscordEmoji Check = DiscordEmoji.FromUnicode(Program.Client.ShardClients.Values.First(), "✅");
         public static readonly DiscordEmoji Failed = DiscordEmoji.FromUnicode(Program.Client.ShardClients.Values.First(), "❌");
