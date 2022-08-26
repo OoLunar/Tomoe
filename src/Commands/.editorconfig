@@ -1,0 +1,4 @@
+root = false
+
+[*.cs]
+dotnet_diagnostic.CA1822.severity = none # CommandsNext does not execute static methods that are commands
