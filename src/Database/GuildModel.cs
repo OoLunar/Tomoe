@@ -16,7 +16,7 @@ namespace OoLunar.Tomoe.Database
     /// A database representation of a Discord guild.
     /// </summary>
     [EdgeDBType("Guild")]
-    public sealed class GuildModel : ICopy<GuildModel>
+    public sealed class GuildModel : ICopyable<GuildModel>
     {
         /// <summary>
         /// The guild id.
@@ -56,16 +56,16 @@ namespace OoLunar.Tomoe.Database
         private EdgeDBClient EdgeDBClient { get; init; } = null!;
         private ILogger<GuildModel> Logger { get; init; } = null!;
 
-        //[EdgeDBDeserializer]
-        //private GuildModel(IDictionary<string, object?> raw)
-        //{
-        //    Id = (ulong)raw["id"]!;
-        //    Disabled = (bool)raw["disabled"]!;
-        //    KeepRoles = (bool)raw["keep_roles"]!;
-        //    TryDmReminders = (bool)raw["try_dm_reminders"]!;
-        //    _prefixes = ((List<object>)raw["prefixes"]!).Cast<GuildPrefixModel>().ToList();
-        //    _members = ((List<object>)raw["members"]!).Cast<GuildMemberModel>().ToList();
-        //}
+        [EdgeDBDeserializer]
+        private GuildModel(IDictionary<string, object?> raw)
+        {
+            Id = (ulong)raw["id"]!;
+            Disabled = (bool)raw["disabled"]!;
+            KeepRoles = (bool)raw["keep_roles"]!;
+            TryDmReminders = (bool)raw["try_dm_reminders"]!;
+            _prefixes = ((List<object>)raw["prefixes"]!).Cast<GuildPrefixModel>().ToList();
+            _members = ((List<object>)raw["members"]!).Cast<GuildMemberModel>().ToList();
+        }
 
         internal GuildModel(EdgeDBClient edgeDBClient, ILogger<GuildModel> logger, IConfiguration configuration, ulong id)
         {

@@ -1,6 +1,6 @@
 namespace OoLunar.Tomoe.Interfaces
 {
-    public interface ICopy<T>
+    public interface ICopyable<T>
     {
         T Copy(T old);
     }

@@ -43,4 +43,56 @@ module default {
         multi link members -> GuildMember;
         index on (.guild_id);
     }
+
+    type PollOption {
+        required property option -> str {
+            readonly := true;
+        };
+
+        required property creator_id -> str {
+            readonly := true;
+        };
+    }
+
+    type PollVote {
+        required link poll -> Poll {
+            readonly := true;
+        };
+
+        required property voter_id -> str {
+            readonly := true;
+        };
+
+        link option -> PollOption;
+    }
+
+    type Poll {
+        required property creator_id -> str {
+            readonly := true;
+        };
+
+        property guild_id -> str {
+            readonly := true;
+        };
+
+        required property channel_id -> str {
+            readonly := true;
+        };
+
+        required property message_id -> str {
+            readonly := true;
+        };
+
+        required property question -> str {
+            readonly := true;
+        };
+
+        required property expires_at -> datetime;
+
+        required link options -> PollOption {
+            readonly := true;
+        };
+
+        required link votes -> PollVote;
+    }
 };

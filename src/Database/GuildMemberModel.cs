@@ -14,7 +14,7 @@ namespace OoLunar.Tomoe.Database
     /// A database representation of a Discord member inside of a Discord guild.
     /// </summary>
     [EdgeDBType("GuildMember")]
-    public sealed class GuildMemberModel : ICopy<GuildMemberModel>
+    public sealed class GuildMemberModel : ICopyable<GuildMemberModel>
     {
         /// <summary>
         /// The guild that the member is linked to.
@@ -45,14 +45,14 @@ namespace OoLunar.Tomoe.Database
         private EdgeDBClient EdgeDBClient { get; init; } = null!;
         private ILogger<GuildMemberModel> Logger { get; init; } = null!;
 
-        //[EdgeDBDeserializer]
-        //private GuildMemberModel(IDictionary<string, object?> raw)
-        //{
-        //    GuildModel = (GuildModel)raw["guild"]!;
-        //    UserId = (ulong)raw["user_id"]!;
-        //    Disabled = (bool)raw["disabled"]!;
-        //    _roles = ((List<object>)raw["roles"]!).Cast<ulong>().ToList();
-        //}
+        [EdgeDBDeserializer]
+        private GuildMemberModel(IDictionary<string, object?> raw)
+        {
+            GuildModel = (GuildModel)raw["guild"]!;
+            UserId = (ulong)raw["user_id"]!;
+            Disabled = (bool)raw["disabled"]!;
+            _roles = ((List<object>)raw["roles"]!).Cast<ulong>().ToList();
+        }
 
         internal GuildMemberModel(EdgeDBClient edgeDBClient, ILogger<GuildMemberModel> logger, GuildModel guildModel, ulong userId, IEnumerable<ulong> roles)
         {
@@ -110,7 +110,7 @@ namespace OoLunar.Tomoe.Database
 
             Disabled = old.Disabled;
             _roles.Clear();
-            _roles.AddRange(old.Roles);
+            _roles.AddRange(old._roles);
 
             return this;
         }

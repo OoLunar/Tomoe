@@ -22,6 +22,7 @@ namespace OoLunar.Tomoe.Utilities
                 }
                 else
                 {
+                    // Rest request here since you can not trust the D#+ cache. Also the message might be in a guild that isn't cached (though highly unlikely).
                     DiscordGuild guild = await shardedClient.GetShard(guildId.Value).GetGuildAsync(guildId.Value);
                     if (guild.IsUnavailable)
                     {
@@ -36,9 +37,11 @@ namespace OoLunar.Tomoe.Utilities
                     return new Optional<DiscordMessage?>(await channel.GetMessageAsync(messageId));
                 }
             }
-            catch (DiscordException error) when (error.WebResponse.ResponseCode >= 500)
+            catch (DiscordException error)
             {
-                return new Optional<DiscordMessage?>(null);
+                return error.WebResponse.ResponseCode >= 500
+                    ? new Optional<DiscordMessage?>(null) // Server problem
+                    : Optional.FromNoValue<DiscordMessage?>(); // Permissions problem
             }
 
             return Optional.FromNoValue<DiscordMessage?>();
