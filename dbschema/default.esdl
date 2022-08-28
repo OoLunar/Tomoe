@@ -79,9 +79,7 @@ module default {
             readonly := true;
         };
 
-        required property message_id -> str {
-            readonly := true;
-        };
+        property message_id -> str;
 
         required property question -> str {
             readonly := true;

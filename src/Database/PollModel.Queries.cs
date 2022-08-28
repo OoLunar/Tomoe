@@ -18,5 +18,12 @@ namespace OoLunar.Tomoe.Database
         private const string DeleteQuery = @"
             DELETE Poll
             FILTER .id = $pollId;";
+
+        private const string UpdateMessageQuery = @"
+            UPDATE Poll
+            FILTER .id = $pollId
+            SET {
+                message_id := <str>$messageId
+            };";
     }
 }

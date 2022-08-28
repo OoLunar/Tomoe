@@ -15,7 +15,7 @@ namespace OoLunar.Tomoe.Services
     /// Manages a list of objects which is set to expire after a certain amount of time.
     /// </summary>
     /// <typeparam name="T">The type of object keep track of.</typeparam>
-    public sealed class ExpirableService<T> : IExpirableService<T> where T : IExpireable<T>, new()
+    public sealed class ExpirableService<T> : IExpirableService<T> where T : IExpirable<T>, new()
     {
         /// <summary>
         /// A list of objects that are set to expire.
@@ -50,7 +50,7 @@ namespace OoLunar.Tomoe.Services
         /// <summary>
         /// Creates a new expirable service.
         /// </summary>
-        /// <param name="serviceProvider">The service provider used to grab required services and to pass to the <see cref="IExpireable{T}"/> objects.</param>
+        /// <param name="serviceProvider">The service provider used to grab required services and to pass to the <see cref="IExpirable{T}"/> objects.</param>
         public ExpirableService(IServiceProvider serviceProvider)
         {
             ArgumentNullException.ThrowIfNull(serviceProvider);
@@ -101,6 +101,22 @@ namespace OoLunar.Tomoe.Services
 
             Logger.LogWarning("Item {Id} of type {ItemType} was attempted to be removed from the expirable service, but it was not found.", item.Id, typeof(T).FullName);
             return false;
+        }
+
+        /// <inheritdoc />
+        public async Task<T?> TryGetItemAsync(Guid id)
+        {
+            T? latestItem = (await QueryBuilder.Select<T>().Filter(expirable => expirable.Id == id).ExecuteAsync(EdgeDBClient, Capabilities.ReadOnly, CancellationToken)).FirstOrDefault();
+            if (latestItem == null)
+            {
+                latestItem = ExpirableItems.FirstOrDefault(expirable => expirable.Key.Id == id).Key;
+                if (latestItem != null)
+                {
+                    ExpirableItems.TryRemove(latestItem, out _);
+                }
+                return default;
+            }
+            return latestItem;
         }
 
         /// <inheritdoc />

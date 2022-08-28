@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,7 +20,7 @@ namespace OoLunar.Tomoe.Database
     /// Allows democracy to take place.
     /// </summary>
     [EdgeDBType("Poll")]
-    public sealed partial class PollModel : ICopyable<PollModel>, IExpireable<PollModel>
+    public sealed partial class PollModel : ICopyable<PollModel>, IExpirable<PollModel>
     {
         /// <summary>
         /// The id of the poll, assigned by the database.
@@ -44,7 +45,7 @@ namespace OoLunar.Tomoe.Database
         /// <summary>
         /// The id of the poll.
         /// </summary>
-        public ulong MessageId { get; private init; }
+        public ulong? MessageId { get; private set; }
 
         /// <summary>
         /// The poll's question.
@@ -84,7 +85,10 @@ namespace OoLunar.Tomoe.Database
             _votes = (List<PollVoteModel>)raw["votes"]!;
         }
 
-        public PollModel(EdgeDBClient edgeDBClient, ILogger<PollModel> logger, ulong creatorId, ulong? guildId, ulong channelId, ulong messageId, string question, DateTimeOffset expiresAt, IEnumerable<string> options)
+        [Obsolete("This constructor is only to be used by EdgeDB.", true)]
+        public PollModel() { }
+
+        public PollModel(EdgeDBClient edgeDBClient, ILogger<PollModel> logger, ulong creatorId, ulong? guildId, ulong channelId, ulong? messageId, string question, DateTimeOffset expiresAt, IEnumerable<string> options)
         {
             ArgumentNullException.ThrowIfNull(edgeDBClient);
             ArgumentNullException.ThrowIfNull(logger);
@@ -107,23 +111,66 @@ namespace OoLunar.Tomoe.Database
             _options = new List<PollOptionModel>(options.Select(option => new PollOptionModel(option, this)));
         }
 
-        // I hate this so much.
-        public async Task<PollModel> AddVoteAsync(ulong userId, Guid optionId, CancellationToken cancellationToken = default) => _votes.Any(v => v.VoterId == userId)
-            ? throw new InvalidOperationException("User has already voted.")
-            : Copy((await EdgeDBClient.QueryAsync<PollModel>(AddVoteQuery, new Dictionary<string, object?>
+        [SuppressMessage("Roslyn", "IDE0046", Justification = "Ternary operator rabbit hole.")]
+        public async Task<PollModel> AddVoteAsync(ulong userId, Guid optionId, CancellationToken cancellationToken = default)
+        {
+            if (_votes.Any(v => v.VoterId == userId))
             {
-                ["poll"] = this,
-                ["userId"] = userId,
-                ["optionId"] = optionId
-            }, Capabilities.Modifications, cancellationToken)).FirstOrDefault() ?? throw new InvalidOperationException($"Poll {Id} does not exist in the database."));
+                throw new InvalidOperationException("User has already voted.");
+            }
+            else if (Id == null)
+            {
+                throw new InvalidOperationException("Poll has not been saved.");
+            }
+            else
+            {
+                return Copy((await EdgeDBClient.QueryAsync<PollModel>(AddVoteQuery, new Dictionary<string, object?>
+                {
+                    ["poll"] = this,
+                    ["userId"] = userId,
+                    ["optionId"] = optionId
+                }, Capabilities.Modifications, cancellationToken)).FirstOrDefault() ?? throw new InvalidOperationException($"Poll {Id} does not exist in the database."));
+            }
+        }
 
-        public async Task<PollModel> RemoveVoteAsync(ulong userId, CancellationToken cancellationToken = default) => !_votes.Any(v => v.VoterId == userId)
-            ? throw new InvalidOperationException("User has not voted.")
-            : Copy((await EdgeDBClient.QueryAsync<PollModel>(RemoveVoteQuery, new Dictionary<string, object?>
+        [SuppressMessage("Roslyn", "IDE0046", Justification = "Ternary operator rabbit hole.")]
+        public async Task<PollModel> RemoveVoteAsync(ulong userId, CancellationToken cancellationToken = default)
+        {
+            if (!_votes.Any(v => v.VoterId == userId))
             {
-                ["poll"] = this,
-                ["userId"] = userId
-            }, Capabilities.Modifications, cancellationToken)).FirstOrDefault() ?? throw new InvalidOperationException($"Poll {Id} does not exist in the database."));
+                throw new InvalidOperationException("User has not voted.");
+            }
+            else if (Id == null)
+            {
+                throw new InvalidOperationException("Poll has not been saved.");
+            }
+            else
+            {
+                return Copy((await EdgeDBClient.QueryAsync<PollModel>(RemoveVoteQuery, new Dictionary<string, object?>
+                {
+                    ["poll"] = this,
+                    ["userId"] = userId
+                }, Capabilities.Modifications, cancellationToken)).FirstOrDefault() ?? throw new InvalidOperationException($"Poll {Id} does not exist in the database."));
+            }
+        }
+
+        public async Task<PollModel> UpdateMessageIdAsync(DiscordMessage message, CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(message);
+
+            if (Id == null)
+            {
+                MessageId = message.Id;
+                return this;
+            }
+            else
+            {
+                return Copy((await EdgeDBClient.QueryAsync<PollModel>(UpdateMessageQuery, new Dictionary<string, object?>
+                {
+                    ["pollId"] = Id
+                }, Capabilities.Modifications, cancellationToken)).FirstOrDefault() ?? throw new InvalidOperationException($"Poll {Id} does not exist in the database."));
+            }
+        }
 
         public PollModel Copy(PollModel old)
         {
@@ -140,9 +187,14 @@ namespace OoLunar.Tomoe.Database
         public async Task<bool> ExpireAsync(IServiceProvider serviceProvider, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(serviceProvider);
+            if (MessageId == null)
+            {
+                Logger.LogError("Expired poll {Id} has no message id.", Id);
+                return true;
+            }
 
             DiscordShardedClient shardedClient = serviceProvider.GetRequiredService<DiscordShardedClient>();
-            DSharpPlus.Entities.Optional<DiscordMessage?> message = await shardedClient.GetMessageAsync(ChannelId, MessageId, GuildId);
+            DSharpPlus.Entities.Optional<DiscordMessage?> message = await shardedClient.GetMessageAsync(ChannelId, MessageId.Value, GuildId);
             if (!message.HasValue)
             {
                 // Message, Channel, Guild was deleted or permissions changed so that we can no longer access it.
