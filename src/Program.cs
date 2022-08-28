@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OoLunar.Tomoe.Converters;
+using OoLunar.Tomoe.Interfaces;
 using OoLunar.Tomoe.Services;
 using OoLunar.Tomoe.Utilities;
 using Serilog;
@@ -65,6 +66,7 @@ namespace OoLunar.Tomoe
                 TLSSecurity = TLSSecurityMode.Insecure
             }, (config) => config.Logger = new SerilogLoggerFactory(Log.Logger).CreateLogger<EdgeDBClient>());
 
+            serviceCollection.AddSingleton(typeof(IExpirableService<>), typeof(ExpirableService<>));
             serviceCollection.AddScoped<DiscordGuildPrefixResolverService>();
             serviceCollection.AddSingleton(serviceProvider => new DiscordEventManager(serviceProvider));
             serviceCollection.AddSingleton(serviceProvider =>

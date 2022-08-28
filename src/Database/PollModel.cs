@@ -54,7 +54,7 @@ namespace OoLunar.Tomoe.Database
         /// <summary>
         /// When the poll ends.
         /// </summary>
-        public DateTimeOffset ExpiresAt { get; private set; } = DateTimeOffset.UtcNow.AddMinutes(5);
+        public DateTimeOffset ExpiresAt { get; set; } = DateTimeOffset.UtcNow.AddMinutes(5);
 
         /// <summary>
         /// The available options a user can vote for.

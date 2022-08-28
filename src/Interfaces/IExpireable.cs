@@ -10,9 +10,14 @@ namespace OoLunar.Tomoe.Interfaces
     public interface IExpireable<T> : IDisposable
     {
         /// <summary>
+        /// The id assigned to the object.
+        /// </summary>
+        Guid Id { get; }
+
+        /// <summary>
         /// When the object is set to expire. This is allowed to change.
         /// </summary>
-        DateTimeOffset ExpiresAt { get; }
+        DateTimeOffset ExpiresAt { get; set; }
 
         /// <summary>
         /// Attempts to expire the object.
