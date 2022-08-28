@@ -6,7 +6,7 @@ using DSharpPlus.CommandsNext.Attributes;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
-    public sealed class Invite : BaseCommandModule
+    public sealed class InviteCommand : BaseCommandModule
     {
         [Command("invite"), Description("Sends the link to add Tomoe to a guild without an embed.")]
         public Task InviteAsync(CommandContext context)

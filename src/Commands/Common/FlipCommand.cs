@@ -6,7 +6,7 @@ using DSharpPlus.Entities;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
-    public sealed class Flip : BaseCommandModule
+    public sealed class FlipCommand : BaseCommandModule
     {
         [Command("flip"), Description("A simple heads or tails command."), Aliases("choose", "pick")]
         public Task FlipAsync(CommandContext context) => context.RespondAsync(Random.Shared.Next(0, 2) == 0 ? "Heads" : "Tails");

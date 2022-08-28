@@ -7,7 +7,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
-    public sealed class Repository : BaseCommandModule
+    public sealed class RepositoryCommand : BaseCommandModule
     {
         public IConfiguration Configuration { private get; init; } = null!;
 

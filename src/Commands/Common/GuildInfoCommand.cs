@@ -8,7 +8,7 @@ using Humanizer;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
-    public sealed class GuildInfo : BaseCommandModule
+    public sealed class GuildInfoCommand : BaseCommandModule
     {
         [Command("guild_info"), Description("Gets general info about the guild."), Aliases("guild_stats", "server_info", "server_stats")]
         public async Task GuildInfoAsync(CommandContext context)

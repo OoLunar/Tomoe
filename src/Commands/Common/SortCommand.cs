@@ -8,7 +8,7 @@ using DSharpPlus.Entities;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
-    public sealed class Sort : BaseCommandModule
+    public sealed class SortCommand : BaseCommandModule
     {
         [Command("sort")]
         public Task SortAsync(CommandContext context, bool trimLines = false, [Description("A line seperated list."), RemainingText] string? list = null)

@@ -6,7 +6,7 @@ using DSharpPlus.Entities;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
-    public sealed class Avatar : BaseCommandModule
+    public sealed class AvatarCommand : BaseCommandModule
     {
         private const string WebhookMessageDescription = "The webhook to get the avatar of.";
         private const string UserMessageDescription = "The user to get the avatar of. If not specified, defaults to you.";

@@ -12,7 +12,7 @@ using DSharpPlus.Interactivity.Extensions;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
-    public sealed class TimeOf : BaseCommandModule
+    public sealed class TimeOfCommand : BaseCommandModule
     {
         [Command("time_of"), Description("Gets the time of the messages linked."), Aliases("when_was", "timestamp")]
         public Task TimeOfAsync(CommandContext context) => context.Message.ReferencedMessage == null

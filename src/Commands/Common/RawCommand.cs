@@ -10,7 +10,7 @@ using DSharpPlus.Entities;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
-    public sealed class Raw : BaseCommandModule
+    public sealed class RawCommand : BaseCommandModule
     {
         [Command("raw"), Description("Gets the raw version of the message provided."), Aliases("source")]
         public Task RawAsync(CommandContext context, [Description("Should the message be JSONfied or should we attempt to escape it?")] bool jsonfied = false, [Description("The message id or jumplink to the message.")] DiscordMessage? message = null)

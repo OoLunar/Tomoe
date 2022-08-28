@@ -13,7 +13,7 @@ using Humanizer;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
-    public sealed class RoleInfo : BaseCommandModule
+    public sealed class RoleInfoCommand : BaseCommandModule
     {
         [Command("role_info"), Description("Gets information about a server role."), RequireGuild]
         public async Task RoleInfoAsync(CommandContext context, [Description("Which role to get info on.")] DiscordRole discordRole)

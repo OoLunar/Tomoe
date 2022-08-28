@@ -9,7 +9,7 @@ using Humanizer;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
-    public sealed class UserInfo : BaseCommandModule
+    public sealed class UserInfoCommand : BaseCommandModule
     {
         [Command("user_info"), Description("Get information about a user.")]
         public Task UserInfoAsync(CommandContext context, [Description("The user to get information about.")] DiscordUser? user = null)

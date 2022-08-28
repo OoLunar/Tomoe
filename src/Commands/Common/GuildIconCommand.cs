@@ -8,7 +8,7 @@ using DSharpPlus.Entities;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
-    public sealed class GuildIcon : BaseCommandModule
+    public sealed class GuildIconCommand : BaseCommandModule
     {
         [Command("guild_icon"), Description("Grabs the guild's icon."), Aliases("server_icon", "icon"), RequireGuild]
         public Task GuildIconAsync(CommandContext context, ushort imageSize = 4096, ImageFormat imageFormat = ImageFormat.Auto) => GuildIconAsync(context, context.Guild.Id, imageSize, imageFormat);

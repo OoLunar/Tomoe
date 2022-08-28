@@ -12,7 +12,7 @@ using Humanizer;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
-    public sealed class BotStats : BaseCommandModule
+    public sealed class BotStatsCommand : BaseCommandModule
     {
         private static readonly Regex LastCommaRegex = new(", (?=[^,]*$)", RegexOptions.Compiled);
 

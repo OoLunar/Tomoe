@@ -6,7 +6,7 @@ using DSharpPlus.Entities;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
-    public sealed class GuildAvatar : BaseCommandModule
+    public sealed class GuildAvatarCommand : BaseCommandModule
     {
         private const string MemberMessageDescription = "The user's pfp to be shown. Defaults to the requester.";
         private const string ImageSizeDescription = "The size to convert the image to. If not specified, defaults to `4096`.";
