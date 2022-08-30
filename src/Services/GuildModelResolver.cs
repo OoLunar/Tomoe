@@ -38,5 +38,19 @@ namespace OoLunar.Tomoe.Services
 
             return guildModel;
         }
+
+        public async Task<GuildModel> InsertAsync(GuildModel guildModel)
+        {
+            ArgumentNullException.ThrowIfNull(guildModel, nameof(guildModel));
+
+            GuildModel? dbGuildModel = await QueryBuilder.Insert(guildModel).ExecuteAsync(EdgeDBClient, Capabilities.Modifications, CancellationToken);
+            if (dbGuildModel == null)
+            {
+                throw new InvalidOperationException("Insert returned null.");
+            }
+
+            GuildModelCache.Set(dbGuildModel.Id, dbGuildModel, TimeSpan.FromMinutes(5));
+            return dbGuildModel;
+        }
     }
 }
