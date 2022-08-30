@@ -15,6 +15,10 @@ namespace OoLunar.Tomoe.Commands.Moderation
         [Command("mute")]
         [Description("Mutes a user.")]
         [RequireGuild, RequirePermissions(Permissions.ModerateMembers)]
+        public Task MuteAsync(CommandContext context, DiscordMember member, [RemainingText] string reason = "No reason provided.")
+            => MuteAsync(context, member, null, reason);
+
+        [Command("mute")]
         public async Task MuteAsync(CommandContext context, DiscordMember member, TimeSpan? timeSpan = null, [RemainingText] string? reason = null)
         {
             if (!await CheckPermissionsAsync(context, Permissions.ModerateMembers, member))
@@ -28,12 +32,14 @@ namespace OoLunar.Tomoe.Commands.Moderation
                 return;
             }
 
-            reason = Audit.SetReason(reason);
-            Audit.AffectedUsers = new[] { member.Id };
-            timeSpan ??= TimeSpan.FromMinutes(5);
+            if (timeSpan == null || timeSpan.Value.TotalSeconds < 0)
+            {
+                timeSpan = TimeSpan.FromMinutes(5);
+            }
             Audit.Duration = new Range<DateTimeOffset>(DateTimeOffset.UtcNow, DateTimeOffset.UtcNow + timeSpan);
-
+            Audit.AffectedUsers = new[] { member.Id };
             Audit.Successful = true;
+            reason = Audit.SetReason(reason);
             string auditLogReason = "";
             string response = "";
 

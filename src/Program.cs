@@ -68,16 +68,14 @@ namespace OoLunar.Tomoe
             }, (config) => config.Logger = new SerilogLoggerFactory(Log.Logger).CreateLogger<EdgeDBClient>());
 
             serviceCollection.AddMemoryCache();
-
             serviceCollection.AddSingleton(typeof(ExpirableService<>));
             serviceCollection.AddSingleton<GuildModelResolverService>();
-            serviceCollection.AddScoped<DiscordGuildPrefixResolverService>();
-            serviceCollection.AddSingleton(serviceProvider => new DiscordEventManager(serviceProvider));
+            serviceCollection.AddSingleton<DiscordGuildPrefixResolverService>();
+            serviceCollection.AddSingleton<DiscordEventManager>();
             serviceCollection.AddSingleton(serviceProvider =>
             {
                 IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
                 DiscordEventManager eventManager = serviceProvider.GetRequiredService<DiscordEventManager>();
-
                 DiscordConfiguration discordConfig = new()
                 {
                     MinimumLogLevel = configuration.GetValue<LogLevel>("discord:logLevel"),
@@ -91,7 +89,6 @@ namespace OoLunar.Tomoe
             });
 
             ServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
-            EdgeDBClient edgeDBClient = serviceProvider.GetRequiredService<EdgeDBClient>();
             DiscordShardedClient shardedClient = serviceProvider.GetRequiredService<DiscordShardedClient>();
             DiscordEventManager eventManager = serviceProvider.GetRequiredService<DiscordEventManager>();
             DiscordGuildPrefixResolverService prefixResolverService = serviceProvider.GetRequiredService<DiscordGuildPrefixResolverService>();
@@ -115,18 +112,22 @@ namespace OoLunar.Tomoe
                 eventManager.Subscribe(commandsNextExtension);
             }
 
-            Console.CancelKeyPress += async (sender, eventArgs) =>
+            Console.CancelKeyPress += (sender, eventArgs) =>
             {
                 eventArgs.Cancel = true;
                 cancellationTokenSource.Cancel(false);
+            };
+
+            await shardedClient.StartAsync();
+            cancellationTokenSource.Token.Register(async () =>
+            {
                 if (shardedClient.ShardClients.Count != 0)
                 {
                     await shardedClient.StopAsync();
                 }
                 Environment.Exit(0);
-            };
+            });
 
-            await shardedClient.StartAsync();
             await Task.Delay(-1);
         }
 

@@ -13,7 +13,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
         [Command("ban")]
         [Description("Bans a user.")]
         [RequireGuild, RequirePermissions(Permissions.BanMembers)]
-        public async Task BanAsync(CommandContext context, DiscordMember member, [RemainingText] string? reason = null)
+        public async Task BanAsync(CommandContext context, DiscordMember member, int dayPurgeCount = 1, [RemainingText] string? reason = null)
         {
             if (!await CheckPermissionsAsync(context, Permissions.BanMembers, member))
             {
@@ -47,5 +47,9 @@ namespace OoLunar.Tomoe.Commands.Moderation
 
             await context.RespondAsync(response);
         }
+
+        [Command("ban")]
+        public Task BanAsync(CommandContext context, DiscordMember member, [RemainingText] string? reason = null)
+            => BanAsync(context, member, 1, reason);
     }
 }
