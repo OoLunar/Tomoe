@@ -92,7 +92,10 @@ namespace OoLunar.Tomoe.Database
         {
             ArgumentNullException.ThrowIfNull(edgeDBClient);
             ArgumentNullException.ThrowIfNull(logger);
-            ArgumentException.ThrowIfNullOrEmpty(question.Trim(), nameof(question));
+            if (string.IsNullOrWhiteSpace(question))
+            {
+                throw new ArgumentException("The question cannot be null, empty, or whitespace.", nameof(question));
+            }
             ArgumentNullException.ThrowIfNull(expiresAt);
             if (options == null || !options.Any())
             {
@@ -118,10 +121,6 @@ namespace OoLunar.Tomoe.Database
             {
                 throw new InvalidOperationException("User has already voted.");
             }
-            else if (Id == null)
-            {
-                throw new InvalidOperationException("Poll has not been saved.");
-            }
             else
             {
                 return Copy((await EdgeDBClient.QueryAsync<PollModel>(AddVoteQuery, new Dictionary<string, object?>
@@ -140,10 +139,6 @@ namespace OoLunar.Tomoe.Database
             {
                 throw new InvalidOperationException("User has not voted.");
             }
-            else if (Id == null)
-            {
-                throw new InvalidOperationException("Poll has not been saved.");
-            }
             else
             {
                 return Copy((await EdgeDBClient.QueryAsync<PollModel>(RemoveVoteQuery, new Dictionary<string, object?>
@@ -158,18 +153,10 @@ namespace OoLunar.Tomoe.Database
         {
             ArgumentNullException.ThrowIfNull(message);
 
-            if (Id == null)
+            return Copy((await EdgeDBClient.QueryAsync<PollModel>(UpdateMessageQuery, new Dictionary<string, object?>
             {
-                MessageId = message.Id;
-                return this;
-            }
-            else
-            {
-                return Copy((await EdgeDBClient.QueryAsync<PollModel>(UpdateMessageQuery, new Dictionary<string, object?>
-                {
-                    ["pollId"] = Id
-                }, Capabilities.Modifications, cancellationToken)).FirstOrDefault() ?? throw new InvalidOperationException($"Poll {Id} does not exist in the database."));
-            }
+                ["pollId"] = Id
+            }, Capabilities.Modifications, cancellationToken)).FirstOrDefault() ?? throw new InvalidOperationException($"Poll {Id} does not exist in the database."));
         }
 
         public PollModel Copy(PollModel old)

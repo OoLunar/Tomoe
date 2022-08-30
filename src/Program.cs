@@ -66,6 +66,8 @@ namespace OoLunar.Tomoe
                 TLSSecurity = TLSSecurityMode.Insecure
             }, (config) => config.Logger = new SerilogLoggerFactory(Log.Logger).CreateLogger<EdgeDBClient>());
 
+            serviceCollection.AddMemoryCache();
+
             serviceCollection.AddSingleton(typeof(IExpirableService<>), typeof(ExpirableService<>));
             serviceCollection.AddScoped<DiscordGuildPrefixResolverService>();
             serviceCollection.AddSingleton(serviceProvider => new DiscordEventManager(serviceProvider));
@@ -112,6 +114,7 @@ namespace OoLunar.Tomoe
                 {
                     await shardedClient.StopAsync();
                 }
+                Environment.Exit(0);
             };
 
             await shardedClient.StartAsync();

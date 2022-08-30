@@ -93,4 +93,43 @@ module default {
 
         required link votes -> PollVote;
     }
+
+    type Audit {
+        required property command_name -> str {
+            readonly := true;
+        };
+
+        required property created_at -> datetime {
+            readonly := true;
+            default := (datetime_current());
+        };
+
+        required link guild -> Guild {
+            readonly := true;
+        };
+
+        required link authorizer -> GuildMember {
+            readonly := true;
+        };
+
+        required property affected_users -> array<str> {
+            readonly := true;
+        };
+
+        required property reason -> str {
+            readonly := true;
+        };
+
+        required property successful -> bool {
+            readonly := true;
+        };
+
+        property notes -> array<str> {
+            readonly := true;
+        };
+
+        property duration_length -> range<datetime> {
+            readonly := true;
+        };
+    }
 };

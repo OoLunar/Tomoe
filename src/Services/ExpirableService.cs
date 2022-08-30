@@ -61,7 +61,7 @@ namespace OoLunar.Tomoe.Services
             Logger = serviceProvider.GetRequiredService<ILogger<ExpirableService<T>>>();
             PeriodicTimer = new PeriodicTimer(TimeSpan.FromSeconds(1));
             // Start the forever loop in a non-blocking way.
-            ExpireTimerAsync().Start();
+            _ = ExpireTimerAsync();
         }
 
         /// <inheritdoc />
@@ -78,7 +78,7 @@ namespace OoLunar.Tomoe.Services
                 throw new ArgumentException($"Item {item.Id} of type {typeof(T).FullName} has already expired.", nameof(item));
             }
 
-            item = (await QueryBuilder.Insert(item).UnlessConflict().Else(QueryBuilder.Update<T>(old => new T() { ExpiresAt = item.ExpiresAt }).Filter(expirable => expirable.Id == item.Id)).ExecuteAsync(EdgeDBClient, Capabilities.Modifications, CancellationToken)).First();
+            //item = (await QueryBuilder.Insert(item).UnlessConflict().Else(QueryBuilder.Update<T>(old => new T() { ExpiresAt = item.ExpiresAt }).Filter(expirable => expirable.Id == item.Id)).ExecuteAsync(EdgeDBClient, Capabilities.Modifications, CancellationToken)).First();
             ExpirableItems.AddOrUpdate(item, item.ExpiresAt, (key, oldValue) => item.ExpiresAt);
             Logger.LogTrace("Added or updated item {Id} of type {ItemType} to expire at {ExpiresAt}", item.Id, typeof(T).FullName, item.ExpiresAt);
             return item;

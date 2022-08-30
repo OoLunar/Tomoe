@@ -24,7 +24,7 @@ namespace OoLunar.Tomoe.Events.Handlers
             DiscordEmbedBuilder embedBuilder = new()
             {
                 Title = "Command Error",
-                Description = $"{Formatter.InlineCode(eventArgs.Command.Name)} failed to execute.",
+                Description = $"{Formatter.InlineCode(eventArgs.Command!.Name)} failed to execute.",
                 Color = new DiscordColor("#6b73db")
             };
 
