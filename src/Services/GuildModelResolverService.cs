@@ -9,13 +9,13 @@ using OoLunar.Tomoe.Database;
 
 namespace OoLunar.Tomoe.Services
 {
-    public sealed class GuildModelResolver
+    public sealed class GuildModelResolverService
     {
         private EdgeDBClient EdgeDBClient { get; init; }
         private MemoryCache GuildModelCache { get; init; }
         private CancellationToken CancellationToken { get; init; }
 
-        public GuildModelResolver(EdgeDBClient edgeDBClient, MemoryCache memoryCache, CancellationToken cancellationToken)
+        public GuildModelResolverService(EdgeDBClient edgeDBClient, MemoryCache memoryCache, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(edgeDBClient, nameof(edgeDBClient));
             ArgumentNullException.ThrowIfNull(memoryCache, nameof(memoryCache));

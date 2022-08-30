@@ -15,7 +15,7 @@ namespace OoLunar.Tomoe.Interfaces
         public override async Task BeforeExecutionAsync(CommandContext context)
         {
             AuditService = context.Services.GetRequiredService<AuditService>();
-            GuildModel? guildModel = await context.Services.GetRequiredService<GuildModelResolver>().GetAsync(context.Guild.Id);
+            GuildModel? guildModel = await context.Services.GetRequiredService<GuildModelResolverService>().GetAsync(context.Guild.Id);
             if (guildModel == null)
             {
                 throw new InvalidOperationException($"Guild {context.Guild.Id} does not exist in the database yet!");

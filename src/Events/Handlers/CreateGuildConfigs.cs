@@ -18,11 +18,11 @@ namespace OoLunar.Tomoe.Events.Handlers
     {
         private IConfiguration Configuration { get; init; }
         private ILogger<CreateGuildConfigs> Logger { get; init; }
-        private GuildModelResolver GuildModelResolver { get; init; }
+        private GuildModelResolverService GuildModelResolver { get; init; }
         private EdgeDBClient EdgeDBClient { get; init; }
         private CancellationToken CancellationToken { get; init; }
 
-        public CreateGuildConfigs(IConfiguration configuration, ILogger<CreateGuildConfigs> logger, GuildModelResolver guildModelResolver, EdgeDBClient edgeDBClient, CancellationTokenSource cancellationTokenSource)
+        public CreateGuildConfigs(IConfiguration configuration, ILogger<CreateGuildConfigs> logger, GuildModelResolverService guildModelResolver, EdgeDBClient edgeDBClient, CancellationTokenSource cancellationTokenSource)
         {
             ArgumentNullException.ThrowIfNull(configuration, nameof(configuration));
             ArgumentNullException.ThrowIfNull(logger, nameof(logger));
