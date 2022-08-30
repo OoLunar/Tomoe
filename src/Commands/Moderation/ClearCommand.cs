@@ -43,15 +43,15 @@ namespace OoLunar.Tomoe.Commands.Moderation
 
             reason = Audit.SetReason(reason);
             Audit.AffectedUsers = messages.Select(x => x.Author.Id).Distinct();
-            Audit.Notes = $"Deleted {messages.Count():N0} messages.";
+            Audit.AddNote($"Deleted {messages.Count():N0} messages.");
             if (messagesToDelete.Count != messages.Count())
             {
-                Audit.Notes += $" {messages.Count() - messagesToDelete.Count:N0} messages skipped due to being older than 2 weeks.";
+                Audit.AddNote($"{messages.Count() - messagesToDelete.Count:N0} messages skipped due to being older than 2 weeks.");
             }
 
             await firstMessage.Channel.DeleteMessagesAsync(messages, reason);
             Audit.Successful = true;
-            await context.RespondAsync(Audit._notes);
+            await context.RespondAsync(string.Join(' ', Audit.Notes!));
         }
     }
 }

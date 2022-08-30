@@ -28,7 +28,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
             string response = "";
             if (!await DmMemberAsync(member, $"You have been banned from {context.Guild.Name} for: {reason}."))
             {
-                auditLogReason = Audit._notes!;
+                auditLogReason = string.Join(' ', Audit.Notes!);
                 response = "I was unable to DM the user, check audit logs for more information. ";
             }
 
@@ -40,7 +40,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
             }
             catch (DiscordException error)
             {
-                Audit.Notes = $"Failed to ban, HTTP Error {error.WebResponse.ResponseCode}: {error.JsonMessage}. ";
+                Audit.AddNote($"Failed to ban, HTTP Error {error.WebResponse.ResponseCode}: {error.JsonMessage}.");
                 response = "I was unable to ban the user, check audit logs for more information. ";
                 Audit.Successful = false;
             }

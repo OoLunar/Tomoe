@@ -32,7 +32,7 @@ namespace OoLunar.Tomoe.Database
         /// <summary>
         /// Which user performed the action.
         /// </summary>
-        public DiscordMember? Authorizer { get; set; }
+        public DiscordMember Authorizer { get; set; }
 
         /// <summary>
         /// Who was affected by the action.
@@ -98,7 +98,7 @@ namespace OoLunar.Tomoe.Database
         public void AddNote(string note)
         {
             _notes ??= new List<string>();
-            _notes.Add(note);
+            _notes.Add(note.Trim());
         }
     }
 }

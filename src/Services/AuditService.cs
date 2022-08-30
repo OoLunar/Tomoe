@@ -21,32 +21,36 @@ namespace OoLunar.Tomoe.Services
 
         public Task AddAsync(AuditableCommand auditable, ulong guildId) => EdgeDBClient.ExecuteAsync(@"
         INSERT INTO audit (
-            audit_id := $auditId,
             command_name := $commandName
             guild := (SELECT Guild FILTER .id = $guildId),
-            authorizer := $authorizer,
+            authorizer := (SELECT GuildMember FILTER .id = $authorizerId AND .guild = $guildId),
             affected_users := $affectedUsers,
             reason := $reason,
+            successful := $successful,
+            notes := $notes,
+            duration_length := $durationLength,
         ) UNLESS CONFLICT ON .audit_id;", new Dictionary<string, object?>()
         {
-            ["auditId"] = auditable.AuditId,
             ["commandName"] = auditable.GetType().Name.Split("Command")[0],
             ["guildId"] = guildId,
-            ["authorizer"] = auditable.Authorizer,
-            ["affectedUsers"] = auditable.AffectedUsers,
-            ["reason"] = auditable.Reason,
+            ["authorizerId"] = auditable.Audit.Authorizer.Id,
+            ["affectedUsers"] = auditable.Audit.AffectedUsers,
+            ["reason"] = auditable.Audit.Reason,
+            ["successful"] = auditable.Audit.Successful,
+            ["notes"] = auditable.Audit.Notes,
+            ["durationLength"] = auditable.Audit.Duration,
         }, Capabilities.Modifications, CancellationToken);
 
         public Task<IReadOnlyCollection<AuditableCommand?>> GetAsync(ulong guildId, int page = 1) => QueryBuilder
             .Select<AuditableCommand>()
-            .Filter(x => x.Guild.Id == guildId)
+            .Filter(x => x.Audit.Guild.Id == guildId)
             .Limit(10)
             .Offset(10 * (page - 1))
             .ExecuteAsync(EdgeDBClient, Capabilities.ReadOnly, CancellationToken);
 
-        public async Task<AuditableCommand?> GetAsync(Ulid auditId) => (await QueryBuilder
+        public async Task<AuditableCommand?> GetAsync(Guid auditId) => (await QueryBuilder
             .Select<AuditableCommand>()
-            .Filter(x => x.AuditId == auditId)
+            .Filter(x => x.Audit.Id == auditId)
             .ExecuteAsync(EdgeDBClient, Capabilities.ReadOnly, CancellationToken)).FirstOrDefault();
 
         public async Task<int> GetCountAsync(ulong guildId) => (await EdgeDBClient.QueryAsync<int>(@"

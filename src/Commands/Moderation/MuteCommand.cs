@@ -24,7 +24,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
             else if (member.CommunicationDisabledUntil != null && member.CommunicationDisabledUntil >= DateTimeOffset.UtcNow)
             {
                 await context.RespondAsync($"They're already muted until {Formatter.Timestamp(member.CommunicationDisabledUntil.Value, TimestampFormat.ShortDateTime)}");
-                Audit.Notes = "User was already muted.";
+                Audit.AddNote("User was already muted.");
                 return;
             }
 
@@ -39,7 +39,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
 
             if (!await DmMemberAsync(member, $"You have been muted in {context.Guild.Name} for: {reason}."))
             {
-                auditLogReason = Audit._notes!;
+                auditLogReason = string.Join(' ', Audit.Notes!);
                 response = "I was unable to DM the user, check audit logs for more information. ";
             }
 
@@ -51,7 +51,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
             }
             catch (DiscordException error)
             {
-                Audit.Notes += $"Failed to mute, HTTP Error {error.WebResponse.ResponseCode}: {error.JsonMessage}. ";
+                Audit.AddNote($"Failed to mute, HTTP Error {error.WebResponse.ResponseCode}: {error.JsonMessage}.");
                 response = "I was unable to mute the user, check audit logs for more information.";
                 Audit.Successful = false;
             }
