@@ -5,6 +5,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
+using DSharpPlus.Interactivity.Enums;
+using DSharpPlus.Interactivity.Extensions;
 using EdgeDB;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -69,6 +71,7 @@ namespace OoLunar.Tomoe
             serviceCollection.AddMemoryCache();
 
             serviceCollection.AddSingleton(typeof(IExpirableService<>), typeof(ExpirableService<>));
+            serviceCollection.AddSingleton<GuildModelResolverService>();
             serviceCollection.AddScoped<DiscordGuildPrefixResolverService>();
             serviceCollection.AddSingleton(serviceProvider => new DiscordEventManager(serviceProvider));
             serviceCollection.AddSingleton(serviceProvider =>
@@ -95,6 +98,13 @@ namespace OoLunar.Tomoe
             DiscordGuildPrefixResolverService prefixResolverService = serviceProvider.GetRequiredService<DiscordGuildPrefixResolverService>();
 
             eventManager.Subscribe(shardedClient);
+            await shardedClient.UseInteractivityAsync(new()
+            {
+                AckPaginationButtons = true,
+                ButtonBehavior = ButtonPaginationBehavior.Disable,
+                Timeout = configuration.GetValue("discord:pagination_timeout", TimeSpan.FromMinutes(5))
+            });
+
             foreach ((int _, CommandsNextExtension commandsNextExtension) in await shardedClient.UseCommandsNextAsync(new CommandsNextConfiguration()
             {
                 Services = serviceProvider,
