@@ -15,7 +15,7 @@ namespace OoLunar.Tomoe.Services
     /// Manages a list of objects which is set to expire after a certain amount of time.
     /// </summary>
     /// <typeparam name="T">The type of object keep track of.</typeparam>
-    public sealed class ExpirableService<T> : IExpirableService<T> where T : IExpirable<T>, new()
+    public sealed class ExpirableService<T> where T : IExpirable<T>, new()
     {
         /// <summary>
         /// A list of objects that are set to expire.
@@ -64,7 +64,12 @@ namespace OoLunar.Tomoe.Services
             _ = ExpireTimerAsync();
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Asynchronously adds an object to the database. If the object expires soon, the object will be inserted into the database and remain in the memory cache.
+        /// </summary>
+        /// <param name="item">The item to add.</param>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="item"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentException">Thrown if <paramref name="item"/> has already expired.</exception>
         public async Task<T> AddAsync(T item)
         {
             if (item == null)
@@ -84,7 +89,11 @@ namespace OoLunar.Tomoe.Services
             return item;
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Asynchronously removes an object from the database.
+        /// </summary>
+        /// <param name="item">The item to remove.</param>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="item"/> is <see langword="null"/>.</exception>
         public async Task<bool> RemoveAsync(T item)
         {
             if (item == null)
@@ -103,7 +112,12 @@ namespace OoLunar.Tomoe.Services
             return false;
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Attempt to get an item from database.
+        /// </summary>
+        /// <param name="id">The id of the expirable.</param>
+        /// <param name="item">The expirable itself.</param>
+        /// <returns><see langword="true"/> if the expirable was found, <see langword="false"/> otherwise.</returns>
         public async Task<T?> TryGetItemAsync(Guid id)
         {
             T? latestItem = (await QueryBuilder.Select<T>().Filter(expirable => expirable.Id == id).ExecuteAsync(EdgeDBClient, Capabilities.ReadOnly, CancellationToken)).FirstOrDefault();
@@ -119,7 +133,9 @@ namespace OoLunar.Tomoe.Services
             return latestItem;
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Checks if any of the items has expired. If so, <see cref="IExpirable{T}.ExpireAsync"/> is called. If <see cref="IExpirable{T}.ExpireAsync"/> returns <see langword="true"/>, the item is removed from the memory cache and the database.
+        /// </summary>
         public async Task CheckExpiredAsync()
         {
             DateTimeOffset now = DateTimeOffset.UtcNow;

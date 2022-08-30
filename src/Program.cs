@@ -12,7 +12,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OoLunar.Tomoe.Converters;
-using OoLunar.Tomoe.Interfaces;
 using OoLunar.Tomoe.Services;
 using OoLunar.Tomoe.Utilities;
 using Serilog;
@@ -70,7 +69,7 @@ namespace OoLunar.Tomoe
 
             serviceCollection.AddMemoryCache();
 
-            serviceCollection.AddSingleton(typeof(IExpirableService<>), typeof(ExpirableService<>));
+            serviceCollection.AddSingleton(typeof(ExpirableService<>));
             serviceCollection.AddSingleton<GuildModelResolverService>();
             serviceCollection.AddScoped<DiscordGuildPrefixResolverService>();
             serviceCollection.AddSingleton(serviceProvider => new DiscordEventManager(serviceProvider));

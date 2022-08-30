@@ -9,17 +9,17 @@ using DSharpPlus.EventArgs;
 using Microsoft.Extensions.Logging;
 using OoLunar.Tomoe.Attributes;
 using OoLunar.Tomoe.Database;
-using OoLunar.Tomoe.Interfaces;
+using OoLunar.Tomoe.Services;
 
 namespace OoLunar.Tomoe.Events.Handlers
 {
     public sealed class PollVoted
     {
-        public IExpirableService<PollModel> PollService { get; init; } = null!;
+        public ExpirableService<PollModel> PollService { get; init; } = null!;
         public ILogger<PollVoted> Logger { get; init; } = null!;
         public CancellationToken CancellationToken { get; init; }
 
-        public PollVoted(IExpirableService<PollModel> pollService, ILogger<PollVoted> logger, CancellationTokenSource cancellationTokenSource)
+        public PollVoted(ExpirableService<PollModel> pollService, ILogger<PollVoted> logger, CancellationTokenSource cancellationTokenSource)
         {
             ArgumentNullException.ThrowIfNull(pollService, nameof(pollService));
             ArgumentNullException.ThrowIfNull(logger, nameof(logger));

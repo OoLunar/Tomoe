@@ -11,13 +11,13 @@ using DSharpPlus.Entities;
 using EdgeDB;
 using Microsoft.Extensions.Logging;
 using OoLunar.Tomoe.Database;
-using OoLunar.Tomoe.Interfaces;
+using OoLunar.Tomoe.Services;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
     public sealed class PollCommand : BaseCommandModule
     {
-        public IExpirableService<PollModel> PollService { private get; set; } = null!;
+        public ExpirableService<PollModel> PollService { private get; set; } = null!;
         public ILogger<PollCommand> Logger { private get; set; } = null!;
         public CancellationTokenSource CancellationTokenSource { private get; set; } = null!;
 
