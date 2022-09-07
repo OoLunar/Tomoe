@@ -7,7 +7,7 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
 using EdgeDB;
 using Microsoft.Extensions.Configuration;
-using OoLunar.Tomoe.Database;
+using OoLunar.Tomoe.Database.Models;
 
 namespace OoLunar.Tomoe.Services
 {
@@ -45,7 +45,7 @@ namespace OoLunar.Tomoe.Services
                 CancellationTokenSource cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(CancellationToken);
                 cancellationTokenSource.CancelAfter(TimeSpan.FromSeconds(5));
 
-                GuildModel guildModel = (await QueryBuilder.Select<GuildModel>().Filter(guild => guild.Id == message.Channel.Guild.Id).Limit(1).ExecuteAsync(EdgeDbClient, Capabilities.ReadOnly, cancellationTokenSource.Token)).FirstOrDefault() ?? throw new InvalidOperationException($"Guild {message.Channel.Guild.Id} not found in the database.");
+                GuildModel guildModel = (await QueryBuilder.Select<GuildModel>().Filter(guild => guild.GuildId == message.Channel.Guild.Id).Limit(1).ExecuteAsync(EdgeDbClient, Capabilities.ReadOnly, cancellationTokenSource.Token)).FirstOrDefault() ?? throw new InvalidOperationException($"Guild {message.Channel.Guild.Id} not found in the database.");
                 return ResolvePrefixes(message, guildModel.Prefixes.Select(prefix => prefix.Prefix));
             }
         }

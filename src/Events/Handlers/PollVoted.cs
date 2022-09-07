@@ -8,7 +8,7 @@ using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using Microsoft.Extensions.Logging;
 using OoLunar.Tomoe.Attributes;
-using OoLunar.Tomoe.Database;
+using OoLunar.Tomoe.Database.Models;
 using OoLunar.Tomoe.Services;
 
 namespace OoLunar.Tomoe.Events.Handlers
@@ -60,7 +60,7 @@ namespace OoLunar.Tomoe.Events.Handlers
             {
                 if (pollVote != null)
                 {
-                    await poll.RemoveVoteAsync(eventArgs.User.Id, CancellationToken);
+                    poll.RemoveVote(eventArgs.User.Id);
                     await eventArgs.Interaction.EditOriginalResponseAsync(new DiscordWebhookBuilder().WithContent($"Your vote for {pollVote.Option} has been removed."));
                 }
                 else
@@ -84,7 +84,7 @@ namespace OoLunar.Tomoe.Events.Handlers
                 }
                 else
                 {
-                    await poll.AddVoteAsync(eventArgs.User.Id, pollOption.Id!.Value, CancellationToken);
+                    poll.AddVote(eventArgs.User.Id, pollOption.Id);
                     await eventArgs.Interaction.EditOriginalResponseAsync(new DiscordWebhookBuilder().WithContent($"You've voted for {pollOption.Option}!"));
                 }
             }

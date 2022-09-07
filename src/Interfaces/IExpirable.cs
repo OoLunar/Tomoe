@@ -7,7 +7,7 @@ namespace OoLunar.Tomoe.Interfaces
     /// <summary>
     /// Disposes of an object after the specified amount of time.
     /// </summary>
-    public interface IExpirable<T> : IDisposable
+    public interface IExpirable<T>
     {
         /// <summary>
         /// The id assigned to the object.

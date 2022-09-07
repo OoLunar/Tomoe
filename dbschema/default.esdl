@@ -132,4 +132,26 @@ module default {
             readonly := true;
         };
     }
+
+    type Reminder {
+        required property owner_id -> str {
+            readonly := true;
+        };
+
+        required property message_link -> str {
+            readonly := true;
+        };
+
+        required property created_at -> datetime {
+            readonly := true;
+            default := datetime_current();
+        };
+
+        required property expires_at -> datetime;
+        property content -> str;
+
+        link guild -> Guild {
+            readonly := true;
+        };
+    }
 };

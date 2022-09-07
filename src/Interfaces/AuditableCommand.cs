@@ -2,7 +2,7 @@ using System;
 using System.Threading.Tasks;
 using DSharpPlus.CommandsNext;
 using Microsoft.Extensions.DependencyInjection;
-using OoLunar.Tomoe.Database;
+using OoLunar.Tomoe.Database.Models;
 using OoLunar.Tomoe.Services;
 
 namespace OoLunar.Tomoe.Interfaces

@@ -1,24 +1,20 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using ConcurrentCollections;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using EdgeDB;
 using EdgeDB.DataTypes;
-using OoLunar.Tomoe.Interfaces;
 
-namespace OoLunar.Tomoe.Database
+namespace OoLunar.Tomoe.Database.Models
 {
     /// <summary>
     /// Records notable actions done by guild members.
     /// </summary>
     [EdgeDBType("Audit")]
-    public sealed class AuditModel : ICopyable<AuditModel>
+    public sealed class AuditModel : DatabaseTrackable<AuditModel>
     {
-        /// <summary>
-        /// The database assigned id of the audit entry.
-        /// </summary>
-        public Guid Id { get; private set; }
-
         /// <summary>
         /// When the audit log was created at.
         /// </summary>
@@ -32,7 +28,7 @@ namespace OoLunar.Tomoe.Database
         /// <summary>
         /// Which user performed the action.
         /// </summary>
-        public DiscordMember Authorizer { get; set; }
+        public DiscordMember Authorizer { get; set; } = null!;
 
         /// <summary>
         /// Who was affected by the action.
@@ -52,8 +48,8 @@ namespace OoLunar.Tomoe.Database
         /// <summary>
         /// Anything notable about the action, defined by the bot. May contain more information on an action, such as failure to DM a user or why the action wasn't successful.
         /// </summary>
-        public IReadOnlyList<string>? Notes => _notes?.AsReadOnly();
-        private List<string>? _notes { get; set; }
+        public IReadOnlyList<string>? Notes => _notes?.ToArray();
+        private ConcurrentHashSet<string>? _notes { get; set; }
 
         /// <summary>
         /// The optional duration that the action is set to last for.
@@ -61,6 +57,7 @@ namespace OoLunar.Tomoe.Database
         [EdgeDBProperty("duration_length")]
         public Range<DateTimeOffset>? Duration { get; internal set; }
 
+        public AuditModel() { }
         public AuditModel(GuildModel guildModel, DiscordMember authorizer)
         {
             ArgumentNullException.ThrowIfNull(guildModel, nameof(guildModel));
@@ -68,22 +65,6 @@ namespace OoLunar.Tomoe.Database
 
             Guild = guildModel;
             Authorizer = authorizer;
-        }
-
-        /// <inheritdoc/>
-        public AuditModel Copy(AuditModel old)
-        {
-            Id = old.Id;
-            CreatedAt = old.CreatedAt;
-            Guild = old.Guild;
-            Authorizer = old.Authorizer;
-            AffectedUsers = old.AffectedUsers;
-            Reason = old.Reason;
-            Successful = old.Successful;
-            _notes = old._notes;
-            Duration = old.Duration;
-
-            return this;
         }
 
         /// <summary>
@@ -97,7 +78,7 @@ namespace OoLunar.Tomoe.Database
 
         public void AddNote(string note)
         {
-            _notes ??= new List<string>();
+            _notes ??= new ConcurrentHashSet<string>();
             _notes.Add(note.Trim());
         }
     }

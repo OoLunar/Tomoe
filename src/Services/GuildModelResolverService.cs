@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EdgeDB;
 using Microsoft.Extensions.Caching.Memory;
-using OoLunar.Tomoe.Database;
+using OoLunar.Tomoe.Database.Models;
 
 namespace OoLunar.Tomoe.Services
 {
@@ -49,7 +49,7 @@ namespace OoLunar.Tomoe.Services
                 throw new InvalidOperationException("Insert returned null.");
             }
 
-            GuildModelCache.Set(dbGuildModel.Id, dbGuildModel, TimeSpan.FromMinutes(5));
+            GuildModelCache.Set(dbGuildModel.GuildId, dbGuildModel, TimeSpan.FromMinutes(5));
             return dbGuildModel;
         }
     }

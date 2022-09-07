@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using ConcurrentCollections;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
@@ -14,19 +14,14 @@ using Microsoft.Extensions.Logging;
 using OoLunar.Tomoe.Interfaces;
 using OoLunar.Tomoe.Utilities;
 
-namespace OoLunar.Tomoe.Database
+namespace OoLunar.Tomoe.Database.Models
 {
     /// <summary>
     /// Allows democracy to take place.
     /// </summary>
     [EdgeDBType("Poll")]
-    public sealed partial class PollModel : ICopyable<PollModel>, IExpirable<PollModel>
+    public sealed partial class PollModel : DatabaseTrackable<PollModel>, IExpirable<PollModel>
     {
-        /// <summary>
-        /// The id of the poll, assigned by the database.
-        /// </summary>
-        public Guid Id { get; private set; }
-
         /// <summary>
         /// Who created the poll.
         /// </summary>
@@ -60,37 +55,20 @@ namespace OoLunar.Tomoe.Database
         /// <summary>
         /// The available options a user can vote for.
         /// </summary>
-        public IReadOnlyList<PollOptionModel> Options => _options.AsReadOnly();
-        private List<PollOptionModel> _options { get; init; } = new();
+        public IReadOnlyList<PollOptionModel> Options => _options.ToArray();
+        private ConcurrentHashSet<PollOptionModel> _options { get; init; } = new();
 
         /// <summary>
         /// The options the user has voted for.
         /// </summary>
-        public IReadOnlyList<PollVoteModel> Votes => _votes.AsReadOnly();
-        private List<PollVoteModel> _votes { get; init; } = new();
+        public IReadOnlyList<PollVoteModel> Votes => _votes.ToArray();
+        private ConcurrentHashSet<PollVoteModel> _votes { get; init; } = new();
 
-        private EdgeDBClient EdgeDBClient { get; init; } = null!;
         private ILogger<PollModel> Logger { get; init; } = null!;
 
-        [EdgeDBDeserializer]
-        private PollModel(IDictionary<string, object?> raw)
-        {
-            Id = (Guid)raw["id"]!;
-            CreatorId = (ulong)raw["creator_id"]!;
-            GuildId = (ulong?)raw["guild_id"];
-            ChannelId = (ulong)raw["channel_id"]!;
-            MessageId = (ulong)raw["message_id"]!;
-            Question = (string)raw["question"]!;
-            _options = (List<PollOptionModel>)raw["options"]!;
-            _votes = (List<PollVoteModel>)raw["votes"]!;
-        }
-
-        [Obsolete("This constructor is only to be used by EdgeDB.", true)]
         public PollModel() { }
-
-        public PollModel(EdgeDBClient edgeDBClient, ILogger<PollModel> logger, ulong creatorId, ulong? guildId, ulong channelId, ulong? messageId, string question, DateTimeOffset expiresAt, IEnumerable<string> options)
+        public PollModel(ILogger<PollModel> logger, ulong creatorId, ulong? guildId, ulong channelId, ulong? messageId, string question, DateTimeOffset expiresAt, IEnumerable<string> options)
         {
-            ArgumentNullException.ThrowIfNull(edgeDBClient);
             ArgumentNullException.ThrowIfNull(logger);
             if (string.IsNullOrWhiteSpace(question))
             {
@@ -102,7 +80,6 @@ namespace OoLunar.Tomoe.Database
                 throw new ArgumentException("Must have at least one option.", nameof(options));
             }
 
-            EdgeDBClient = edgeDBClient;
             Logger = logger;
 
             CreatorId = creatorId;
@@ -111,64 +88,32 @@ namespace OoLunar.Tomoe.Database
             MessageId = messageId;
             Question = question;
             ExpiresAt = expiresAt;
-            _options = new List<PollOptionModel>(options.Select(option => new PollOptionModel(option, this)));
+            _options = new ConcurrentHashSet<PollOptionModel>(options.Select(option => new PollOptionModel(option, this)));
         }
 
-        [SuppressMessage("Roslyn", "IDE0046", Justification = "Ternary operator rabbit hole.")]
-        public async Task<PollModel> AddVoteAsync(ulong userId, Guid optionId, CancellationToken cancellationToken = default)
+        public void AddVote(ulong userId, Guid optionId)
         {
-            if (_votes.Any(v => v.VoterId == userId))
+            if (_votes.Any(vote => vote.VoterId == userId))
             {
                 throw new InvalidOperationException("User has already voted.");
             }
-            else
-            {
-                return Copy((await EdgeDBClient.QueryAsync<PollModel>(AddVoteQuery, new Dictionary<string, object?>
-                {
-                    ["poll"] = this,
-                    ["userId"] = userId,
-                    ["optionId"] = optionId
-                }, Capabilities.Modifications, cancellationToken)).FirstOrDefault() ?? throw new InvalidOperationException($"Poll {Id} does not exist in the database."));
-            }
+
+            _votes.Add(new PollVoteModel(this, userId, _options.First(option => option.Id == optionId)));
         }
 
-        [SuppressMessage("Roslyn", "IDE0046", Justification = "Ternary operator rabbit hole.")]
-        public async Task<PollModel> RemoveVoteAsync(ulong userId, CancellationToken cancellationToken = default)
+        public bool RemoveVote(ulong userId)
         {
-            if (!_votes.Any(v => v.VoterId == userId))
-            {
-                throw new InvalidOperationException("User has not voted.");
-            }
-            else
-            {
-                return Copy((await EdgeDBClient.QueryAsync<PollModel>(RemoveVoteQuery, new Dictionary<string, object?>
-                {
-                    ["poll"] = this,
-                    ["userId"] = userId
-                }, Capabilities.Modifications, cancellationToken)).FirstOrDefault() ?? throw new InvalidOperationException($"Poll {Id} does not exist in the database."));
-            }
+            PollVoteModel vote = _votes.FirstOrDefault(vote => vote.VoterId == userId) ?? throw new InvalidOperationException("User has not voted."); ;
+            return _votes.TryRemove(vote);
         }
 
-        public async Task<PollModel> UpdateMessageIdAsync(DiscordMessage message, CancellationToken cancellationToken = default)
+        public void SetMessageId(ulong messageId)
         {
-            ArgumentNullException.ThrowIfNull(message);
-
-            return Copy((await EdgeDBClient.QueryAsync<PollModel>(UpdateMessageQuery, new Dictionary<string, object?>
+            if (MessageId != null)
             {
-                ["pollId"] = Id
-            }, Capabilities.Modifications, cancellationToken)).FirstOrDefault() ?? throw new InvalidOperationException($"Poll {Id} does not exist in the database."));
-        }
-
-        public PollModel Copy(PollModel old)
-        {
-            Id = old.Id;
-
-            _options.Clear();
-            _options.AddRange(old._options);
-
-            _votes.Clear();
-            _votes.AddRange(old._votes);
-            return this;
+                throw new InvalidOperationException("Message id has already been set.");
+            }
+            MessageId = messageId;
         }
 
         public async Task<bool> ExpireAsync(IServiceProvider serviceProvider, CancellationToken cancellationToken = default)
@@ -246,7 +191,5 @@ namespace OoLunar.Tomoe.Database
 
             return true;
         }
-
-        public void Dispose() => throw new NotImplementedException();
     }
 }

@@ -10,7 +10,7 @@ using DSharpPlus.CommandsNext.Converters;
 using DSharpPlus.Entities;
 using EdgeDB;
 using Microsoft.Extensions.Logging;
-using OoLunar.Tomoe.Database;
+using OoLunar.Tomoe.Database.Models;
 using OoLunar.Tomoe.Services;
 
 namespace OoLunar.Tomoe.Commands.Common

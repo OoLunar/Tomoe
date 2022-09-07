@@ -43,7 +43,7 @@ namespace OoLunar.Tomoe.Services
 
         public Task<IReadOnlyCollection<AuditableCommand?>> GetAsync(ulong guildId, int page = 1) => QueryBuilder
             .Select<AuditableCommand>()
-            .Filter(x => x.Audit.Guild.Id == guildId)
+            .Filter(x => x.Audit.Guild.GuildId == guildId)
             .Limit(10)
             .Offset(10 * (page - 1))
             .ExecuteAsync(EdgeDBClient, Capabilities.ReadOnly, CancellationToken);
