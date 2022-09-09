@@ -83,7 +83,8 @@ namespace OoLunar.Tomoe.Services
                 throw new ArgumentException($"Item {item.Id} of type {typeof(T).FullName} has already expired.", nameof(item));
             }
 
-            //item = (await QueryBuilder.Insert(item).UnlessConflict().Else(QueryBuilder.Update<T>(old => new T() { ExpiresAt = item.ExpiresAt }).Filter(expirable => expirable.Id == item.Id)).ExecuteAsync(EdgeDBClient, Capabilities.Modifications, CancellationToken)).First();
+            BuiltQuery builtQuery = QueryBuilder.Insert(item).UnlessConflict().Else(QueryBuilder.Update<T>(old => new T() { ExpiresAt = item.ExpiresAt }).Filter(expirable => expirable.Id == item.Id)).Build();
+            item = (await EdgeDBClient.QuerySingleAsync<T>(builtQuery.Query, builtQuery.Parameters, Capabilities.Modifications, CancellationToken))!; // Yes, I did put parentheses around the await statement just so I could use the ! operator.
             ExpirableItems.AddOrUpdate(item, item.ExpiresAt, (key, oldValue) => item.ExpiresAt);
             Logger.LogTrace("Added or updated item {Id} of type {ItemType} to expire at {ExpiresAt}", item.Id, typeof(T).FullName, item.ExpiresAt);
             return item;
@@ -120,14 +121,19 @@ namespace OoLunar.Tomoe.Services
         /// <returns><see langword="true"/> if the expirable was found, <see langword="false"/> otherwise.</returns>
         public async Task<T?> TryGetItemAsync(Guid id)
         {
+            // Try querying the database first for the latest information.
             T? latestItem = (await QueryBuilder.Select<T>().Filter(expirable => expirable.Id == id).ExecuteAsync(EdgeDBClient, Capabilities.ReadOnly, CancellationToken)).FirstOrDefault();
+
+            // Database doesn't have it, check if it's in the memory cache.
             if (latestItem == null)
             {
                 latestItem = ExpirableItems.FirstOrDefault(expirable => expirable.Key.Id == id).Key;
                 if (latestItem != null)
                 {
+                    // Remove the item from the memory cache since it's no longer available.
                     ExpirableItems.TryRemove(latestItem, out _);
                 }
+                // The item doesn't exist anymore.
                 return default;
             }
             return latestItem;
@@ -138,6 +144,7 @@ namespace OoLunar.Tomoe.Services
         /// </summary>
         public async Task CheckExpiredAsync()
         {
+            // Cache the current time so that all items are checked against the same time as DateTimeOffset.UtcNow is a calculated property.
             DateTimeOffset now = DateTimeOffset.UtcNow;
 
             foreach (KeyValuePair<T, DateTimeOffset> item in ExpirableItems.ToArray())

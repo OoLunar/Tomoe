@@ -81,7 +81,6 @@ namespace OoLunar.Tomoe.Database.Models
             }
 
             Logger = logger;
-
             CreatorId = creatorId;
             GuildId = guildId;
             ChannelId = channelId;
@@ -91,6 +90,11 @@ namespace OoLunar.Tomoe.Database.Models
             _options = new ConcurrentHashSet<PollOptionModel>(options.Select(option => new PollOptionModel(option, this)));
         }
 
+        /// <summary>
+        /// Adds a vote to the poll.
+        /// </summary>
+        /// <param name="userId">Who is adding their vote.</param>
+        /// <param name="optionId">Which option their voting for.</param>
         public void AddVote(ulong userId, Guid optionId)
         {
             if (_votes.Any(vote => vote.VoterId == userId))
@@ -101,14 +105,24 @@ namespace OoLunar.Tomoe.Database.Models
             _votes.Add(new PollVoteModel(this, userId, _options.First(option => option.Id == optionId)));
         }
 
+        /// <summary>
+        /// Removes a user's vote from the poll.
+        /// </summary>
+        /// <param name="userId">The id of the user's vote to remove.</param>
+        /// <returns>Whether a vote was found. Can be used to determine if the user had already voted.</returns>
         public bool RemoveVote(ulong userId)
         {
             PollVoteModel vote = _votes.FirstOrDefault(vote => vote.VoterId == userId) ?? throw new InvalidOperationException("User has not voted."); ;
             return _votes.TryRemove(vote);
         }
 
+        /// <summary>
+        /// Which message the poll is attached to. Can only be set once.
+        /// </summary>
+        /// <param name="messageId">The id of the Discord message.</param>
         public void SetMessageId(ulong messageId)
         {
+            // Make sure the message can only be set once.
             if (MessageId != null)
             {
                 throw new InvalidOperationException("Message id has already been set.");
@@ -116,6 +130,12 @@ namespace OoLunar.Tomoe.Database.Models
             MessageId = messageId;
         }
 
+        /// <summary>
+        /// Expires the poll, removing it from the database and informing the community of the results.
+        /// </summary>
+        /// <param name="serviceProvider">A service provider that allows for grabbing of the required services.</param>
+        /// <param name="cancellationToken">The cancellation token used to cancel the network operation.</param>
+        /// <returns>Whether the poll should be removed from the database or not.</returns>
         public async Task<bool> ExpireAsync(IServiceProvider serviceProvider, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(serviceProvider);

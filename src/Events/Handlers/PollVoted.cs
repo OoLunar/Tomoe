@@ -30,7 +30,7 @@ namespace OoLunar.Tomoe.Events.Handlers
             CancellationToken = cancellationTokenSource.Token;
         }
 
-        [DiscordEventHandler(nameof(DiscordShardedClient.ComponentInteractionCreated))]
+        [DiscordEventHandler(typeof(DiscordShardedClient), nameof(DiscordShardedClient.ComponentInteractionCreated))]
         public async Task PollVotedAsync(DiscordClient _, ComponentInteractionCreateEventArgs eventArgs)
         {
             if (!eventArgs.Id.StartsWith("poll\v"))

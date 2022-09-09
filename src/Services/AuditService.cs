@@ -8,6 +8,7 @@ using OoLunar.Tomoe.Interfaces;
 
 namespace OoLunar.Tomoe.Services
 {
+    // Genuinely unsure if this could be replaced with DatabaseTracker
     public sealed class AuditService
     {
         private EdgeDBClient EdgeDBClient { get; init; }

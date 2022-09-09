@@ -3,6 +3,9 @@ using DSharpPlus;
 
 namespace OoLunar.Tomoe.Database.Models
 {
+    /// <summary>
+    /// A reminder that the bot will send to a user at a later time.
+    /// </summary>
     public sealed class ReminderModel : DatabaseTrackable<ReminderModel>
     {
         /// <summary>
@@ -58,10 +61,18 @@ namespace OoLunar.Tomoe.Database.Models
             }
         }
 
+        /// <summary>
+        /// Sets or updates the content of the reminder, providing default text if the content is null or whitespace.
+        /// </summary>
+        /// <param name="content">The updated reminder text.</param>
         public void SetContent(string? content = null) => Content = string.IsNullOrWhiteSpace(content)
             ? Formatter.Bold("[No context provided.]")
             : content.Trim();
 
+        /// <summary>
+        /// Changes when the reminder should expire.
+        /// </summary>
+        /// <param name="expiresAt">The new expiration date.</param>
         public void ChangeExpireDate(DateTimeOffset expiresAt)
         {
             if (expiresAt < DateTimeOffset.UtcNow)

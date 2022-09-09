@@ -22,24 +22,31 @@ namespace OoLunar.Tomoe
 {
     public sealed class Program
     {
-        private static IConfiguration Configuration { get; set; } = null!;
-
         public static async Task Main(string[] args)
         {
-            IConfiguration? configuration = LoadConfiguration(args);
-            if (configuration == null)
+            ConfigurationBuilder configurationBuilder = new();
+            configurationBuilder.Sources.Clear();
+
+            // Load the default configuration from the config.json file
+            string configurationFilePath = Path.Join(Environment.CurrentDirectory, "res", "config.json");
+            if (File.Exists(configurationFilePath))
             {
-                Console.WriteLine("Failed to load configuration due to unknown errors.");
-                Environment.Exit(1); // Respect the Linux users!
-                return; // Shutup Roslyn. configuration isn't null.
+                configurationBuilder.AddJsonFile(Path.Join(Environment.CurrentDirectory, "res", "config.json"), true, true);
             }
 
-            CancellationTokenSource cancellationTokenSource = new();
+            // Override the default configuration with the environment variables
+            configurationBuilder.AddEnvironmentVariables("DISCORD_BOT_");
+            // Then command line args
+            configurationBuilder.AddCommandLine(args);
+
+            IConfiguration configuration = configurationBuilder.Build();
+            CancellationTokenSource cancellationTokenSource = new(); // TODO: Switch to the `worker` dotnet template so I don't have to manage the cancellation token myself (also handles SIGTERM and alike for me)
             ServiceCollection serviceCollection = new();
             serviceCollection.AddSingleton(configuration);
-            serviceCollection.AddSingleton(cancellationTokenSource);
+            serviceCollection.AddSingleton(cancellationTokenSource); // Adding the source since the token is a struct (the generic requires a reference type to be passed)
             serviceCollection.AddLogging(logger =>
             {
+                // Log both to console and the file
                 LoggerConfiguration loggerConfiguration = new();
                 loggerConfiguration.MinimumLevel.Is(configuration.GetValue("logging:level", LogEventLevel.Information));
                 loggerConfiguration.Enrich.WithThreadId();
@@ -53,10 +60,12 @@ namespace OoLunar.Tomoe
                     outputTemplate: configuration.GetValue("logging:format", "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u4}] [{ThreadId}] {SourceContext}: {Message:lj}{NewLine}{Exception}")
                 );
 
+                // Set Log.Logger for a static reference to the logger
                 Log.Logger = loggerConfiguration.CreateLogger();
                 logger.AddSerilog(Log.Logger);
             });
 
+            // Add the database
             serviceCollection.AddEdgeDB(new EdgeDBConnection()
             {
                 Hostname = configuration.GetValue<string>("database:host"),
@@ -64,23 +73,26 @@ namespace OoLunar.Tomoe
                 Database = configuration.GetValue<string>("database:databaseName"),
                 Username = configuration.GetValue<string>("database:username"),
                 Password = configuration.GetValue<string>("database:password"),
-                TLSSecurity = TLSSecurityMode.Insecure
+                TLSSecurity = TLSSecurityMode.Insecure // Temporarily insecure until I can figure out how to make it secure. I guess it can stay insecure in production since it'll only make connections to localhost
             }, (config) => config.Logger = new SerilogLoggerFactory(Log.Logger).CreateLogger<EdgeDBClient>());
 
-            serviceCollection.AddMemoryCache();
+            // Add the expirable service for reminders and polls (and other things that expire)
             serviceCollection.AddSingleton(typeof(ExpirableService<>));
+            // Add the guild model resolver for caching
             serviceCollection.AddSingleton<GuildModelResolverService>();
+            // The prefix resolver service is needed since there can be multiple prefixes per guild
             serviceCollection.AddSingleton<DiscordGuildPrefixResolverService>();
+            // Automatically register all events and intents through reflection
             serviceCollection.AddSingleton<DiscordEventManager>();
+            // Register the Discord sharded client to the service collection
             serviceCollection.AddSingleton(serviceProvider =>
             {
                 IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
                 DiscordEventManager eventManager = serviceProvider.GetRequiredService<DiscordEventManager>();
                 DiscordConfiguration discordConfig = new()
                 {
-                    MinimumLogLevel = configuration.GetValue<LogLevel>("discord:logLevel"),
                     Token = configuration.GetValue<string>("discord:token"),
-                    Intents = eventManager.GetIntents() | DiscordIntents.Guilds | DiscordIntents.GuildMessages | DiscordIntents.DirectMessages,
+                    Intents = eventManager.GetIntents() | DiscordIntents.Guilds | DiscordIntents.GuildMessages | DiscordIntents.DirectMessages, // Intents plus CommandsNext required intents
                     LoggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>()
                 };
 
@@ -93,6 +105,7 @@ namespace OoLunar.Tomoe
             DiscordEventManager eventManager = serviceProvider.GetRequiredService<DiscordEventManager>();
             DiscordGuildPrefixResolverService prefixResolverService = serviceProvider.GetRequiredService<DiscordGuildPrefixResolverService>();
 
+            // Subscribe to the events that the sharded client has
             eventManager.Subscribe(shardedClient);
             await shardedClient.UseInteractivityAsync(new()
             {
@@ -109,15 +122,18 @@ namespace OoLunar.Tomoe
             {
                 commandsNextExtension.RegisterCommands(typeof(Program).Assembly);
                 commandsNextExtension.RegisterConverter(new ImageFormatConverter());
+                // Subscribe to the events that the commands next extension has
                 eventManager.Subscribe(commandsNextExtension);
             }
 
+            // Cancel the token when the application is shutting down
             Console.CancelKeyPress += (sender, eventArgs) =>
             {
                 eventArgs.Cancel = true;
                 cancellationTokenSource.Cancel(false);
             };
 
+            // Start the sharded client and cancel it when CTRL+C is pressed
             await shardedClient.StartAsync();
             cancellationTokenSource.Token.Register(async () =>
             {
@@ -128,31 +144,8 @@ namespace OoLunar.Tomoe
                 Environment.Exit(0);
             });
 
+            // Wait indefinitely
             await Task.Delay(-1);
-        }
-
-        internal static IConfiguration? LoadConfiguration(string[] args)
-        {
-            // Prevent parsing multiple times when the arguments aren't changed.
-            if (args.Length == 0 && Configuration != null)
-            {
-                return Configuration;
-            }
-
-            ConfigurationBuilder configurationBuilder = new();
-            configurationBuilder.Sources.Clear();
-
-            string configurationFilePath = Path.Join(Environment.CurrentDirectory, "res", "config.json");
-            if (File.Exists(configurationFilePath))
-            {
-                configurationBuilder.AddJsonFile(Path.Join(Environment.CurrentDirectory, "res", "config.json"), true, true);
-            }
-
-            configurationBuilder.AddEnvironmentVariables("DISCORD_BOT_");
-            configurationBuilder.AddCommandLine(args);
-
-            Configuration = configurationBuilder.Build();
-            return Configuration;
         }
     }
 }

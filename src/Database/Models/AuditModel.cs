@@ -33,7 +33,8 @@ namespace OoLunar.Tomoe.Database.Models
         /// <summary>
         /// Who was affected by the action.
         /// </summary>
-        public IEnumerable<ulong>? AffectedUsers { get; set; }
+        public IReadOnlyList<ulong> AffectedUsers => _affectedUsers.ToArray();
+        private ConcurrentHashSet<ulong> _affectedUsers { get; init; } = new();
 
         /// <summary>
         /// The reason for this action, provided by the user.
@@ -48,8 +49,8 @@ namespace OoLunar.Tomoe.Database.Models
         /// <summary>
         /// Anything notable about the action, defined by the bot. May contain more information on an action, such as failure to DM a user or why the action wasn't successful.
         /// </summary>
-        public IReadOnlyList<string>? Notes => _notes?.ToArray();
-        private ConcurrentHashSet<string>? _notes { get; set; }
+        public IReadOnlyList<string> Notes => _notes.ToArray();
+        private ConcurrentHashSet<string> _notes { get; init; } = new();
 
         /// <summary>
         /// The optional duration that the action is set to last for.
@@ -76,10 +77,22 @@ namespace OoLunar.Tomoe.Database.Models
             ? Formatter.Bold("[No reason was provided]")
             : reason.Trim();
 
-        public void AddNote(string note)
+        /// <summary>
+        /// Adds a note to the audit informing the viewers of something notable about the action.
+        /// </summary>
+        /// <param name="note">What to add to the note list.</param>
+        public void AddNote(string note) => _notes.Add(note.Trim());
+
+        /// <summary>
+        /// Adds a user to the affected users list.
+        /// </summary>
+        /// <param name="userId">Who to add.</param>
+        public void AddAffectedUsers(params ulong[] userIds)
         {
-            _notes ??= new ConcurrentHashSet<string>();
-            _notes.Add(note.Trim());
+            for (int i = 0; i < userIds.Length; i++)
+            {
+                _affectedUsers.Add(userIds[i]);
+            }
         }
     }
 }

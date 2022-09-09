@@ -71,7 +71,7 @@ namespace OoLunar.Tomoe.Commands.Common
             embedBuilder.AddField("Expires at", $"{Formatter.Timestamp(expiresAt.Value, TimestampFormat.ShortDateTime)} ({Formatter.Timestamp(expiresAt.Value, TimestampFormat.RelativeTime)})", true);
             embedBuilder.AddField("Votes", $"0 votes so far. {Formatter.Italic("You")}  could be the change!", true); // Double space is intentional.
 
-            PollModel poll = new(EdgeDBClient, PollLogger, context.User.Id, context.Guild?.Id, context.Channel.Id, null, question.Trim(), expiresAt.Value, choices);
+            PollModel poll = new(PollLogger, context.User.Id, context.Guild.Id, context.Channel.Id, null, question.Trim(), expiresAt.Value, choices);
             poll = await PollService.AddAsync(poll);
 
             IArgumentConverter<DiscordEmoji> emojiArgumentConverter = new DiscordEmojiConverter();
@@ -103,7 +103,7 @@ namespace OoLunar.Tomoe.Commands.Common
             DiscordMessageBuilder messageBuilder = new();
             messageBuilder.AddEmbed(embedBuilder.Build());
             messageBuilder.AddComponents(buttonRows);
-            await poll.UpdateMessageIdAsync(await context.RespondAsync(messageBuilder), CancellationTokenSource.Token);
+            poll.SetMessageId((await context.RespondAsync(messageBuilder)).Id);
 
             Logger.LogInformation("Created poll {PollId} on message {MessageId} in channel {ChannelId} by user {UserId}.", poll.Id, poll.MessageId, context.Channel.Id, context.User.Id);
         }

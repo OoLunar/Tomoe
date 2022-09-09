@@ -34,7 +34,7 @@ namespace OoLunar.Tomoe.Events.Handlers
             GuildModelResolver = guildModelResolver;
         }
 
-        [DiscordEventHandler(nameof(DiscordShardedClient.GuildDownloadCompleted))]
+        [DiscordEventHandler(typeof(DiscordShardedClient), nameof(DiscordShardedClient.GuildDownloadCompleted))]
         public async Task GuildDownloadedCompleteAsync(DiscordClient client, GuildDownloadCompletedEventArgs eventArgs)
         {
             SerilogLoggerFactory loggerFactory = new(Log.Logger);

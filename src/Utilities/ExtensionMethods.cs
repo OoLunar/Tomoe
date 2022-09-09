@@ -8,13 +8,21 @@ namespace OoLunar.Tomoe.Utilities
 {
     public static class ExtensionMethods
     {
+        /// <summary>
+        /// Attempt to grab a message from a guild or DM channel.
+        /// </summary>
+        /// <param name="shardedClient">The sharded client used to get the message.</param>
+        /// <param name="channelId">The channel id that the message is in.</param>
+        /// <param name="messageId">The id of the message to be fetched.</param>
+        /// <param name="guildId">The optional guild id that the channel could be in. None if DM's.</param>
+        /// <returns><see langword="null"/> if the Discord API cannot fetch the message. <see cref="Optional.FromNoValue{T}"/> if the message no longer exists or the bot doesn't have permission to grab. <see cref="DiscordMessage"/> if the message was fetched successfully.</returns>
         public static async Task<Optional<DiscordMessage?>> GetMessageAsync(this DiscordShardedClient shardedClient, ulong channelId, ulong messageId, ulong? guildId = null)
         {
             ArgumentNullException.ThrowIfNull(shardedClient, nameof(shardedClient));
 
             try
             {
-                // We don't do GetShard(guildId ?? 0).GetChannelAsync here because we want to check if the guild is unavailable
+                // We don't do GetShard(guildId ?? 0).GetChannelAsync here because we want to check if the guild is unavailable, which requires a guild object
                 DiscordChannel channel;
                 if (guildId == null)
                 {

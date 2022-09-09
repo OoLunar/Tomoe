@@ -11,8 +11,14 @@ using OoLunar.Tomoe.Events;
 
 namespace OoLunar.Tomoe
 {
+    /// <summary>
+    /// Attempts to automatically register events and returns the required <see cref="DiscordIntents"/> from the registered events.
+    /// </summary>
     public sealed class DiscordEventManager
     {
+        /// <summary>
+        /// An attempted mapping of which intents are required for which events.
+        /// </summary>
         public static readonly IReadOnlyDictionary<DiscordIntents, string[]> EventIntentMappings = new ReadOnlyDictionary<DiscordIntents, string[]>(new Dictionary<DiscordIntents, string[]>()
         {
             // Map DiscordIntents to a dictionary using the event's nameof()
@@ -32,88 +38,123 @@ namespace OoLunar.Tomoe
             [DiscordIntents.DirectMessageReactions] = new[] { nameof(DiscordShardedClient.MessageReactionAdded), nameof(DiscordShardedClient.MessageReactionRemoved), nameof(DiscordShardedClient.MessageReactionRemovedEmoji), nameof(DiscordShardedClient.MessageReactionsCleared) },
             [DiscordIntents.DirectMessageTyping] = new[] { nameof(DiscordShardedClient.TypingStarted) }
         });
+
+        /// <summary>
+        /// The event handler methods to register to the events.
+        /// </summary>
         public DiscordEventHandler[] EventHandlers { get; init; }
+
+        /// <summary>
+        /// The <see cref="IServiceProvider"/> to use when creating the event handler's class. The class is only created once before being registered to the events.
+        /// </summary>
         public IServiceProvider ServiceProvider { get; init; }
 
         public DiscordEventManager(IServiceProvider serviceProvider)
         {
             ArgumentNullException.ThrowIfNull(serviceProvider, nameof(serviceProvider));
             ServiceProvider = serviceProvider;
-
             List<DiscordEventHandler> eventHandlers = new();
+
+            // Find all the types that have the DiscordEventHandler attribute
             foreach (Type type in typeof(Program).Assembly.GetTypes())
             {
-                if (!type.IsClass)
+                // The attribute can only be applied to methods
+                foreach (MethodInfo method in type.GetRuntimeMethods())
                 {
-                    continue;
-                }
-
-                foreach (MethodInfo method in type.GetMethods())
-                {
+                    // Little syntax sugar to test if the attribute is not null.
                     if (method.GetCustomAttribute<DiscordEventHandlerAttribute>() is not DiscordEventHandlerAttribute eventHandlerAttribute)
                     {
                         continue;
                     }
-                    eventHandlers.Add(new DiscordEventHandler(eventHandlerAttribute.EventNames, method));
+
+                    // Register the method to the event handlers.
+                    eventHandlers.Add(new DiscordEventHandler(eventHandlerAttribute.EventType, eventHandlerAttribute.EventNames, method));
                 }
             }
 
+            // ToArray because we're going to enumerate it multiple times and we need the total element count.
             EventHandlers = eventHandlers.ToArray();
         }
 
+        /// <summary>
+        /// Subscribe the event handlers to the events found on the object.
+        /// </summary>
+        /// <param name="obj">The object to register the events too.</param>
         public void Subscribe(object obj)
         {
-            foreach (EventInfo eventInfo in obj.GetType().GetEvents())
+            // Iterate through the event handlers
+            foreach (DiscordEventHandler eventHandler in EventHandlers)
             {
-                foreach (DiscordEventHandler eventHandler in EventHandlers)
+                // Skip the event handlers that don't match the object's type
+                if (!eventHandler.EventType.IsAssignableFrom(obj.GetType()))
                 {
-                    if (eventHandler.EventNames.Contains(eventInfo.Name))
+                    continue;
+                }
+
+                // Attempt to register the event handler to the events
+                foreach (string eventName in eventHandler.EventNames)
+                {
+                    EventInfo? eventInfo = eventHandler.EventType.GetEvent(eventName);
+                    if (eventInfo is null)
                     {
-                        if (eventHandler.EventHandler.IsStatic)
+                        throw new ArgumentException($"The event {eventName} was not found on the type {eventHandler.EventType.Name}.");
+                    }
+                    else if (!eventInfo.EventHandlerType!.DeclaringMethod?.GetParameters().SequenceEqual(eventHandler.EventHandler.GetParameters()) ?? false)
+                    {
+                        throw new ArgumentException($"The event {eventName} on the type {eventHandler.EventType.Name} does not have the same parameters as the event handler {eventHandler.EventHandler.Name}.");
+                    }
+                    else if (eventHandler.EventHandler.IsStatic)
+                    {
+                        // Static method, no injection
+                        eventInfo.AddEventHandler(obj, Delegate.CreateDelegate(eventInfo.EventHandlerType!, eventHandler.EventHandler.DeclaringType!, eventHandler.EventHandler.Name));
+                    }
+                    else if (eventHandler.EventHandler.DeclaringType?.GetConstructors()[0].GetParameters().Length != 0)
+                    {
+                        // Constructor injection
+                        eventInfo.AddEventHandler(obj, Delegate.CreateDelegate(eventInfo.EventHandlerType!, ActivatorUtilities.CreateInstance(ServiceProvider, eventHandler.EventHandler.DeclaringType!), eventHandler.EventHandler.Name));
+                    }
+                    else
+                    {
+                        IEnumerable<PropertyInfo> properties = eventHandler.EventHandler.DeclaringType.GetProperties(BindingFlags.Instance | BindingFlags.SetProperty | BindingFlags.Public).Where(property => property.GetCustomAttribute<DontInjectAttribute>() == null);
+                        if (!properties.Any())
                         {
-                            // Static method, no injection
-                            eventInfo.AddEventHandler(obj, Delegate.CreateDelegate(eventInfo.EventHandlerType!, eventHandler.EventHandler.DeclaringType!, eventHandler.EventHandler.Name));
-                        }
-                        else if (eventHandler.EventHandler.DeclaringType?.GetConstructors()[0].GetParameters().Length != 0)
-                        {
-                            // Constructor injection
-                            eventInfo.AddEventHandler(obj, Delegate.CreateDelegate(eventInfo.EventHandlerType!, ActivatorUtilities.CreateInstance(ServiceProvider, eventHandler.EventHandler.DeclaringType!), eventHandler.EventHandler.Name));
+                            // Plain object, no injection
+                            eventInfo.AddEventHandler(obj, Delegate.CreateDelegate(eventInfo.EventHandlerType!, Activator.CreateInstance(eventHandler.EventHandler.DeclaringType!)!, eventHandler.EventHandler.Name));
                         }
                         else
                         {
-                            IEnumerable<PropertyInfo> properties = eventHandler.EventHandler.DeclaringType.GetProperties(BindingFlags.Instance | BindingFlags.SetProperty | BindingFlags.Public).Where(property => property.GetCustomAttribute<DontInjectAttribute>() == null);
-                            if (!properties.Any())
+                            // Property injection
+                            object instance = Activator.CreateInstance(eventHandler.EventHandler.DeclaringType!)!;
+                            foreach (PropertyInfo property in properties)
                             {
-                                // Plain object, no injection
-                                eventInfo.AddEventHandler(obj, Delegate.CreateDelegate(eventInfo.EventHandlerType!, Activator.CreateInstance(eventHandler.EventHandler.DeclaringType!)!, eventHandler.EventHandler.Name));
+                                property.SetValue(instance, ServiceProvider.GetService(property.PropertyType));
                             }
-                            else
-                            {
-                                // Property injection
-                                object instance = Activator.CreateInstance(eventHandler.EventHandler.DeclaringType!)!;
-                                foreach (PropertyInfo property in properties)
-                                {
-                                    property.SetValue(instance, ServiceProvider.GetService(property.PropertyType));
-                                }
-                                eventInfo.AddEventHandler(obj, Delegate.CreateDelegate(eventInfo.EventHandlerType!, instance, eventHandler.EventHandler.Name));
-                            }
+                            eventInfo.AddEventHandler(obj, Delegate.CreateDelegate(eventInfo.EventHandlerType!, instance, eventHandler.EventHandler.Name));
                         }
                     }
                 }
             }
         }
 
+        /// <summary>
+        /// Grabs the required intents from the event handlers.
+        /// </summary>
+        /// <returns>The <see cref="DiscordIntents"/> required to register to the events.</returns>
         public DiscordIntents GetIntents()
         {
             DiscordIntents intents = 0;
             if (EventHandlers.Length > 0)
             {
+                // Iterate through the mappings
                 foreach ((DiscordIntents intent, string[] eventNames) in EventIntentMappings)
                 {
+                    // Iterate through the event handlers
                     foreach (DiscordEventHandler eventHandler in EventHandlers)
                     {
+                        // Test if the event handler's names matches with any of the event names in the mapping
                         if (eventHandler.EventNames.Intersect(eventNames).Any())
                         {
+                            // Add that event's required intent.
                             intents |= intent;
                         }
                     }

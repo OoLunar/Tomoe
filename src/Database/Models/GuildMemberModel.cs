@@ -54,6 +54,10 @@ namespace OoLunar.Tomoe.Database.Models
             _roles = new ConcurrentHashSet<ulong>(roles);
         }
 
+        /// <summary>
+        /// Sets the roles for the member.
+        /// </summary>
+        /// <param name="roleIds">The role ids that the member contains.</param>
         internal void SetRoles(IEnumerable<ulong> roleIds)
         {
             ArgumentNullException.ThrowIfNull(roleIds, nameof(roleIds));
@@ -62,6 +66,10 @@ namespace OoLunar.Tomoe.Database.Models
             _roles = new(roleIds);
         }
 
+        /// <summary>
+        /// Used when a member has left or rejoined the guild.
+        /// </summary>
+        /// <param name="isDisabled">Whether the member has left or rejoined the guild.</param>
         internal void Disable(bool isDisabled)
         {
             Logger.LogTrace("Setting disabled status for Member {MemberId} (Guild {GuildId}) from {OldStatus} to {NewStatus}", UserId, GuildModel.GuildId, Disabled, isDisabled);

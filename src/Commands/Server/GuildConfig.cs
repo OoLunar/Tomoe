@@ -5,6 +5,9 @@ using DSharpPlus.CommandsNext.Attributes;
 
 namespace OoLunar.Tomoe.Commands.Server
 {
+    /// <summary>
+    /// Used to configure the bot for the guild.
+    /// </summary>
     [Group("guild_config"), Aliases("config", "gc"), Description("Modifies the bot configuration for the guild.")]
     public sealed class GuildConfig : BaseCommandModule
     {

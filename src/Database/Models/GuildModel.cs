@@ -58,11 +58,17 @@ namespace OoLunar.Tomoe.Database.Models
 
             Logger = logger;
             GuildId = id;
+
+            // Store the default prefixes in case they were to ever change, the user's would not need to guess the new prefixes.
             _prefixes = new(configuration.GetSection("discord:prefixes")
                 .Get<IEnumerable<string>>()
                 .Select(prefix => new GuildPrefixModel(prefix, id)));
         }
 
+        /// <summary>
+        /// Change the bot's prefixes on a guild.
+        /// </summary>
+        /// <param name="prefixes">The new prefixes that the bot should watch for.</param>
         internal void SetPrefixes(IEnumerable<GuildPrefixModel> prefixes)
         {
             ArgumentNullException.ThrowIfNull(prefixes, nameof(prefixes));
@@ -71,6 +77,10 @@ namespace OoLunar.Tomoe.Database.Models
             _prefixes = new(prefixes);
         }
 
+        /// <summary>
+        /// Adds new members to the guild. Ignores members who do not belong in the guild.
+        /// </summary>
+        /// <param name="newMembers">The new members who have joined the guild.</param>
         internal void AddMembers(IEnumerable<GuildMemberModel> newMembers)
         {
             ArgumentNullException.ThrowIfNull(newMembers, nameof(newMembers));
@@ -78,6 +88,7 @@ namespace OoLunar.Tomoe.Database.Models
             int totalMemberCount = 0;
             foreach (GuildMemberModel member in newMembers)
             {
+                // Skip so that the rest of the members may be added. We don't need only half of the list added because of one member.
                 if (member.GuildModel.GuildId != GuildId)
                 {
                     Logger.LogWarning("AddMembersAsync: Member {MemberId} from guild {MemberGuild} was attempted to be added to guild {GuildId}.", member.UserId, member.GuildModel.GuildId, GuildId);
@@ -89,6 +100,7 @@ namespace OoLunar.Tomoe.Database.Models
 
             if (totalMemberCount == 0)
             {
+                // Log when this happens, there should be logic that prevents this from happening.
                 Logger.LogWarning("AddMembers: No members were provided.");
             }
             else
@@ -97,6 +109,10 @@ namespace OoLunar.Tomoe.Database.Models
             }
         }
 
+        /// <summary>
+        /// Remove members from the guild. Ignores members who do not belong in the guild.
+        /// </summary>
+        /// <param name="membersToRemove">The members to remove.</param>
         internal void RemoveMembers(IEnumerable<GuildMemberModel> membersToRemove)
         {
             ArgumentNullException.ThrowIfNull(membersToRemove, nameof(membersToRemove));
@@ -104,13 +120,14 @@ namespace OoLunar.Tomoe.Database.Models
             int totalMemberCount = 0;
             foreach (GuildMemberModel member in membersToRemove)
             {
+                // Skip so that the rest of the members may be removed. We don't need only half of the list removed because of one member.
                 if (member.GuildModel.GuildId != GuildId)
                 {
                     Logger.LogWarning("RemoveMembersAsync: Member {MemberId} from guild {MemberGuild} was attempted to be removed from guild {GuildId}.", member.UserId, member.GuildModel.GuildId, GuildId);
                     continue;
                 }
-
-                if (_members.TryRemove(member))
+                // Try removing the member, if it fails, ignore.
+                else if (_members.TryRemove(member))
                 {
                     totalMemberCount++;
                 }
