@@ -150,13 +150,13 @@ namespace OoLunar.Tomoe.Database.Models
             if (!message.HasValue)
             {
                 // Message, Channel, Guild was deleted or permissions changed so that we can no longer access it.
-                Logger.LogDebug("Poll {Id} (created by {CreatorId} in {GuildId}) is now inaccessible due to the message, channel or guild being deleted or permissions were changed. Removing.", Id, CreatorId, GuildId);
+                Logger.LogDebug("Poll {Id} (created by {CreatorId} in {GuildId}) is inaccessible due to the message, channel or guild being deleted or permissions were changed. Removing.", Id, CreatorId, GuildId);
                 return true;
             }
             else if (message.Value == null)
             {
                 // Server problem, post pone 5 minutes.
-                Logger.LogDebug("Poll {Id} (created by {CreatorId} in {GuildId}) is now inaccessible due to a server problem. Postponing for 5 minutes later.", Id, CreatorId, GuildId);
+                Logger.LogDebug("Poll {Id} (created by {CreatorId} in {GuildId}) is inaccessible due to a server problem. Postponing for 5 minutes later.", Id, CreatorId, GuildId);
                 ExpiresAt = ExpiresAt.AddMinutes(5);
                 return true;
             }

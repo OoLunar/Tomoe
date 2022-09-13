@@ -40,13 +40,13 @@ namespace OoLunar.Tomoe.Interfaces
         {
             if (!context.Member!.CanExecute(permissions, member))
             {
-                await context.RespondAsync("You cannot kick a user with a higher or equal role than you.");
+                await context.RespondAsync("You cannot do this action to the user who has a higher or equal role than you.");
                 Audit.AddNote("User has a higher or equal role than the authorizer.");
                 return false;
             }
             else if (!context.Guild.CurrentMember.CanExecute(permissions, member))
             {
-                await context.RespondAsync("I cannot kick a user with a higher or equal role than me.");
+                await context.RespondAsync("I cannot do this action to the user who has a higher or equal role than me.");
                 Audit.AddNote("User has a higher or equal role than me.");
                 return false;
             }

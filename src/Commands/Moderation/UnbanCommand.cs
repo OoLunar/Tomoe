@@ -43,12 +43,12 @@ namespace OoLunar.Tomoe.Commands.Moderation
             try
             {
                 await context.Guild.UnbanMemberAsync(user, reason);
+                Audit.Successful = true;
             }
             catch (DiscordException error)
             {
                 Audit.AddNote($"Failed to unban, HTTP Error {error.WebResponse.ResponseCode}: {error.JsonMessage}.");
                 await context.RespondAsync($"I was unable to unban the user, HTTP Error {error.WebResponse.ResponseCode}: {error.JsonMessage}.");
-                Audit.Successful = false;
                 return;
             }
 
