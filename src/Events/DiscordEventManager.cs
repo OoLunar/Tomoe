@@ -99,7 +99,7 @@ namespace OoLunar.Tomoe
                     {
                         throw new ArgumentException($"The event {eventName} was not found on the type {eventHandler.EventType.Name}.");
                     }
-                    else if (!eventInfo.EventHandlerType!.DeclaringMethod?.GetParameters().SequenceEqual(eventHandler.EventHandler.GetParameters()) ?? false)
+                    else if (!eventInfo.EventHandlerType!.GetGenericArguments().SequenceEqual(eventHandler.EventHandler.GetParameters().Select(parameter => parameter.ParameterType)))
                     {
                         throw new ArgumentException($"The event {eventName} on the type {eventHandler.EventType.Name} does not have the same parameters as the event handler {eventHandler.EventHandler.Name}.");
                     }

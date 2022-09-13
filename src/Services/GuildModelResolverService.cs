@@ -26,14 +26,13 @@ namespace OoLunar.Tomoe.Services
         /// </summary>
         private CancellationToken CancellationToken { get; init; }
 
-        public GuildModelResolverService(EdgeDBClient edgeDBClient, MemoryCache memoryCache, CancellationToken cancellationToken)
+        public GuildModelResolverService(EdgeDBClient edgeDBClient, CancellationTokenSource cancellationTokenSource)
         {
             ArgumentNullException.ThrowIfNull(edgeDBClient, nameof(edgeDBClient));
-            ArgumentNullException.ThrowIfNull(memoryCache, nameof(memoryCache));
 
+            GuildModelCache = new(new MemoryCacheOptions());
             EdgeDBClient = edgeDBClient;
-            GuildModelCache = memoryCache;
-            CancellationToken = cancellationToken;
+            CancellationToken = cancellationTokenSource.Token;
         }
 
         /// <summary>

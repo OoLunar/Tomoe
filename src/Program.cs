@@ -12,6 +12,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OoLunar.Tomoe.Converters;
+using OoLunar.Tomoe.Database;
 using OoLunar.Tomoe.Services;
 using OoLunar.Tomoe.Utilities;
 using Serilog;
@@ -76,6 +77,9 @@ namespace OoLunar.Tomoe
                 TLSSecurity = TLSSecurityMode.Insecure // Temporarily insecure until I can figure out how to make it secure. I guess it can stay insecure in production since it'll only make connections to localhost
             }, (config) => config.Logger = new SerilogLoggerFactory(Log.Logger).CreateLogger<EdgeDBClient>());
 
+
+            // Tracks multiple objects and their changes
+            serviceCollection.AddSingleton<DatabaseTracker>();
             // Add the expirable service for reminders and polls (and other things that expire)
             serviceCollection.AddSingleton(typeof(ExpirableService<>));
             // Add the guild model resolver for caching
