@@ -8,12 +8,12 @@ namespace OoLunar.Tomoe.Database.Models
         /// <summary>
         /// The option's text.
         /// </summary>
-        public string Option { get; private init; } = null!;
+        public string Option { get; private set; } = null!;
 
         /// <summary>
         /// The poll the option is for.
         /// </summary>
-        public PollModel Poll { get; private init; } = null!;
+        public PollModel Poll { get; private set; } = null!;
 
         public PollOptionModel() { }
         public PollOptionModel(string option, PollModel poll)

@@ -11,6 +11,7 @@ using EdgeDB;
 using Humanizer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using OoLunar.Tomoe.Database.Converters;
 using OoLunar.Tomoe.Interfaces;
 using OoLunar.Tomoe.Utilities;
 
@@ -25,27 +26,31 @@ namespace OoLunar.Tomoe.Database.Models
         /// <summary>
         /// Who created the poll.
         /// </summary>
-        public ulong CreatorId { get; private init; }
+        [EdgeDBTypeConverter(typeof(UlongTypeConverter))]
+        public ulong CreatorId { get; private set; }
 
         /// <summary>
         /// Which guild the poll was sent in, if any.
         /// </summary>
-        public ulong? GuildId { get; private init; }
+        [EdgeDBTypeConverter(typeof(UlongTypeConverter))]
+        public ulong? GuildId { get; private set; }
 
         /// <summary>
         /// Which channel the poll was sent in.
         /// </summary>
-        public ulong ChannelId { get; private init; }
+        [EdgeDBTypeConverter(typeof(UlongTypeConverter))]
+        public ulong ChannelId { get; private set; }
 
         /// <summary>
         /// The id of the poll.
         /// </summary>
+        [EdgeDBTypeConverter(typeof(UlongTypeConverter))]
         public ulong? MessageId { get; private set; }
 
         /// <summary>
         /// The poll's question.
         /// </summary>
-        public string Question { get; private init; } = null!;
+        public string Question { get; private set; } = null!;
 
         /// <summary>
         /// When the poll ends.
@@ -55,14 +60,16 @@ namespace OoLunar.Tomoe.Database.Models
         /// <summary>
         /// The available options a user can vote for.
         /// </summary>
+        [EdgeDBIgnore]
         public IReadOnlyList<PollOptionModel> Options => _options.ToArray();
-        private ConcurrentHashSet<PollOptionModel> _options { get; init; } = new();
+        private ConcurrentHashSet<PollOptionModel> _options { get; set; } = new();
 
         /// <summary>
         /// The options the user has voted for.
         /// </summary>
+        [EdgeDBIgnore]
         public IReadOnlyList<PollVoteModel> Votes => _votes.ToArray();
-        private ConcurrentHashSet<PollVoteModel> _votes { get; init; } = new();
+        private ConcurrentHashSet<PollVoteModel> _votes { get; set; } = new();
 
         private ILogger<PollModel> Logger { get; init; } = null!;
 

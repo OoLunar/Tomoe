@@ -4,6 +4,7 @@ using System.Linq;
 using ConcurrentCollections;
 using EdgeDB;
 using Microsoft.Extensions.Logging;
+using OoLunar.Tomoe.Database.Converters;
 
 namespace OoLunar.Tomoe.Database.Models
 {
@@ -16,17 +17,18 @@ namespace OoLunar.Tomoe.Database.Models
         /// <summary>
         /// The guild that the member is linked to.
         /// </summary>
-        public GuildModel GuildModel { get; private init; } = null!;
+        public GuildModel GuildModel { get; private set; } = null!;
 
         /// <summary>
         /// The user's id.
         /// </summary>
-        public ulong UserId { get; private init; }
+        [EdgeDBTypeConverter(typeof(UlongTypeConverter))]
+        public ulong UserId { get; private set; }
 
         /// <summary>
         /// When the member first joined the guild.
         /// </summary>
-        public DateTimeOffset JoinedAt { get; private init; }
+        public DateTimeOffset JoinedAt { get; private set; }
 
         /// <summary>
         /// Whether the member is still in the guild.
@@ -36,6 +38,7 @@ namespace OoLunar.Tomoe.Database.Models
         /// <summary>
         /// A list of role ids the user currently has.
         /// </summary>
+        [EdgeDBIgnore]
         public IReadOnlyList<ulong> Roles => _roles.ToArray();
         private ConcurrentHashSet<ulong> _roles { get; set; } = new();
 

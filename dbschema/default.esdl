@@ -4,7 +4,7 @@ module default {
             readonly := true;
         };
 
-        required property user_id -> str {
+        required property user_id -> int64 {
             readonly := true;
         };
 
@@ -21,7 +21,7 @@ module default {
             readonly := true;
         };
 
-        required property creator_id -> str {
+        required property creator_id -> int64 {
             readonly := true;
         };
 
@@ -31,7 +31,7 @@ module default {
     }
 
     type Guild {
-        required property guild_id -> str {
+        required property guild_id -> int64 {
           readonly := true;
           constraint exclusive;
         };
@@ -49,7 +49,7 @@ module default {
             readonly := true;
         };
 
-        required property creator_id -> str {
+        required property creator_id -> int64 {
             readonly := true;
         };
     }
@@ -59,7 +59,7 @@ module default {
             readonly := true;
         };
 
-        required property voter_id -> str {
+        required property voter_id -> int64 {
             readonly := true;
         };
 
@@ -67,19 +67,19 @@ module default {
     }
 
     type Poll {
-        required property creator_id -> str {
+        required property creator_id -> int64 {
             readonly := true;
         };
 
-        property guild_id -> str {
+        property guild_id -> int64 {
             readonly := true;
         };
 
-        required property channel_id -> str {
+        required property channel_id -> int64 {
             readonly := true;
         };
 
-        property message_id -> str;
+        property message_id -> int64;
 
         required property question -> str {
             readonly := true;
@@ -112,7 +112,7 @@ module default {
             readonly := true;
         };
 
-        required property affected_users -> array<str> {
+        required property affected_users -> array<int64> {
             readonly := true;
         };
 
@@ -134,7 +134,7 @@ module default {
     }
 
     type Reminder {
-        required property owner_id -> str {
+        required property owner_id -> int64 {
             readonly := true;
         };
 

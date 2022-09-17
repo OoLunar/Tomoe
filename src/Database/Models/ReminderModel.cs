@@ -1,5 +1,7 @@
 using System;
 using DSharpPlus;
+using EdgeDB;
+using OoLunar.Tomoe.Database.Converters;
 
 namespace OoLunar.Tomoe.Database.Models
 {
@@ -11,17 +13,18 @@ namespace OoLunar.Tomoe.Database.Models
         /// <summary>
         /// Who the reminder is for.
         /// </summary>
-        public ulong OwnerId { get; init; }
+        [EdgeDBTypeConverter(typeof(UlongTypeConverter))]
+        public ulong OwnerId { get; private set; }
 
         /// <summary>
         /// The link to the message that created the reminder.
         /// </summary>
-        public Uri MessageLink { get; init; } = null!;
+        public Uri MessageLink { get; private set; } = null!;
 
         /// <summary>
         /// When the reminder was created at.
         /// </summary>
-        public DateTimeOffset CreatedAt { get; init; }
+        public DateTimeOffset CreatedAt { get; private set; }
 
         /// <summary>
         /// When the reminder expires.
@@ -36,7 +39,7 @@ namespace OoLunar.Tomoe.Database.Models
         /// <summary>
         /// The guild that the reminder is set in, if any.
         /// </summary>
-        public GuildModel? Guild { get; init; }
+        public GuildModel? Guild { get; private set; }
 
         public ReminderModel() { }
         public ReminderModel(ulong ownerId, string messageLink, DateTimeOffset expiresAt, string? content = null, GuildModel? guild = null)

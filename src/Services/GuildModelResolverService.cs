@@ -44,7 +44,7 @@ namespace OoLunar.Tomoe.Services
         {
             if (!GuildModelCache.TryGetValue(guildId, out GuildModel? guildModel))
             {
-                guildModel = (await EdgeDBClient.QueryAsync<GuildModel?>("SELECT GuildModel FILTER .id = $guildId", new Dictionary<string, object?>() { ["guildId"] = guildId }, Capabilities.ReadOnly, CancellationToken)).FirstOrDefault();
+                guildModel = (await EdgeDBClient.QueryAsync<GuildModel?>("SELECT Guild FILTER .guild_id = <int64>$guildId", new Dictionary<string, object?>() { ["guildId"] = (long)guildId }, Capabilities.ReadOnly, CancellationToken)).FirstOrDefault();
                 if (guildModel != null)
                 {
                     // Cache the guild model for 5 minutes, resetting the expire time in the process.

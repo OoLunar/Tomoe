@@ -5,6 +5,7 @@ using ConcurrentCollections;
 using EdgeDB;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using OoLunar.Tomoe.Database.Converters;
 
 namespace OoLunar.Tomoe.Database.Models
 {
@@ -17,7 +18,8 @@ namespace OoLunar.Tomoe.Database.Models
         /// <summary>
         /// The guild id.
         /// </summary>
-        public ulong GuildId { get; private init; }
+        [EdgeDBTypeConverter(typeof(UlongTypeConverter))]
+        public ulong GuildId { get; private set; }
 
         /// <summary>
         /// Whether the bot is in the guild.

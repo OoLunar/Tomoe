@@ -1,4 +1,5 @@
 using EdgeDB;
+using OoLunar.Tomoe.Database.Converters;
 
 namespace OoLunar.Tomoe.Database.Models
 {
@@ -11,12 +12,13 @@ namespace OoLunar.Tomoe.Database.Models
         /// <summary>
         /// The poll that the vote is attached too.
         /// </summary>
-        public PollModel Poll { get; private init; } = null!;
+        public PollModel Poll { get; private set; } = null!;
 
         /// <summary>
         /// Who the vote represents.
         /// </summary>
-        public ulong VoterId { get; private init; }
+        [EdgeDBTypeConverter(typeof(UlongTypeConverter))]
+        public ulong VoterId { get; private set; }
 
         /// <summary>
         /// Which option the voter is voting for.

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using EdgeDB;
 
 namespace OoLunar.Tomoe.Database
 {
@@ -13,6 +14,7 @@ namespace OoLunar.Tomoe.Database
         /// <summary>
         /// Whether the object is disposed or not.
         /// </summary>
+        [EdgeDBIgnore]
         public bool IsDisposed { get; internal set; }
 
         /// <summary>

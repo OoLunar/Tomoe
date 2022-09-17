@@ -1,5 +1,6 @@
 using System;
 using EdgeDB;
+using OoLunar.Tomoe.Database.Converters;
 
 namespace OoLunar.Tomoe.Database.Models
 {
@@ -12,17 +13,18 @@ namespace OoLunar.Tomoe.Database.Models
         /// <summary>
         /// The prefix to listen for.
         /// </summary>
-        public string Prefix { get; init; } = null!;
+        public string Prefix { get; private set; } = null!;
 
         /// <summary>
         /// The id of the user who created the prefix.
         /// </summary>
-        public ulong Creator { get; init; }
+        [EdgeDBTypeConverter(typeof(UlongTypeConverter))]
+        public ulong Creator { get; private set; }
 
         /// <summary>
         /// When the prefix was created.
         /// </summary>
-        public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
+        public DateTimeOffset CreatedAt { get; private set; } = DateTimeOffset.UtcNow;
 
         internal GuildPrefixModel(string prefix, ulong creator)
         {
