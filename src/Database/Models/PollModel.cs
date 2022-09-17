@@ -62,6 +62,7 @@ namespace OoLunar.Tomoe.Database.Models
         /// </summary>
         [EdgeDBIgnore]
         public IReadOnlyList<PollOptionModel> Options => _options.ToArray();
+        [EdgeDBTypeConverter(typeof(IEnumerableTypeConverter<PollOptionModel, PollOptionModel>))]
         private ConcurrentHashSet<PollOptionModel> _options { get; set; } = new();
 
         /// <summary>
@@ -69,6 +70,7 @@ namespace OoLunar.Tomoe.Database.Models
         /// </summary>
         [EdgeDBIgnore]
         public IReadOnlyList<PollVoteModel> Votes => _votes.ToArray();
+        [EdgeDBTypeConverter(typeof(IEnumerableTypeConverter<PollVoteModel, PollVoteModel>))]
         private ConcurrentHashSet<PollVoteModel> _votes { get; set; } = new();
 
         private ILogger<PollModel> Logger { get; init; } = null!;

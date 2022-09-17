@@ -6,6 +6,7 @@ using DSharpPlus;
 using DSharpPlus.Entities;
 using EdgeDB;
 using EdgeDB.DataTypes;
+using OoLunar.Tomoe.Database.Converters;
 
 namespace OoLunar.Tomoe.Database.Models
 {
@@ -35,6 +36,7 @@ namespace OoLunar.Tomoe.Database.Models
         /// </summary>
         [EdgeDBIgnore]
         public IReadOnlyList<ulong> AffectedUsers => _affectedUsers.ToArray();
+        [EdgeDBTypeConverter(typeof(IEnumerableTypeConverter<ulong, long>))]
         private ConcurrentHashSet<ulong> _affectedUsers { get; set; } = new();
 
         /// <summary>
@@ -52,6 +54,7 @@ namespace OoLunar.Tomoe.Database.Models
         /// </summary>
         [EdgeDBIgnore]
         public IReadOnlyList<string> Notes => _notes.ToArray();
+        [EdgeDBTypeConverter(typeof(IEnumerableTypeConverter<string, string>))]
         private ConcurrentHashSet<string> _notes { get; set; } = new();
 
         /// <summary>

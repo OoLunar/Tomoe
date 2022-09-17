@@ -40,6 +40,7 @@ namespace OoLunar.Tomoe.Database.Models
         /// </summary>
         [EdgeDBIgnore]
         public IReadOnlyList<ulong> Roles => _roles.ToArray();
+        [EdgeDBTypeConverter(typeof(IEnumerableTypeConverter<ulong, long>))]
         private ConcurrentHashSet<ulong> _roles { get; set; } = new();
 
         private ILogger<GuildMemberModel> Logger { get; init; } = null!;
