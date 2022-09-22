@@ -1,12 +1,11 @@
 using System.IO;
 using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using DSharpPlus.Net.Serialization;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
@@ -46,11 +45,7 @@ namespace OoLunar.Tomoe.Commands.Common
                 for (int i = 0; i < message.Embeds.Count; i++)
                 {
                     DiscordEmbed embed = message.Embeds[i];
-                    messageBuilder.WithFile($"Embed {i + 1}.json", new MemoryStream(JsonSerializer.SerializeToUtf8Bytes(embed, new JsonSerializerOptions()
-                    {
-                        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-                        WriteIndented = true
-                    })));
+                    messageBuilder.WithFile($"Embed {i + 1}.json", new MemoryStream(Encoding.UTF8.GetBytes(DiscordJson.SerializeObject(embed))));
                 }
             }
 
