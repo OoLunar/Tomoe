@@ -1,14 +1,14 @@
+using System.Globalization;
+using System.Linq;
+using System.Threading.Tasks;
+using DSharpPlus;
+using DSharpPlus.Entities;
+using DSharpPlus.SlashCommands;
+using Humanizer;
+using Tomoe.Db;
+
 namespace Tomoe.Commands
 {
-    using System.Globalization;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using DSharpPlus;
-    using DSharpPlus.Entities;
-    using DSharpPlus.SlashCommands;
-    using Humanizer;
-    using Tomoe.Db;
-
     public partial class Public : ApplicationCommandModule
     {
         public partial class Tags : ApplicationCommandModule

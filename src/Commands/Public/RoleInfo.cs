@@ -1,15 +1,15 @@
+using System;
+using System.Globalization;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using DSharpPlus;
+using DSharpPlus.Entities;
+using DSharpPlus.SlashCommands;
+using Humanizer;
+
 namespace Tomoe.Commands
 {
-    using System;
-    using System.Globalization;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
-    using DSharpPlus;
-    using DSharpPlus.Entities;
-    using DSharpPlus.SlashCommands;
-    using Humanizer;
-
     public partial class Public : ApplicationCommandModule
     {
         [SlashCommand("role_info", "Gets general information about a role.")]

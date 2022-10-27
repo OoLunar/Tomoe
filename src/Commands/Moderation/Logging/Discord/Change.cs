@@ -1,13 +1,13 @@
+using System.Linq;
+using System.Threading.Tasks;
+using DSharpPlus;
+using DSharpPlus.Entities;
+using DSharpPlus.SlashCommands;
+using Tomoe.Commands.Attributes;
+using Tomoe.Db;
+
 namespace Tomoe.Commands
 {
-    using System.Linq;
-    using System.Threading.Tasks;
-    using DSharpPlus;
-    using DSharpPlus.Entities;
-    using DSharpPlus.SlashCommands;
-    using Tomoe.Commands.Attributes;
-    using Tomoe.Db;
-
     public partial class Moderation : ApplicationCommandModule
     {
         public partial class Logging : ApplicationCommandModule

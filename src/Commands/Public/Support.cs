@@ -1,9 +1,9 @@
+using System.Threading.Tasks;
+using DSharpPlus;
+using DSharpPlus.SlashCommands;
+
 namespace Tomoe.Commands
 {
-    using System.Threading.Tasks;
-    using DSharpPlus;
-    using DSharpPlus.SlashCommands;
-
     public partial class Public : ApplicationCommandModule
     {
         [SlashCommand("support", "Sends the support Discord invite.")]

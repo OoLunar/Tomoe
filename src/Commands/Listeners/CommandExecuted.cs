@@ -1,12 +1,12 @@
+using System.Linq;
+using System.Threading.Tasks;
+using DSharpPlus.SlashCommands;
+using DSharpPlus.SlashCommands.EventArgs;
+using Microsoft.Extensions.DependencyInjection;
+using Tomoe.Db;
+
 namespace Tomoe.Commands
 {
-    using System.Linq;
-    using System.Threading.Tasks;
-    using DSharpPlus.SlashCommands;
-    using DSharpPlus.SlashCommands.EventArgs;
-    using Microsoft.Extensions.DependencyInjection;
-    using Tomoe.Db;
-
     public partial class Listeners
     {
         public static async Task CommandExecuted(SlashCommandsExtension slashCommandExtension, SlashCommandExecutedEventArgs slashCommandExecutedEventArgs)

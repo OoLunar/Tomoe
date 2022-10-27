@@ -1,14 +1,14 @@
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using DSharpPlus;
+using DSharpPlus.Entities;
+using DSharpPlus.EventArgs;
+using Microsoft.Extensions.DependencyInjection;
+using Tomoe.Db;
+
 namespace Tomoe.Commands
 {
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using DSharpPlus;
-    using DSharpPlus.Entities;
-    using DSharpPlus.EventArgs;
-    using Microsoft.Extensions.DependencyInjection;
-    using Tomoe.Db;
-
     public partial class Listeners
     {
         public static async Task GuildMemberCache(DiscordClient discordClient, GuildCreateEventArgs guildCreateEventArgs)

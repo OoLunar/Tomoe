@@ -1,16 +1,16 @@
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Threading.Tasks;
+using DSharpPlus;
+using DSharpPlus.Entities;
+using DSharpPlus.SlashCommands;
+using Humanizer;
+using Tomoe.Commands.Attributes;
+using Tomoe.Db;
+
 namespace Tomoe.Commands
 {
-    using System.Collections.Generic;
-    using System.Globalization;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using DSharpPlus;
-    using DSharpPlus.Entities;
-    using DSharpPlus.SlashCommands;
-    using Humanizer;
-    using Tomoe.Commands.Attributes;
-    using Tomoe.Db;
-
     public partial class Moderation : ApplicationCommandModule
     {
         [SlashCommand("unmute", "Allows the user to talk in the guild again."), Hierarchy(Permissions.ManageMessages)]

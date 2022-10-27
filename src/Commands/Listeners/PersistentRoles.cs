@@ -1,17 +1,17 @@
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Threading.Tasks;
+using DSharpPlus;
+using DSharpPlus.Entities;
+using DSharpPlus.EventArgs;
+using Humanizer;
+using Microsoft.Extensions.DependencyInjection;
+using Tomoe.Db;
+
 namespace Tomoe.Commands
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Globalization;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using DSharpPlus;
-    using DSharpPlus.Entities;
-    using DSharpPlus.EventArgs;
-    using Humanizer;
-    using Microsoft.Extensions.DependencyInjection;
-    using Tomoe.Db;
-
     public partial class Listeners
     {
         public static async Task PersistentRoles(DiscordClient discordClient, GuildMemberAddEventArgs guildMemberAddEventArgs)

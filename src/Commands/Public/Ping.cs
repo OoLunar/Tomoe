@@ -1,9 +1,9 @@
+using System.Threading.Tasks;
+using DSharpPlus;
+using DSharpPlus.SlashCommands;
+
 namespace Tomoe.Commands
 {
-    using System.Threading.Tasks;
-    using DSharpPlus;
-    using DSharpPlus.SlashCommands;
-
     public partial class Public : ApplicationCommandModule
     {
         [SlashCommand("ping", "Checks the latency between the bot and the Discord API. Best used to see if the bot is lagging.")]

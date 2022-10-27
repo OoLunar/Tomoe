@@ -1,15 +1,15 @@
+using System;
+using System.Globalization;
+using System.Linq;
+using System.Threading.Tasks;
+using DSharpPlus;
+using DSharpPlus.Entities;
+using DSharpPlus.EventArgs;
+using Microsoft.Extensions.DependencyInjection;
+using Tomoe.Db;
+
 namespace Tomoe.Commands
 {
-    using System;
-    using System.Globalization;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using DSharpPlus;
-    using DSharpPlus.Entities;
-    using DSharpPlus.EventArgs;
-    using Microsoft.Extensions.DependencyInjection;
-    using Tomoe.Db;
-
     public partial class Listeners
     {
         public static async Task AutoReactions(DiscordClient discordClient, MessageCreateEventArgs messageCreateEventArgs)

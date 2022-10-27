@@ -1,7 +1,7 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace Tomoe.Db
 {
-    using System.ComponentModel.DataAnnotations;
-
     public class ModLog
     {
         [Key]

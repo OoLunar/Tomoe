@@ -1,16 +1,16 @@
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using DSharpPlus;
+using DSharpPlus.Entities;
+using DSharpPlus.Exceptions;
+using DSharpPlus.SlashCommands;
+using Microsoft.Extensions.DependencyInjection;
+using Tomoe.Commands.Attributes;
+using Tomoe.Db;
+
 namespace Tomoe.Commands
 {
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using DSharpPlus;
-    using DSharpPlus.Entities;
-    using DSharpPlus.Exceptions;
-    using DSharpPlus.SlashCommands;
-    using Microsoft.Extensions.DependencyInjection;
-    using Tomoe.Commands.Attributes;
-    using Tomoe.Db;
-
     public partial class Moderation : ApplicationCommandModule
     {
         public enum CustomEvent

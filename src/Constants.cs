@@ -1,8 +1,8 @@
+using System.Linq;
+using DSharpPlus.Entities;
+
 namespace Tomoe
 {
-    using System.Linq;
-    using DSharpPlus.Entities;
-
     public class Constants
     {
         public const string MissingReason = "Notice: No reason was provided.";

@@ -1,10 +1,10 @@
+using System.Threading.Tasks;
+using DSharpPlus;
+using DSharpPlus.Entities;
+using DSharpPlus.SlashCommands;
+
 namespace Tomoe.Commands
 {
-    using System.Threading.Tasks;
-    using DSharpPlus;
-    using DSharpPlus.Entities;
-    using DSharpPlus.SlashCommands;
-
     public partial class Public : ApplicationCommandModule
     {
         [SlashCommand("avatar", "Gets someone's profile picture, optionally with a preferred image format and dimensions.")]

@@ -1,11 +1,11 @@
+using System;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using DSharpPlus;
+using DSharpPlus.SlashCommands;
+
 namespace Tomoe.Commands
 {
-    using System;
-    using System.Text.RegularExpressions;
-    using System.Threading.Tasks;
-    using DSharpPlus;
-    using DSharpPlus.SlashCommands;
-
     public partial class Public : ApplicationCommandModule
     {
         public static Regex RegexArgumentParser { get; private set; } = new("\"([^\"]+)\"|(\\S+)");

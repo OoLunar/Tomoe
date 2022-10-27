@@ -1,8 +1,8 @@
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+
 namespace Tomoe.Db
 {
-    using System.Collections.Generic;
-    using System.ComponentModel.DataAnnotations;
-
     public class GuildConfig
     {
         public bool AntiInvite { get; internal set; } = true;

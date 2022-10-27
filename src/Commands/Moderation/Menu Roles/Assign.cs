@@ -1,15 +1,15 @@
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Threading.Tasks;
+using DSharpPlus;
+using DSharpPlus.Entities;
+using DSharpPlus.EventArgs;
+using DSharpPlus.SlashCommands;
+using Tomoe.Db;
+
 namespace Tomoe.Commands
 {
-    using System.Collections.Generic;
-    using System.Globalization;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using DSharpPlus;
-    using DSharpPlus.Entities;
-    using DSharpPlus.EventArgs;
-    using DSharpPlus.SlashCommands;
-    using Tomoe.Db;
-
     public partial class Moderation
     {
         public partial class MenuRoles : ApplicationCommandModule

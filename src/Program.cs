@@ -1,15 +1,15 @@
+using System;
+using System.Threading.Tasks;
+using System.Timers;
+using DSharpPlus;
+using DSharpPlus.SlashCommands;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Serilog;
+using Tomoe.Utilities.Configs;
+
 namespace Tomoe
 {
-    using System;
-    using System.Threading.Tasks;
-    using System.Timers;
-    using DSharpPlus;
-    using DSharpPlus.SlashCommands;
-    using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Logging;
-    using Serilog;
-    using Tomoe.Utilities.Configs;
-
     public class Program
     {
         public static DiscordShardedClient Client { get; private set; }

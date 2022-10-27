@@ -1,17 +1,17 @@
+using System;
+using System.Globalization;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using DSharpPlus;
+using DSharpPlus.Entities;
+using DSharpPlus.SlashCommands;
+using DSharpPlus.SlashCommands.EventArgs;
+using Humanizer;
+using Serilog;
+
 namespace Tomoe.Commands
 {
-    using System;
-    using System.Globalization;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
-    using DSharpPlus;
-    using DSharpPlus.Entities;
-    using DSharpPlus.SlashCommands;
-    using DSharpPlus.SlashCommands.EventArgs;
-    using Humanizer;
-    using Serilog;
-
     public partial class Listeners
     {
         private static readonly ILogger Logger = Log.ForContext<Listeners>();

@@ -1,10 +1,10 @@
+using System.Threading.Tasks;
+using DSharpPlus;
+using DSharpPlus.Entities;
+using DSharpPlus.SlashCommands;
+
 namespace Tomoe.Commands
 {
-    using System.Threading.Tasks;
-    using DSharpPlus;
-    using DSharpPlus.Entities;
-    using DSharpPlus.SlashCommands;
-
     public partial class Public : ApplicationCommandModule
     {
         [SlashCommand("guild_icon", "Gets the guild's icon.")]

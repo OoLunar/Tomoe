@@ -1,16 +1,16 @@
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Threading.Tasks;
+using DSharpPlus;
+using DSharpPlus.Entities;
+using DSharpPlus.SlashCommands;
+using Humanizer;
+using Tomoe.Commands.Attributes;
+using Tomoe.Db;
+
 namespace Tomoe.Commands
 {
-    using System.Collections.Generic;
-    using System.Globalization;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using DSharpPlus;
-    using DSharpPlus.Entities;
-    using DSharpPlus.SlashCommands;
-    using Humanizer;
-    using Tomoe.Commands.Attributes;
-    using Tomoe.Db;
-
     public partial class Moderation : ApplicationCommandModule
     {
         [SlashCommand("unantimeme", "Removes an antimeme from the victim. They can now react, send embeds or upload files."), Hierarchy(Permissions.ManageMessages)]

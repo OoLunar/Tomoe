@@ -1,16 +1,16 @@
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Threading.Tasks;
+using DSharpPlus;
+using DSharpPlus.Entities;
+using DSharpPlus.SlashCommands;
+using Humanizer;
+using Tomoe.Commands.Attributes;
+using Tomoe.Db;
+
 namespace Tomoe.Commands
 {
-    using System.Collections.Generic;
-    using System.Globalization;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using DSharpPlus;
-    using DSharpPlus.Entities;
-    using DSharpPlus.SlashCommands;
-    using Humanizer;
-    using Tomoe.Commands.Attributes;
-    using Tomoe.Db;
-
     public partial class Moderation : ApplicationCommandModule
     {
         [SlashCommand("mute", "Prevents a user from having any sort of interaction in the guild."), Hierarchy(Permissions.ManageMessages)]

@@ -1,9 +1,9 @@
+using Microsoft.EntityFrameworkCore.Design;
+using Microsoft.Extensions.DependencyInjection;
+using Tomoe.Utilities.Configs;
+
 namespace Tomoe.Db
 {
-    using Microsoft.EntityFrameworkCore.Design;
-    using Microsoft.Extensions.DependencyInjection;
-    using Tomoe.Utilities.Configs;
-
     public class DatabaseFactory : IDesignTimeDbContextFactory<Database>
     {
         public Database CreateDbContext(string[] args)

@@ -1,11 +1,11 @@
+using System.Linq;
+using System.Threading.Tasks;
+using DSharpPlus;
+using DSharpPlus.SlashCommands;
+using Tomoe.Db;
+
 namespace Tomoe.Commands
 {
-    using System.Linq;
-    using System.Threading.Tasks;
-    using DSharpPlus;
-    using DSharpPlus.SlashCommands;
-    using Tomoe.Db;
-
     public partial class Public : ApplicationCommandModule
     {
         [SlashCommandGroup("tag", "Manages text walls for later use on common scenarios.")]

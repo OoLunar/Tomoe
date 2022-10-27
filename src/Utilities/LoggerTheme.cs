@@ -1,11 +1,11 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using Serilog.Sinks.SystemConsole.Themes;
+
 namespace Tomoe.Utilities
 {
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using Serilog.Sinks.SystemConsole.Themes;
-
     public class LoggerTheme : ConsoleTheme
     {
         public const string AnsiStyleReset = "\x1b[0m";

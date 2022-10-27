@@ -1,9 +1,9 @@
+using System.Threading.Tasks;
+using DSharpPlus;
+using DSharpPlus.SlashCommands;
+
 namespace Tomoe.Commands
 {
-    using System.Threading.Tasks;
-    using DSharpPlus;
-    using DSharpPlus.SlashCommands;
-
     public partial class Public : ApplicationCommandModule
     {
         [SlashCommand("invite", "Sends the link to add Tomoe to a guild.")]

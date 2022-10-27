@@ -1,14 +1,14 @@
+using System.Globalization;
+using System.Text.Json.Serialization;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Npgsql;
+using Serilog;
+
 namespace Tomoe.Utilities.Configs
 {
-    using System.Globalization;
-    using System.Text.Json.Serialization;
-    using System.Threading.Tasks;
-    using Microsoft.EntityFrameworkCore;
-    using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Logging;
-    using Npgsql;
-    using Serilog;
-
     public class Database
     {
         [JsonPropertyName("application_name")]

@@ -1,12 +1,12 @@
+using System;
+using System.Globalization;
+using System.Text.Json.Serialization;
+using Microsoft.Extensions.DependencyInjection;
+using Serilog;
+using Serilog.Events;
+
 namespace Tomoe.Utilities.Configs
 {
-    using System;
-    using System.Globalization;
-    using System.Text.Json.Serialization;
-    using Microsoft.Extensions.DependencyInjection;
-    using Serilog;
-    using Serilog.Events;
-
     public class Logger
     {
         [JsonPropertyName("tomoe"), JsonConverter(typeof(JsonStringEnumConverter))]

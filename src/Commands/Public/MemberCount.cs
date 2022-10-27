@@ -1,10 +1,10 @@
+using System.Threading.Tasks;
+using DSharpPlus;
+using DSharpPlus.SlashCommands;
+using Humanizer;
+
 namespace Tomoe.Commands
 {
-    using System.Threading.Tasks;
-    using DSharpPlus;
-    using DSharpPlus.SlashCommands;
-    using Humanizer;
-
     public partial class Public : ApplicationCommandModule
     {
         [SlashCommand("member_count", "Sends the approximate member count.")]

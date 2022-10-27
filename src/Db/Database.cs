@@ -1,11 +1,11 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using DSharpPlus.Entities;
+using Microsoft.EntityFrameworkCore;
+
 namespace Tomoe.Db
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using DSharpPlus.Entities;
-    using Microsoft.EntityFrameworkCore;
-
     public class Database : DbContext
     {
         public Database(DbContextOptions<Database> options) : base(options) { }

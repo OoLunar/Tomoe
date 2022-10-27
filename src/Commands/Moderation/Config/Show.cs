@@ -1,13 +1,13 @@
+using System.Linq;
+using System.Threading.Tasks;
+using DSharpPlus;
+using DSharpPlus.Entities;
+using DSharpPlus.SlashCommands;
+using Humanizer;
+using Tomoe.Db;
+
 namespace Tomoe.Commands
 {
-    using System.Linq;
-    using System.Threading.Tasks;
-    using DSharpPlus;
-    using DSharpPlus.Entities;
-    using DSharpPlus.SlashCommands;
-    using Humanizer;
-    using Tomoe.Db;
-
     public partial class Moderation : ApplicationCommandModule
     {
         [SlashCommandGroup("config", "Manages the bot settings.")]

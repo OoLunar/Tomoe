@@ -1,11 +1,11 @@
+using System;
+using System.Globalization;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
+
 namespace Tomoe.Utilities.Converters
 {
-    using System;
-    using System.Globalization;
-    using System.Text.Json;
-    using System.Text.Json.Serialization;
-    using System.Text.RegularExpressions;
-
     /// <summary>
     /// This is for System.Text.Json, not DSharpPlus!
     /// </summary>

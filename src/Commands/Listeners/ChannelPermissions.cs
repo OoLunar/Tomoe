@@ -1,11 +1,11 @@
+using System.Linq;
+using DSharpPlus;
+using DSharpPlus.EventArgs;
+using Microsoft.Extensions.DependencyInjection;
+using Tomoe.Db;
+
 namespace Tomoe.Commands
 {
-    using System.Linq;
-    using DSharpPlus;
-    using DSharpPlus.EventArgs;
-    using Microsoft.Extensions.DependencyInjection;
-    using Tomoe.Db;
-
     public partial class Listeners
     {
         public static void ChannelPermissions(DiscordClient discordClient, ChannelCreateEventArgs channelCreateEventArgs)

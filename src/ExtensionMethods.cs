@@ -1,15 +1,15 @@
+using System;
+using System.Globalization;
+using System.Linq;
+using System.Threading.Tasks;
+using DSharpPlus;
+using DSharpPlus.Entities;
+using DSharpPlus.Exceptions;
+using DSharpPlus.SlashCommands;
+using Tomoe.Utilities.Types;
+
 namespace Tomoe
 {
-    using System;
-    using System.Globalization;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using DSharpPlus;
-    using DSharpPlus.Entities;
-    using DSharpPlus.Exceptions;
-    using DSharpPlus.SlashCommands;
-    using Tomoe.Utilities.Types;
-
     public static class ExtensionMethods
     {
         /// <summary>

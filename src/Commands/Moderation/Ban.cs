@@ -1,15 +1,15 @@
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Threading.Tasks;
+using DSharpPlus;
+using DSharpPlus.Entities;
+using DSharpPlus.SlashCommands;
+using Humanizer;
+using Tomoe.Commands.Attributes;
+
 namespace Tomoe.Commands
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Globalization;
-    using System.Threading.Tasks;
-    using DSharpPlus;
-    using DSharpPlus.Entities;
-    using DSharpPlus.SlashCommands;
-    using Humanizer;
-    using Tomoe.Commands.Attributes;
-
     public partial class Moderation : ApplicationCommandModule
     {
         [SlashCommand("ban", "Bans a member from the guild, sending them off with a dm."), Hierarchy(Permissions.BanMembers, true)]

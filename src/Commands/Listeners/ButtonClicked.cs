@@ -1,15 +1,15 @@
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Threading.Tasks;
+using DSharpPlus;
+using DSharpPlus.EventArgs;
+using Microsoft.Extensions.DependencyInjection;
+using Tomoe.Db;
+using Tomoe.Utilities.Types;
+
 namespace Tomoe.Commands
 {
-    using System.Collections.Generic;
-    using System.Globalization;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using DSharpPlus;
-    using DSharpPlus.EventArgs;
-    using Microsoft.Extensions.DependencyInjection;
-    using Tomoe.Db;
-    using Tomoe.Utilities.Types;
-
     public partial class Listeners
     {
         public static Dictionary<string, QueueButton> QueueButtons { get; private set; } = new();

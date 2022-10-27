@@ -1,8 +1,8 @@
+using System.Threading.Tasks;
+using DSharpPlus.Entities;
+
 namespace Tomoe.Utilities.Types
 {
-    using System.Threading.Tasks;
-    using DSharpPlus.Entities;
-
     public class QueueButton
     {
         public string Id { get; private set; }

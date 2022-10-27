@@ -28,6 +28,7 @@ charset = utf-8
 
 # Organize usings
 dotnet_sort_system_directives_first = true:error
+csharp_using_directive_placement = outside_namespace:error
 # Using directive is unnecessary.
 dotnet_diagnostic.IDE0005.severity = error
 

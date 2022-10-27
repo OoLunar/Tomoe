@@ -1,10 +1,10 @@
+using System;
+using System.Threading.Tasks;
+using DSharpPlus.Entities;
+using DSharpPlus.SlashCommands;
+
 namespace Tomoe.Commands
 {
-    using System;
-    using System.Threading.Tasks;
-    using DSharpPlus.Entities;
-    using DSharpPlus.SlashCommands;
-
     public partial class Moderation : ApplicationCommandModule
     {
         public partial class MenuRoles : ApplicationCommandModule
