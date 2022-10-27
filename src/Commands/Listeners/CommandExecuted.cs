@@ -1,10 +1,10 @@
 namespace Tomoe.Commands
 {
+    using System.Linq;
+    using System.Threading.Tasks;
     using DSharpPlus.SlashCommands;
     using DSharpPlus.SlashCommands.EventArgs;
     using Microsoft.Extensions.DependencyInjection;
-    using System.Linq;
-    using System.Threading.Tasks;
     using Tomoe.Db;
 
     public partial class Listeners

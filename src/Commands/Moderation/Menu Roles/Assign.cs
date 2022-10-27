@@ -1,13 +1,13 @@
 namespace Tomoe.Commands
 {
-    using DSharpPlus;
-    using DSharpPlus.Entities;
-    using DSharpPlus.EventArgs;
-    using DSharpPlus.SlashCommands;
     using System.Collections.Generic;
     using System.Globalization;
     using System.Linq;
     using System.Threading.Tasks;
+    using DSharpPlus;
+    using DSharpPlus.Entities;
+    using DSharpPlus.EventArgs;
+    using DSharpPlus.SlashCommands;
     using Tomoe.Db;
 
     public partial class Moderation
@@ -43,9 +43,11 @@ namespace Tomoe.Commands
                     options.Add(selectOption);
                 }
 
-                DiscordInteractionResponseBuilder responseBuilder = new();
-                responseBuilder.IsEphemeral = true;
-                responseBuilder.Content = "Select your roles!";
+                DiscordInteractionResponseBuilder responseBuilder = new()
+                {
+                    IsEphemeral = true,
+                    Content = "Select your roles!"
+                };
 
                 DiscordSelectComponent menu = new(id + '-' + "2", "Select your roles!", options, false, 0, options.Count);
                 responseBuilder.AddComponents(menu);

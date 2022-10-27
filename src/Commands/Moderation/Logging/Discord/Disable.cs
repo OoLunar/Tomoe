@@ -1,9 +1,9 @@
 namespace Tomoe.Commands
 {
-    using DSharpPlus;
-    using DSharpPlus.SlashCommands;
     using System.Linq;
     using System.Threading.Tasks;
+    using DSharpPlus;
+    using DSharpPlus.SlashCommands;
     using Tomoe.Commands.Attributes;
     using Tomoe.Db;
 

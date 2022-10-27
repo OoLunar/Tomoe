@@ -1,7 +1,7 @@
 namespace Tomoe
 {
-    using DSharpPlus.Entities;
     using System.Linq;
+    using DSharpPlus.Entities;
 
     public class Constants
     {

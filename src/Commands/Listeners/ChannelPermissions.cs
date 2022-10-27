@@ -1,9 +1,9 @@
 namespace Tomoe.Commands
 {
+    using System.Linq;
     using DSharpPlus;
     using DSharpPlus.EventArgs;
     using Microsoft.Extensions.DependencyInjection;
-    using System.Linq;
     using Tomoe.Db;
 
     public partial class Listeners

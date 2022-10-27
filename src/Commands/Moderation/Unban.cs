@@ -1,13 +1,13 @@
 namespace Tomoe.Commands
 {
+    using System.Collections.Generic;
+    using System.Globalization;
+    using System.Threading.Tasks;
     using DSharpPlus;
     using DSharpPlus.Entities;
     using DSharpPlus.Exceptions;
     using DSharpPlus.SlashCommands;
     using Humanizer;
-    using System.Collections.Generic;
-    using System.Globalization;
-    using System.Threading.Tasks;
     using Tomoe.Commands.Attributes;
 
     public partial class Moderation : ApplicationCommandModule
@@ -50,20 +50,22 @@ namespace Tomoe.Commands
             await context.Guild.UnbanMemberAsync(victim.Id, unbanReason);
             bool sentDm = await victim.TryDmMember($"You've been unbanned from {context.Guild.Name} by {context.Member.Mention} ({Formatter.InlineCode(context.Member.Id.ToString(CultureInfo.InvariantCulture))}). Reason: {unbanReason}");
 
-            Dictionary<string, string> keyValuePairs = new();
-            keyValuePairs.Add("guild_name", context.Guild.Name);
-            keyValuePairs.Add("guild_count", Public.TotalMemberCount[context.Guild.Id].ToMetric());
-            keyValuePairs.Add("guild_id", context.Guild.Id.ToString(CultureInfo.InvariantCulture));
-            keyValuePairs.Add("victim_username", victim.Username);
-            keyValuePairs.Add("victim_tag", victim.Discriminator);
-            keyValuePairs.Add("victim_mention", victim.Mention);
-            keyValuePairs.Add("victim_id", victim.Id.ToString(CultureInfo.InvariantCulture));
-            keyValuePairs.Add("moderator_username", context.Member.Username);
-            keyValuePairs.Add("moderator_tag", context.Member.Discriminator);
-            keyValuePairs.Add("moderator_mention", context.Member.Mention);
-            keyValuePairs.Add("moderator_id", context.Member.Id.ToString(CultureInfo.InvariantCulture));
-            keyValuePairs.Add("moderator_displayname", context.Member.DisplayName);
-            keyValuePairs.Add("punishment_reason", unbanReason);
+            Dictionary<string, string> keyValuePairs = new()
+            {
+                { "guild_name", context.Guild.Name },
+                { "guild_count", Public.TotalMemberCount[context.Guild.Id].ToMetric() },
+                { "guild_id", context.Guild.Id.ToString(CultureInfo.InvariantCulture) },
+                { "victim_username", victim.Username },
+                { "victim_tag", victim.Discriminator },
+                { "victim_mention", victim.Mention },
+                { "victim_id", victim.Id.ToString(CultureInfo.InvariantCulture) },
+                { "moderator_username", context.Member.Username },
+                { "moderator_tag", context.Member.Discriminator },
+                { "moderator_mention", context.Member.Mention },
+                { "moderator_id", context.Member.Id.ToString(CultureInfo.InvariantCulture) },
+                { "moderator_displayname", context.Member.DisplayName },
+                { "punishment_reason", unbanReason }
+            };
             await ModLog(context.Guild, keyValuePairs, DiscordEvent.Unban);
 
             await context.EditResponseAsync(new()

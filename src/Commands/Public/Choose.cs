@@ -1,10 +1,10 @@
 namespace Tomoe.Commands
 {
-    using DSharpPlus;
-    using DSharpPlus.SlashCommands;
     using System;
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
+    using DSharpPlus;
+    using DSharpPlus.SlashCommands;
 
     public partial class Public : ApplicationCommandModule
     {

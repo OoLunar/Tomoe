@@ -1,10 +1,10 @@
 namespace Tomoe.Utilities
 {
-    using Serilog.Sinks.SystemConsole.Themes;
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using Serilog.Sinks.SystemConsole.Themes;
 
     public class LoggerTheme : ConsoleTheme
     {

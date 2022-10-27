@@ -1,15 +1,15 @@
 namespace Tomoe.Commands
 {
-    using DSharpPlus;
-    using DSharpPlus.Entities;
-    using DSharpPlus.SlashCommands;
-    using DSharpPlus.SlashCommands.Attributes;
-    using Microsoft.Extensions.DependencyInjection;
     using System;
     using System.Collections.Generic;
     using System.Globalization;
     using System.Linq;
     using System.Threading.Tasks;
+    using DSharpPlus;
+    using DSharpPlus.Entities;
+    using DSharpPlus.SlashCommands;
+    using DSharpPlus.SlashCommands.Attributes;
+    using Microsoft.Extensions.DependencyInjection;
     using Tomoe.Db;
     using Tomoe.Utilities.Converters;
 

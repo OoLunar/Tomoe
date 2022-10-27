@@ -1,13 +1,13 @@
 namespace Tomoe.Commands
 {
-    using DSharpPlus;
-    using DSharpPlus.Entities;
-    using DSharpPlus.SlashCommands;
-    using Humanizer;
     using System.Collections.Generic;
     using System.Globalization;
     using System.Linq;
     using System.Threading.Tasks;
+    using DSharpPlus;
+    using DSharpPlus.Entities;
+    using DSharpPlus.SlashCommands;
+    using Humanizer;
     using Tomoe.Commands.Attributes;
     using Tomoe.Db;
 
@@ -87,21 +87,23 @@ namespace Tomoe.Commands
                 await guildVictim.GrantRoleAsync(antimemeRole, $"{context.User.Mention} ({context.User.Username}#{context.User.Discriminator}) antimemed {victim.Mention} ({victim.Username}#{victim.Discriminator}).\nReason: {reason}");
             }
 
-            Dictionary<string, string> keyValuePairs = new();
-            keyValuePairs.Add("guild_name", context.Guild.Name);
-            keyValuePairs.Add("guild_count", Public.TotalMemberCount[context.Guild.Id].ToMetric());
-            keyValuePairs.Add("guild_id", context.Guild.Id.ToString(CultureInfo.InvariantCulture));
-            keyValuePairs.Add("victim_username", guildVictim.Username);
-            keyValuePairs.Add("victim_tag", guildVictim.Discriminator);
-            keyValuePairs.Add("victim_mention", guildVictim.Mention);
-            keyValuePairs.Add("victim_id", guildVictim.Id.ToString(CultureInfo.InvariantCulture));
-            keyValuePairs.Add("victim_displayname", guildVictim.DisplayName);
-            keyValuePairs.Add("moderator_username", context.Member.Username);
-            keyValuePairs.Add("moderator_tag", context.Member.Discriminator);
-            keyValuePairs.Add("moderator_mention", context.Member.Mention);
-            keyValuePairs.Add("moderator_id", context.Member.Id.ToString(CultureInfo.InvariantCulture));
-            keyValuePairs.Add("moderator_displayname", context.Member.DisplayName);
-            keyValuePairs.Add("punishment_reason", reason);
+            Dictionary<string, string> keyValuePairs = new()
+            {
+                { "guild_name", context.Guild.Name },
+                { "guild_count", Public.TotalMemberCount[context.Guild.Id].ToMetric() },
+                { "guild_id", context.Guild.Id.ToString(CultureInfo.InvariantCulture) },
+                { "victim_username", guildVictim.Username },
+                { "victim_tag", guildVictim.Discriminator },
+                { "victim_mention", guildVictim.Mention },
+                { "victim_id", guildVictim.Id.ToString(CultureInfo.InvariantCulture) },
+                { "victim_displayname", guildVictim.DisplayName },
+                { "moderator_username", context.Member.Username },
+                { "moderator_tag", context.Member.Discriminator },
+                { "moderator_mention", context.Member.Mention },
+                { "moderator_id", context.Member.Id.ToString(CultureInfo.InvariantCulture) },
+                { "moderator_displayname", context.Member.DisplayName },
+                { "punishment_reason", reason }
+            };
             await ModLog(context.Guild, keyValuePairs, CustomEvent.Antimeme, Database);
 
             await context.EditResponseAsync(new()

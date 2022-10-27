@@ -1,13 +1,13 @@
 namespace Tomoe.Commands
 {
-    using DSharpPlus;
-    using DSharpPlus.Entities;
-    using DSharpPlus.SlashCommands;
-    using Humanizer;
     using System;
     using System.Collections.Generic;
     using System.Globalization;
     using System.Threading.Tasks;
+    using DSharpPlus;
+    using DSharpPlus.Entities;
+    using DSharpPlus.SlashCommands;
+    using Humanizer;
     using Tomoe.Db;
 
     public partial class Moderation : ApplicationCommandModule
@@ -42,19 +42,21 @@ namespace Tomoe.Commands
                     await channel.AddOverwriteAsync(role, Permissions.None, categoryPermissions, auditLogReason);
                 }
 
-                Dictionary<string, string> keyValuePairs = new();
-                keyValuePairs.Add("guild_name", guild.Name);
-                keyValuePairs.Add("guild_count", Public.TotalMemberCount[guild.Id].ToMetric());
-                keyValuePairs.Add("guild_id", guild.Id.ToString(CultureInfo.InvariantCulture));
-                keyValuePairs.Add("moderator_username", discordMember.Username);
-                keyValuePairs.Add("moderator_tag", discordMember.Discriminator);
-                keyValuePairs.Add("moderator_mention", discordMember.Mention);
-                keyValuePairs.Add("moderator_id", discordMember.Id.ToString(CultureInfo.InvariantCulture));
-                keyValuePairs.Add("moderator_displayname", discordMember.DisplayName);
-                keyValuePairs.Add("role_mention", role.Mention);
-                keyValuePairs.Add("role_name", role.Name);
-                keyValuePairs.Add("role_id", role.Id.ToString(CultureInfo.InvariantCulture));
-                keyValuePairs.Add("role_type", roleType.Humanize());
+                Dictionary<string, string> keyValuePairs = new()
+                {
+                    { "guild_name", guild.Name },
+                    { "guild_count", Public.TotalMemberCount[guild.Id].ToMetric() },
+                    { "guild_id", guild.Id.ToString(CultureInfo.InvariantCulture) },
+                    { "moderator_username", discordMember.Username },
+                    { "moderator_tag", discordMember.Discriminator },
+                    { "moderator_mention", discordMember.Mention },
+                    { "moderator_id", discordMember.Id.ToString(CultureInfo.InvariantCulture) },
+                    { "moderator_displayname", discordMember.DisplayName },
+                    { "role_mention", role.Mention },
+                    { "role_name", role.Name },
+                    { "role_id", role.Id.ToString(CultureInfo.InvariantCulture) },
+                    { "role_type", roleType.Humanize() }
+                };
                 await ModLog(guild, keyValuePairs, CustomEvent.RoleCreation, database, false);
             }
         }

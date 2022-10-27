@@ -1,11 +1,11 @@
 namespace Tomoe.Utilities.Configs
 {
-    using Microsoft.Extensions.DependencyInjection;
-    using Serilog;
-    using Serilog.Events;
     using System;
     using System.Globalization;
     using System.Text.Json.Serialization;
+    using Microsoft.Extensions.DependencyInjection;
+    using Serilog;
+    using Serilog.Events;
 
     public class Logger
     {

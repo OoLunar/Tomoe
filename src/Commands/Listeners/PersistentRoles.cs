@@ -1,15 +1,15 @@
 namespace Tomoe.Commands
 {
-    using DSharpPlus;
-    using DSharpPlus.Entities;
-    using DSharpPlus.EventArgs;
-    using Humanizer;
-    using Microsoft.Extensions.DependencyInjection;
     using System;
     using System.Collections.Generic;
     using System.Globalization;
     using System.Linq;
     using System.Threading.Tasks;
+    using DSharpPlus;
+    using DSharpPlus.Entities;
+    using DSharpPlus.EventArgs;
+    using Humanizer;
+    using Microsoft.Extensions.DependencyInjection;
     using Tomoe.Db;
 
     public partial class Listeners
@@ -51,13 +51,15 @@ namespace Tomoe.Commands
                 }
             }
 
-            Dictionary<string, string> keyValuePairs = new();
-            keyValuePairs.Add("guild_name", guildMemberAddEventArgs.Guild.Name);
-            keyValuePairs.Add("guild_count", Public.TotalMemberCount[guildMemberAddEventArgs.Guild.Id].ToMetric());
-            keyValuePairs.Add("person_username", guildMemberAddEventArgs.Member.Username);
-            keyValuePairs.Add("person_tag", guildMemberAddEventArgs.Member.Discriminator);
-            keyValuePairs.Add("person_mention", $"<@{guildMemberAddEventArgs.Member.Id}>");
-            keyValuePairs.Add("person_id", guildMemberAddEventArgs.Member.Id.ToString(CultureInfo.InvariantCulture));
+            Dictionary<string, string> keyValuePairs = new()
+            {
+                { "guild_name", guildMemberAddEventArgs.Guild.Name },
+                { "guild_count", Public.TotalMemberCount[guildMemberAddEventArgs.Guild.Id].ToMetric() },
+                { "person_username", guildMemberAddEventArgs.Member.Username },
+                { "person_tag", guildMemberAddEventArgs.Member.Discriminator },
+                { "person_mention", $"<@{guildMemberAddEventArgs.Member.Id}>" },
+                { "person_id", guildMemberAddEventArgs.Member.Id.ToString(CultureInfo.InvariantCulture) }
+            };
 
             await Moderation.ModLog(guildMemberAddEventArgs.Guild, keyValuePairs, Moderation.DiscordEvent.MemberJoined, database);
             await database.SaveChangesAsync();
@@ -87,13 +89,15 @@ namespace Tomoe.Commands
 
             if (database.ModLogs.Any(x => x.GuildId == guildMemberRemoveEventArgs.Guild.Id && x.DiscordEvent == Moderation.DiscordEvent.MemberLeft))
             {
-                Dictionary<string, string> keyValuePairs = new();
-                keyValuePairs.Add("guild_name", guildMemberRemoveEventArgs.Guild.Name);
-                keyValuePairs.Add("guild_count", Public.TotalMemberCount[guildMemberRemoveEventArgs.Guild.Id].ToMetric());
-                keyValuePairs.Add("person_username", guildMemberRemoveEventArgs.Member.Username);
-                keyValuePairs.Add("person_tag", guildMemberRemoveEventArgs.Member.Discriminator);
-                keyValuePairs.Add("person_mention", guildMemberRemoveEventArgs.Member.Mention);
-                keyValuePairs.Add("person_id", guildMemberRemoveEventArgs.Member.Id.ToString(CultureInfo.InvariantCulture));
+                Dictionary<string, string> keyValuePairs = new()
+                {
+                    { "guild_name", guildMemberRemoveEventArgs.Guild.Name },
+                    { "guild_count", Public.TotalMemberCount[guildMemberRemoveEventArgs.Guild.Id].ToMetric() },
+                    { "person_username", guildMemberRemoveEventArgs.Member.Username },
+                    { "person_tag", guildMemberRemoveEventArgs.Member.Discriminator },
+                    { "person_mention", guildMemberRemoveEventArgs.Member.Mention },
+                    { "person_id", guildMemberRemoveEventArgs.Member.Id.ToString(CultureInfo.InvariantCulture) }
+                };
 
                 await Moderation.ModLog(guildMemberRemoveEventArgs.Guild, keyValuePairs, Moderation.DiscordEvent.MemberLeft, database);
             }

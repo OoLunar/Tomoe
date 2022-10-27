@@ -1,13 +1,13 @@
 namespace Tomoe
 {
+    using System;
+    using System.Threading.Tasks;
+    using System.Timers;
     using DSharpPlus;
     using DSharpPlus.SlashCommands;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using Serilog;
-    using System;
-    using System.Threading.Tasks;
-    using System.Timers;
     using Tomoe.Utilities.Configs;
 
     public class Program
@@ -71,9 +71,11 @@ namespace Tomoe
             }
             logger.Information("Commands up!");
 
-            Timer timer = new();
-            timer.AutoReset = true;
-            timer.Interval = TimeSpan.FromMinutes(1).TotalMilliseconds;
+            Timer timer = new()
+            {
+                AutoReset = true,
+                Interval = TimeSpan.FromMinutes(1).TotalMilliseconds
+            };
             timer.Elapsed += Commands.Moderation.TempRoleEventAsync;
             timer.Start();
             logger.Information("Started temporary roles event.");

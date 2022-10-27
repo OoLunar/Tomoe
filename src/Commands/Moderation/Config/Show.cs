@@ -1,11 +1,11 @@
 namespace Tomoe.Commands
 {
+    using System.Linq;
+    using System.Threading.Tasks;
     using DSharpPlus;
     using DSharpPlus.Entities;
     using DSharpPlus.SlashCommands;
     using Humanizer;
-    using System.Linq;
-    using System.Threading.Tasks;
     using Tomoe.Db;
 
     public partial class Moderation : ApplicationCommandModule

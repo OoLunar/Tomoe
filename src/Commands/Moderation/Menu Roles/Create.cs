@@ -1,12 +1,12 @@
 namespace Tomoe.Commands
 {
-    using DSharpPlus;
-    using DSharpPlus.Entities;
-    using DSharpPlus.SlashCommands;
     using System.Collections.Generic;
     using System.Globalization;
     using System.Linq;
     using System.Threading.Tasks;
+    using DSharpPlus;
+    using DSharpPlus.Entities;
+    using DSharpPlus.SlashCommands;
     using Tomoe.Commands.Attributes;
     using Tomoe.Db;
 
@@ -111,8 +111,10 @@ namespace Tomoe.Commands
                 await Database.SaveChangesAsync();
 
                 DiscordButtonComponent button = new(ButtonStyle.Primary, context.InteractionId + "-1", buttonText);
-                DiscordMessageBuilder messageBuilder = new();
-                messageBuilder.Content = messageContent.Replace("\\n", "\n");
+                DiscordMessageBuilder messageBuilder = new()
+                {
+                    Content = messageContent.Replace("\\n", "\n")
+                };
                 messageBuilder.AddComponents(button);
                 await channel.SendMessageAsync(messageBuilder);
 

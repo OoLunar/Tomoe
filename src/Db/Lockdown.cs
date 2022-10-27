@@ -1,7 +1,7 @@
 namespace Tomoe.Db
 {
-    using DSharpPlus;
     using System.ComponentModel.DataAnnotations;
+    using DSharpPlus;
 
     public class Lock
     {

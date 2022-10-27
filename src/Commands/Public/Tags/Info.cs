@@ -1,12 +1,12 @@
 namespace Tomoe.Commands
 {
+    using System.Globalization;
+    using System.Linq;
+    using System.Threading.Tasks;
     using DSharpPlus;
     using DSharpPlus.Entities;
     using DSharpPlus.SlashCommands;
     using Humanizer;
-    using System.Globalization;
-    using System.Linq;
-    using System.Threading.Tasks;
     using Tomoe.Db;
 
     public partial class Public : ApplicationCommandModule
@@ -27,9 +27,11 @@ namespace Tomoe.Commands
                     return;
                 }
 
-                DiscordEmbedBuilder embedBuilder = new();
-                embedBuilder.Color = new DiscordColor("#7b84d1");
-                embedBuilder.Title = "Information on tag " + tag.Name;
+                DiscordEmbedBuilder embedBuilder = new()
+                {
+                    Color = new DiscordColor("#7b84d1"),
+                    Title = "Information on tag " + tag.Name
+                };
                 embedBuilder.AddField("Is An Alias", tag.IsAlias.ToString());
                 if (tag.IsAlias)
                 {

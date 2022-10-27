@@ -1,13 +1,13 @@
 namespace Tomoe.Utilities.Configs
 {
+    using System.Globalization;
+    using System.Text.Json.Serialization;
+    using System.Threading.Tasks;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using Npgsql;
     using Serilog;
-    using System.Globalization;
-    using System.Text.Json.Serialization;
-    using System.Threading.Tasks;
 
     public class Database
     {
@@ -34,13 +34,15 @@ namespace Tomoe.Utilities.Configs
             Serilog.ILogger logger = Log.ForContext<Database>();
             services.AddDbContext<Db.Database>(options =>
             {
-                NpgsqlConnectionStringBuilder connectionBuilder = new();
-                connectionBuilder.ApplicationName = ApplicationName;
-                connectionBuilder.Database = DatabaseName;
-                connectionBuilder.Host = Host;
-                connectionBuilder.Username = Username;
-                connectionBuilder.Port = Port;
-                connectionBuilder.Password = Password;
+                NpgsqlConnectionStringBuilder connectionBuilder = new()
+                {
+                    ApplicationName = ApplicationName,
+                    Database = DatabaseName,
+                    Host = Host,
+                    Username = Username,
+                    Port = Port,
+                    Password = Password
+                };
                 options.UseNpgsql(connectionBuilder.ToString(), options => options.EnableRetryOnFailure());
                 options.UseLoggerFactory(services.BuildServiceProvider().GetService<ILoggerFactory>());
                 options.UseSnakeCaseNamingConvention(CultureInfo.InvariantCulture);

@@ -1,12 +1,12 @@
 namespace Tomoe.Commands
 {
+    using System.Collections.Generic;
+    using System.Globalization;
+    using System.Threading.Tasks;
     using DSharpPlus;
     using DSharpPlus.Entities;
     using DSharpPlus.SlashCommands;
     using Humanizer;
-    using System.Collections.Generic;
-    using System.Globalization;
-    using System.Threading.Tasks;
     using Tomoe.Commands.Attributes;
 
     public partial class Moderation : ApplicationCommandModule
@@ -27,21 +27,23 @@ namespace Tomoe.Commands
             bool sentDm = await victimUser.TryDmMember($"You've been kicked from {context.Guild.Name} by {context.Member.Mention} ({Formatter.InlineCode(context.Member.Id.ToString(CultureInfo.InvariantCulture))}). Reason: {reason}");
             await victimMember.RemoveAsync(reason);
 
-            Dictionary<string, string> keyValuePairs = new();
-            keyValuePairs.Add("guild_name", context.Guild.Name);
-            keyValuePairs.Add("guild_count", Public.TotalMemberCount[context.Guild.Id].ToMetric());
-            keyValuePairs.Add("guild_id", context.Guild.Id.ToString(CultureInfo.InvariantCulture));
-            keyValuePairs.Add("victim_username", victimMember.Username);
-            keyValuePairs.Add("victim_tag", victimMember.Discriminator);
-            keyValuePairs.Add("victim_mention", victimMember.Mention);
-            keyValuePairs.Add("victim_id", victimMember.Id.ToString(CultureInfo.InvariantCulture));
-            keyValuePairs.Add("victim_displayname", victimMember.DisplayName);
-            keyValuePairs.Add("moderator_username", context.Member.Username);
-            keyValuePairs.Add("moderator_tag", context.Member.Discriminator);
-            keyValuePairs.Add("moderator_mention", context.Member.Mention);
-            keyValuePairs.Add("moderator_id", context.Member.Id.ToString(CultureInfo.InvariantCulture));
-            keyValuePairs.Add("moderator_displayname", context.Member.DisplayName);
-            keyValuePairs.Add("punishment_reason", reason);
+            Dictionary<string, string> keyValuePairs = new()
+            {
+                { "guild_name", context.Guild.Name },
+                { "guild_count", Public.TotalMemberCount[context.Guild.Id].ToMetric() },
+                { "guild_id", context.Guild.Id.ToString(CultureInfo.InvariantCulture) },
+                { "victim_username", victimMember.Username },
+                { "victim_tag", victimMember.Discriminator },
+                { "victim_mention", victimMember.Mention },
+                { "victim_id", victimMember.Id.ToString(CultureInfo.InvariantCulture) },
+                { "victim_displayname", victimMember.DisplayName },
+                { "moderator_username", context.Member.Username },
+                { "moderator_tag", context.Member.Discriminator },
+                { "moderator_mention", context.Member.Mention },
+                { "moderator_id", context.Member.Id.ToString(CultureInfo.InvariantCulture) },
+                { "moderator_displayname", context.Member.DisplayName },
+                { "punishment_reason", reason }
+            };
             await ModLog(context.Guild, keyValuePairs, DiscordEvent.Ban);
 
             await context.EditResponseAsync(new()

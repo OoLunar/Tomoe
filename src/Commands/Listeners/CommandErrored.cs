@@ -1,16 +1,16 @@
 namespace Tomoe.Commands
 {
+    using System;
+    using System.Globalization;
+    using System.Linq;
+    using System.Text;
+    using System.Threading.Tasks;
     using DSharpPlus;
     using DSharpPlus.Entities;
     using DSharpPlus.SlashCommands;
     using DSharpPlus.SlashCommands.EventArgs;
     using Humanizer;
     using Serilog;
-    using System;
-    using System.Globalization;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
 
     public partial class Listeners
     {

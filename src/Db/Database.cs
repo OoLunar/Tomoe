@@ -1,12 +1,10 @@
 namespace Tomoe.Db
 {
-    using DSharpPlus.Entities;
-    using Microsoft.EntityFrameworkCore;
-    using Microsoft.EntityFrameworkCore.ChangeTracking;
     using System;
     using System.Collections.Generic;
-    using System.Globalization;
     using System.Linq;
+    using DSharpPlus.Entities;
+    using Microsoft.EntityFrameworkCore;
 
     public class Database : DbContext
     {

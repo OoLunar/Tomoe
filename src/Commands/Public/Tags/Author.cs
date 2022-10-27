@@ -1,8 +1,8 @@
 namespace Tomoe.Commands
 {
+    using System.Threading.Tasks;
     using DSharpPlus;
     using DSharpPlus.SlashCommands;
-    using System.Threading.Tasks;
     using Tomoe.Db;
 
     public partial class Public : ApplicationCommandModule

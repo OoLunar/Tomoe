@@ -1,9 +1,5 @@
 namespace Tomoe.Commands
 {
-    using DSharpPlus;
-    using DSharpPlus.Entities;
-    using DSharpPlus.Exceptions;
-    using DSharpPlus.SlashCommands;
     using System;
     using System.Collections.Generic;
     using System.Globalization;
@@ -13,6 +9,10 @@ namespace Tomoe.Commands
     using System.Text;
     using System.Text.Json;
     using System.Threading.Tasks;
+    using DSharpPlus;
+    using DSharpPlus.Entities;
+    using DSharpPlus.Exceptions;
+    using DSharpPlus.SlashCommands;
 
     public partial class Public : ApplicationCommandModule
     {

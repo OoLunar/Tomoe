@@ -1,9 +1,9 @@
 namespace Tomoe.Commands
 {
-    using DSharpPlus;
-    using DSharpPlus.SlashCommands;
     using System.Linq;
     using System.Threading.Tasks;
+    using DSharpPlus;
+    using DSharpPlus.SlashCommands;
     using Tomoe.Db;
 
     public partial class Public : ApplicationCommandModule
@@ -32,13 +32,15 @@ namespace Tomoe.Commands
                     });
                 }
 
-                Tag alias = new();
-                alias.AliasTo = oldTag.Name;
-                alias.GuildId = context.Guild.Id;
-                alias.IsAlias = true;
-                alias.Name = newTagName.ToLowerInvariant();
-                alias.OwnerId = context.User.Id;
-                alias.TagId = Database.Tags.Count(databaseTag => databaseTag.GuildId == context.Guild.Id) + 1;
+                Tag alias = new()
+                {
+                    AliasTo = oldTag.Name,
+                    GuildId = context.Guild.Id,
+                    IsAlias = true,
+                    Name = newTagName.ToLowerInvariant(),
+                    OwnerId = context.User.Id,
+                    TagId = Database.Tags.Count(databaseTag => databaseTag.GuildId == context.Guild.Id) + 1
+                };
                 Database.Tags.Add(alias);
                 await Database.SaveChangesAsync();
             }

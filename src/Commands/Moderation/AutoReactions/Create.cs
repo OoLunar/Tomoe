@@ -1,14 +1,14 @@
 namespace Tomoe.Commands
 {
-    using DSharpPlus;
-    using DSharpPlus.Entities;
-    using DSharpPlus.SlashCommands;
-    using Humanizer;
     using System.Collections.Generic;
     using System.Globalization;
     using System.Linq;
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
+    using DSharpPlus;
+    using DSharpPlus.Entities;
+    using DSharpPlus.SlashCommands;
+    using Humanizer;
     using Tomoe.Commands.Attributes;
     using Tomoe.Db;
 
@@ -92,16 +92,18 @@ namespace Tomoe.Commands
                     }
                 }
 
-                Dictionary<string, string> keyValuePairs = new();
-                keyValuePairs.Add("guild_name", context.Guild.Name);
-                keyValuePairs.Add("guild_count", Public.TotalMemberCount[context.Guild.Id].ToMetric());
-                keyValuePairs.Add("moderator_username", context.Member.Username);
-                keyValuePairs.Add("moderator_tag", context.Member.Discriminator);
-                keyValuePairs.Add("moderator_mention", context.Member.Mention);
-                keyValuePairs.Add("moderator_id", context.Member.Id.ToString(CultureInfo.InvariantCulture));
-                keyValuePairs.Add("moderator_displayname", context.Member.DisplayName);
-                keyValuePairs.Add("channels_affected", channelsAffected.Humanize());
-                keyValuePairs.Add("channel_emoji", emoji);
+                Dictionary<string, string> keyValuePairs = new()
+                {
+                    { "guild_name", context.Guild.Name },
+                    { "guild_count", Public.TotalMemberCount[context.Guild.Id].ToMetric() },
+                    { "moderator_username", context.Member.Username },
+                    { "moderator_tag", context.Member.Discriminator },
+                    { "moderator_mention", context.Member.Mention },
+                    { "moderator_id", context.Member.Id.ToString(CultureInfo.InvariantCulture) },
+                    { "moderator_displayname", context.Member.DisplayName },
+                    { "channels_affected", channelsAffected.Humanize() },
+                    { "channel_emoji", emoji }
+                };
                 await ModLog(context.Guild, keyValuePairs, CustomEvent.AutoReactionCreate, Database, true);
 
                 await context.EditResponseAsync(new()

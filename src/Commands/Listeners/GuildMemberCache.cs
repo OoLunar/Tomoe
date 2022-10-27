@@ -1,12 +1,12 @@
 namespace Tomoe.Commands
 {
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
     using DSharpPlus;
     using DSharpPlus.Entities;
     using DSharpPlus.EventArgs;
     using Microsoft.Extensions.DependencyInjection;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
     using Tomoe.Db;
 
     public partial class Listeners
@@ -24,8 +24,10 @@ namespace Tomoe.Commands
             GuildConfig guildConfig = database.GuildConfigs.FirstOrDefault(databaseGuildConfig => databaseGuildConfig.Id == guildCreateEventArgs.Guild.Id);
             if (guildConfig == null)
             {
-                guildConfig = new();
-                guildConfig.Id = guildCreateEventArgs.Guild.Id;
+                guildConfig = new()
+                {
+                    Id = guildCreateEventArgs.Guild.Id
+                };
                 database.GuildConfigs.Add(guildConfig);
             }
 

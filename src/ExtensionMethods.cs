@@ -1,13 +1,13 @@
 namespace Tomoe
 {
-    using DSharpPlus;
-    using DSharpPlus.Entities;
-    using DSharpPlus.Exceptions;
-    using DSharpPlus.SlashCommands;
     using System;
     using System.Globalization;
     using System.Linq;
     using System.Threading.Tasks;
+    using DSharpPlus;
+    using DSharpPlus.Entities;
+    using DSharpPlus.Exceptions;
+    using DSharpPlus.SlashCommands;
     using Tomoe.Utilities.Types;
 
     public static class ExtensionMethods
@@ -65,8 +65,10 @@ namespace Tomoe
             DiscordComponent[] buttonRow = new[] { yes, no };
             QueueButton queueButton = new(context.InteractionId.ToString(CultureInfo.InvariantCulture), context.User.Id, buttonRow);
 
-            DiscordWebhookBuilder responseBuilder = new();
-            responseBuilder.Content = prompt;
+            DiscordWebhookBuilder responseBuilder = new()
+            {
+                Content = prompt
+            };
             responseBuilder.AddComponents(buttonRow);
             await context.EditResponseAsync(responseBuilder);
 
@@ -74,8 +76,10 @@ namespace Tomoe
 
             yes.Disable();
             no.Disable();
-            DiscordWebhookBuilder editedResponse = new();
-            editedResponse.Content = Constants.Loading + ' ' + prompt;
+            DiscordWebhookBuilder editedResponse = new()
+            {
+                Content = Constants.Loading + ' ' + prompt
+            };
             editedResponse.AddComponents(buttonRow);
             await context.EditResponseAsync(editedResponse);
 

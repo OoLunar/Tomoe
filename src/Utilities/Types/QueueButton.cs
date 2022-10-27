@@ -1,7 +1,7 @@
 namespace Tomoe.Utilities.Types
 {
-    using DSharpPlus.Entities;
     using System.Threading.Tasks;
+    using DSharpPlus.Entities;
 
     public class QueueButton
     {
