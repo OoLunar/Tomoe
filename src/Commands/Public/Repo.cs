@@ -7,7 +7,7 @@ namespace Tomoe.Commands
     public partial class Public : ApplicationCommandModule
     {
         [SlashCommand("source_code", "Sends the source code for Tomoe.")]
-        public static async Task SourceCode(InteractionContext context) => await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+        public static Task SourceCodeAsync(InteractionContext context) => context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
         {
             Content = Program.Config.RepositoryLink
         });

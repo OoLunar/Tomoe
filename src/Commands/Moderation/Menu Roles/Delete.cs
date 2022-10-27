@@ -16,7 +16,7 @@ namespace Tomoe.Commands
         public partial class MenuRoles : ApplicationCommandModule
         {
             [SlashCommand("delete", "Deletes a menu role."), Hierarchy(Permissions.ManageChannels | Permissions.ManageMessages)]
-            public async Task Delete(InteractionContext context, [Option("message_link", "The message to the menu role.")] string messageString)
+            public async Task DeleteAsync(InteractionContext context, [Option("message_link", "The message to the menu role.")] string messageString)
             {
                 await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new());
                 DiscordMessage message;

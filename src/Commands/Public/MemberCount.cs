@@ -8,7 +8,7 @@ namespace Tomoe.Commands
     public partial class Public : ApplicationCommandModule
     {
         [SlashCommand("member_count", "Sends the approximate member count.")]
-        public static async Task MemberCount(InteractionContext context) => await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+        public static Task MemberCountAsync(InteractionContext context) => context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
         {
             Content = $"Approximate member count: {TotalMemberCount[context.Guild.Id].ToMetric()}",
         });

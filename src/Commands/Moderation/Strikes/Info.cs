@@ -13,7 +13,7 @@ namespace Tomoe.Commands
         public partial class Strikes : ApplicationCommandModule
         {
             [SlashCommand("info", "Gets information on a strike.")]
-            public async Task Info(InteractionContext context, [Option("strike_id", "Which strike to get information on.")] long strikeId)
+            public async Task InfoAsync(InteractionContext context, [Option("strike_id", "Which strike to get information on.")] long strikeId)
             {
                 Strike strike = Database.Strikes.FirstOrDefault(databaseStrike => databaseStrike.LogId == strikeId && databaseStrike.GuildId == context.Guild.Id);
                 string embedDescription = $"Created At: {strike.Changes.First().Humanize()}";

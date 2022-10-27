@@ -17,7 +17,7 @@ namespace Tomoe.Commands
         public partial class AutoReactions : ApplicationCommandModule
         {
             [SlashCommand("delete", "Deletes an autoreaction from a specified channel."), Hierarchy(Permissions.ManageChannels | Permissions.ManageMessages)]
-            public async Task Delete(InteractionContext context, [Option("channel", "Which guild channel to remove the autoreaction from.")] DiscordChannel channel, [Option("emoji", "Which emoji to react with.")] string emojiString)
+            public async Task DeleteAsync(InteractionContext context, [Option("channel", "Which guild channel to remove the autoreaction from.")] DiscordChannel channel, [Option("emoji", "Which emoji to react with.")] string emojiString)
             {
                 if (!DiscordEmoji.TryFromUnicode(context.Client, emojiString, out DiscordEmoji emoji))
                 {
@@ -92,7 +92,7 @@ namespace Tomoe.Commands
                     { "channels_affected", channelsAffected.Humanize() },
                     { "channel_emoji", emoji }
                 };
-                await ModLog(context.Guild, keyValuePairs, CustomEvent.AutoReactionDelete);
+                await ModLogAsync(context.Guild, keyValuePairs, CustomEvent.AutoReactionDelete);
 
                 await context.EditResponseAsync(new()
                 {

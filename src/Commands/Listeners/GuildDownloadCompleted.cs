@@ -12,7 +12,7 @@ namespace Tomoe.Commands
     {
         private static readonly ILogger logger = Log.ForContext<Listeners>();
 
-        public static async Task GuildDownloadCompleted(DiscordClient discordClient, GuildDownloadCompletedEventArgs guildDownloadCompletedEventArgs)
+        public static async Task GuildDownloadCompletedAsync(DiscordClient discordClient, GuildDownloadCompletedEventArgs guildDownloadCompletedEventArgs)
         {
             int guildCount = Public.TotalMemberCount.Count;
             int memberCount = Public.TotalMemberCount.Values.Sum();

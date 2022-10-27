@@ -12,7 +12,7 @@ namespace Tomoe.Commands
         public partial class Tags : ApplicationCommandModule
         {
             [SlashCommand("create", "Creates a new tag.")]
-            public async Task Create(InteractionContext context, [Option("name", "What to call the new tag.")] string tagName, [Option("tag_content", "What to fill the new tag with.")] string tagContent)
+            public async Task CreateAsync(InteractionContext context, [Option("name", "What to call the new tag.")] string tagName, [Option("tag_content", "What to fill the new tag with.")] string tagContent)
             {
                 Tag tag = await GetTagAsync(tagName, context.Guild.Id);
                 if (tag != null)

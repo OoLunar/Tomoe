@@ -14,7 +14,7 @@ namespace Tomoe.Commands
 {
     public partial class Listeners
     {
-        public static async Task PersistentRoles(DiscordClient discordClient, GuildMemberAddEventArgs guildMemberAddEventArgs)
+        public static async Task PersistentRolesAsync(DiscordClient discordClient, GuildMemberAddEventArgs guildMemberAddEventArgs)
         {
             Public.TotalMemberCount[guildMemberAddEventArgs.Guild.Id]++;
 
@@ -61,11 +61,11 @@ namespace Tomoe.Commands
                 { "person_id", guildMemberAddEventArgs.Member.Id.ToString(CultureInfo.InvariantCulture) }
             };
 
-            await Moderation.ModLog(guildMemberAddEventArgs.Guild, keyValuePairs, Moderation.DiscordEvent.MemberJoined, database);
+            await Moderation.ModLogAsync(guildMemberAddEventArgs.Guild, keyValuePairs, Moderation.DiscordEvent.MemberJoined, database);
             await database.SaveChangesAsync();
         }
 
-        public static async Task PersistentRoles(DiscordClient discordClient, GuildMemberRemoveEventArgs guildMemberRemoveEventArgs)
+        public static async Task PersistentRolesAsync(DiscordClient discordClient, GuildMemberRemoveEventArgs guildMemberRemoveEventArgs)
         {
             Public.TotalMemberCount[guildMemberRemoveEventArgs.Guild.Id]--;
 
@@ -99,7 +99,7 @@ namespace Tomoe.Commands
                     { "person_id", guildMemberRemoveEventArgs.Member.Id.ToString(CultureInfo.InvariantCulture) }
                 };
 
-                await Moderation.ModLog(guildMemberRemoveEventArgs.Guild, keyValuePairs, Moderation.DiscordEvent.MemberLeft, database);
+                await Moderation.ModLogAsync(guildMemberRemoveEventArgs.Guild, keyValuePairs, Moderation.DiscordEvent.MemberLeft, database);
             }
 
             await database.SaveChangesAsync();

@@ -14,7 +14,7 @@ namespace Tomoe.Commands
     public partial class Moderation : ApplicationCommandModule
     {
         [SlashCommand("mute", "Prevents a user from having any sort of interaction in the guild."), Hierarchy(Permissions.ManageMessages)]
-        public async Task Mute(InteractionContext context, [Option("victim", "Who to mute?")] DiscordUser victim, [Option("reason", "Why is the victim being muted?")] string reason = Constants.MissingReason)
+        public async Task MuteAsync(InteractionContext context, [Option("victim", "Who to mute?")] DiscordUser victim, [Option("reason", "Why is the victim being muted?")] string reason = Constants.MissingReason)
         {
             GuildConfig guildConfig = Database.GuildConfigs.First(databaseGuildConfig => databaseGuildConfig.Id == context.Guild.Id);
             DiscordRole muteRole = null;
@@ -22,11 +22,11 @@ namespace Tomoe.Commands
 
             if (guildConfig.MuteRole == 0 || context.Guild.GetRole(guildConfig.MuteRole) == null)
             {
-                bool createRole = await context.Confirm("Error: The mute role does not exist. Should one be created now?");
+                bool createRole = await context.ConfirmAsync("Error: The mute role does not exist. Should one be created now?");
                 if (createRole)
                 {
                     muteRole = await context.Guild.CreateRoleAsync("Muted", Permissions.None, DiscordColor.VeryDarkGray, false, false, "Used for the mute command and config.");
-                    await Config.FixRolePermissions(context.Guild, context.Member, muteRole, CustomEvent.Mute, Database);
+                    await Config.FixRolePermissionsAsync(context.Guild, context.Member, muteRole, CustomEvent.Mute, Database);
                     guildConfig.MuteRole = muteRole.Id;
                     databaseNeedsSaving = true;
                 }
@@ -48,7 +48,7 @@ namespace Tomoe.Commands
             DiscordMember guildVictim = null;
             if (databaseVictim == null)
             {
-                guildVictim = await victim.Id.GetMember(context.Guild);
+                guildVictim = await victim.Id.GetMemberAsync(context.Guild);
                 databaseVictim = new()
                 {
                     UserId = victim.Id,
@@ -80,8 +80,8 @@ namespace Tomoe.Commands
 
             databaseVictim.IsMuted = true;
             await Database.SaveChangesAsync();
-            guildVictim ??= await victim.Id.GetMember(context.Guild);
-            bool sentDm = await guildVictim.TryDmMember($"{context.User.Mention} ({context.User.Username}#{context.User.Discriminator}) has muted you in the guild {Formatter.Bold(context.Guild.Name)}.\nReason: {reason}\nNote: A mute prevents you from having any sort of interaction with the guild. It makes the entire guild readonly. You can't react, upload files, speak in voice channels, etc. If you believe this is a mistake, reach out to staff in their preferred methods.");
+            guildVictim ??= await victim.Id.GetMemberAsync(context.Guild);
+            bool sentDm = await guildVictim.TryDmMemberAsync($"{context.User.Mention} ({context.User.Username}#{context.User.Discriminator}) has muted you in the guild {Formatter.Bold(context.Guild.Name)}.\nReason: {reason}\nNote: A mute prevents you from having any sort of interaction with the guild. It makes the entire guild readonly. You can't react, upload files, speak in voice channels, etc. If you believe this is a mistake, reach out to staff in their preferred methods.");
 
             if (guildVictim != null)
             {
@@ -105,7 +105,7 @@ namespace Tomoe.Commands
                 { "moderator_displayname", context.Member.DisplayName },
                 { "punishment_reason", reason }
             };
-            await ModLog(context.Guild, keyValuePairs, CustomEvent.Antimeme);
+            await ModLogAsync(context.Guild, keyValuePairs, CustomEvent.Antimeme);
 
             await context.EditResponseAsync(new()
             {

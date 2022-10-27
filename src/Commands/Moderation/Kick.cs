@@ -12,9 +12,9 @@ namespace Tomoe.Commands
     public partial class Moderation : ApplicationCommandModule
     {
         [SlashCommand("kick", "Kicks a member from the guild, sending them off with a dm."), Hierarchy(Permissions.KickMembers)]
-        public static async Task Kick(InteractionContext context, [Option("victim", "Who to kick from the guild.")] DiscordUser victimUser, [Option("reason", "Why is the victim being kicked from the guild?")] string reason = Constants.MissingReason)
+        public static async Task KickAsync(InteractionContext context, [Option("victim", "Who to kick from the guild.")] DiscordUser victimUser, [Option("reason", "Why is the victim being kicked from the guild?")] string reason = Constants.MissingReason)
         {
-            DiscordMember victimMember = await victimUser.Id.GetMember(context.Guild);
+            DiscordMember victimMember = await victimUser.Id.GetMemberAsync(context.Guild);
             if (victimMember == null)
             {
                 await context.EditResponseAsync(new()
@@ -24,7 +24,7 @@ namespace Tomoe.Commands
                 return;
             }
 
-            bool sentDm = await victimUser.TryDmMember($"You've been kicked from {context.Guild.Name} by {context.Member.Mention} ({Formatter.InlineCode(context.Member.Id.ToString(CultureInfo.InvariantCulture))}). Reason: {reason}");
+            bool sentDm = await victimUser.TryDmMemberAsync($"You've been kicked from {context.Guild.Name} by {context.Member.Mention} ({Formatter.InlineCode(context.Member.Id.ToString(CultureInfo.InvariantCulture))}). Reason: {reason}");
             await victimMember.RemoveAsync(reason);
 
             Dictionary<string, string> keyValuePairs = new()
@@ -44,7 +44,7 @@ namespace Tomoe.Commands
                 { "moderator_displayname", context.Member.DisplayName },
                 { "punishment_reason", reason }
             };
-            await ModLog(context.Guild, keyValuePairs, DiscordEvent.Ban);
+            await ModLogAsync(context.Guild, keyValuePairs, DiscordEvent.Ban);
 
             await context.EditResponseAsync(new()
             {

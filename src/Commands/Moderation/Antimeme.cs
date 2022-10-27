@@ -14,7 +14,7 @@ namespace Tomoe.Commands
     public partial class Moderation : ApplicationCommandModule
     {
         [SlashCommand("antimeme", "Forces the user to use only text. No more reactions, embeds or uploading files."), Hierarchy(Permissions.ManageMessages)]
-        public async Task Antimeme(InteractionContext context, [Option("victim", "Who to antimeme?")] DiscordUser victim, [Option("reason", "Why is the victim being antimemed?")] string reason = Constants.MissingReason)
+        public async Task AntimemeAsync(InteractionContext context, [Option("victim", "Who to antimeme?")] DiscordUser victim, [Option("reason", "Why is the victim being antimemed?")] string reason = Constants.MissingReason)
         {
             GuildConfig guildConfig = Database.GuildConfigs.First(databaseGuildConfig => databaseGuildConfig.Id == context.Guild.Id);
             DiscordRole antimemeRole = null;
@@ -22,11 +22,11 @@ namespace Tomoe.Commands
 
             if (guildConfig.AntimemeRole == 0 || context.Guild.GetRole(guildConfig.AntimemeRole) == null)
             {
-                bool createRole = await context.Confirm("Error: The antimeme role does not exist. Should one be created now?");
+                bool createRole = await context.ConfirmAsync("Error: The antimeme role does not exist. Should one be created now?");
                 if (createRole)
                 {
                     antimemeRole = await context.Guild.CreateRoleAsync("Antimemed", Permissions.None, DiscordColor.VeryDarkGray, false, false, "Used for the antimeme command and config.");
-                    await Config.FixRolePermissions(context.Guild, context.Member, antimemeRole, CustomEvent.Antimeme, Database);
+                    await Config.FixRolePermissionsAsync(context.Guild, context.Member, antimemeRole, CustomEvent.Antimeme, Database);
                     guildConfig.AntimemeRole = antimemeRole.Id;
                     databaseNeedsSaving = true;
                 }
@@ -48,7 +48,7 @@ namespace Tomoe.Commands
             DiscordMember guildVictim = null;
             if (databaseVictim == null)
             {
-                guildVictim = await victim.Id.GetMember(context.Guild);
+                guildVictim = await victim.Id.GetMemberAsync(context.Guild);
                 databaseVictim = new()
                 {
                     UserId = victim.Id,
@@ -79,8 +79,8 @@ namespace Tomoe.Commands
             }
 
             databaseVictim.IsAntimemed = true;
-            guildVictim ??= await victim.Id.GetMember(context.Guild);
-            bool sentDm = await guildVictim.TryDmMember($"{context.User.Mention} ({context.User.Username}#{context.User.Discriminator}) has given you an antimeme in the guild {Formatter.Bold(context.Guild.Name)}.\nReason: {reason}\nNote: An antimeme prevents you from reacting to messages, sending embeds, uploading files, streaming in voice channels, and forces the push-to-talk restriction in voice channels.");
+            guildVictim ??= await victim.Id.GetMemberAsync(context.Guild);
+            bool sentDm = await guildVictim.TryDmMemberAsync($"{context.User.Mention} ({context.User.Username}#{context.User.Discriminator}) has given you an antimeme in the guild {Formatter.Bold(context.Guild.Name)}.\nReason: {reason}\nNote: An antimeme prevents you from reacting to messages, sending embeds, uploading files, streaming in voice channels, and forces the push-to-talk restriction in voice channels.");
 
             if (guildVictim != null)
             {
@@ -104,7 +104,7 @@ namespace Tomoe.Commands
                 { "moderator_displayname", context.Member.DisplayName },
                 { "punishment_reason", reason }
             };
-            await ModLog(context.Guild, keyValuePairs, CustomEvent.Antimeme, Database);
+            await ModLogAsync(context.Guild, keyValuePairs, CustomEvent.Antimeme, Database);
 
             await context.EditResponseAsync(new()
             {

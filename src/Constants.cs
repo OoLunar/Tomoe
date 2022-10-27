@@ -8,7 +8,7 @@ namespace Tomoe
         public const string MissingReason = "Notice: No reason was provided.";
         public const string RawEmbed = "Error: Cannot get the raw version of an embed!";
         public const string GuildCommand = "Error: This command can only be used in a guild!";
-        public const string Version = "1.1.0";
+        public const string Version = "2.1.0";
 
         // Not constants, but they got no where else to go.
         public static readonly DiscordEmoji ThumbsUp = DiscordEmoji.FromUnicode(Program.Client.ShardClients.Values.First(), "👍");

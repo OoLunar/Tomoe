@@ -44,14 +44,14 @@ namespace Tomoe.Commands.Attributes
                 }
                 else if (val.Value is DiscordUser user)
                 {
-                    discordMember = await user.Id.GetMember(context.Guild);
+                    discordMember = await user.Id.GetMemberAsync(context.Guild);
                 }
                 else if (val.Value is ulong id)
                 {
-                    discordMember = await id.GetMember(context.Guild);
+                    discordMember = await id.GetMemberAsync(context.Guild);
                 }
 
-                if (discordMember.Id.GetMember(context.Guild) == null) // Discord allows us to get the member even if they are not in the guild. At the current moment, no moderation commands mess with users who aren't in the guild. As such, we can just ignore this.
+                if (discordMember.Id.GetMemberAsync(context.Guild) == null) // Discord allows us to get the member even if they are not in the guild. At the current moment, no moderation commands mess with users who aren't in the guild. As such, we can just ignore this.
                 {
                     await context.CreateResponseAsync(new()
                     {
@@ -63,7 +63,7 @@ namespace Tomoe.Commands.Attributes
                 {
                     if (CanSelfPunish)
                     {
-                        bool selfPunish = await context.Confirm("Error: You're about to punish yourself. Do you wish to continue?");
+                        bool selfPunish = await context.ConfirmAsync("Error: You're about to punish yourself. Do you wish to continue?");
                         if (selfPunish)
                         {
                             continue;

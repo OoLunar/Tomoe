@@ -14,7 +14,7 @@ namespace Tomoe.Commands
     {
         public partial class Config : ApplicationCommandModule
         {
-            public static async Task FixRolePermissions(DiscordGuild guild, DiscordMember discordMember, DiscordRole role, CustomEvent roleType, Database database)
+            public static async Task FixRolePermissionsAsync(DiscordGuild guild, DiscordMember discordMember, DiscordRole role, CustomEvent roleType, Database database)
             {
                 Permissions categoryPermissions;
                 string auditLogReason;
@@ -57,7 +57,7 @@ namespace Tomoe.Commands
                     { "role_id", role.Id.ToString(CultureInfo.InvariantCulture) },
                     { "role_type", roleType.Humanize() }
                 };
-                await ModLog(guild, keyValuePairs, CustomEvent.RoleCreation, database, false);
+                await ModLogAsync(guild, keyValuePairs, CustomEvent.RoleCreation, database, false);
             }
         }
     }

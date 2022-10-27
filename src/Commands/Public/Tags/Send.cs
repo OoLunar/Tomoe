@@ -10,7 +10,7 @@ namespace Tomoe.Commands
         public partial class Tags : ApplicationCommandModule
         {
             [SlashCommand("send", "Sends a pretermined message.")]
-            public async Task Send(InteractionContext context, [Option("name", "The name of the tag to send")] string tagName)
+            public async Task SendAsync(InteractionContext context, [Option("name", "The name of the tag to send")] string tagName)
             {
                 Tag tag = await GetTagAsync(tagName, context.Guild.Id);
                 if (tag == null)

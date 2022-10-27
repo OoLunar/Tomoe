@@ -11,7 +11,7 @@ namespace Tomoe.Commands
 {
     public partial class Listeners
     {
-        public static async Task GuildMemberCache(DiscordClient discordClient, GuildCreateEventArgs guildCreateEventArgs)
+        public static async Task GuildMemberCacheAsync(DiscordClient discordClient, GuildCreateEventArgs guildCreateEventArgs)
         {
             if (guildCreateEventArgs.Guild == null)
             {

@@ -12,7 +12,7 @@ namespace Tomoe.Commands
 {
     public partial class Listeners
     {
-        public static async Task AutoReactions(DiscordClient discordClient, MessageCreateEventArgs messageCreateEventArgs)
+        public static async Task AutoReactionsAsync(DiscordClient discordClient, MessageCreateEventArgs messageCreateEventArgs)
         {
             if (messageCreateEventArgs.Guild == null)
             {

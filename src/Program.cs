@@ -21,9 +21,9 @@ namespace Tomoe
         public static async Task MainAsync()
         {
             ServiceCollection services = new();
-            Config = await Config.Load();
+            Config = await Config.LoadAsync();
             Config.Logger.Load(services);
-            await Config.Database.Load(services);
+            await Config.Database.LoadAsync(services);
             ServiceProvider = services.BuildServiceProvider();
             Serilog.ILogger logger = Log.Logger.ForContext<Program>();
 
@@ -44,13 +44,13 @@ namespace Tomoe
             };
 
             Client = new(discordConfiguration);
-            Client.MessageCreated += Commands.Listeners.AutoReactions;
-            Client.ComponentInteractionCreated += Commands.Listeners.ButtonClicked;
-            Client.GuildDownloadCompleted += Commands.Listeners.GuildDownloadCompleted;
-            Client.GuildAvailable += Commands.Listeners.GuildMemberCache;
-            Client.GuildCreated += Commands.Listeners.GuildMemberCache;
-            Client.GuildMemberAdded += Commands.Listeners.PersistentRoles;
-            Client.GuildMemberRemoved += Commands.Listeners.PersistentRoles;
+            Client.MessageCreated += Commands.Listeners.AutoReactionsAsync;
+            Client.ComponentInteractionCreated += Commands.Listeners.ButtonClickedAsync;
+            Client.GuildDownloadCompleted += Commands.Listeners.GuildDownloadCompletedAsync;
+            Client.GuildAvailable += Commands.Listeners.GuildMemberCacheAsync;
+            Client.GuildCreated += Commands.Listeners.GuildMemberCacheAsync;
+            Client.GuildMemberAdded += Commands.Listeners.PersistentRolesAsync;
+            Client.GuildMemberRemoved += Commands.Listeners.PersistentRolesAsync;
 
             logger.Information("Connecting to Discord...");
             await Client.StartAsync();
@@ -66,8 +66,8 @@ namespace Tomoe
                 slashCommandShardExtension.RegisterCommands(typeof(Commands.Moderation));
                 slashCommandShardExtension.RegisterCommands(typeof(Commands.Public));
 #endif
-                slashCommandShardExtension.SlashCommandErrored += Commands.Listeners.CommandErrored;
-                slashCommandShardExtension.SlashCommandExecuted += Commands.Listeners.CommandExecuted;
+                slashCommandShardExtension.SlashCommandErrored += Commands.Listeners.CommandErroredAsync;
+                slashCommandShardExtension.SlashCommandExecuted += Commands.Listeners.CommandExecutedAsync;
             }
             logger.Information("Commands up!");
 

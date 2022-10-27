@@ -14,7 +14,7 @@ namespace Tomoe.Commands
     {
         public partial class MenuRoles : ApplicationCommandModule
         {
-            public static async Task Assign(DiscordInteraction interaction, DiscordMember member, string buttonId, Database database)
+            public static Task AssignAsync(DiscordInteraction interaction, DiscordMember member, string buttonId, Database database)
             {
                 string id = buttonId.Split('-')[0];
                 IEnumerable<DiscordRole> menuRoles = database.MenuRoles
@@ -51,14 +51,14 @@ namespace Tomoe.Commands
 
                 DiscordSelectComponent menu = new(id + '-' + "2", "Select your roles!", options, false, 0, options.Count);
                 responseBuilder.AddComponents(menu);
-                await interaction.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, responseBuilder);
+                return interaction.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, responseBuilder);
             }
 
-            public static async Task Assign(ComponentInteractionCreateEventArgs componentInteractionCreateEventArgs, string buttonId, Database database)
+            public static async Task AssignAsync(ComponentInteractionCreateEventArgs componentInteractionCreateEventArgs, string buttonId, Database database)
             {
                 string id = buttonId.Split('-')[0];
                 IEnumerable<MenuRole> reactionRoles = database.MenuRoles.Where(reactionRole => reactionRole.ButtonId == id && reactionRole.GuildId == componentInteractionCreateEventArgs.Guild.Id).ToList();
-                DiscordMember member = await componentInteractionCreateEventArgs.User.Id.GetMember(componentInteractionCreateEventArgs.Guild);
+                DiscordMember member = await componentInteractionCreateEventArgs.User.Id.GetMemberAsync(componentInteractionCreateEventArgs.Guild);
                 IEnumerable<ulong> memberRoles = member.Roles.Select(role => role.Id);
 
                 IEnumerable<ulong> roles = componentInteractionCreateEventArgs.Values.Select(value => ulong.Parse(value, CultureInfo.InvariantCulture));

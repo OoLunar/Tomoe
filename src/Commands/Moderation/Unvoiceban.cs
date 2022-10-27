@@ -14,7 +14,7 @@ namespace Tomoe.Commands
     public partial class Moderation : ApplicationCommandModule
     {
         [SlashCommand("unvoiceban", "Prevents the victim from joining voice channels."), Hierarchy(Permissions.MuteMembers)]
-        public async Task Unvoiceban(InteractionContext context, [Option("victim", "Who to unvoiceban?")] DiscordUser victim, [Option("reason", "Why is the victim being unvoicebanned?")] string reason = Constants.MissingReason)
+        public async Task UnvoicebanAsync(InteractionContext context, [Option("victim", "Who to unvoiceban?")] DiscordUser victim, [Option("reason", "Why is the victim being unvoicebanned?")] string reason = Constants.MissingReason)
         {
             GuildConfig guildConfig = Database.GuildConfigs.First(databaseGuildConfig => databaseGuildConfig.Id == context.Guild.Id);
             DiscordRole voicebanRole = null;
@@ -37,7 +37,7 @@ namespace Tomoe.Commands
             DiscordMember guildVictim = null;
             if (databaseVictim == null)
             {
-                guildVictim = await victim.Id.GetMember(context.Guild);
+                guildVictim = await victim.Id.GetMemberAsync(context.Guild);
                 databaseVictim = new()
                 {
                     UserId = victim.Id,
@@ -69,8 +69,8 @@ namespace Tomoe.Commands
 
             databaseVictim.IsVoicebanned = false;
             await Database.SaveChangesAsync();
-            guildVictim ??= await victim.Id.GetMember(context.Guild);
-            bool sentDm = await guildVictim.TryDmMember($"{context.User.Mention} ({context.User.Username}#{context.User.Discriminator}) has unvoicebanned you in the guild {Formatter.Bold(context.Guild.Name)}.\nReason: {reason}\nNote: A voiceban prevents you from connecting to voice channels.");
+            guildVictim ??= await victim.Id.GetMemberAsync(context.Guild);
+            bool sentDm = await guildVictim.TryDmMemberAsync($"{context.User.Mention} ({context.User.Username}#{context.User.Discriminator}) has unvoicebanned you in the guild {Formatter.Bold(context.Guild.Name)}.\nReason: {reason}\nNote: A voiceban prevents you from connecting to voice channels.");
 
             if (guildVictim != null)
             {
@@ -94,7 +94,7 @@ namespace Tomoe.Commands
                 { "moderator_displayname", context.Member.DisplayName },
                 { "punishment_reason", reason }
             };
-            await ModLog(context.Guild, keyValuePairs, CustomEvent.Antimeme);
+            await ModLogAsync(context.Guild, keyValuePairs, CustomEvent.Antimeme);
 
             await context.EditResponseAsync(new()
             {

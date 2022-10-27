@@ -16,7 +16,7 @@ namespace Tomoe.Commands
     {
         private static readonly ILogger Logger = Log.ForContext<Listeners>();
 
-        public static async Task CommandErrored(SlashCommandsExtension slashCommandExtension, SlashCommandErrorEventArgs slashCommandErrorEventArgs)
+        public static async Task CommandErroredAsync(SlashCommandsExtension slashCommandExtension, SlashCommandErrorEventArgs slashCommandErrorEventArgs)
         {
             if (slashCommandErrorEventArgs.Exception is SlashExecutionChecksFailedException)
             {

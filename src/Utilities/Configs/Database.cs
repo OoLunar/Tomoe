@@ -29,7 +29,7 @@ namespace Tomoe.Utilities.Configs
         [JsonPropertyName("port")]
         public int Port { get; set; }
 
-        public Task Load(ServiceCollection services)
+        public Task LoadAsync(ServiceCollection services)
         {
             Serilog.ILogger logger = Log.ForContext<Database>();
             services.AddDbContext<Db.Database>(options =>

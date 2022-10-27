@@ -31,7 +31,7 @@ namespace Tomoe.Utilities.Configs
         [JsonPropertyName("database")]
         public Database Database { get; set; }
 
-        public static async Task<Config> Load()
+        public static async Task<Config> LoadAsync()
         {
             // Setup Config
             // Look for Environment variables for Docker. If the variable is set, but doesn't exist, assume it was improper configuration and exit.

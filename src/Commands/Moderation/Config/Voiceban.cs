@@ -13,14 +13,14 @@ namespace Tomoe.Commands
         public partial class Config : ApplicationCommandModule
         {
             [SlashCommand("voiceban", "Sets the voiceban role for the guild."), Hierarchy(Permissions.ManageRoles)]
-            public async Task Voiceban(InteractionContext context, [Option("role", "Which role to set.")] DiscordRole role = null)
+            public async Task VoicebanAsync(InteractionContext context, [Option("role", "Which role to set.")] DiscordRole role = null)
             {
                 GuildConfig guildConfig = Database.GuildConfigs.First(guildConfig => guildConfig.Id == context.Guild.Id);
                 if (role == null)
                 {
                     if (guildConfig.VoicebanRole == 0 || context.Guild.GetRole(guildConfig.VoicebanRole) == null)
                     {
-                        bool createRole = await context.Confirm("Error: The voiceban role does not exist. Should one be created now?");
+                        bool createRole = await context.ConfirmAsync("Error: The voiceban role does not exist. Should one be created now?");
                         if (createRole)
                         {
                             role = await context.Guild.CreateRoleAsync("Voiceban", Permissions.None, DiscordColor.VeryDarkGray, false, false, "Used for the voiceban command and config.");
@@ -40,7 +40,7 @@ namespace Tomoe.Commands
                     }
                 }
 
-                await FixRolePermissions(context.Guild, context.Member, role, CustomEvent.Voiceban, Database);
+                await FixRolePermissionsAsync(context.Guild, context.Member, role, CustomEvent.Voiceban, Database);
                 guildConfig.VoicebanRole = role.Id;
                 await Database.SaveChangesAsync();
 

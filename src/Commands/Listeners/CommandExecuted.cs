@@ -9,7 +9,7 @@ namespace Tomoe.Commands
 {
     public partial class Listeners
     {
-        public static async Task CommandExecuted(SlashCommandsExtension slashCommandExtension, SlashCommandExecutedEventArgs slashCommandExecutedEventArgs)
+        public static async Task CommandExecutedAsync(SlashCommandsExtension slashCommandExtension, SlashCommandExecutedEventArgs slashCommandExecutedEventArgs)
         {
             using IServiceScope scope = Program.ServiceProvider.CreateScope();
             Database database = scope.ServiceProvider.GetService<Database>();

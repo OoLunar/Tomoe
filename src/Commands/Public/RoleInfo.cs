@@ -1,4 +1,3 @@
-using System;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -7,26 +6,37 @@ using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
 using Humanizer;
+using Tomoe.Db;
 
 namespace Tomoe.Commands
 {
     public partial class Public : ApplicationCommandModule
     {
+        private Database Database { get; set; }
+
         [SlashCommand("role_info", "Gets general information about a role.")]
-        public static async Task RoleInfo(InteractionContext context, [Option("role", "The role to get information on.")] DiscordRole discordRole)
+        public Task RoleInfoAsync(InteractionContext context, [Option("role", "The role to get information on.")] DiscordRole discordRole)
         {
-            // TODO: Keep local cache of guild members with roles.
             int totalMemberCount = 0;
             StringBuilder roleMembers = new();
-            foreach (DiscordMember member in (await context.Guild.GetAllMembersAsync()).OrderBy(member => member.DisplayName, StringComparer.CurrentCultureIgnoreCase))
+            if (discordRole.Id == context.Guild.Id) // everyone role
             {
-                if (member.Roles.Contains(discordRole) || discordRole.Name == "@everyone")
+                totalMemberCount = context.Guild.MemberCount;
+                roleMembers.Append("Everyone");
+            }
+            else
+            {
+                foreach (GuildMember member in Database.GuildMembers.Where(guildMember => guildMember.GuildId == context.Guild.Id && guildMember.Roles.Contains(discordRole.Id)).AsEnumerable().OrderBy(member => context.Guild.Members.ContainsKey(member.UserId) ? context.Guild.Members[member.UserId].DisplayName : string.Empty))
                 {
-                    totalMemberCount++;
-                    if ((roleMembers.Length + $"{member.Mention}, ".Length) < 1024)
+                    string memberMention = $"<@{member.UserId}>, ";
+                    int stringBuilderLength = roleMembers.Append(memberMention).Length;
+                    if (stringBuilderLength > 2000)
                     {
-                        roleMembers.Append($"{member.Mention}, ");
+                        roleMembers.Remove(stringBuilderLength - memberMention.Length, memberMention.Length);
+                        break;
                     }
+
+                    totalMemberCount++;
                 }
             }
 
@@ -35,6 +45,7 @@ namespace Tomoe.Commands
                 Title = "Role Info For " + discordRole.Name,
                 Color = discordRole.Color.Value == 0 ? new DiscordColor("#7b84d1") : discordRole.Color
             };
+
             if (context.Guild.IconUrl != null)
             {
                 embedBuilder.WithThumbnail(context.Guild.IconUrl.Replace(".jpg", ".png?size=1024"));
@@ -52,7 +63,7 @@ namespace Tomoe.Commands
             embedBuilder.AddField("Permissions", discordRole.Permissions.ToPermissionString());
             embedBuilder.AddField("Members", roleMembers.Length == 0 ? "None." : roleMembers.ToString());
 
-            await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().AddEmbed(embedBuilder));
+            return context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().AddEmbed(embedBuilder));
         }
     }
 }

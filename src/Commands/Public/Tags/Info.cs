@@ -14,7 +14,7 @@ namespace Tomoe.Commands
         public partial class Tags : ApplicationCommandModule
         {
             [SlashCommand("info", "Sends general information on the requested tag.")]
-            public async Task Info(InteractionContext context, [Option("name", "Which tag to gather information on.")] string tagName)
+            public async Task InfoAsync(InteractionContext context, [Option("name", "Which tag to gather information on.")] string tagName)
             {
                 Tag tag = await GetTagAsync(tagName, context.Guild.Id);
                 if (tag == null)

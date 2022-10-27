@@ -16,7 +16,7 @@ namespace Tomoe.Commands
             public Database Database { private get; set; }
 
             [SlashCommand("show", "Shows the current bot settings for the server.")]
-            public async Task Show(InteractionContext context)
+            public async Task ShowAsync(InteractionContext context)
             {
                 await context.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
                 GuildConfig guildConfig = Database.GuildConfigs.First(databaseGuildConfig => databaseGuildConfig.Id == context.Guild.Id);

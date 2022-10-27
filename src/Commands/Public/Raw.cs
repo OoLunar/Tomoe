@@ -19,7 +19,7 @@ namespace Tomoe.Commands
         private static HttpClient HttpClient { get; set; } = new();
 
         [SlashCommand("raw", "Gets the raw version of the message provided.")]
-        public static async Task Raw(InteractionContext context, [Option("Message", "The message id or link.")] string messageString)
+        public static async Task RawAsync(InteractionContext context, [Option("Message", "The message id or link.")] string messageString)
         {
             await context.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource, new());
 

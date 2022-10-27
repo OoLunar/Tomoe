@@ -54,7 +54,7 @@ namespace Tomoe.Commands
         public Database Database { private get; set; }
 
         [SlashCommand("mod_log", "Adds a new log to the mod log."), Hierarchy(Permissions.ManageMessages)]
-        public async Task ModLog(InteractionContext context, [Option("reason", "What to add to the mod_log")] string reason = Constants.MissingReason)
+        public async Task ModLogAsync(InteractionContext context, [Option("reason", "What to add to the mod_log")] string reason = Constants.MissingReason)
         {
             Database.ModLogs.Add(new()
             {
@@ -70,7 +70,7 @@ namespace Tomoe.Commands
             });
         }
 
-        public static async Task ModLog(DiscordGuild guild, Dictionary<string, string> parameters, CustomEvent logType = CustomEvent.Unknown, Database database = null, bool saveToDatabase = true)
+        public static async Task ModLogAsync(DiscordGuild guild, Dictionary<string, string> parameters, CustomEvent logType = CustomEvent.Unknown, Database database = null, bool saveToDatabase = true)
         {
             database ??= Program.ServiceProvider.CreateScope().ServiceProvider.GetService<Database>();
             LogSetting logSetting = database.LogSettings.FirstOrDefault(logSetting => logSetting.GuildId == guild.Id && logSetting.CustomEvent == logType);
@@ -128,7 +128,7 @@ namespace Tomoe.Commands
         }
 
 
-        public static async Task ModLog(DiscordGuild guild, Dictionary<string, string> parameters, DiscordEvent logType = DiscordEvent.Unknown, Database database = null)
+        public static async Task ModLogAsync(DiscordGuild guild, Dictionary<string, string> parameters, DiscordEvent logType = DiscordEvent.Unknown, Database database = null)
         {
             database ??= Program.ServiceProvider.CreateScope().ServiceProvider.GetService<Database>();
             LogSetting logSetting = database.LogSettings.FirstOrDefault(logSetting => logSetting.GuildId == guild.Id && logSetting.DiscordEvent == logType);

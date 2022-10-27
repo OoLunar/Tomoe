@@ -8,10 +8,10 @@ namespace Tomoe.Commands
     public partial class Public : ApplicationCommandModule
     {
         [SlashCommand("avatar", "Gets someone's profile picture, optionally with a preferred image format and dimensions.")]
-        public static async Task Avatar(InteractionContext context, [Option("User", "Who's avatar to retrieve.")] DiscordUser user = null)
+        public static Task AvatarAsync(InteractionContext context, [Option("User", "Who's avatar to retrieve.")] DiscordUser user = null)
         {
             user ??= context.Member;
-            await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().AddEmbed(new DiscordEmbedBuilder()
+            return context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().AddEmbed(new DiscordEmbedBuilder()
             {
                 Title = user.Username + (user.Username.EndsWith('s') ? "' Avatar" : "'s Avatar"),
                 ImageUrl = user.GetAvatarUrl(ImageFormat.Png),

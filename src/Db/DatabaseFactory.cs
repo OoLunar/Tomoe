@@ -9,9 +9,9 @@ namespace Tomoe.Db
         public Database CreateDbContext(string[] args)
         {
             ServiceCollection services = new();
-            Config config = Config.Load().GetAwaiter().GetResult();
+            Config config = Config.LoadAsync().GetAwaiter().GetResult();
             config.Logger.Load(services);
-            config.Database.Load(services).GetAwaiter().GetResult();
+            config.Database.LoadAsync(services).GetAwaiter().GetResult();
             return services.BuildServiceProvider().GetService<Database>();
         }
     }

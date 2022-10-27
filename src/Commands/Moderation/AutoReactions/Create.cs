@@ -21,7 +21,7 @@ namespace Tomoe.Commands
             public Database Database { private get; set; }
 
             [SlashCommand("create", "Creates a new autoreaction on a channel."), Hierarchy(Permissions.ManageChannels | Permissions.ManageMessages)]
-            public async Task Create(InteractionContext context, [Option("channel", "Which guild channel to autoreact too.")] DiscordChannel channel, [Option("emoji", "Which emoji to react with.")] string emojiString)
+            public async Task CreateAsync(InteractionContext context, [Option("channel", "Which guild channel to autoreact too.")] DiscordChannel channel, [Option("emoji", "Which emoji to react with.")] string emojiString)
             {
                 if (!DiscordEmoji.TryFromUnicode(context.Client, emojiString, out DiscordEmoji emoji))
                 {
@@ -104,7 +104,7 @@ namespace Tomoe.Commands
                     { "channels_affected", channelsAffected.Humanize() },
                     { "channel_emoji", emoji }
                 };
-                await ModLog(context.Guild, keyValuePairs, CustomEvent.AutoReactionCreate, Database, true);
+                await ModLogAsync(context.Guild, keyValuePairs, CustomEvent.AutoReactionCreate, Database, true);
 
                 await context.EditResponseAsync(new()
                 {

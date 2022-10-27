@@ -17,7 +17,7 @@ namespace Tomoe.Commands
         public partial class Strikes : ApplicationCommandModule
         {
             [SlashCommand("reapply", "Reapplies a previously issued strike for an individual."), Hierarchy(Permissions.KickMembers)]
-            public async Task Reapply(InteractionContext context, [Option("strike_id", "Which strike to reapply.")] long strikeId, [Option("reason", "Why is the strike being reapplied?")] string reason = Constants.MissingReason)
+            public async Task ReapplyAsync(InteractionContext context, [Option("strike_id", "Which strike to reapply.")] long strikeId, [Option("reason", "Why is the strike being reapplied?")] string reason = Constants.MissingReason)
             {
                 Strike strike = Database.Strikes.FirstOrDefault(databaseStrike => databaseStrike.LogId == strikeId && databaseStrike.GuildId == context.Guild.Id);
                 if (!strike.Dropped)
@@ -28,8 +28,8 @@ namespace Tomoe.Commands
                     });
                 }
 
-                DiscordMember guildVictim = await strike.VictimId.GetMember(context.Guild);
-                bool sentDm = await guildVictim.TryDmMember($"{context.Member.Mention} ({context.Member.Username}#{context.Member.Discriminator}) reapplied strike #{strikeId}.\nReason: {Formatter.BlockCode(Formatter.Strip(reason))}");
+                DiscordMember guildVictim = await strike.VictimId.GetMemberAsync(context.Guild);
+                bool sentDm = await guildVictim.TryDmMemberAsync($"{context.Member.Mention} ({context.Member.Username}#{context.Member.Discriminator}) reapplied strike #{strikeId}.\nReason: {Formatter.BlockCode(Formatter.Strip(reason))}");
 
                 strike.VictimMessaged = sentDm;
                 strike.Reasons.Add("Reapply: " + reason);
@@ -54,7 +54,7 @@ namespace Tomoe.Commands
                     { "punishment_reason", reason },
                     { "strike_id", strike.LogId.ToString(CultureInfo.InvariantCulture) }
                 };
-                await ModLog(context.Guild, keyValuePairs, CustomEvent.Drop, Database);
+                await ModLogAsync(context.Guild, keyValuePairs, CustomEvent.Drop, Database);
 
                 await context.EditResponseAsync(new()
                 {

@@ -18,7 +18,7 @@ namespace Tomoe.Commands
             public Database Database { private get; set; }
 
             [SlashCommand("create", "Creates a new autoreaction on a channel."), Hierarchy(Permissions.ManageChannels | Permissions.ManageMessages)]
-            public async Task Create(InteractionContext context,
+            public async Task CreateAsync(InteractionContext context,
                 [Option("channel", "Which guild channel to autoreact too.")] DiscordChannel channel,
                 [Option("message_text", "The text on the message.")] string messageContent,
                 [Option("button_text", "The text on the button.")] string buttonText,
@@ -80,7 +80,7 @@ namespace Tomoe.Commands
 
                 if (botUnassignableRoles.Count != 0)
                 {
-                    bool confirm = await context.Confirm($"Unable to assign the following roles: {string.Join(", ", botUnassignableRoles.Select(role => role.Mention))}. To fix this, move {context.Guild.CurrentMember.Mention}'s highest role above these roles. Continue anyways?");
+                    bool confirm = await context.ConfirmAsync($"Unable to assign the following roles: {string.Join(", ", botUnassignableRoles.Select(role => role.Mention))}. To fix this, move {context.Guild.CurrentMember.Mention}'s highest role above these roles. Continue anyways?");
                     if (!confirm)
                     {
                         await context.EditResponseAsync(new()

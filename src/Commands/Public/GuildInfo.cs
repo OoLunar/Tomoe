@@ -11,52 +11,93 @@ namespace Tomoe.Commands
 {
     public partial class Public : ApplicationCommandModule
     {
-        private const string NotSet = "Not set.";
-        private const string LinkToImage = "Link to image.";
-
         internal static readonly Dictionary<ulong, int> TotalMemberCount = new();
 
         [SlashCommand("guild_info", "Gets general info about the server.")]
-        public static async Task GuildInfo(InteractionContext context)
+        public static async Task GuildInfoAsync(InteractionContext context)
         {
-            string features = string.Join(", ", context.Guild.Features.Select(feature => feature.ToLowerInvariant().Titleize()));
-            string bannerUrl = context.Guild.BannerUrl?.Replace(".jpg", ".png?size=1024") ?? NotSet;
-            string iconUrl = context.Guild.IconUrl?.Replace(".jpg", ".png?size=1024") ?? NotSet;
-            string splashUrl = context.Guild.SplashUrl?.Replace(".jpg", ".png?size=1024") ?? NotSet;
             DiscordEmbedBuilder embedBuilder = new()
             {
-                Title = context.Guild.Name + " Guild Information",
-                Color = new DiscordColor("#7b84d1")
+                Title = context.Guild.Name,
+                Color = new DiscordColor("#7b84d1"),
+                Author = new()
+                {
+                    Name = context.Member?.DisplayName ?? context.User.Username,
+                    IconUrl = context.User.AvatarUrl,
+                    Url = context.User.AvatarUrl
+                },
+                Footer = new() { IconUrl = context.Guild.BannerUrl }
             };
-            if (context.Guild.IconUrl != null)
+
+            string features = string.Join(", ", context.Guild.Features.Select(feature => feature.ToLowerInvariant().Titleize()));
+            embedBuilder.AddField("Owner", context.Guild.Owner.Mention, true);
+            embedBuilder.AddField("Created At", $"{Formatter.Timestamp(context.Guild.CreationTimestamp.UtcDateTime, TimestampFormat.LongDateTime)}, {Formatter.Timestamp(context.Guild.CreationTimestamp.UtcDateTime, TimestampFormat.RelativeTime)}", false);
+            embedBuilder.AddField("Currently Scheduled Events", context.Guild.ScheduledEvents.Count.ToMetric(), true);
+            embedBuilder.AddField("Emoji Count", context.Guild.Emojis.Count.ToMetric(), true);
+            embedBuilder.AddField("Role Count", context.Guild.Roles.Count.ToMetric(), true);
+            embedBuilder.AddField("Sticker Count", context.Guild.Stickers.Count.ToMetric(), true);
+            embedBuilder.AddField("Features", string.IsNullOrWhiteSpace(features) ? "None" : features, false);
+
+            int textChannelCount = 0;
+            int voiceChannelCount = 0;
+            int newsChannelCount = 0;
+            int stageChannelCount = 0;
+            int categoryChannelCount = 0;
+            int activeThreadCount = 0;
+
+            foreach (DiscordChannel channel in context.Guild.Channels.Values)
             {
-                embedBuilder.WithThumbnail(iconUrl);
+                if (!channel.PermissionsFor(context.Member).HasPermission(Permissions.AccessChannels))
+                {
+                    continue;
+                }
+
+                switch (channel.Type)
+                {
+                    case ChannelType.Text:
+                        textChannelCount++;
+                        break;
+                    case ChannelType.Voice:
+                        voiceChannelCount++;
+                        break;
+                    case ChannelType.News:
+                        newsChannelCount++;
+                        break;
+                    case ChannelType.Stage:
+                        stageChannelCount++;
+                        break;
+                    case ChannelType.Category:
+                        categoryChannelCount++;
+                        break;
+                }
             }
 
-            embedBuilder.AddField("AFK Channel", context.Guild.AfkChannel == null ? NotSet : context.Guild.AfkChannel.Mention, true);
-            embedBuilder.AddField("AFK Timeout", TimeSpan.FromSeconds(context.Guild.AfkTimeout).Humanize(), true);
-            embedBuilder.AddField("Banner Url", context.Guild.BannerUrl == null ? NotSet : Formatter.MaskedUrl(LinkToImage, new(bannerUrl), bannerUrl), true);
-            embedBuilder.AddField("Channel Count", context.Guild.Channels.Values.Count(channel => !channel.IsCategory).ToMetric(), true);
-            embedBuilder.AddField("Created At", context.Guild.CreationTimestamp.UtcDateTime.ToOrdinalWords(), true);
-            embedBuilder.AddField("Description", string.IsNullOrEmpty(context.Guild.Description) ? NotSet : context.Guild.Description, true);
-            embedBuilder.AddField("Emoji Count", context.Guild.Emojis.Count.ToMetric(), true);
-            embedBuilder.AddField("Explicit Content Filter", context.Guild.ExplicitContentFilter.Humanize(), true);
-            embedBuilder.AddField("Icon url", iconUrl == null ? NotSet : Formatter.MaskedUrl(LinkToImage, new(iconUrl), iconUrl), true);
-            embedBuilder.AddField("Features", string.IsNullOrEmpty(features) ? "None." : features);
-            embedBuilder.AddField("Id", $"`{context.Guild.Id}`", true);
-            embedBuilder.AddField("Max Members", context.Guild.MaxMembers.HasValue ? context.Guild.MaxMembers.Value.ToMetric() : "Unknown.", true);
-            embedBuilder.AddField("Member Count", TotalMemberCount[context.Guild.Id].ToMetric(), true);
-            embedBuilder.AddField("MFA Level", context.Guild.MfaLevel.Humanize(), true);
-            embedBuilder.AddField("Name", context.Guild.Name, true);
-            embedBuilder.AddField("Owner", context.Guild.Owner.Mention, true);
-            embedBuilder.AddField("Preferred Locale", context.Guild.PreferredLocale, true);
-            embedBuilder.AddField("Role Count", context.Guild.Roles.Count.ToMetric(), true);
-            embedBuilder.AddField("Rules Channel", context.Guild.RulesChannel == null ? NotSet : context.Guild.RulesChannel.Mention, true);
-            embedBuilder.AddField("Server Boosts", context.Guild.PremiumSubscriptionCount.HasValue ? context.Guild.PremiumSubscriptionCount.Value.ToMetric() : "0", true);
-            embedBuilder.AddField("Server Tier", context.Guild.PremiumTier.Humanize(), true);
-            embedBuilder.AddField("Splash Url", context.Guild.SplashUrl == null ? NotSet : Formatter.MaskedUrl(LinkToImage, new(splashUrl), splashUrl), true);
-            embedBuilder.AddField("Vanity Url", string.IsNullOrEmpty(context.Guild.VanityUrlCode) ? NotSet : $"discord.gg/{context.Guild.VanityUrlCode}", true);
-            embedBuilder.AddField("Verification Level", context.Guild.VerificationLevel.Humanize(), true);
+            // There's a HasMore property which indicates pagination but D#+ doesn't seem to support that... This probably means there's a bug somewhere.
+            foreach (DiscordThreadChannel thread in (await context.Guild.ListActiveThreadsAsync()).Threads)
+            {
+                if (thread.Users.Contains(context.Member))
+                {
+                    activeThreadCount++;
+                }
+            }
+
+
+            embedBuilder.AddField("Channel Stats", @$"Text: {textChannelCount.ToMetric()}
+Voice: {voiceChannelCount.ToMetric()}
+News/Announcement: {newsChannelCount.ToMetric()}
+Stage: {stageChannelCount.ToMetric()}
+Categories: {categoryChannelCount.ToMetric()}
+Active Threads: {activeThreadCount.ToMetric()}
+Total: {(textChannelCount + voiceChannelCount + newsChannelCount + stageChannelCount + categoryChannelCount + activeThreadCount).ToMetric()} ");
+
+            if (context.Guild.IconUrl != null)
+            {
+                embedBuilder.Url = context.Guild.IconUrl;
+                embedBuilder.Thumbnail = new()
+                {
+                    Url = context.Guild.GetIconUrl(ImageFormat.Png, 4096)
+                };
+            }
 
             await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().AddEmbed(embedBuilder));
         }

@@ -13,7 +13,7 @@ namespace Tomoe.Commands
     public partial class Moderation : ApplicationCommandModule
     {
         [SlashCommand("ban", "Bans a member from the guild, sending them off with a dm."), Hierarchy(Permissions.BanMembers, true)]
-        public static async Task Ban(InteractionContext context, [Option("victim", "Who to ban from the guild.")] DiscordUser victimUser, [Option("reason", "Why is the victim being banned from the guild?")] string reason = Constants.MissingReason)
+        public static async Task BanAsync(InteractionContext context, [Option("victim", "Who to ban from the guild.")] DiscordUser victimUser, [Option("reason", "Why is the victim being banned from the guild?")] string reason = Constants.MissingReason)
         {
             try
             {
@@ -26,8 +26,8 @@ namespace Tomoe.Commands
             }
             catch (Exception) { }
 
-            DiscordMember victimMember = await victimUser.Id.GetMember(context.Guild);
-            bool sentDm = await victimUser.TryDmMember($"You've been banned from {context.Guild.Name} by {context.Member.Mention} ({Formatter.InlineCode(context.Member.Id.ToString(CultureInfo.InvariantCulture))}). Reason: {reason}");
+            DiscordMember victimMember = await victimUser.Id.GetMemberAsync(context.Guild);
+            bool sentDm = await victimUser.TryDmMemberAsync($"You've been banned from {context.Guild.Name} by {context.Member.Mention} ({Formatter.InlineCode(context.Member.Id.ToString(CultureInfo.InvariantCulture))}). Reason: {reason}");
             await context.Guild.BanMemberAsync(victimUser.Id, 1, reason);
 
             Dictionary<string, string> keyValuePairs = new()
@@ -47,7 +47,7 @@ namespace Tomoe.Commands
                 { "moderator_displayname", context.Member.DisplayName },
                 { "punishment_reason", reason }
             };
-            await ModLog(context.Guild, keyValuePairs, DiscordEvent.Ban);
+            await ModLogAsync(context.Guild, keyValuePairs, DiscordEvent.Ban);
 
             await context.EditResponseAsync(new()
             {

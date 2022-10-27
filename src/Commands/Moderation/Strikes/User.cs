@@ -12,7 +12,7 @@ namespace Tomoe.Commands
         public partial class Strikes : ApplicationCommandModule
         {
             [SlashCommand("history", "Gets information on a user.")]
-            public async Task History(InteractionContext context, [Option("user", "Who")] DiscordUser victim)
+            public Task HistoryAsync(InteractionContext context, [Option("user", "Who")] DiscordUser victim)
             {
                 DiscordEmbedBuilder embedBuilder = new()
                 {
@@ -29,7 +29,7 @@ namespace Tomoe.Commands
                 List<Strike> pastStrikes = Database.Strikes.Where(databaseStrike => databaseStrike.GuildId == context.Guild.Id && databaseStrike.VictimId == victim.Id).ToList();
                 if (pastStrikes.Count == 0)
                 {
-                    await context.EditResponseAsync(new()
+                    return context.EditResponseAsync(new()
                     {
                         Content = "No previous strikes have been found!"
                     });
@@ -61,7 +61,7 @@ namespace Tomoe.Commands
                         }
                     }
 
-                    await context.EditResponseAsync(new DiscordWebhookBuilder().AddEmbeds(embeds));
+                    return context.EditResponseAsync(new DiscordWebhookBuilder().AddEmbeds(embeds));
                 }
             }
         }

@@ -10,7 +10,7 @@ namespace Tomoe.Commands
         public partial class Tags : ApplicationCommandModule
         {
             [SlashCommand("edit", "Edits a tag's text.")]
-            public async Task Edit(InteractionContext context, [Option("name", "Which tag to edit.")] string tagName, [Option("Tag_Content", "What to fill the tag with.")] string tagContent)
+            public async Task EditAsync(InteractionContext context, [Option("name", "Which tag to edit.")] string tagName, [Option("Tag_Content", "What to fill the tag with.")] string tagContent)
             {
                 Tag tag = await GetTagAsync(tagName, context.Guild.Id);
                 if (tag == null)
@@ -21,7 +21,7 @@ namespace Tomoe.Commands
                         IsEphemeral = true
                     });
                 }
-                else if (!await CanModifyTag(tag, context.User.Id, context.Guild))
+                else if (!await CanModifyTagAsync(tag, context.User.Id, context.Guild))
                 {
                     await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
                     {

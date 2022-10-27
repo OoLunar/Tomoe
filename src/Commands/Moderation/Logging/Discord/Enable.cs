@@ -14,7 +14,7 @@ namespace Tomoe.Commands
             public partial class Discord : ApplicationCommandModule
             {
                 [SlashCommand("enable", "Changes where events are logged."), Hierarchy(Permissions.ManageGuild)]
-                public async Task Enable(InteractionContext context, [Option("log_type", "Which event to change.")] DiscordEvent logType)
+                public async Task EnableAsync(InteractionContext context, [Option("log_type", "Which event to change.")] DiscordEvent logType)
                 {
                     LogSetting logSetting = Database.LogSettings.FirstOrDefault(databaseLogSetting => databaseLogSetting.GuildId == context.Guild.Id && databaseLogSetting.DiscordEvent == logType);
                     if (logSetting == null)

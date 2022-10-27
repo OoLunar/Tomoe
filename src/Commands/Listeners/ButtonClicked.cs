@@ -14,7 +14,7 @@ namespace Tomoe.Commands
     {
         public static Dictionary<string, QueueButton> QueueButtons { get; private set; } = new();
 
-        public static async Task ButtonClicked(DiscordClient discordClient, ComponentInteractionCreateEventArgs componentInteractionCreateEventArgs)
+        public static async Task ButtonClickedAsync(DiscordClient discordClient, ComponentInteractionCreateEventArgs componentInteractionCreateEventArgs)
         {
             string id = componentInteractionCreateEventArgs.Id.Split('-')[0];
             if (int.TryParse(componentInteractionCreateEventArgs.Id.Split('-')[1], NumberStyles.Number, CultureInfo.InvariantCulture, out int stage))
@@ -30,11 +30,11 @@ namespace Tomoe.Commands
                             componentInteractionCreateEventArgs.Handled = true;
                             if (stage == 1)
                             {
-                                await Moderation.MenuRoles.Assign(componentInteractionCreateEventArgs.Interaction, await componentInteractionCreateEventArgs.User.Id.GetMember(componentInteractionCreateEventArgs.Guild), componentInteractionCreateEventArgs.Id, database);
+                                await Moderation.MenuRoles.AssignAsync(componentInteractionCreateEventArgs.Interaction, await componentInteractionCreateEventArgs.User.Id.GetMemberAsync(componentInteractionCreateEventArgs.Guild), componentInteractionCreateEventArgs.Id, database);
                             }
                             else if (stage == 2)
                             {
-                                await Moderation.MenuRoles.Assign(componentInteractionCreateEventArgs, componentInteractionCreateEventArgs.Id, database);
+                                await Moderation.MenuRoles.AssignAsync(componentInteractionCreateEventArgs, componentInteractionCreateEventArgs.Id, database);
                             }
                             break;
                         default:

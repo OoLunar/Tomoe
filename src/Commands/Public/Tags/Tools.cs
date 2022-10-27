@@ -34,7 +34,7 @@ namespace Tomoe.Commands
                 return tag;
             }
 
-            public async Task<bool> CanModifyTag(Tag tag, ulong memberId, DiscordGuild guild)
+            public async Task<bool> CanModifyTagAsync(Tag tag, ulong memberId, DiscordGuild guild)
             {
                 if (tag.OwnerId == memberId)
                 {
@@ -60,7 +60,7 @@ namespace Tomoe.Commands
                     }
                 }
 
-                DiscordMember discordMember = await memberId.GetMember(guild);
+                DiscordMember discordMember = await memberId.GetMemberAsync(guild);
                 if (discordMember == null)
                 {
                     return true;

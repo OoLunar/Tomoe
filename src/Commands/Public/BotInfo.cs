@@ -14,7 +14,7 @@ namespace Tomoe.Commands
     public partial class Public : ApplicationCommandModule
     {
         [SlashCommand("bot_info", "Gets general info about the bot.")]
-        public static async Task BotInfo(InteractionContext context)
+        public static Task BotInfoAsync(InteractionContext context)
         {
             DiscordEmbedBuilder embedBuilder = new()
             {
@@ -29,9 +29,9 @@ namespace Tomoe.Commands
             embedBuilder.AddField("Websocket Ping", context.Client.Ping + "ms");
             embedBuilder.AddField("Uptime", (Process.GetCurrentProcess().StartTime.ToUniversalTime() - DateTime.UtcNow).Humanize(3));
             embedBuilder.AddField("Shard Count", Program.Client.ShardClients.Count.ToMetric());
-            embedBuilder.AddField("Version", "2.0.0");
+            embedBuilder.AddField("Version", Constants.Version);
 
-            await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().AddEmbed(embedBuilder));
+            return context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().AddEmbed(embedBuilder));
         }
     }
 }

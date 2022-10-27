@@ -14,7 +14,7 @@ namespace Tomoe.Commands
             public partial class Tomoe : ApplicationCommandModule
             {
                 [SlashCommand("disable", "Changes where events are logged."), Hierarchy(Permissions.ManageGuild)]
-                public async Task Disable(InteractionContext context, [Option("log_type", "Which event to change.")] CustomEvent logType)
+                public async Task DisableAsync(InteractionContext context, [Option("log_type", "Which event to change.")] CustomEvent logType)
                 {
                     LogSetting logSetting = Database.LogSettings.FirstOrDefault(databaseLogSetting => databaseLogSetting.GuildId == context.Guild.Id && databaseLogSetting.CustomEvent == logType);
                     if (logSetting == null)

@@ -12,7 +12,7 @@ namespace Tomoe.Commands
         public partial class Tags : ApplicationCommandModule
         {
             [SlashCommand("delete_aliases", "Removes all aliases from a tag.")]
-            public async Task DeleteAliases(InteractionContext context, [Option("name", "Which tag to remove all aliases from.")] string tagName)
+            public async Task DeleteAliasesAsync(InteractionContext context, [Option("name", "Which tag to remove all aliases from.")] string tagName)
             {
                 Tag tag = await GetTagAsync(tagName, context.Guild.Id);
                 if (tag == null)
@@ -31,7 +31,7 @@ namespace Tomoe.Commands
                         IsEphemeral = true
                     });
                 }
-                else if (!await CanModifyTag(tag, context.User.Id, context.Guild))
+                else if (!await CanModifyTagAsync(tag, context.User.Id, context.Guild))
                 {
                     await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
                     {

@@ -12,7 +12,7 @@ namespace Tomoe.Commands
         public partial class Tags : ApplicationCommandModule
         {
             [SlashCommand("delete", "Deletes a tag.")]
-            public async Task Delete(InteractionContext context, [Option("name", "Which tag to remove permanently.")] string tagName)
+            public async Task DeleteAsync(InteractionContext context, [Option("name", "Which tag to remove permanently.")] string tagName)
             {
                 Tag tag = await GetTagAsync(tagName, context.Guild.Id);
                 if (tag == null)
@@ -23,7 +23,7 @@ namespace Tomoe.Commands
                         IsEphemeral = true
                     });
                 }
-                else if (!await CanModifyTag(tag, context.User.Id, context.Guild))
+                else if (!await CanModifyTagAsync(tag, context.User.Id, context.Guild))
                 {
                     await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
                     {

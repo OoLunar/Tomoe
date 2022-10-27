@@ -14,17 +14,16 @@ namespace Tomoe.Commands
         public partial class AutoReactions : ApplicationCommandModule
         {
             [SlashCommand("list", "Shows all autoreactions on a channel.")]
-            public async Task List(InteractionContext context, [Option("channel", "Which channel to view the autoreactions on.")] DiscordChannel channel = null)
+            public Task ListAsync(InteractionContext context, [Option("channel", "Which channel to view the autoreactions on.")] DiscordChannel channel = null)
             {
                 channel ??= context.Channel;
 
                 if (channel.Type != ChannelType.Text && channel.Type != ChannelType.News && channel.Type != ChannelType.Category)
                 {
-                    await context.EditResponseAsync(new()
+                    return context.EditResponseAsync(new()
                     {
                         Content = $"Error: {channel.Mention} is not a text or category channel!"
                     });
-                    return;
                 }
 
                 IEnumerable<AutoReaction> autoReactions = channel == null
@@ -80,7 +79,7 @@ namespace Tomoe.Commands
                     embeds.Add(embed);
                 }
 
-                await context.EditResponseAsync(new DiscordWebhookBuilder().AddEmbeds(embeds));
+                return context.EditResponseAsync(new DiscordWebhookBuilder().AddEmbeds(embeds));
             }
         }
     }

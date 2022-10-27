@@ -14,7 +14,7 @@ namespace Tomoe.Commands
     public partial class Moderation : ApplicationCommandModule
     {
         [SlashCommand("voiceban", "Prevents the victim from joining voice channels."), Hierarchy(Permissions.MuteMembers)]
-        public async Task Voiceban(InteractionContext context, [Option("victim", "Who to voiceban?")] DiscordUser victim, [Option("reason", "Why is the victim being voicebanned?")] string reason = Constants.MissingReason)
+        public async Task VoicebanAsync(InteractionContext context, [Option("victim", "Who to voiceban?")] DiscordUser victim, [Option("reason", "Why is the victim being voicebanned?")] string reason = Constants.MissingReason)
         {
             GuildConfig guildConfig = Database.GuildConfigs.First(databaseGuildConfig => databaseGuildConfig.Id == context.Guild.Id);
             DiscordRole voicebanRole = null;
@@ -22,11 +22,11 @@ namespace Tomoe.Commands
 
             if (guildConfig.VoicebanRole == 0 || context.Guild.GetRole(guildConfig.VoicebanRole) == null)
             {
-                bool createRole = await context.Confirm("Error: The voiceban role does not exist. Should one be created now?");
+                bool createRole = await context.ConfirmAsync("Error: The voiceban role does not exist. Should one be created now?");
                 if (createRole)
                 {
                     voicebanRole = await context.Guild.CreateRoleAsync("Voicebanned", Permissions.None, DiscordColor.VeryDarkGray, false, false, "Used for the voiceban command and config.");
-                    await Config.FixRolePermissions(context.Guild, context.Member, voicebanRole, CustomEvent.Voiceban, Database);
+                    await Config.FixRolePermissionsAsync(context.Guild, context.Member, voicebanRole, CustomEvent.Voiceban, Database);
                     guildConfig.VoicebanRole = voicebanRole.Id;
                     databaseNeedsSaving = true;
                 }
@@ -48,7 +48,7 @@ namespace Tomoe.Commands
             DiscordMember guildVictim = null;
             if (databaseVictim == null)
             {
-                guildVictim = await victim.Id.GetMember(context.Guild);
+                guildVictim = await victim.Id.GetMemberAsync(context.Guild);
                 databaseVictim = new()
                 {
                     UserId = victim.Id,
@@ -80,8 +80,8 @@ namespace Tomoe.Commands
 
             databaseVictim.IsVoicebanned = true;
             await Database.SaveChangesAsync();
-            guildVictim ??= await victim.Id.GetMember(context.Guild);
-            bool sentDm = await guildVictim.TryDmMember($"{context.User.Mention} ({context.User.Username}#{context.User.Discriminator}) has voicebanned you in the guild {Formatter.Bold(context.Guild.Name)}.\nReason: {reason}\nNote: A voiceban prevents you from connecting to voice channels.");
+            guildVictim ??= await victim.Id.GetMemberAsync(context.Guild);
+            bool sentDm = await guildVictim.TryDmMemberAsync($"{context.User.Mention} ({context.User.Username}#{context.User.Discriminator}) has voicebanned you in the guild {Formatter.Bold(context.Guild.Name)}.\nReason: {reason}\nNote: A voiceban prevents you from connecting to voice channels.");
 
             if (guildVictim != null)
             {
@@ -105,7 +105,7 @@ namespace Tomoe.Commands
                 { "moderator_displayname", context.Member.DisplayName },
                 { "punishment_reason", reason }
             };
-            await ModLog(context.Guild, keyValuePairs, CustomEvent.Antimeme);
+            await ModLogAsync(context.Guild, keyValuePairs, CustomEvent.Antimeme);
 
             await context.EditResponseAsync(new()
             {

@@ -13,14 +13,14 @@ namespace Tomoe.Commands
         public partial class Config : ApplicationCommandModule
         {
             [SlashCommand("mute", "Sets the mute role for the guild."), Hierarchy(Permissions.ManageRoles)]
-            public async Task Mute(InteractionContext context, [Option("role", "Which role to set.")] DiscordRole role = null)
+            public async Task MuteAsync(InteractionContext context, [Option("role", "Which role to set.")] DiscordRole role = null)
             {
                 GuildConfig guildConfig = Database.GuildConfigs.First(guildConfig => guildConfig.Id == context.Guild.Id);
                 if (role == null)
                 {
                     if (guildConfig.MuteRole == 0 || context.Guild.GetRole(guildConfig.MuteRole) == null)
                     {
-                        bool createRole = await context.Confirm("Error: The mute role does not exist. Should one be created now?");
+                        bool createRole = await context.ConfirmAsync("Error: The mute role does not exist. Should one be created now?");
                         if (createRole)
                         {
                             role = await context.Guild.CreateRoleAsync("Muted", Permissions.None, DiscordColor.VeryDarkGray, false, false, "Used for the mute command and config.");
@@ -40,7 +40,7 @@ namespace Tomoe.Commands
                     }
                 }
 
-                await FixRolePermissions(context.Guild, context.Member, role, CustomEvent.Mute, Database);
+                await FixRolePermissionsAsync(context.Guild, context.Member, role, CustomEvent.Mute, Database);
                 guildConfig.MuteRole = role.Id;
                 await Database.SaveChangesAsync();
 

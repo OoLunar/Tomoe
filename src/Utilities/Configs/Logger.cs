@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Serilog.Events;
+using Serilog.Sinks.SystemConsole.Themes;
 
 namespace Tomoe.Utilities.Configs
 {
@@ -36,7 +38,25 @@ namespace Tomoe.Utilities.Configs
                 .MinimumLevel.Override("DSharpPlus", Discord)
                 .MinimumLevel.Override("Microsoft.EntityFrameworkCore", Database)
                 // Use custom theme because the default one stinks
-                .WriteTo.Console(theme: LoggerTheme.Lunar, outputTemplate: outputTemplate);
+                .WriteTo.Console(theme: new AnsiConsoleTheme(new Dictionary<ConsoleThemeStyle, string>
+                {
+                    [ConsoleThemeStyle.Text] = "\x1b[0m",
+                    [ConsoleThemeStyle.SecondaryText] = "\x1b[90m",
+                    [ConsoleThemeStyle.TertiaryText] = "\x1b[90m",
+                    [ConsoleThemeStyle.Invalid] = "\x1b[31m",
+                    [ConsoleThemeStyle.Null] = "\x1b[95m",
+                    [ConsoleThemeStyle.Name] = "\x1b[93m",
+                    [ConsoleThemeStyle.String] = "\x1b[96m",
+                    [ConsoleThemeStyle.Number] = "\x1b[95m",
+                    [ConsoleThemeStyle.Boolean] = "\x1b[95m",
+                    [ConsoleThemeStyle.Scalar] = "\x1b[95m",
+                    [ConsoleThemeStyle.LevelVerbose] = "\x1b[34m",
+                    [ConsoleThemeStyle.LevelDebug] = "\x1b[90m",
+                    [ConsoleThemeStyle.LevelInformation] = "\x1b[36m",
+                    [ConsoleThemeStyle.LevelWarning] = "\x1b[33m",
+                    [ConsoleThemeStyle.LevelError] = "\x1b[31m",
+                    [ConsoleThemeStyle.LevelFatal] = "\x1b[97;91m",
+                }), outputTemplate: outputTemplate);
 
             if (SaveToFile)
             {

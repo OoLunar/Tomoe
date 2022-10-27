@@ -14,7 +14,7 @@ namespace Tomoe.Commands
     public partial class Moderation : ApplicationCommandModule
     {
         [SlashCommand("unantimeme", "Removes an antimeme from the victim. They can now react, send embeds or upload files."), Hierarchy(Permissions.ManageMessages)]
-        public async Task Unantimeme(InteractionContext context, [Option("victim", "Who to unantimeme?")] DiscordUser victim, [Option("reason", "Why is the victim being unantimemed?")] string reason = Constants.MissingReason)
+        public async Task UnantimemeAsync(InteractionContext context, [Option("victim", "Who to unantimeme?")] DiscordUser victim, [Option("reason", "Why is the victim being unantimemed?")] string reason = Constants.MissingReason)
         {
             GuildConfig guildConfig = Database.GuildConfigs.First(databaseGuildConfig => databaseGuildConfig.Id == context.Guild.Id);
             DiscordRole antimemeRole = null;
@@ -37,7 +37,7 @@ namespace Tomoe.Commands
             DiscordMember guildVictim = null;
             if (databaseVictim == null)
             {
-                guildVictim = await victim.Id.GetMember(context.Guild);
+                guildVictim = await victim.Id.GetMemberAsync(context.Guild);
                 databaseVictim = new()
                 {
                     UserId = victim.Id,
@@ -68,8 +68,8 @@ namespace Tomoe.Commands
             }
 
             databaseVictim.IsAntimemed = false;
-            guildVictim ??= await victim.Id.GetMember(context.Guild);
-            bool sentDm = await guildVictim.TryDmMember($"{context.User.Mention} ({context.User.Username}#{context.User.Discriminator}) has removed your antimeme in the guild {Formatter.Bold(context.Guild.Name)}.\nReason: {reason}\nNote: An antimeme prevents you from reacting to messages, sending embeds, uploading files, streaming in voice channels, and forces the push-to-talk restriction in voice channels.");
+            guildVictim ??= await victim.Id.GetMemberAsync(context.Guild);
+            bool sentDm = await guildVictim.TryDmMemberAsync($"{context.User.Mention} ({context.User.Username}#{context.User.Discriminator}) has removed your antimeme in the guild {Formatter.Bold(context.Guild.Name)}.\nReason: {reason}\nNote: An antimeme prevents you from reacting to messages, sending embeds, uploading files, streaming in voice channels, and forces the push-to-talk restriction in voice channels.");
 
             if (guildVictim != null)
             {
@@ -93,7 +93,7 @@ namespace Tomoe.Commands
                 { "moderator_displayname", context.Member.DisplayName },
                 { "punishment_reason", reason }
             };
-            await ModLog(context.Guild, keyValuePairs, CustomEvent.Antimeme, Database);
+            await ModLogAsync(context.Guild, keyValuePairs, CustomEvent.Antimeme, Database);
 
             await context.EditResponseAsync(new()
             {

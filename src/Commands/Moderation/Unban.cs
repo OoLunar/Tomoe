@@ -13,7 +13,7 @@ namespace Tomoe.Commands
     public partial class Moderation : ApplicationCommandModule
     {
         [SlashCommand("unban", "Unbans a person from the guild."), Hierarchy(Permissions.BanMembers)]
-        public static async Task Unban(InteractionContext context, [Option("victim_id", "The Discord user id of who to unban from the guild.")] string victimIdString, [Option("reason", "Why is the victim being unbanned from the guild.")] string unbanReason = Constants.MissingReason)
+        public static async Task UnbanAsync(InteractionContext context, [Option("victim_id", "The Discord user id of who to unban from the guild.")] string victimIdString, [Option("reason", "Why is the victim being unbanned from the guild.")] string unbanReason = Constants.MissingReason)
         {
             if (!ulong.TryParse(victimIdString, NumberStyles.Number, CultureInfo.InvariantCulture, out ulong victimId))
             {
@@ -48,7 +48,7 @@ namespace Tomoe.Commands
             }
 
             await context.Guild.UnbanMemberAsync(victim.Id, unbanReason);
-            bool sentDm = await victim.TryDmMember($"You've been unbanned from {context.Guild.Name} by {context.Member.Mention} ({Formatter.InlineCode(context.Member.Id.ToString(CultureInfo.InvariantCulture))}). Reason: {unbanReason}");
+            bool sentDm = await victim.TryDmMemberAsync($"You've been unbanned from {context.Guild.Name} by {context.Member.Mention} ({Formatter.InlineCode(context.Member.Id.ToString(CultureInfo.InvariantCulture))}). Reason: {unbanReason}");
 
             Dictionary<string, string> keyValuePairs = new()
             {
@@ -66,7 +66,7 @@ namespace Tomoe.Commands
                 { "moderator_displayname", context.Member.DisplayName },
                 { "punishment_reason", unbanReason }
             };
-            await ModLog(context.Guild, keyValuePairs, DiscordEvent.Unban);
+            await ModLogAsync(context.Guild, keyValuePairs, DiscordEvent.Unban);
 
             await context.EditResponseAsync(new()
             {

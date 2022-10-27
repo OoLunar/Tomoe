@@ -19,7 +19,7 @@ namespace Tomoe.Commands
             public Database Database { private get; set; }
 
             [SlashCommand("issue", "Creates a new strike for an individual."), Hierarchy(Permissions.KickMembers)]
-            public async Task Issue(InteractionContext context, [Option("victim", "Who is being striked?")] DiscordUser victim, [Option("reason", "Why is the user being striked?")] string reason = Constants.MissingReason)
+            public async Task IssueAsync(InteractionContext context, [Option("victim", "Who is being striked?")] DiscordUser victim, [Option("reason", "Why is the user being striked?")] string reason = Constants.MissingReason)
             {
                 Strike strike = new()
                 {
@@ -29,8 +29,8 @@ namespace Tomoe.Commands
                     VictimId = victim.Id
                 };
 
-                DiscordMember guildVictim = await victim.Id.GetMember(context.Guild);
-                bool sentDm = await guildVictim.TryDmMember($"{context.Member.Mention} ({context.Member.Username}#{context.Member.Discriminator}) gave you a strike.\nReason: {Formatter.BlockCode(Formatter.Strip(reason))}");
+                DiscordMember guildVictim = await victim.Id.GetMemberAsync(context.Guild);
+                bool sentDm = await guildVictim.TryDmMemberAsync($"{context.Member.Mention} ({context.Member.Username}#{context.Member.Discriminator}) gave you a strike.\nReason: {Formatter.BlockCode(Formatter.Strip(reason))}");
 
                 strike.VictimMessaged = sentDm;
                 strike.Reasons.Add(reason);
@@ -55,7 +55,7 @@ namespace Tomoe.Commands
                     { "punishment_reason", reason },
                     { "strike_id", strike.LogId.ToString(CultureInfo.InvariantCulture) }
                 };
-                await ModLog(context.Guild, keyValuePairs, CustomEvent.Drop, Database);
+                await ModLogAsync(context.Guild, keyValuePairs, CustomEvent.Drop, Database);
 
                 await context.EditResponseAsync(new()
                 {

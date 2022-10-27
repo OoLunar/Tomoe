@@ -18,15 +18,15 @@ namespace Tomoe
         /// <param name="discordGuild">The guild to get the DiscordMember from.</param>
         /// <param name="discordUserId">The id to search for in the DiscordGuild.</param>
         /// <returns>The DiscordMember from the DiscordGuild</returns>
-        public static async Task<DiscordMember> GetMember(this ulong discordUserId, DiscordGuild discordGuild)
+        public static Task<DiscordMember> GetMemberAsync(this ulong discordUserId, DiscordGuild discordGuild)
         {
             try
             {
-                return discordGuild.Members.Values.FirstOrDefault(member => member.Id == discordUserId) ?? await discordGuild.GetMemberAsync(discordUserId);
+                return Task.FromResult(discordGuild.Members.Values.FirstOrDefault(member => member.Id == discordUserId)) ?? discordGuild.GetMemberAsync(discordUserId);
             }
             catch (NotFoundException)
             {
-                return null;
+                return Task.FromResult<DiscordMember>(null);
             }
             catch (Exception)
             {
@@ -35,7 +35,7 @@ namespace Tomoe
             }
         }
 
-        public static async Task<bool> TryDmMember(this DiscordUser discordUser, string message)
+        public static async Task<bool> TryDmMemberAsync(this DiscordUser discordUser, string message)
         {
             bool sentDm = false;
             if (discordUser != null && !discordUser.IsBot)
@@ -58,7 +58,7 @@ namespace Tomoe
             return sentDm;
         }
 
-        public static async Task<bool> Confirm(this InteractionContext context, string prompt)
+        public static async Task<bool> ConfirmAsync(this InteractionContext context, string prompt)
         {
             DiscordButtonComponent yes = new(ButtonStyle.Success, $"{context.InteractionId}-confirm", "Yes", false, new("✅"));
             DiscordButtonComponent no = new(ButtonStyle.Danger, $"{context.InteractionId}-decline", "No", false, new("❌"));
