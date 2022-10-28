@@ -1,7 +1,6 @@
 bin/
 obj/
 logs/
-libs/*
 Tomoe/res/config.jsonc.prod
 Tomoe/res/*.db
 Tomoe/res/*.bak

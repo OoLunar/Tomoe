@@ -9,9 +9,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
         with:
-          submodules: true
+          submodules: 'recursive'
 
       - name: Get Previous tag
         id: previoustag
