@@ -1,3 +1,8 @@
+#pragma warning disable CS8019 // Unnecessary using directive.
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using DSharpPlus;
@@ -5,7 +10,9 @@ using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus.SlashCommands;
 using Humanizer;
+using Microsoft.Extensions.DependencyInjection;
 using Serilog;
+using Tomoe.Db;
 
 namespace Tomoe.Commands
 {
@@ -21,7 +28,6 @@ namespace Tomoe.Commands
             await discordClient.UpdateStatusAsync(new DiscordActivity("for bad things", ActivityType.Watching), UserStatus.Online);
 
 #if !DEBUG
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
             Task.Run(async () =>
             {
                 using IServiceScope scope = Program.ServiceProvider.CreateScope();
@@ -35,7 +41,6 @@ namespace Tomoe.Commands
                     }
                 }
             });
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 #endif
             await discordClient.GetExtension<SlashCommandsExtension>().RefreshCommandsAsync();
         }
