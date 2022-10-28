@@ -1,9 +1,10 @@
 bin/
 obj/
 logs/
-res/config.jsonc.prod
-res/*.db
-res/*.bak
+libs/*
+Tomoe/res/config.jsonc.prod
+Tomoe/res/*.db
+Tomoe/res/*.bak
 *.db
 .obsidian
 .vscode

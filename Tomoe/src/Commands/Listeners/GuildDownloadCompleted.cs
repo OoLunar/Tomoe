@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
+using DSharpPlus.SlashCommands;
 using Humanizer;
 using Serilog;
 
@@ -36,6 +37,7 @@ namespace Tomoe.Commands
             });
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 #endif
+            await discordClient.GetExtension<SlashCommandsExtension>().RefreshCommandsAsync();
         }
     }
 }

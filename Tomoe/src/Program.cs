@@ -16,9 +16,7 @@ namespace Tomoe
         public static Config Config { get; private set; }
         public static ServiceProvider ServiceProvider { get; private set; }
 
-        public static void Main() => MainAsync().ConfigureAwait(false).GetAwaiter().GetResult();
-
-        public static async Task MainAsync()
+        public static async Task Main()
         {
             ServiceCollection services = new();
             Config = await Config.LoadAsync();

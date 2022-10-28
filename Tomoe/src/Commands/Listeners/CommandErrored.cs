@@ -18,7 +18,7 @@ namespace Tomoe.Commands
 
         public static async Task CommandErroredAsync(SlashCommandsExtension slashCommandExtension, SlashCommandErrorEventArgs slashCommandErrorEventArgs)
         {
-            if (slashCommandErrorEventArgs.Exception is SlashExecutionChecksFailedException)
+            if (slashCommandErrorEventArgs.Exception is ApplicationCommandExecutionChecksFailedException)
             {
                 return;
             }
