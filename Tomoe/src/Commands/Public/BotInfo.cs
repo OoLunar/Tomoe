@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using DSharpPlus;
@@ -29,7 +30,7 @@ namespace Tomoe.Commands
             embedBuilder.AddField("Websocket Ping", context.Client.Ping + "ms");
             embedBuilder.AddField("Uptime", (Process.GetCurrentProcess().StartTime.ToUniversalTime() - DateTime.UtcNow).Humanize(3));
             embedBuilder.AddField("Shard Count", Program.Client.ShardClients.Count.ToMetric());
-            embedBuilder.AddField("Version", Constants.Version);
+            embedBuilder.AddField("Version", typeof(Program).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion);
 
             return context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().AddEmbed(embedBuilder));
         }

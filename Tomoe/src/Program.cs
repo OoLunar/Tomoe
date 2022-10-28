@@ -58,11 +58,11 @@ namespace Tomoe
             foreach (SlashCommandsExtension slashCommandShardExtension in (await Client.UseSlashCommandsAsync(slashCommandsConfiguration)).Values)
             {
 #if DEBUG
+                slashCommandShardExtension.RegisterCommands(typeof(Commands.Moderation), 0);
+                slashCommandShardExtension.RegisterCommands(typeof(Commands.Public), 0);
+#else
                 slashCommandShardExtension.RegisterCommands(typeof(Commands.Moderation), Config.DiscordDebugGuildId);
                 slashCommandShardExtension.RegisterCommands(typeof(Commands.Public), Config.DiscordDebugGuildId);
-#else
-                slashCommandShardExtension.RegisterCommands(typeof(Commands.Moderation));
-                slashCommandShardExtension.RegisterCommands(typeof(Commands.Public));
 #endif
                 slashCommandShardExtension.SlashCommandErrored += Commands.Listeners.CommandErroredAsync;
                 slashCommandShardExtension.SlashCommandExecuted += Commands.Listeners.CommandExecutedAsync;

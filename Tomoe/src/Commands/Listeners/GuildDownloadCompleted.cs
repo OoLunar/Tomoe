@@ -28,6 +28,7 @@ namespace Tomoe.Commands
             await discordClient.UpdateStatusAsync(new DiscordActivity("for bad things", ActivityType.Watching), UserStatus.Online);
 
 #if !DEBUG
+            // Run this in the background so it doesn't block the rest of the bot from starting up
             Task.Run(async () =>
             {
                 using IServiceScope scope = Program.ServiceProvider.CreateScope();
@@ -37,12 +38,20 @@ namespace Tomoe.Commands
                 {
                     if (guildId != Program.Config.DiscordDebugGuildId)
                     {
-                        await Program.Client.GetShard(guildId).Guilds[guildId].BulkOverwriteApplicationCommandsAsync(Array.Empty<DiscordApplicationCommand>());
+                        DiscordClient client = Program.Client.GetShard(guildId);
+                        if (client is null || !client.Guilds.TryGetValue(guildId, out DiscordGuild guild))
+                        {
+                            // The guild was deleted or the bot was kicked. We're going to assume the bot was kicked and will keep the config in the database.
+                            continue;
+                        }
+
+                        await guild.BulkOverwriteApplicationCommandsAsync(Array.Empty<DiscordApplicationCommand>());
+                        database.MenuRoles.RemoveRange(database.MenuRoles.Where(menuRole => !guild.Roles.Keys.Contains(menuRole.RoleId)));
+                        await database.SaveChangesAsync();
                     }
                 }
             });
 #endif
-            await discordClient.GetExtension<SlashCommandsExtension>().RefreshCommandsAsync();
         }
     }
 }

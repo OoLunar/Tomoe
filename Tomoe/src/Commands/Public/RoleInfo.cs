@@ -12,7 +12,7 @@ namespace Tomoe.Commands
 {
     public partial class Public : ApplicationCommandModule
     {
-        private Database Database { get; set; }
+        public Database Database { private get; set; }
 
         [SlashCommand("role_info", "Gets general information about a role.")]
         public Task RoleInfoAsync(InteractionContext context, [Option("role", "The role to get information on.")] DiscordRole discordRole)
