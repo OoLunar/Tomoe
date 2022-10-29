@@ -17,7 +17,7 @@ namespace Tomoe.Commands
         [SlashCommandGroup("autoreact", "Adds a new reaction on every message sent in a specified guild channel.")]
         public partial class AutoReactions : ApplicationCommandModule
         {
-            private static Regex EmojiRegex { get; } = new("^<(?<animated>a)?:(?<name>[a-zA-Z0-9_]+?):(?<id>\\d+?)>$", RegexOptions.Compiled | RegexOptions.ECMAScript);
+            private static Regex EmojiRegex { get; } = EmojiRegexMethod();
             public Database Database { private get; set; }
 
             [SlashCommand("create", "Creates a new autoreaction on a channel."), Hierarchy(Permissions.ManageChannels | Permissions.ManageMessages)]
@@ -111,6 +111,9 @@ namespace Tomoe.Commands
                     Content = "Channel" + (channelsAffected.Count != 1 ? "s" : "") + $" {channelsAffected.Humanize()} will now have the emoji {emoji} reacted on every new message."
                 });
             }
+
+            [GeneratedRegex("^<(?<animated>a)?:(?<name>[a-zA-Z0-9_]+?):(?<id>\\d+?)>$", RegexOptions.Compiled | RegexOptions.ECMAScript)]
+            private static partial Regex EmojiRegexMethod();
         }
     }
 }
