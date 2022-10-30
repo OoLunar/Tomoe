@@ -9,12 +9,12 @@ namespace Tomoe.Utilities.Converters
     /// <summary>
     /// This is for System.Text.Json, not DSharpPlus!
     /// </summary>
-    public class JsonTimeSpanConverter : JsonConverter<TimeSpan>
+    public partial class JsonTimeSpanConverter : JsonConverter<TimeSpan>
     {
-        private static readonly Regex TimeSpanRegex = new(@"^(?<days>\d+d\s*)?(?<hours>\d{1,2}h\s*)?(?<minutes>\d{1,2}m\s*)?(?<seconds>\d{1,2}s\s*)?$", RegexOptions.ECMAScript | RegexOptions.Compiled);
+        private static readonly Regex TimeSpanRegex = TimeSpanRegexMethod();
 
         ///<inheritdoc/>
-        public override TimeSpan Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) => Parse(reader.GetString());
+        public override TimeSpan Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) => Parse(reader.GetString() ?? throw new JsonException("TimeSpan cannot be null."));
 
         ///<inheritdoc/>
         public override void Write(Utf8JsonWriter writer, TimeSpan value, JsonSerializerOptions options) => writer.WriteStringValue(value.ToString(format: null, CultureInfo.InvariantCulture));
@@ -145,5 +145,8 @@ namespace Tomoe.Utilities.Converters
             timeSpan = new TimeSpan(d, h, m, s);
             return true;
         }
+
+        [GeneratedRegex("^(?<days>\\d+d\\s*)?(?<hours>\\d{1,2}h\\s*)?(?<minutes>\\d{1,2}m\\s*)?(?<seconds>\\d{1,2}s\\s*)?$", RegexOptions.Compiled | RegexOptions.ECMAScript)]
+        private static partial Regex TimeSpanRegexMethod();
     }
 }

@@ -37,7 +37,7 @@ namespace Tomoe.Commands.Attributes
 
             foreach (DiscordInteractionDataOption val in context.Interaction.Data.Options.Where(option => option.Type == ApplicationCommandOptionType.User || (option.Type == ApplicationCommandOptionType.String && option.Value is ulong)))
             {
-                DiscordMember discordMember = null;
+                DiscordMember? discordMember = null;
                 if (val.Value is DiscordMember member)
                 {
                     discordMember = member;
@@ -51,7 +51,12 @@ namespace Tomoe.Commands.Attributes
                     discordMember = await id.GetMemberAsync(context.Guild);
                 }
 
-                if (discordMember.Id.GetMemberAsync(context.Guild) == null) // Discord allows us to get the member even if they are not in the guild. At the current moment, no moderation commands mess with users who aren't in the guild. As such, we can just ignore this.
+                if (discordMember is null)
+                {
+                    continue;
+                }
+
+                if (discordMember.Id.GetMemberAsync(context.Guild) == null)
                 {
                     await context.CreateResponseAsync(new()
                     {

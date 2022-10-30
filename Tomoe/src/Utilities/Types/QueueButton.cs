@@ -8,7 +8,7 @@ namespace Tomoe.Utilities.Types
         public string Id { get; private set; }
         public ulong UserId { get; private set; }
         public DiscordComponent[] Components { get; private set; }
-        public DiscordComponent SelectedButton { get; set; }
+        public DiscordComponent? SelectedButton { get; set; }
 
         public QueueButton(string id, ulong userId, params DiscordComponent[] components)
         {

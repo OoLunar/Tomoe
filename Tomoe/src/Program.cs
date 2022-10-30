@@ -12,9 +12,9 @@ namespace Tomoe
 {
     public class Program
     {
-        public static DiscordShardedClient Client { get; private set; }
-        public static Config Config { get; private set; }
-        public static ServiceProvider ServiceProvider { get; private set; }
+        public static Config Config { get; private set; } = null!;
+        public static DiscordShardedClient Client { get; private set; } = null!;
+        public static ServiceProvider ServiceProvider { get; private set; } = null!;
 
         public static async Task Main()
         {
@@ -58,11 +58,11 @@ namespace Tomoe
             foreach (SlashCommandsExtension slashCommandShardExtension in (await Client.UseSlashCommandsAsync(slashCommandsConfiguration)).Values)
             {
 #if DEBUG
-                slashCommandShardExtension.RegisterCommands(typeof(Commands.Moderation), 0);
-                slashCommandShardExtension.RegisterCommands(typeof(Commands.Public), 0);
-#else
                 slashCommandShardExtension.RegisterCommands(typeof(Commands.Moderation), Config.DiscordDebugGuildId);
                 slashCommandShardExtension.RegisterCommands(typeof(Commands.Public), Config.DiscordDebugGuildId);
+#else
+                slashCommandShardExtension.RegisterCommands(typeof(Commands.Moderation), 0);
+                slashCommandShardExtension.RegisterCommands(typeof(Commands.Public), 0);
 #endif
                 slashCommandShardExtension.SlashCommandErrored += Commands.Listeners.CommandErroredAsync;
                 slashCommandShardExtension.SlashCommandExecuted += Commands.Listeners.CommandExecutedAsync;

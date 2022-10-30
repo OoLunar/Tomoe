@@ -30,7 +30,7 @@ namespace Tomoe.Commands
             }
 
             await context.DeferAsync();
-            TempRoleModel tempRole = Database.TemporaryRoles.FirstOrDefault(x => x.GuildId == context.Guild.Id && x.Assignee == discordUser.Id && x.RoleId == discordRole.Id);
+            TempRoleModel? tempRole = Database.TemporaryRoles.FirstOrDefault(x => x.GuildId == context.Guild.Id && x.Assignee == discordUser.Id && x.RoleId == discordRole.Id);
             if (tempRole != null)
             {
                 DiscordWebhookBuilder builder = new();
@@ -40,7 +40,7 @@ namespace Tomoe.Commands
                 return;
             }
 
-            if (JsonTimeSpanConverter.TryParse(expireTimeOrDate, out TimeSpan? expireTime))
+            if (JsonTimeSpanConverter.TryParse(expireTimeOrDate, out TimeSpan? expireTime) && expireTime is not null)
             {
                 await TempRoleAsync(context, expireTime.Value, discordRole, await context.Guild.GetMemberAsync(discordUser.Id));
             }
@@ -109,9 +109,9 @@ namespace Tomoe.Commands
             await context.EditResponseAsync(responseBuilder);
         }
 
-        public static async void TempRoleEventAsync(object sender, EventArgs eventArgs)
+        public static async void TempRoleEventAsync(object? sender, EventArgs eventArgs)
         {
-            Database database = Program.ServiceProvider.GetService<Database>();
+            Database database = Program.ServiceProvider.GetRequiredService<Database>();
 
             IEnumerable<TempRoleModel> expiredRoles = database.TemporaryRoles.Where(x => x.ExpiresAt <= DateTime.UtcNow.AddMinutes(2));
             bool changeDatabase = false;
@@ -122,10 +122,10 @@ namespace Tomoe.Commands
                     continue;
                 }
 
-                DiscordGuild guild = null;
+                DiscordGuild? guild = null;
                 foreach (DiscordClient client in Program.Client.ShardClients.Values)
                 {
-                    if (client.Guilds.TryGetValue(tempRole.GuildId, out DiscordGuild foundGuild))
+                    if (client.Guilds.TryGetValue(tempRole.GuildId, out DiscordGuild? foundGuild))
                     {
                         guild = foundGuild;
                         break;

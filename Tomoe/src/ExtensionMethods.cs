@@ -18,7 +18,7 @@ namespace Tomoe
         /// <param name="discordGuild">The guild to get the DiscordMember from.</param>
         /// <param name="discordUserId">The id to search for in the DiscordGuild.</param>
         /// <returns>The DiscordMember from the DiscordGuild</returns>
-        public static Task<DiscordMember> GetMemberAsync(this ulong discordUserId, DiscordGuild discordGuild)
+        public static Task<DiscordMember?> GetMemberAsync(this ulong discordUserId, DiscordGuild discordGuild)
         {
             try
             {
@@ -26,7 +26,7 @@ namespace Tomoe
             }
             catch (NotFoundException)
             {
-                return Task.FromResult<DiscordMember>(null);
+                return Task.FromResult<DiscordMember?>(null);
             }
             catch (Exception)
             {
