@@ -10,7 +10,7 @@ using Tomoe.Db;
 
 namespace Tomoe.Commands
 {
-    public partial class Listeners
+    public sealed class AutoReactionListener
     {
         public static async Task AutoReactionsAsync(DiscordClient discordClient, MessageCreateEventArgs messageCreateEventArgs)
         {
@@ -20,7 +20,7 @@ namespace Tomoe.Commands
             }
 
             using IServiceScope scope = Program.ServiceProvider.CreateScope();
-            Database database = scope.ServiceProvider.GetService<Database>();
+            Database database = scope.ServiceProvider.GetRequiredService<Database>();
             foreach (AutoReaction autoReaction in database.AutoReactions.Where(autoReaction => autoReaction.GuildId == messageCreateEventArgs.Guild.Id && autoReaction.ChannelId == messageCreateEventArgs.Channel.Id))
             {
                 DiscordEmoji discordEmoji = autoReaction.EmojiName switch

@@ -5,74 +5,71 @@ using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
 using Tomoe.Db;
 
-namespace Tomoe.Commands
+namespace Tomoe.Commands.Common
 {
-    public partial class Public : ApplicationCommandModule
+    public sealed partial class Tags : ApplicationCommandModule
     {
-        public partial class Tags : ApplicationCommandModule
+        public Database Database { private get; set; } = null!;
+
+        public async Task<Tag?> GetTagAsync(string tagName, ulong guildId)
         {
-            public Database Database { private get; set; }
+            tagName = tagName.ToLowerInvariant();
+            Tag? tag = Database.Tags.FirstOrDefault(databaseTag => databaseTag.Name == tagName && databaseTag.GuildId == guildId);
 
-            public async Task<Tag> GetTagAsync(string tagName, ulong guildId)
+            // Test if the tag is an alias
+            if (tag != null && tag.IsAlias)
             {
-                tagName = tagName.ToLowerInvariant();
-                Tag tag = Database.Tags.FirstOrDefault(databaseTag => databaseTag.Name == tagName && databaseTag.GuildId == guildId);
-
-                // Test if the tag is an alias
-                if (tag != null && tag.IsAlias)
+                // Retrieve the original tag
+                tag = Database.Tags.FirstOrDefault(databaseTag => databaseTag.Name == tag.AliasTo && databaseTag.GuildId == guildId);
+                // This shouldn't happen since Tags.Delete should also delete aliases, but it's here for safety.
+                if (tag != null)
                 {
-                    // Retrieve the original tag
-                    tag = Database.Tags.FirstOrDefault(databaseTag => databaseTag.Name == tag.AliasTo && databaseTag.GuildId == guildId);
-                    // This shouldn't happen since Tags.Delete should also delete aliases, but it's here for safety.
-                    if (tag == null)
-                    {
-                        Database.Tags.Remove(tag);
-                        await Database.SaveChangesAsync();
-                        return null;
-                    }
+                    Database.Tags.Remove(tag);
+                    await Database.SaveChangesAsync();
+                    return null;
                 }
-                return tag;
+            }
+            return tag;
+        }
+
+        public async Task<bool> CanModifyTagAsync(Tag tag, ulong memberId, DiscordGuild guild)
+        {
+            if (tag.OwnerId == memberId)
+            {
+                return true;
             }
 
-            public async Task<bool> CanModifyTagAsync(Tag tag, ulong memberId, DiscordGuild guild)
+            if (guild.OwnerId == memberId)
             {
-                if (tag.OwnerId == memberId)
-                {
-                    return true;
-                }
-
-                if (guild.OwnerId == memberId)
-                {
-                    return true;
-                }
-
-                // Tag creators should have permission over their tag's aliases.
-                if (tag.IsAlias)
-                {
-                    Tag originalTag = Database.Tags.FirstOrDefault(databaseTag => databaseTag.AliasTo == tag.Name && databaseTag.GuildId == guild.Id);
-                    if (originalTag == null)
-                    {
-                        return true;
-                    }
-                    else if (originalTag.OwnerId == memberId)
-                    {
-                        return true;
-                    }
-                }
-
-                DiscordMember discordMember = await memberId.GetMemberAsync(guild);
-                if (discordMember == null)
-                {
-                    return true;
-                }
-                else if (discordMember.Permissions.HasPermission(Permissions.ManageMessages))
-                {
-                    return true;
-                }
-
-                GuildConfig guildConfig = Database.GuildConfigs.First(guildConfig => guildConfig.Id == guild.Id);
-                return guildConfig.AdminRoles.Intersect(discordMember.Roles.Select(role => role.Id)).Any();
+                return true;
             }
+
+            // Tag creators should have permission over their tag's aliases.
+            if (tag.IsAlias)
+            {
+                Tag? originalTag = Database.Tags.FirstOrDefault(databaseTag => databaseTag.AliasTo == tag.Name && databaseTag.GuildId == guild.Id);
+                if (originalTag == null)
+                {
+                    return true;
+                }
+                else if (originalTag.OwnerId == memberId)
+                {
+                    return true;
+                }
+            }
+
+            DiscordMember? discordMember = await memberId.GetMemberAsync(guild);
+            if (discordMember == null)
+            {
+                return true;
+            }
+            else if (discordMember.Permissions.HasPermission(Permissions.ManageMessages))
+            {
+                return true;
+            }
+
+            GuildConfig guildConfig = Database.GuildConfigs.First(guildConfig => guildConfig.Id == guild.Id);
+            return guildConfig.AdminRoles.Intersect(discordMember.Roles.Select(role => role.Id)).Any();
         }
     }
 }

@@ -8,9 +8,9 @@ using DSharpPlus.SlashCommands;
 using Humanizer;
 using Tomoe.Commands.Attributes;
 
-namespace Tomoe.Commands
+namespace Tomoe.Commands.Moderation
 {
-    public partial class Moderation : ApplicationCommandModule
+    public sealed class BanCommand : ApplicationCommandModule
     {
         [SlashCommand("ban", "Bans a member from the guild, sending them off with a dm."), Hierarchy(Permissions.BanMembers, true)]
         public static async Task BanAsync(InteractionContext context, [Option("victim", "Who to ban from the guild.")] DiscordUser victimUser, [Option("reason", "Why is the victim being banned from the guild?")] string reason = Constants.MissingReason)

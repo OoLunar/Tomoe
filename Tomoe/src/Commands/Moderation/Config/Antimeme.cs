@@ -6,49 +6,46 @@ using DSharpPlus.SlashCommands;
 using Tomoe.Commands.Attributes;
 using Tomoe.Db;
 
-namespace Tomoe.Commands
+namespace Tomoe.Commands.Moderation
 {
-    public partial class Moderation : ApplicationCommandModule
+    public sealed partial class Config : ApplicationCommandModule
     {
-        public partial class Config : ApplicationCommandModule
+        [SlashCommand("antimeme", "Sets the antimeme role for the guild."), Hierarchy(Permissions.ManageRoles)]
+        public async Task AntimemeAsync(InteractionContext context, [Option("role", "Which role to set.")] DiscordRole role = null)
         {
-            [SlashCommand("antimeme", "Sets the antimeme role for the guild."), Hierarchy(Permissions.ManageRoles)]
-            public async Task AntimemeAsync(InteractionContext context, [Option("role", "Which role to set.")] DiscordRole role = null)
+            GuildConfig guildConfig = Database.GuildConfigs.First(guildConfig => guildConfig.Id == context.Guild.Id);
+            if (role == null)
             {
-                GuildConfig guildConfig = Database.GuildConfigs.First(guildConfig => guildConfig.Id == context.Guild.Id);
-                if (role == null)
+                if (guildConfig.AntimemeRole == 0 || context.Guild.GetRole(guildConfig.AntimemeRole) == null)
                 {
-                    if (guildConfig.AntimemeRole == 0 || context.Guild.GetRole(guildConfig.AntimemeRole) == null)
+                    bool createRole = await context.ConfirmAsync("Error: The antimeme role does not exist. Should one be created now?");
+                    if (createRole)
                     {
-                        bool createRole = await context.ConfirmAsync("Error: The antimeme role does not exist. Should one be created now?");
-                        if (createRole)
-                        {
-                            role = await context.Guild.CreateRoleAsync("Antimemed", Permissions.None, DiscordColor.VeryDarkGray, false, false, "Used for the antimeme command and config.");
-                        }
-                        else
-                        {
-                            await context.EditResponseAsync(new()
-                            {
-                                Content = "Error: No antimeme role exists, and I did not recieve permission to create it."
-                            });
-                            return;
-                        }
+                        role = await context.Guild.CreateRoleAsync("Antimemed", Permissions.None, DiscordColor.VeryDarkGray, false, false, "Used for the antimeme command and config.");
                     }
                     else
                     {
-                        role = context.Guild.GetRole(guildConfig.AntimemeRole);
+                        await context.EditResponseAsync(new()
+                        {
+                            Content = "Error: No antimeme role exists, and I did not recieve permission to create it."
+                        });
+                        return;
                     }
                 }
-
-                await FixRolePermissionsAsync(context.Guild, context.Member, role, CustomEvent.Antimeme, Database);
-                guildConfig.AntimemeRole = role.Id;
-                await Database.SaveChangesAsync();
-
-                await context.EditResponseAsync(new()
+                else
                 {
-                    Content = $"The antimeme role was set to {role.Mention}!"
-                });
+                    role = context.Guild.GetRole(guildConfig.AntimemeRole);
+                }
             }
+
+            await FixRolePermissionsAsync(context.Guild, context.Member, role, CustomEvent.Antimeme, Database);
+            guildConfig.AntimemeRole = role.Id;
+            await Database.SaveChangesAsync();
+
+            await context.EditResponseAsync(new()
+            {
+                Content = $"The antimeme role was set to {role.Mention}!"
+            });
         }
     }
 }

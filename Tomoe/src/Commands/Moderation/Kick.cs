@@ -7,9 +7,9 @@ using DSharpPlus.SlashCommands;
 using Humanizer;
 using Tomoe.Commands.Attributes;
 
-namespace Tomoe.Commands
+namespace Tomoe.Commands.Moderation
 {
-    public partial class Moderation : ApplicationCommandModule
+    public sealed class KickCommand : ApplicationCommandModule
     {
         [SlashCommand("kick", "Kicks a member from the guild, sending them off with a dm."), Hierarchy(Permissions.KickMembers)]
         public static async Task KickAsync(InteractionContext context, [Option("victim", "Who to kick from the guild.")] DiscordUser victimUser, [Option("reason", "Why is the victim being kicked from the guild?")] string reason = Constants.MissingReason)

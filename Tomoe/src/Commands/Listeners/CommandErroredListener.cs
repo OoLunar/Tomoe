@@ -12,7 +12,7 @@ using Serilog;
 
 namespace Tomoe.Commands
 {
-    public partial class Listeners
+    public sealed class CommandErroredListener
     {
         private static readonly ILogger Logger = Log.ForContext<Listeners>();
 
@@ -28,7 +28,7 @@ namespace Tomoe.Commands
             }
             DiscordChannel discordChannel = await slashCommandExtension.Client.GetChannelAsync(832374606748188743);
             DiscordMessageBuilder discordMessageBuilder = new();
-            string stackTrace = string.Join("\n\n", slashCommandErrorEventArgs.Exception.StackTrace.Split('\n').Select(line => line.Trim())).Truncate(1800);
+            string stackTrace = string.Join("\n\n", slashCommandErrorEventArgs.Exception.StackTrace?.Split('\n').Select(line => line.Trim()) ?? new[] { "No stack trace." }).Truncate(1800);
             StringBuilder stringBuilder = new();
             stringBuilder.AppendLine(CultureInfo.InvariantCulture, $"`/{slashCommandErrorEventArgs.Context.CommandName}` threw a {slashCommandErrorEventArgs.Exception.GetType()}: {slashCommandErrorEventArgs.Exception.Message ?? "<no message>"}");
             if (slashCommandErrorEventArgs.Exception.InnerException != null)

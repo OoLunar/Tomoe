@@ -3,9 +3,9 @@ using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
 
-namespace Tomoe.Commands
+namespace Tomoe.Commands.Common
 {
-    public partial class Public : ApplicationCommandModule
+    public sealed class AvatarCommand : ApplicationCommandModule
     {
         [SlashCommand("avatar", "Gets someone's profile picture, optionally with a preferred image format and dimensions.")]
         public static Task AvatarAsync(InteractionContext context, [Option("User", "Who's avatar to retrieve.")] DiscordUser? user = null)

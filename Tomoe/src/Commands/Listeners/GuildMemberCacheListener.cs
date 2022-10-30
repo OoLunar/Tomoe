@@ -5,12 +5,15 @@ using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using Microsoft.Extensions.DependencyInjection;
+using Serilog;
 using Tomoe.Db;
 
 namespace Tomoe.Commands
 {
-    public partial class Listeners
+    public sealed class GuildMemberCacheListener
     {
+        private static readonly ILogger Logger = Log.ForContext<GuildMemberCacheListener>();
+
         public static async Task GuildMemberCacheAsync(DiscordClient discordClient, GuildCreateEventArgs guildCreateEventArgs)
         {
             if (guildCreateEventArgs.Guild == null)
@@ -19,9 +22,9 @@ namespace Tomoe.Commands
             }
 
             using IServiceScope scope = Program.ServiceProvider.CreateScope();
-            Database database = scope.ServiceProvider.GetService<Database>();
+            Database database = scope.ServiceProvider.GetRequiredService<Database>();
 
-            GuildConfig guildConfig = database.GuildConfigs.FirstOrDefault(databaseGuildConfig => databaseGuildConfig.Id == guildCreateEventArgs.Guild.Id);
+            GuildConfig? guildConfig = database.GuildConfigs.FirstOrDefault(databaseGuildConfig => databaseGuildConfig.Id == guildCreateEventArgs.Guild.Id);
             if (guildConfig == null)
             {
                 guildConfig = new()
@@ -46,7 +49,7 @@ namespace Tomoe.Commands
             {
                 Public.TotalMemberCount[guildCreateEventArgs.Guild.Id] += guildCreateEventArgs.Guild.MemberCount;
             }
-            logger.Information($"{guildCreateEventArgs.Guild.Id}, shard {discordClient.ShardId}, {guildCreateEventArgs.Guild.Name}, {guildCreateEventArgs.Guild.MemberCount} member{(guildCreateEventArgs.Guild.MemberCount == 1 ? "" : "s")}");
+            Logger.Information($"{guildCreateEventArgs.Guild.Id}, shard {discordClient.ShardId}, {guildCreateEventArgs.Guild.Name}, {guildCreateEventArgs.Guild.MemberCount} member{(guildCreateEventArgs.Guild.MemberCount == 1 ? "" : "s")}");
         }
     }
 }

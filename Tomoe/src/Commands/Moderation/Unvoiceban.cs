@@ -9,10 +9,12 @@ using Humanizer;
 using Tomoe.Commands.Attributes;
 using Tomoe.Db;
 
-namespace Tomoe.Commands
+namespace Tomoe.Commands.Moderation
 {
-    public partial class Moderation : ApplicationCommandModule
+    public sealed class UnvoicebanCommand : ApplicationCommandModule
     {
+        public Database Database { private get; set; } = null!;
+
         [SlashCommand("unvoiceban", "Prevents the victim from joining voice channels."), Hierarchy(Permissions.MuteMembers)]
         public async Task UnvoicebanAsync(InteractionContext context, [Option("victim", "Who to unvoiceban?")] DiscordUser victim, [Option("reason", "Why is the victim being unvoicebanned?")] string reason = Constants.MissingReason)
         {

@@ -10,33 +10,31 @@ using Humanizer;
 using Tomoe.Commands.Attributes;
 using Tomoe.Db;
 
-namespace Tomoe.Commands
+namespace Tomoe.Commands.Moderation
 {
-    public partial class Moderation : ApplicationCommandModule
+    public sealed partial class Strikes : ApplicationCommandModule
     {
-        public partial class Strikes : ApplicationCommandModule
+        [SlashCommand("drop", "Drops a previously issued strike for an individual."), Hierarchy(Permissions.KickMembers)]
+        public async Task DropAsync(InteractionContext context, [Option("strike_id", "Which strike to drop.")] long strikeId, [Option("reason", "Why is the strike being dropped?")] string reason = Constants.MissingReason)
         {
-            [SlashCommand("drop", "Drops a previously issued strike for an individual."), Hierarchy(Permissions.KickMembers)]
-            public async Task DropAsync(InteractionContext context, [Option("strike_id", "Which strike to drop.")] long strikeId, [Option("reason", "Why is the strike being dropped?")] string reason = Constants.MissingReason)
+            Strike strike = Database.Strikes.FirstOrDefault(databaseStrike => databaseStrike.LogId == strikeId && databaseStrike.GuildId == context.Guild.Id);
+            if (strike.Dropped)
             {
-                Strike strike = Database.Strikes.FirstOrDefault(databaseStrike => databaseStrike.LogId == strikeId && databaseStrike.GuildId == context.Guild.Id);
-                if (strike.Dropped)
+                await context.EditResponseAsync(new()
                 {
-                    await context.EditResponseAsync(new()
-                    {
-                        Content = $"Error: Strike #{strikeId} is already dropped!"
-                    });
-                }
+                    Content = $"Error: Strike #{strikeId} is already dropped!"
+                });
+            }
 
-                DiscordMember guildVictim = await strike.VictimId.GetMemberAsync(context.Guild);
-                bool sentDm = await guildVictim.TryDmMemberAsync($"{context.Member.Mention} ({context.Member.Username}#{context.Member.Discriminator}) dropped strike #{strikeId}.\nReason: {Formatter.BlockCode(Formatter.Strip(reason))}");
+            DiscordMember guildVictim = await strike.VictimId.GetMemberAsync(context.Guild);
+            bool sentDm = await guildVictim.TryDmMemberAsync($"{context.Member.Mention} ({context.Member.Username}#{context.Member.Discriminator}) dropped strike #{strikeId}.\nReason: {Formatter.BlockCode(Formatter.Strip(reason))}");
 
-                strike.VictimMessaged = sentDm;
-                strike.Reasons.Add("Dropped: " + reason);
-                strike.Changes.Add(DateTime.UtcNow);
-                strike.Dropped = true;
+            strike.VictimMessaged = sentDm;
+            strike.Reasons.Add("Dropped: " + reason);
+            strike.Changes.Add(DateTime.UtcNow);
+            strike.Dropped = true;
 
-                Dictionary<string, string> keyValuePairs = new()
+            Dictionary<string, string> keyValuePairs = new()
                 {
                     { "guild_name", context.Guild.Name },
                     { "guild_count", Public.TotalMemberCount[context.Guild.Id].ToMetric() },
@@ -54,13 +52,12 @@ namespace Tomoe.Commands
                     { "punishment_reason", reason },
                     { "strike_id", strike.LogId.ToString(CultureInfo.InvariantCulture) }
                 };
-                await ModLogAsync(context.Guild, keyValuePairs, CustomEvent.Drop, Database);
+            await ModLogAsync(context.Guild, keyValuePairs, CustomEvent.Drop, Database);
 
-                await context.EditResponseAsync(new()
-                {
-                    Content = $"Strike #{strikeId} has been dropped, <@{strike.VictimId}> {(sentDm ? "has been notified" : "could not be messaged")}. Reason: {reason}"
-                });
-            }
+            await context.EditResponseAsync(new()
+            {
+                Content = $"Strike #{strikeId} has been dropped, <@{strike.VictimId}> {(sentDm ? "has been notified" : "could not be messaged")}. Reason: {reason}"
+            });
         }
     }
 }

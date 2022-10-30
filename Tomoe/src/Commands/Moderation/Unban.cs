@@ -8,9 +8,9 @@ using DSharpPlus.SlashCommands;
 using Humanizer;
 using Tomoe.Commands.Attributes;
 
-namespace Tomoe.Commands
+namespace Tomoe.Commands.Moderation
 {
-    public partial class Moderation : ApplicationCommandModule
+    public sealed class Unban : ApplicationCommandModule
     {
         [SlashCommand("unban", "Unbans a person from the guild."), Hierarchy(Permissions.BanMembers)]
         public static async Task UnbanAsync(InteractionContext context, [Option("victim_id", "The Discord user id of who to unban from the guild.")] string victimIdString, [Option("reason", "Why is the victim being unbanned from the guild.")] string unbanReason = Constants.MissingReason)

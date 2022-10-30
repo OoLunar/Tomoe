@@ -10,7 +10,7 @@ using Tomoe.Utilities.Types;
 
 namespace Tomoe.Commands
 {
-    public partial class Listeners
+    public sealed class ButtonClickedListener
     {
         public static Dictionary<string, QueueButton> QueueButtons { get; private set; } = new();
 
@@ -20,8 +20,8 @@ namespace Tomoe.Commands
             if (int.TryParse(componentInteractionCreateEventArgs.Id.Split('-')[1], NumberStyles.Number, CultureInfo.InvariantCulture, out int stage))
             {
                 using IServiceScope scope = Program.ServiceProvider.CreateScope();
-                Database database = scope.ServiceProvider.GetService<Database>();
-                PermanentButton button = database.PermanentButtons.FirstOrDefault(button => button.ButtonId == id && button.GuildId == componentInteractionCreateEventArgs.Guild.Id);
+                Database database = scope.ServiceProvider.GetRequiredService<Database>();
+                PermanentButton? button = database.PermanentButtons.FirstOrDefault(button => button.ButtonId == id && button.GuildId == componentInteractionCreateEventArgs.Guild.Id);
                 if (button != null)
                 {
                     switch (button.ButtonType)
@@ -30,7 +30,7 @@ namespace Tomoe.Commands
                             componentInteractionCreateEventArgs.Handled = true;
                             if (stage == 1)
                             {
-                                await Moderation.MenuRoles.AssignAsync(componentInteractionCreateEventArgs.Interaction, await componentInteractionCreateEventArgs.User.Id.GetMemberAsync(componentInteractionCreateEventArgs.Guild), componentInteractionCreateEventArgs.Id, database);
+                                await Moderation.MenuRoles.AssignAsync(componentInteractionCreateEventArgs.Interaction, await componentInteractionCreateEventArgs.User.Id.GetMemberAsync(componentInteractionCreateEventArgs.Guild)!, componentInteractionCreateEventArgs.Id, database);
                             }
                             else if (stage == 2)
                             {
@@ -44,7 +44,7 @@ namespace Tomoe.Commands
             }
             else
             {
-                if (QueueButtons.TryGetValue(id, out QueueButton queueButton) && queueButton.UserId == componentInteractionCreateEventArgs.User.Id)
+                if (QueueButtons.TryGetValue(id, out QueueButton? queueButton) && queueButton.UserId == componentInteractionCreateEventArgs.User.Id)
                 {
                     queueButton.SelectedButton = queueButton.Components.First(discordComponent => discordComponent.CustomId == componentInteractionCreateEventArgs.Id);
                     QueueButtons.Remove(id);

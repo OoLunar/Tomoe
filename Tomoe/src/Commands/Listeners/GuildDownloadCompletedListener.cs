@@ -16,7 +16,7 @@ using Tomoe.Db;
 
 namespace Tomoe.Commands
 {
-    public partial class Listeners
+    public sealed class GuildDownloadCompletedListener
     {
         private static readonly ILogger logger = Log.ForContext<Listeners>();
 
@@ -32,14 +32,14 @@ namespace Tomoe.Commands
             Task.Run(async () =>
             {
                 using IServiceScope scope = Program.ServiceProvider.CreateScope();
-                Database database = scope.ServiceProvider.GetService<Database>();
+                Database database = scope.ServiceProvider.GetRequiredService<Database>();
                 IEnumerable<ulong> guildIds = database.GuildConfigs.Select(databaseGuild => databaseGuild.Id);
                 foreach (ulong guildId in guildIds)
                 {
                     if (guildId != Program.Config.DiscordDebugGuildId)
                     {
                         DiscordClient client = Program.Client.GetShard(guildId);
-                        if (client is null || !client.Guilds.TryGetValue(guildId, out DiscordGuild guild))
+                        if (client is null || !client.Guilds.TryGetValue(guildId, out DiscordGuild? guild))
                         {
                             // The guild was deleted or the bot was kicked. We're going to assume the bot was kicked and will keep the config in the database.
                             continue;

@@ -11,10 +11,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Tomoe.Db;
 using Tomoe.Utilities.Converters;
 
-namespace Tomoe.Commands
+namespace Tomoe.Commands.Moderation
 {
-    public partial class Moderation : ApplicationCommandModule
+    public sealed class TempRoleCommand : ApplicationCommandModule
     {
+        public Database Database { private get; set; } = null!;
+
         [SlashCommand("temprole", "Temporarily gives a role to a member."), SlashRequirePermissions(Permissions.ManageRoles), SlashRequireGuild]
         public async Task TempRoleAsync(InteractionContext context, [Option("expire_time_or_date", "When to remove the role.")] string expireTimeOrDate, [Option("discord_role", "Which role to assign and remove.")] DiscordRole discordRole, [Option("discord_user", "Which user to give and take the role away from.")] DiscordUser discordUser)
         {

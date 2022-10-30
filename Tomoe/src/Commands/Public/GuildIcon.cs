@@ -3,9 +3,9 @@ using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
 
-namespace Tomoe.Commands
+namespace Tomoe.Commands.Common
 {
-    public partial class Public : ApplicationCommandModule
+    public sealed class GuildIconCommand : ApplicationCommandModule
     {
         [SlashCommand("guild_icon", "Gets the guild's icon.")]
         public static Task GuildIconAsync(InteractionContext context) => context.Guild.IconUrl == null

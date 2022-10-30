@@ -6,7 +6,7 @@ using Tomoe.Db;
 
 namespace Tomoe.Commands
 {
-    public partial class Listeners
+    public sealed class ChannelPermissionsListener
     {
         public static void ChannelPermissions(DiscordClient discordClient, ChannelCreateEventArgs channelCreateEventArgs)
         {
@@ -16,7 +16,7 @@ namespace Tomoe.Commands
             }
 
             using IServiceScope scope = Program.ServiceProvider.CreateScope();
-            Database database = scope.ServiceProvider.GetService<Database>();
+            Database database = scope.ServiceProvider.GetRequiredService<Database>();
             GuildConfig guildConfig = database.GuildConfigs.First(databaseGuildConfig => databaseGuildConfig.Id == channelCreateEventArgs.Guild.Id);
         }
     }

@@ -2,9 +2,9 @@ using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.SlashCommands;
 
-namespace Tomoe.Commands
+namespace Tomoe.Commands.Common
 {
-    public partial class Public : ApplicationCommandModule
+    public sealed class PingCommand : ApplicationCommandModule
     {
         [SlashCommand("ping", "Checks the latency between the bot and the Discord API. Best used to see if the bot is lagging.")]
         public static Task PingAsync(InteractionContext context) => context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()

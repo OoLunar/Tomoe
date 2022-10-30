@@ -6,9 +6,9 @@ using DSharpPlus.Entities;
 using DSharpPlus.Net.Serialization;
 using DSharpPlus.SlashCommands;
 
-namespace Tomoe.Commands
+namespace Tomoe.Commands.Common
 {
-    public partial class Public : ApplicationCommandModule
+    public sealed class RawCommand : ApplicationCommandModule
     {
         [SlashCommand("raw", "Gets the raw version of the message provided.")]
         public static Task RawAsync(InteractionContext context, [Option("message_link", "The message id or jumplink to the message.")] DiscordMessage message, [Option("jsonify", "Should the message be in JSON form or should we attempt to escape it?")] bool jsonfied = false)

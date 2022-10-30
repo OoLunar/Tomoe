@@ -7,18 +7,18 @@ using Tomoe.Db;
 
 namespace Tomoe.Commands
 {
-    public partial class Listeners
+    public sealed class CommandExecutedListener
     {
         public static async Task CommandExecutedAsync(SlashCommandsExtension slashCommandExtension, SlashCommandExecutedEventArgs slashCommandExecutedEventArgs)
         {
             using IServiceScope scope = Program.ServiceProvider.CreateScope();
-            Database database = scope.ServiceProvider.GetService<Database>();
+            Database database = scope.ServiceProvider.GetRequiredService<Database>();
             if (slashCommandExecutedEventArgs.Context.Guild == null)
             {
                 return;
             }
 
-            GuildMember guildMember = database.GuildMembers.FirstOrDefault(user => user.UserId == slashCommandExecutedEventArgs.Context.Member.Id && user.GuildId == slashCommandExecutedEventArgs.Context.Guild.Id);
+            GuildMember? guildMember = database.GuildMembers.FirstOrDefault(user => user.UserId == slashCommandExecutedEventArgs.Context.Member.Id && user.GuildId == slashCommandExecutedEventArgs.Context.Guild.Id);
             if (guildMember == null)
             {
                 database.AddGuildMember(slashCommandExecutedEventArgs.Context.Member);

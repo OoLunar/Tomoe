@@ -9,10 +9,12 @@ using Humanizer;
 using Tomoe.Commands.Attributes;
 using Tomoe.Db;
 
-namespace Tomoe.Commands
+namespace Tomoe.Commands.Moderation
 {
-    public partial class Moderation : ApplicationCommandModule
+    public sealed class UnmuteCommand : ApplicationCommandModule
     {
+        public Database Database { private get; set; } = null!;
+
         [SlashCommand("unmute", "Allows the user to talk in the guild again."), Hierarchy(Permissions.ManageMessages)]
         public async Task UnmuteAsync(InteractionContext context, [Option("victim", "Who to unmute?")] DiscordUser victim, [Option("reason", "Why is the victim being unmuted?")] string reason = Constants.MissingReason)
         {

@@ -2,9 +2,9 @@ using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.SlashCommands;
 
-namespace Tomoe.Commands
+namespace Tomoe.Commands.Common
 {
-    public partial class Public : ApplicationCommandModule
+    public sealed class InviteCommand : ApplicationCommandModule
     {
         [SlashCommand("invite", "Sends the link to add Tomoe to a guild.")]
         public static Task InviteAsync(InteractionContext context) => context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()

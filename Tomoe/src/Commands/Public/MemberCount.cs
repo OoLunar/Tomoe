@@ -3,9 +3,9 @@ using DSharpPlus;
 using DSharpPlus.SlashCommands;
 using Humanizer;
 
-namespace Tomoe.Commands
+namespace Tomoe.Commands.Common
 {
-    public partial class Public : ApplicationCommandModule
+    public sealed class MemberCountCommand : ApplicationCommandModule
     {
         [SlashCommand("member_count", "Sends the approximate member count.")]
         public static Task MemberCountAsync(InteractionContext context) => context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()

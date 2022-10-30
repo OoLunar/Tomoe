@@ -9,10 +9,12 @@ using Humanizer;
 using Tomoe.Commands.Attributes;
 using Tomoe.Db;
 
-namespace Tomoe.Commands
+namespace Tomoe.Commands.Moderation
 {
-    public partial class Moderation : ApplicationCommandModule
+    public sealed class MuteCommand : ApplicationCommandModule
     {
+        public Database Database { private get; set; } = null!;
+
         [SlashCommand("mute", "Prevents a user from having any sort of interaction in the guild."), Hierarchy(Permissions.ManageMessages)]
         public async Task MuteAsync(InteractionContext context, [Option("victim", "Who to mute?")] DiscordUser victim, [Option("reason", "Why is the victim being muted?")] string reason = Constants.MissingReason)
         {

@@ -11,12 +11,10 @@ using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
 using Humanizer;
 
-namespace Tomoe.Commands
+namespace Tomoe.Commands.Common
 {
-    public partial class Public : ApplicationCommandModule
+    public sealed partial class BotInfoCommand : ApplicationCommandModule
     {
-        private static readonly Regex LastCommaRegex = LastCommaRegexMethod();
-
         [SlashCommand("bot_info", "Gets general info about the bot.")]
         public static Task BotInfoAsync(InteractionContext context)
         {
@@ -37,7 +35,7 @@ namespace Tomoe.Commands
             embedBuilder.AddField("Member Count", TotalMemberCount.Values.Sum().ToMetric(), true);
 
             embedBuilder.AddField("Prefixes", "`/`", true);
-            embedBuilder.AddField("Bot Uptime", LastCommaRegex.Replace((Process.GetCurrentProcess().StartTime - DateTime.Now).Humanize(3), " and "), true);
+            embedBuilder.AddField("Bot Uptime", LastCommaRegex().Replace((Process.GetCurrentProcess().StartTime - DateTime.Now).Humanize(3), " and "), true);
             embedBuilder.AddField("Bot Version", typeof(Program).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion, true);
 
             embedBuilder.AddField("DSharpPlus Library Version", typeof(DiscordClient).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion, true);
@@ -48,6 +46,6 @@ namespace Tomoe.Commands
         }
 
         [GeneratedRegex(", (?=[^,]*$)", RegexOptions.Compiled)]
-        private static partial Regex LastCommaRegexMethod();
+        private static partial Regex LastCommaRegex();
     }
 }

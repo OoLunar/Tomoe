@@ -7,9 +7,9 @@ using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
 using Humanizer;
 
-namespace Tomoe.Commands
+namespace Tomoe.Commands.Common
 {
-    public partial class Public : ApplicationCommandModule
+    public sealed class GuildInfoCommand : ApplicationCommandModule
     {
         internal static readonly Dictionary<ulong, int> TotalMemberCount = new();
 

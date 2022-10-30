@@ -9,10 +9,12 @@ using Humanizer;
 using Tomoe.Commands.Attributes;
 using Tomoe.Db;
 
-namespace Tomoe.Commands
+namespace Tomoe.Commands.Moderation
 {
-    public partial class Moderation : ApplicationCommandModule
+    public sealed class AntimemeCommand : ApplicationCommandModule
     {
+        public Database Database { private get; set; } = null!;
+
         [SlashCommand("antimeme", "Forces the user to use only text. No more reactions, embeds or uploading files."), Hierarchy(Permissions.ManageMessages)]
         public async Task AntimemeAsync(InteractionContext context, [Option("victim", "Who to antimeme?")] DiscordUser victim, [Option("reason", "Why is the victim being antimemed?")] string reason = Constants.MissingReason)
         {

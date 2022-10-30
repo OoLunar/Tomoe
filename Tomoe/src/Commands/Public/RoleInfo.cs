@@ -8,9 +8,9 @@ using DSharpPlus.SlashCommands;
 using Humanizer;
 using Tomoe.Db;
 
-namespace Tomoe.Commands
+namespace Tomoe.Commands.Common
 {
-    public partial class Public : ApplicationCommandModule
+    public sealed class RoleInfoCommand : ApplicationCommandModule
     {
         public Database Database { private get; set; } = null!;
 

@@ -9,49 +9,49 @@ using Microsoft.Extensions.DependencyInjection;
 using Tomoe.Commands.Attributes;
 using Tomoe.Db;
 
-namespace Tomoe.Commands
+namespace Tomoe.Commands.Moderation
 {
-    public partial class Moderation : ApplicationCommandModule
+    public enum CustomEvent
     {
-        public enum CustomEvent
-        {
-            [ChoiceName("Mute")] Mute,
-            [ChoiceName("Antimeme")] Antimeme,
-            [ChoiceName("Voiceban")] Voiceban,
-            [ChoiceName("Strike")] Strike,
-            [ChoiceName("Pardon")] Drop,
-            [ChoiceName("Restrike")] Restrike,
-            [ChoiceName("Unmute")] Unmute,
-            [ChoiceName("Unantimeme")] Unantimeme,
-            [ChoiceName("Unvoiceban")] Unvoiceban,
-            [ChoiceName("AutoReaction Create")] AutoReactionCreate,
-            [ChoiceName("AutoReaction Delete")] AutoReactionDelete,
-            [ChoiceName("ReactionRole Create")] ReactionRoleCreate,
-            [ChoiceName("ReactionRole Delete")] ReactionRoleDelete,
-            [ChoiceName("ReactionRole Fix")] ReactionRoleFix,
-            [ChoiceName("Lock")] Lock,
-            [ChoiceName("Config")] Config,
-            [ChoiceName("Command Executed")] CommandExecuted,
-            [ChoiceName("Custom Event")] CustomEvent,
-            [ChoiceName("Unknown")] Unknown,
-            [ChoiceName("Reminder")] Reminder,
-            [ChoiceName("None")] None,
-            [ChoiceName("Role Creation")] RoleCreation
-        }
+        [ChoiceName("Mute")] Mute,
+        [ChoiceName("Antimeme")] Antimeme,
+        [ChoiceName("Voiceban")] Voiceban,
+        [ChoiceName("Strike")] Strike,
+        [ChoiceName("Pardon")] Drop,
+        [ChoiceName("Restrike")] Restrike,
+        [ChoiceName("Unmute")] Unmute,
+        [ChoiceName("Unantimeme")] Unantimeme,
+        [ChoiceName("Unvoiceban")] Unvoiceban,
+        [ChoiceName("AutoReaction Create")] AutoReactionCreate,
+        [ChoiceName("AutoReaction Delete")] AutoReactionDelete,
+        [ChoiceName("ReactionRole Create")] ReactionRoleCreate,
+        [ChoiceName("ReactionRole Delete")] ReactionRoleDelete,
+        [ChoiceName("ReactionRole Fix")] ReactionRoleFix,
+        [ChoiceName("Lock")] Lock,
+        [ChoiceName("Config")] Config,
+        [ChoiceName("Command Executed")] CommandExecuted,
+        [ChoiceName("Custom Event")] CustomEvent,
+        [ChoiceName("Unknown")] Unknown,
+        [ChoiceName("Reminder")] Reminder,
+        [ChoiceName("None")] None,
+        [ChoiceName("Role Creation")] RoleCreation
+    }
 
-        public enum DiscordEvent
-        {
-            Ban,
-            Kick,
-            Unban,
-            MemberJoined,
-            MemberLeft,
-            MessageCreated,
-            MessageDeleted,
-            Unknown
-        }
+    public enum DiscordEvent
+    {
+        Ban,
+        Kick,
+        Unban,
+        MemberJoined,
+        MemberLeft,
+        MessageCreated,
+        MessageDeleted,
+        Unknown
+    }
 
-        public Database Database { private get; set; }
+    public sealed class ModLogCommand : ApplicationCommandModule
+    {
+        public Database Database { private get; set; } = null!;
 
         [SlashCommand("mod_log", "Adds a new log to the mod log."), Hierarchy(Permissions.ManageMessages)]
         public async Task ModLogAsync(InteractionContext context, [Option("reason", "What to add to the mod_log")] string reason = Constants.MissingReason)

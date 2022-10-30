@@ -12,19 +12,19 @@ using Tomoe.Db;
 
 namespace Tomoe.Commands
 {
-    public partial class Listeners
+    public sealed class PersistentRolesListener
     {
         public static async Task PersistentRolesAsync(DiscordClient discordClient, GuildMemberAddEventArgs guildMemberAddEventArgs)
         {
             Public.TotalMemberCount[guildMemberAddEventArgs.Guild.Id]++;
 
             using IServiceScope scope = Program.ServiceProvider.CreateScope();
-            Database database = scope.ServiceProvider.GetService<Database>();
+            Database database = scope.ServiceProvider.GetRequiredService<Database>();
             GuildConfig guild = database.GuildConfigs.First(guild => guild.Id == guildMemberAddEventArgs.Guild.Id);
             if (guild.PersistentRoles)
             {
 
-                GuildMember guildMember = database.GuildMembers.FirstOrDefault(user => user.UserId == guildMemberAddEventArgs.Member.Id && user.GuildId == guildMemberAddEventArgs.Guild.Id);
+                GuildMember? guildMember = database.GuildMembers.FirstOrDefault(user => user.UserId == guildMemberAddEventArgs.Member.Id && user.GuildId == guildMemberAddEventArgs.Guild.Id);
 
                 if (guildMember == null)
                 {
@@ -70,9 +70,9 @@ namespace Tomoe.Commands
             Public.TotalMemberCount[guildMemberRemoveEventArgs.Guild.Id]--;
 
             using IServiceScope scope = Program.ServiceProvider.CreateScope();
-            Database database = scope.ServiceProvider.GetService<Database>();
+            Database database = scope.ServiceProvider.GetRequiredService<Database>();
             GuildConfig guild = database.GuildConfigs.First(guild => guild.Id == guildMemberRemoveEventArgs.Guild.Id);
-            GuildMember guildMember = database.GuildMembers.FirstOrDefault(user => user.UserId == guildMemberRemoveEventArgs.Member.Id && user.GuildId == guildMemberRemoveEventArgs.Guild.Id);
+            GuildMember? guildMember = database.GuildMembers.FirstOrDefault(user => user.UserId == guildMemberRemoveEventArgs.Member.Id && user.GuildId == guildMemberRemoveEventArgs.Guild.Id);
 
             if (guildMember == null)
             {
