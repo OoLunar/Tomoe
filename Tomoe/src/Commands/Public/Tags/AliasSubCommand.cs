@@ -12,7 +12,7 @@ namespace Tomoe.Commands.Common
         public async Task AliasAsync(InteractionContext context, [Option("old_tag", "Which tag to point to.")] string oldTagName, [Option("new_tag", "What to call the new alias.")] string newTagName)
         {
             Tag? newTag = await GetTagAsync(newTagName, context.Guild.Id);
-            if (newTag != null)
+            if (newTag is not null)
             {
                 await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
                 {
@@ -23,7 +23,7 @@ namespace Tomoe.Commands.Common
             }
 
             Tag? oldTag = await GetTagAsync(oldTagName, context.Guild.Id);
-            if (oldTag == null)
+            if (oldTag is null)
             {
                 await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
                 {

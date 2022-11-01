@@ -24,7 +24,7 @@ namespace Tomoe.Commands.Moderation
                 });
             }
 
-            IEnumerable<AutoReaction> autoReactions = channel != null
+            IEnumerable<AutoReaction> autoReactions = channel is not null
                 ? Database.AutoReactions.Where(databaseAutoReaction => databaseAutoReaction.GuildId == context.Guild.Id && databaseAutoReaction.ChannelId == channel.Id)
                 : Database.AutoReactions.Where(databaseAutoReaction => databaseAutoReaction.GuildId == context.Guild.Id);
 

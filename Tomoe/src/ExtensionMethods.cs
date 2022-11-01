@@ -38,7 +38,7 @@ namespace Tomoe
         public static async Task<bool> TryDmMemberAsync(this DiscordUser discordUser, string message)
         {
             bool sentDm = false;
-            if (discordUser != null && !discordUser.IsBot)
+            if (discordUser is not null && !discordUser.IsBot)
             {
                 foreach (DiscordClient discordClient in Program.Client.ShardClients.Values)
                 {

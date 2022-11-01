@@ -14,9 +14,9 @@ namespace Tomoe.Commands.Moderation
         public async Task VoicebanAsync(InteractionContext context, [Option("role", "Which role to set.")] DiscordRole? role = null)
         {
             GuildConfig guildConfig = Database.GuildConfigs.First(guildConfig => guildConfig.Id == context.Guild.Id);
-            if (role == null)
+            if (role is null)
             {
-                if (guildConfig.VoicebanRole == 0 || context.Guild.GetRole(guildConfig.VoicebanRole) == null)
+                if (guildConfig.VoicebanRole == 0 || context.Guild.GetRole(guildConfig.VoicebanRole) is null)
                 {
                     bool createRole = await context.ConfirmAsync("Error: The voiceban role does not exist. Should one be created now?");
                     if (createRole)

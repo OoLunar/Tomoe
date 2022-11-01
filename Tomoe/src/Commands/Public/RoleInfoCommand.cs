@@ -46,7 +46,7 @@ namespace Tomoe.Commands.Common
                 Color = discordRole.Color.Value == 0 ? new DiscordColor("#7b84d1") : discordRole.Color
             };
 
-            if (context.Guild.IconUrl != null)
+            if (context.Guild.IconUrl is not null)
             {
                 embedBuilder.WithThumbnail(context.Guild.IconUrl.Replace(".jpg", ".png?size=1024"));
             }

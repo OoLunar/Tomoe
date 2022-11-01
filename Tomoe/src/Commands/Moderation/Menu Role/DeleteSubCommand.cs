@@ -33,14 +33,14 @@ namespace Tomoe.Commands.Moderation
                 {
                     await context.EditResponseAsync(new()
                     {
-                        Content = context.Guild == null ? "Error: Message link isn't from a guild!" : "Error: Message link isn't from this guild!"
+                        Content = context.Guild is null ? "Error: Message link isn't from a guild!" : "Error: Message link isn't from this guild!"
                     });
                     return;
                 }
                 else if (ulong.TryParse(messageLink.Segments[3].Remove(messageLink.Segments[3].Length - 1), NumberStyles.Number, CultureInfo.InvariantCulture, out ulong channelId))
                 {
                     channel = context.Guild.GetChannel(channelId);
-                    if (channel == null)
+                    if (channel is null)
                     {
                         await context.EditResponseAsync(new()
                         {
@@ -69,7 +69,7 @@ namespace Tomoe.Commands.Moderation
             }
 
             message = await channel.GetMessageAsync(messageId);
-            if (message == null)
+            if (message is null)
             {
                 await context.EditResponseAsync(new()
                 {
@@ -79,7 +79,7 @@ namespace Tomoe.Commands.Moderation
 
             string id = message.Components.First().CustomId.Split('-')[0];
             PermanentButton button = Database.PermanentButtons.FirstOrDefault(permanentButton => permanentButton.ButtonId == id);
-            if (button == null)
+            if (button is null)
             {
                 await context.EditResponseAsync(new()
                 {

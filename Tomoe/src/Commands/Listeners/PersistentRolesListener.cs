@@ -27,7 +27,7 @@ namespace Tomoe.Commands
 
                 GuildMember? guildMember = database.GuildMembers.FirstOrDefault(user => user.UserId == guildMemberAddEventArgs.Member.Id && user.GuildId == guildMemberAddEventArgs.Guild.Id);
 
-                if (guildMember == null)
+                if (guildMember is null)
                 {
                     database.AddGuildMember(guildMemberAddEventArgs.Member);
                 }
@@ -36,7 +36,7 @@ namespace Tomoe.Commands
                     foreach (ulong discordRoleId in guildMember.Roles)
                     {
                         DiscordRole discordRole = guildMemberAddEventArgs.Guild.GetRole(discordRoleId);
-                        if (discordRole == null)
+                        if (discordRole is null)
                         {
                             guildMember.Roles.Remove(discordRoleId);
                         }
@@ -75,7 +75,7 @@ namespace Tomoe.Commands
             GuildConfig guild = database.GuildConfigs.First(guild => guild.Id == guildMemberRemoveEventArgs.Guild.Id);
             GuildMember? guildMember = database.GuildMembers.FirstOrDefault(user => user.UserId == guildMemberRemoveEventArgs.Member.Id && user.GuildId == guildMemberRemoveEventArgs.Guild.Id);
 
-            if (guildMember == null)
+            if (guildMember is null)
             {
                 database.AddGuildMember(guildMemberRemoveEventArgs.Member);
             }

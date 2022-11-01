@@ -33,7 +33,7 @@ namespace Tomoe.Commands.Moderation
 
             await context.DeferAsync();
             TempRoleModel? tempRole = Database.TemporaryRoles.FirstOrDefault(x => x.GuildId == context.Guild.Id && x.Assignee == discordUser.Id && x.RoleId == discordRole.Id);
-            if (tempRole != null)
+            if (tempRole is not null)
             {
                 DiscordWebhookBuilder builder = new();
                 builder.WithContent($"That user already has {discordRole.Mention} as a temporary role. It's set to expire at {Formatter.Timestamp(tempRole.ExpiresAt, TimestampFormat.ShortDateTime)}.");
@@ -120,7 +120,7 @@ namespace Tomoe.Commands.Moderation
                     }
                 }
 
-                if (guild == null)
+                if (guild is null)
                 {
                     // We must've been removed from the guild, just remove the temporary role from the database.
                     database.TemporaryRoles.Remove(tempRole);
@@ -129,7 +129,7 @@ namespace Tomoe.Commands.Moderation
 
                 DiscordRole role = guild.GetRole(tempRole.RoleId);
                 DiscordMember member = await guild.GetMemberAsync(tempRole.Assignee);
-                if (member == null)
+                if (member is null)
                 {
                     // The member has left the guild, but they may return someday.
                     continue;

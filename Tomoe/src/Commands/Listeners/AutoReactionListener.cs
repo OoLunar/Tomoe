@@ -14,7 +14,7 @@ namespace Tomoe.Commands
     {
         public static async Task AutoReactionsAsync(DiscordClient discordClient, MessageCreateEventArgs messageCreateEventArgs)
         {
-            if (messageCreateEventArgs.Guild == null)
+            if (messageCreateEventArgs.Guild is null)
             {
                 return;
             }

@@ -12,7 +12,7 @@ namespace Tomoe.Commands.Common
         public async Task TransferAsync(InteractionContext context, [Option("name", "Which tag to transfer")] string tagName, [Option("New_Tag_Owner", "Who to transfer the tag too.")] DiscordUser? newTagOwner = null)
         {
             Tag? tag = await GetTagAsync(tagName, context.Guild.Id);
-            if (tag == null)
+            if (tag is null)
             {
                 await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
                 {

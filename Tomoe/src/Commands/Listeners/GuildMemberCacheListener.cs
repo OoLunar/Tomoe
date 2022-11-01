@@ -16,7 +16,7 @@ namespace Tomoe.Commands
 
         public static async Task GuildMemberCacheAsync(DiscordClient discordClient, GuildCreateEventArgs guildCreateEventArgs)
         {
-            if (guildCreateEventArgs.Guild == null)
+            if (guildCreateEventArgs.Guild is null)
             {
                 return;
             }
@@ -25,7 +25,7 @@ namespace Tomoe.Commands
             Database database = scope.ServiceProvider.GetRequiredService<Database>();
 
             GuildConfig? guildConfig = database.GuildConfigs.FirstOrDefault(databaseGuildConfig => databaseGuildConfig.Id == guildCreateEventArgs.Guild.Id);
-            if (guildConfig == null)
+            if (guildConfig is null)
             {
                 guildConfig = new()
                 {

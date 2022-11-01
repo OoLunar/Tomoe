@@ -10,7 +10,7 @@ namespace Tomoe.Commands
     {
         public static void ChannelPermissions(DiscordClient discordClient, ChannelCreateEventArgs channelCreateEventArgs)
         {
-            if (channelCreateEventArgs.Guild == null)
+            if (channelCreateEventArgs.Guild is null)
             {
                 return;
             }

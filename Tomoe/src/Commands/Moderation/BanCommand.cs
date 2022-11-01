@@ -62,7 +62,7 @@ namespace Tomoe.Commands.Moderation
                 });
 
                 // Try to let them know that we failed to ban them if we previously let them know that we were going to ban them.
-                if (member != null && sentDm)
+                if (member is not null && sentDm)
                 {
                     await member.SendMessageAsync($"Nevermind, I failed to ban you. Please contact {context.User.Mention} ({Formatter.InlineCode(context.User.Id.ToString(CultureInfo.InvariantCulture))}) for more information.");
                 }

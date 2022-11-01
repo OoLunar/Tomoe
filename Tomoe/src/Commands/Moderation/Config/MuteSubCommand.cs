@@ -14,9 +14,9 @@ namespace Tomoe.Commands.Moderation
         public async Task MuteAsync(InteractionContext context, [Option("role", "Which role to set.")] DiscordRole? role = null)
         {
             GuildConfig guildConfig = Database.GuildConfigs.First(guildConfig => guildConfig.Id == context.Guild.Id);
-            if (role == null)
+            if (role is null)
             {
-                if (guildConfig.MuteRole == 0 || context.Guild.GetRole(guildConfig.MuteRole) == null)
+                if (guildConfig.MuteRole == 0 || context.Guild.GetRole(guildConfig.MuteRole) is null)
                 {
                     bool createRole = await context.ConfirmAsync("Error: The mute role does not exist. Should one be created now?");
                     if (createRole)

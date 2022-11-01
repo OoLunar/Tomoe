@@ -13,8 +13,8 @@ namespace Tomoe.Commands.Common
             Tag? tag = await GetTagAsync(tagName, context.Guild.Id);
             await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
             {
-                Content = tag == null ? $"Error: Tag `{tagName.ToLowerInvariant()}` does not exist!" : $"<@{tag.OwnerId}> ({tag.OwnerId})",
-                IsEphemeral = tag == null
+                Content = tag is null ? $"Error: Tag `{tagName.ToLowerInvariant()}` does not exist!" : $"<@{tag.OwnerId}> ({tag.OwnerId})",
+                IsEphemeral = tag is null
             });
         }
     }

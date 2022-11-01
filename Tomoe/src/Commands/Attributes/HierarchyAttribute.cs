@@ -27,7 +27,7 @@ namespace Tomoe.Commands.Attributes
 
         public override async Task<bool> ExecuteChecksAsync(InteractionContext context)
         {
-            if (context.Guild == null)
+            if (context.Guild is null)
             {
                 return true;
             }
@@ -56,7 +56,7 @@ namespace Tomoe.Commands.Attributes
                     continue;
                 }
 
-                if (discordMember.Id.GetMemberAsync(context.Guild) == null)
+                if (discordMember.Id.GetMemberAsync(context.Guild) is null)
                 {
                     await context.CreateResponseAsync(new()
                     {

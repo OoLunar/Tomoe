@@ -31,7 +31,7 @@ namespace Tomoe.Commands
             string stackTrace = string.Join("\n\n", slashCommandErrorEventArgs.Exception.StackTrace?.Split('\n').Select(line => line.Trim()) ?? new[] { "No stack trace." }).Truncate(1800);
             StringBuilder stringBuilder = new();
             stringBuilder.AppendLine(CultureInfo.InvariantCulture, $"`/{slashCommandErrorEventArgs.Context.CommandName}` threw a {slashCommandErrorEventArgs.Exception.GetType()}: {slashCommandErrorEventArgs.Exception.Message ?? "<no message>"}");
-            if (slashCommandErrorEventArgs.Exception.InnerException != null)
+            if (slashCommandErrorEventArgs.Exception.InnerException is not null)
             {
                 stringBuilder.AppendLine(CultureInfo.InvariantCulture, $"Inner Exception: {slashCommandErrorEventArgs.Exception.InnerException.GetType()}: {slashCommandErrorEventArgs.Exception.InnerException.Message ?? "<no message>"}");
             }

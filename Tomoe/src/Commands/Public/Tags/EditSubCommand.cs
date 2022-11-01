@@ -11,7 +11,7 @@ namespace Tomoe.Commands.Common
         public async Task EditAsync(InteractionContext context, [Option("name", "Which tag to edit.")] string tagName, [Option("Tag_Content", "What to fill the tag with.")] string tagContent)
         {
             Tag? tag = await GetTagAsync(tagName, context.Guild.Id);
-            if (tag == null)
+            if (tag is null)
             {
                 await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
                 {

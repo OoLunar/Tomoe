@@ -22,7 +22,7 @@ namespace Tomoe.Commands.Moderation
             DiscordRole voicebanRole = null;
             bool databaseNeedsSaving = false; // Thank you! But our Database is in another castle!
 
-            if (guildConfig.VoicebanRole == 0 || context.Guild.GetRole(guildConfig.VoicebanRole) == null)
+            if (guildConfig.VoicebanRole == 0 || context.Guild.GetRole(guildConfig.VoicebanRole) is null)
             {
                 bool createRole = await context.ConfirmAsync("Error: The voiceban role does not exist. Should one be created now?");
                 if (createRole)
@@ -48,7 +48,7 @@ namespace Tomoe.Commands.Moderation
 
             GuildMember databaseVictim = Database.GuildMembers.FirstOrDefault(guildUser => guildUser.UserId == victim.Id && guildUser.GuildId == context.Guild.Id);
             DiscordMember guildVictim = null;
-            if (databaseVictim == null)
+            if (databaseVictim is null)
             {
                 guildVictim = await victim.Id.GetMemberAsync(context.Guild);
                 databaseVictim = new()
@@ -58,7 +58,7 @@ namespace Tomoe.Commands.Moderation
                     JoinedAt = guildVictim.JoinedAt
                 };
 
-                if (guildVictim != null)
+                if (guildVictim is not null)
                 {
                     databaseVictim.Roles = guildVictim.Roles.Except(new[] { context.Guild.EveryoneRole }).Select(discordRole => discordRole.Id).ToList();
                 }
@@ -85,7 +85,7 @@ namespace Tomoe.Commands.Moderation
             guildVictim ??= await victim.Id.GetMemberAsync(context.Guild);
             bool sentDm = await guildVictim.TryDmMemberAsync($"{context.User.Mention} ({context.User.Username}#{context.User.Discriminator}) has voicebanned you in the guild {Formatter.Bold(context.Guild.Name)}.\nReason: {reason}\nNote: A voiceban prevents you from connecting to voice channels.");
 
-            if (guildVictim != null)
+            if (guildVictim is not null)
             {
                 await guildVictim.GrantRoleAsync(voicebanRole, $"{context.User.Mention} ({context.User.Username}#{context.User.Discriminator}) voicebanned {victim.Mention} ({victim.Username}#{victim.Discriminator}).\nReason: {reason}");
             }

@@ -58,7 +58,7 @@ namespace Tomoe.Commands.Moderation
             if (channel.Type is ChannelType.Text or ChannelType.News)
             {
                 AutoReaction? autoReaction = Database.AutoReactions.FirstOrDefault(databaseAutoReaction => databaseAutoReaction.GuildId == context.Guild.Id && databaseAutoReaction.ChannelId == channel.Id && databaseAutoReaction.EmojiName == emoji.ToString());
-                if (autoReaction == null)
+                if (autoReaction is null)
                 {
                     autoReaction = new(context.Guild.Id, channel.Id, emoji.ToString());
                     Database.AutoReactions.Add(autoReaction);
@@ -71,7 +71,7 @@ namespace Tomoe.Commands.Moderation
                 foreach (DiscordChannel subChannel in channel.Children)
                 {
                     AutoReaction? autoReaction = Database.AutoReactions.FirstOrDefault(databaseAutoReaction => databaseAutoReaction.GuildId == context.Guild.Id && databaseAutoReaction.ChannelId == subChannel.Id && databaseAutoReaction.EmojiName == emoji.ToString());
-                    if (autoReaction == null)
+                    if (autoReaction is null)
                     {
                         autoReaction = new(context.Guild.Id, subChannel.Id, emoji.ToString());
                         Database.AutoReactions.Add(autoReaction);

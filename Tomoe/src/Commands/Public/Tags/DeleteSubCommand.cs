@@ -13,7 +13,7 @@ namespace Tomoe.Commands.Common
         public async Task DeleteAsync(InteractionContext context, [Option("name", "Which tag to remove permanently.")] string tagName)
         {
             Tag? tag = await GetTagAsync(tagName, context.Guild.Id);
-            if (tag == null)
+            if (tag is null)
             {
                 await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
                 {

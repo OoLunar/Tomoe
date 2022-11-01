@@ -22,7 +22,7 @@ namespace Tomoe.Commands.Moderation
             DiscordRole antimemeRole = null;
             bool databaseNeedsSaving = false; // Thank you! But our Database is in another castle!
 
-            if (guildConfig.AntimemeRole == 0 || context.Guild.GetRole(guildConfig.AntimemeRole) == null)
+            if (guildConfig.AntimemeRole == 0 || context.Guild.GetRole(guildConfig.AntimemeRole) is null)
             {
                 await context.EditResponseAsync(new()
                 {
@@ -37,7 +37,7 @@ namespace Tomoe.Commands.Moderation
 
             GuildMember databaseVictim = Database.GuildMembers.FirstOrDefault(guildUser => guildUser.UserId == victim.Id && guildUser.GuildId == context.Guild.Id);
             DiscordMember guildVictim = null;
-            if (databaseVictim == null)
+            if (databaseVictim is null)
             {
                 guildVictim = await victim.Id.GetMemberAsync(context.Guild);
                 databaseVictim = new()
@@ -47,7 +47,7 @@ namespace Tomoe.Commands.Moderation
                     JoinedAt = guildVictim.JoinedAt
                 };
 
-                if (guildVictim != null)
+                if (guildVictim is not null)
                 {
                     databaseVictim.Roles = guildVictim.Roles.Except(new[] { context.Guild.EveryoneRole }).Select(discordRole => discordRole.Id).ToList();
                 }
@@ -73,7 +73,7 @@ namespace Tomoe.Commands.Moderation
             guildVictim ??= await victim.Id.GetMemberAsync(context.Guild);
             bool sentDm = await guildVictim.TryDmMemberAsync($"{context.User.Mention} ({context.User.Username}#{context.User.Discriminator}) has removed your antimeme in the guild {Formatter.Bold(context.Guild.Name)}.\nReason: {reason}\nNote: An antimeme prevents you from reacting to messages, sending embeds, uploading files, streaming in voice channels, and forces the push-to-talk restriction in voice channels.");
 
-            if (guildVictim != null)
+            if (guildVictim is not null)
             {
                 await guildVictim.RevokeRoleAsync(antimemeRole, $"{context.User.Mention} ({context.User.Username}#{context.User.Discriminator}) unantimemed {victim.Mention} ({victim.Username}#{victim.Discriminator}).\nReason: {reason}");
             }

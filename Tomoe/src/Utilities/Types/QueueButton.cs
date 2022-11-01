@@ -21,7 +21,7 @@ namespace Tomoe.Utilities.Types
 
         public async Task<bool> WaitAsync()
         {
-            while (SelectedButton == null)
+            while (SelectedButton is null)
             {
                 await Task.Delay(200);
             }

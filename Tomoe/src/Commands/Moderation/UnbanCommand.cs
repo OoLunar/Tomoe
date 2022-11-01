@@ -25,7 +25,7 @@ namespace Tomoe.Commands.Moderation
             }
 
             DiscordUser victim = await context.Client.GetUserAsync(victimId);
-            if (victim == null)
+            if (victim is null)
             {
                 await context.EditResponseAsync(new()
                 {

@@ -26,14 +26,14 @@ namespace Tomoe.Models
 
         public bool AddGuildMember(DiscordMember discordMember)
         {
-            if (discordMember == null)
+            if (discordMember is null)
             {
                 throw new ArgumentNullException(nameof(discordMember));
             }
 
             bool added = false;
             GuildMember? guildMember = GuildMembers.FirstOrDefault(databaseGuildMember => databaseGuildMember.GuildId == discordMember.Guild.Id && databaseGuildMember.UserId == discordMember.Id);
-            if (guildMember == null)
+            if (guildMember is null)
             {
                 added = true;
                 guildMember = new GuildMember()
@@ -52,7 +52,7 @@ namespace Tomoe.Models
 
         public List<ulong> AddGuildMembers(IEnumerable<DiscordMember> discordMembers)
         {
-            if (discordMembers == null)
+            if (discordMembers is null)
             {
                 throw new ArgumentNullException(nameof(discordMembers));
             }

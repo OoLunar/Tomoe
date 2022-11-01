@@ -90,7 +90,7 @@ Categories: {categoryChannelCount.ToMetric()}
 Active Threads: {activeThreadCount.ToMetric()}
 Total: {(textChannelCount + voiceChannelCount + newsChannelCount + stageChannelCount + categoryChannelCount + activeThreadCount).ToMetric()} ");
 
-            if (context.Guild.IconUrl != null)
+            if (context.Guild.IconUrl is not null)
             {
                 embedBuilder.Url = context.Guild.IconUrl;
                 embedBuilder.Thumbnail = new()

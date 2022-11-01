@@ -17,12 +17,12 @@ namespace Tomoe.Commands.Common
             Tag? tag = Database.Tags.FirstOrDefault(databaseTag => databaseTag.Name == tagName && databaseTag.GuildId == guildId);
 
             // Test if the tag is an alias
-            if (tag != null && tag.IsAlias)
+            if (tag is not null && tag.IsAlias)
             {
                 // Retrieve the original tag
                 tag = Database.Tags.FirstOrDefault(databaseTag => databaseTag.Name == tag.AliasTo && databaseTag.GuildId == guildId);
                 // This shouldn't happen since Tags.Delete should also delete aliases, but it's here for safety.
-                if (tag != null)
+                if (tag is not null)
                 {
                     Database.Tags.Remove(tag);
                     await Database.SaveChangesAsync();
@@ -48,7 +48,7 @@ namespace Tomoe.Commands.Common
             if (tag.IsAlias)
             {
                 Tag? originalTag = Database.Tags.FirstOrDefault(databaseTag => databaseTag.AliasTo == tag.Name && databaseTag.GuildId == guild.Id);
-                if (originalTag == null)
+                if (originalTag is null)
                 {
                     return true;
                 }
@@ -59,7 +59,7 @@ namespace Tomoe.Commands.Common
             }
 
             DiscordMember? discordMember = await memberId.GetMemberAsync(guild);
-            if (discordMember == null)
+            if (discordMember is null)
             {
                 return true;
             }

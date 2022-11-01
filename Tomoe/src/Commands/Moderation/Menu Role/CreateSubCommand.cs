@@ -53,7 +53,7 @@ namespace Tomoe.Commands.Moderation
             }
 
             List<MenuRole> reactionRoles = new();
-            IEnumerable<DiscordRole> roles = new[] { role1, role2, role3, role4, role5, role6, role7, role8, role9, role10, role11, role12, role13, role14, role15, role16, role17, role18, role19, role20, role21, role22 }.Where(role => role != null)!;
+            IEnumerable<DiscordRole> roles = new[] { role1, role2, role3, role4, role5, role6, role7, role8, role9, role10, role11, role12, role13, role14, role15, role16, role17, role18, role19, role20, role21, role22 }.Where(role => role is not null)!;
             List<DiscordRole> botUnassignableRoles = new();
             List<DiscordRole> userUnassignableRoles = new();
             foreach (DiscordRole role in roles)

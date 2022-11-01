@@ -8,7 +8,7 @@ namespace Tomoe.Commands.Common
     public sealed class GuildIconCommand : ApplicationCommandModule
     {
         [SlashCommand("guild_icon", "Gets the guild's icon.")]
-        public static Task GuildIconAsync(InteractionContext context) => context.Guild.IconUrl == null
+        public static Task GuildIconAsync(InteractionContext context) => context.Guild.IconUrl is null
             ? context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new() { Content = "Error: The guild has no icon!" })
             : context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().AddEmbed(new DiscordEmbedBuilder()
             {

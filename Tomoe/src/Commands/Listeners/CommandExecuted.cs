@@ -13,13 +13,13 @@ namespace Tomoe.Commands
         {
             using IServiceScope scope = Program.ServiceProvider.CreateScope();
             Database database = scope.ServiceProvider.GetRequiredService<Database>();
-            if (slashCommandExecutedEventArgs.Context.Guild == null)
+            if (slashCommandExecutedEventArgs.Context.Guild is null)
             {
                 return;
             }
 
             GuildMember? guildMember = database.GuildMembers.FirstOrDefault(user => user.UserId == slashCommandExecutedEventArgs.Context.Member.Id && user.GuildId == slashCommandExecutedEventArgs.Context.Guild.Id);
-            if (guildMember == null)
+            if (guildMember is null)
             {
                 database.AddGuildMember(slashCommandExecutedEventArgs.Context.Member);
                 await database.SaveChangesAsync();

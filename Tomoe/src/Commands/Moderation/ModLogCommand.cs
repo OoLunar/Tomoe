@@ -68,17 +68,17 @@ namespace Tomoe.Commands.Moderation
         {
             database ??= Program.ServiceProvider.CreateScope().ServiceProvider.GetRequiredService<Database>();
             LogSetting logSetting = database.LogSettings.FirstOrDefault(logSetting => logSetting.GuildId == guild.Id && logSetting.CustomEvent == logType);
-            if (logSetting == null || logSetting.ChannelId == 0)
+            if (logSetting is null || logSetting.ChannelId == 0)
             {
                 logSetting = database.LogSettings.FirstOrDefault(logSetting => logSetting.GuildId == guild.Id && logSetting.CustomEvent == CustomEvent.Unknown);
-                if (logSetting == null || logSetting.ChannelId == 0)
+                if (logSetting is null || logSetting.ChannelId == 0)
                 {
                     return;
                 }
             }
 
             DiscordChannel discordChannel = guild.GetChannel(logSetting.ChannelId);
-            if (discordChannel == null)
+            if (discordChannel is null)
             {
                 // If the channel is null, we can assume it's been deleted. But we want to keep the previous message formatting though, so let's just keep it there.
                 logSetting.ChannelId = 0;
@@ -100,7 +100,7 @@ namespace Tomoe.Commands.Moderation
                 await database.SaveChangesAsync();
             }
 
-            if (logSetting != null)
+            if (logSetting is not null)
             {
                 try
                 {
@@ -120,17 +120,17 @@ namespace Tomoe.Commands.Moderation
         {
             database ??= Program.ServiceProvider.CreateScope().ServiceProvider.GetRequiredService<Database>();
             LogSetting logSetting = database.LogSettings.FirstOrDefault(logSetting => logSetting.GuildId == guild.Id && logSetting.DiscordEvent == logType);
-            if (logSetting == null || logSetting.ChannelId == 0)
+            if (logSetting is null || logSetting.ChannelId == 0)
             {
                 logSetting = database.LogSettings.FirstOrDefault(logSetting => logSetting.GuildId == guild.Id && logSetting.DiscordEvent == DiscordEvent.Unknown);
-                if (logSetting == null || logSetting.ChannelId == 0)
+                if (logSetting is null || logSetting.ChannelId == 0)
                 {
                     return;
                 }
             }
 
             DiscordChannel discordChannel = guild.GetChannel(logSetting.ChannelId);
-            if (discordChannel == null)
+            if (discordChannel is null)
             {
                 // If the channel is null, we can assume it's been deleted. But we want to keep the previous message formatting though, so let's just keep it there.
                 logSetting.ChannelId = 0;
@@ -150,7 +150,7 @@ namespace Tomoe.Commands.Moderation
             database.ModLogs.Add(modLog);
             await database.SaveChangesAsync();
 
-            if (logSetting != null)
+            if (logSetting is not null)
             {
                 try
                 {

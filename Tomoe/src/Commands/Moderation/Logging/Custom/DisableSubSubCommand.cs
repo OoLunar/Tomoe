@@ -15,7 +15,7 @@ namespace Tomoe.Commands.Moderation
             public async Task DisableAsync(InteractionContext context, [Option("log_type", "Which event to change.")] CustomEvent logType)
             {
                 LogSetting? logSetting = Database.LogSettings.FirstOrDefault(databaseLogSetting => databaseLogSetting.GuildId == context.Guild.Id && databaseLogSetting.CustomEvent == logType);
-                if (logSetting == null)
+                if (logSetting is null)
                 {
                     await context.EditResponseAsync(new()
                     {

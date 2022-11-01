@@ -22,7 +22,7 @@ namespace Tomoe.Commands
                 using IServiceScope scope = Program.ServiceProvider.CreateScope();
                 Database database = scope.ServiceProvider.GetRequiredService<Database>();
                 PermanentButton? button = database.PermanentButtons.FirstOrDefault(button => button.ButtonId == id && button.GuildId == componentInteractionCreateEventArgs.Guild.Id);
-                if (button != null)
+                if (button is not null)
                 {
                     switch (button.ButtonType)
                     {

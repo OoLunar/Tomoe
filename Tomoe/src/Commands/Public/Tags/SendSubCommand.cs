@@ -11,7 +11,7 @@ namespace Tomoe.Commands.Common
         public async Task SendAsync(InteractionContext context, [Option("name", "The name of the tag to send")] string tagName)
         {
             Tag? tag = await GetTagAsync(tagName, context.Guild.Id);
-            if (tag == null)
+            if (tag is null)
             {
                 await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
                 {

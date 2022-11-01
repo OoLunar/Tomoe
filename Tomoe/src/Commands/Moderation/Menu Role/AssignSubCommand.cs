@@ -19,7 +19,7 @@ namespace Tomoe.Commands.Moderation
                 .Where(reactionRole => reactionRole.GuildId == interaction.GuildId && reactionRole.ButtonId == id)
                 .AsEnumerable()
                 .Select(reactionRole => interaction.Guild.GetRole(reactionRole.RoleId))
-                .Where(role => role != null)
+                .Where(role => role is not null)
                 .OrderByDescending(role => role.Position);
 
             IEnumerable<DiscordRole> userRoles = member.Roles.Where(role => menuRoles.Contains(role));

@@ -13,7 +13,7 @@ namespace Tomoe.Commands.Common
         public async Task DeleteAliasesAsync(InteractionContext context, [Option("name", "Which tag to remove all aliases from.")] string tagName)
         {
             Tag? tag = await GetTagAsync(tagName, context.Guild.Id);
-            if (tag == null)
+            if (tag is null)
             {
                 await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
                 {
