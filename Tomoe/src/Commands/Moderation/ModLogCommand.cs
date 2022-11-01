@@ -7,7 +7,7 @@ using DSharpPlus.Exceptions;
 using DSharpPlus.SlashCommands;
 using Microsoft.Extensions.DependencyInjection;
 using Tomoe.Commands.Attributes;
-using Tomoe.Db;
+using Tomoe.Models;
 
 namespace Tomoe.Commands.Moderation
 {

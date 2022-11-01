@@ -9,7 +9,7 @@ using DSharpPlus.EventArgs;
 using Humanizer;
 using Microsoft.Extensions.DependencyInjection;
 using Tomoe.Commands.Moderation;
-using Tomoe.Db;
+using Tomoe.Models;
 
 namespace Tomoe.Commands
 {

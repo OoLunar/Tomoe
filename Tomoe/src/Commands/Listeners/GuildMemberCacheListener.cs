@@ -6,7 +6,7 @@ using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
-using Tomoe.Db;
+using Tomoe.Models;
 
 namespace Tomoe.Commands
 {

@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.DependencyInjection;
 using Tomoe.Utilities.Configs;
 
-namespace Tomoe.Db
+namespace Tomoe.Models
 {
     public class DatabaseFactory : IDesignTimeDbContextFactory<Database>
     {

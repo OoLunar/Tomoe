@@ -32,7 +32,7 @@ namespace Tomoe.Utilities.Configs
         public Task LoadAsync(ServiceCollection services)
         {
             Serilog.ILogger logger = Log.ForContext<Database>();
-            services.AddDbContext<Db.Database>(options =>
+            services.AddDbContext<Models.Database>(options =>
             {
                 NpgsqlConnectionStringBuilder connectionBuilder = new()
                 {
@@ -53,7 +53,7 @@ namespace Tomoe.Utilities.Configs
             }, ServiceLifetime.Transient);
 
             using IServiceScope scope = services.BuildServiceProvider().CreateScope();
-            Db.Database database = scope.ServiceProvider.GetService<Db.Database>();
+            Models.Database database = scope.ServiceProvider.GetService<Models.Database>();
 
             logger.Information("Connecting to the database...");
             //await database.Database.EnsureCreatedAsync();

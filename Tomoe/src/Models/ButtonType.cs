@@ -1,4 +1,4 @@
-namespace Tomoe.Db
+namespace Tomoe.Models
 {
     public enum ButtonType
     {

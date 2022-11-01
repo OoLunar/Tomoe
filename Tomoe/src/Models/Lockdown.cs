@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using DSharpPlus;
 
-namespace Tomoe.Db
+namespace Tomoe.Models
 {
     public class Lock
     {

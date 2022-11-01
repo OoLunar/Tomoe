@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
-using Tomoe.Db;
+using Tomoe.Models;
 
 namespace Tomoe.Commands.Moderation
 {

@@ -1,4 +1,4 @@
 root = false
 
-# Suppress CS8618
+[*.cs]
 dotnet_diagnostic.CS8618.severity = none

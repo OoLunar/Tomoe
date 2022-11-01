@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using DSharpPlus.SlashCommands;
 using DSharpPlus.SlashCommands.EventArgs;
 using Microsoft.Extensions.DependencyInjection;
-using Tomoe.Db;
+using Tomoe.Models;
 
 namespace Tomoe.Commands
 {

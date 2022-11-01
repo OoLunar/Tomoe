@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Tomoe.Commands.Moderation;
 
-namespace Tomoe.Db
+namespace Tomoe.Models
 {
     public class ModLog
     {

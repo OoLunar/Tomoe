@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.EventArgs;
 using Microsoft.Extensions.DependencyInjection;
-using Tomoe.Db;
+using Tomoe.Models;
 using Tomoe.Utilities.Types;
 
 namespace Tomoe.Commands

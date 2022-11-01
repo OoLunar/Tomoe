@@ -1,9 +1,9 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace Tomoe.Db
+namespace Tomoe.Models
 {
-    public class AutoReaction
+    public sealed class AutoReaction
     {
         [Key]
         public int Id { get; init; }

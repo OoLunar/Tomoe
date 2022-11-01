@@ -1,7 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace Tomoe.Db
+namespace Tomoe.Models
 {
     public class Tag
     {

@@ -8,7 +8,7 @@ using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
 using DSharpPlus.SlashCommands.Attributes;
 using Microsoft.Extensions.DependencyInjection;
-using Tomoe.Db;
+using Tomoe.Models;
 using Tomoe.Utilities.Converters;
 
 namespace Tomoe.Commands.Moderation

@@ -4,7 +4,7 @@ using System.Linq;
 using DSharpPlus.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace Tomoe.Db
+namespace Tomoe.Models
 {
     public sealed class Database : DbContext
     {

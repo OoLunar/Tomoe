@@ -12,7 +12,7 @@ using DSharpPlus.SlashCommands;
 using Humanizer;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
-using Tomoe.Db;
+using Tomoe.Models;
 
 namespace Tomoe.Commands
 {

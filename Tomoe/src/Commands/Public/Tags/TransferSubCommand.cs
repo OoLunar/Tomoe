@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
-using Tomoe.Db;
+using Tomoe.Models;
 
 namespace Tomoe.Commands.Common
 {

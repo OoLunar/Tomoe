@@ -6,7 +6,7 @@ using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus.SlashCommands;
-using Tomoe.Db;
+using Tomoe.Models;
 
 namespace Tomoe.Commands.Moderation
 {
