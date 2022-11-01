@@ -17,6 +17,8 @@ namespace Tomoe.Db
         public bool Dropped { get; internal set; }
         public List<DateTime> Changes { get; } = new() { DateTime.UtcNow };
 
+        public Strike() { }
+
         public Strike(long logId, ulong guildId, ulong issuerId, ulong victimId, string reason)
         {
             LogId = logId;

@@ -10,6 +10,8 @@ namespace Tomoe.Db
         public ulong GuildId { get; init; }
         public ulong RoleId { get; init; }
 
+        public MenuRole() { }
+
         public MenuRole(string buttonId, ulong guildId, ulong roleId)
         {
             ButtonId = buttonId;

@@ -11,6 +11,8 @@ namespace Tomoe.Db
         public ulong ChannelId { get; init; }
         public string EmojiName { get; init; }
 
+        public AutoReaction() { }
+
         public AutoReaction(ulong guildId, ulong channelId, string emojiName)
         {
             GuildId = guildId;

@@ -15,6 +15,8 @@ namespace Tomoe.Db
         public string Format { get; internal set; }
         public bool IsLoggingEnabled { get; internal set; }
 
+        public LogSetting() { }
+
         public LogSetting(ulong guildId, ulong channelId, CustomEvent? customEvent, DiscordEvent? discordEvent, string format, bool isLoggingEnabled)
         {
             GuildId = guildId;

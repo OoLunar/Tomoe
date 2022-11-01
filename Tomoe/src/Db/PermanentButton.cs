@@ -10,6 +10,8 @@ namespace Tomoe.Db
         public ButtonType ButtonType { get; init; }
         public ulong GuildId { get; init; }
 
+        public PermanentButton() { }
+
         public PermanentButton(string buttonId, ButtonType buttonType, ulong guildId)
         {
             ButtonId = buttonId;

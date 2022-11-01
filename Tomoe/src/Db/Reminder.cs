@@ -20,6 +20,8 @@ namespace Tomoe.Db
         public DateTime IssuedAt { get; init; } = DateTime.UtcNow;
         public CustomEvent Punishment { get; init; }
 
+        public Reminder() { }
+
         public Reminder(int logId, ulong guildId, ulong channelId, ulong messageId, ulong userId, string jumpLink, string content, bool expires, DateTime expiresOn, Commands.Moderation.CustomEvent punishment)
         {
             LogId = logId;

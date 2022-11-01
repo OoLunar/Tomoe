@@ -14,6 +14,8 @@ namespace Tomoe.Db
         public Permissions Allowed { get; init; }
         public Permissions Denied { get; init; }
 
+        public Lock() { }
+
         public Lock(ulong guildId, ulong channelId, ulong roleId, bool hadPreviousOverwrite, Permissions allowed, Permissions denied)
         {
             GuildId = guildId;

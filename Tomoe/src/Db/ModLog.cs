@@ -13,6 +13,8 @@ namespace Tomoe.Db
         public CustomEvent? LogType { get; internal set; }
         public DiscordEvent? DiscordEvent { get; internal set; }
 
+        public ModLog() { }
+
         public ModLog(int logId, ulong guildId, string reason, CustomEvent? logType, DiscordEvent? discordEvent)
         {
             LogId = logId;

@@ -17,6 +17,8 @@ namespace Tomoe.Db
         public int Uses { get; internal set; }
         public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
 
+        public Tag() { }
+
         public Tag(int tagId, string name, string? content, string? aliasTo, ulong ownerId, ulong guildId, int uses)
         {
             TagId = tagId;
