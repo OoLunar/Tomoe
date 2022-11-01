@@ -8,6 +8,7 @@ using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using Humanizer;
 using Microsoft.Extensions.DependencyInjection;
+using Tomoe.Commands.Moderation;
 using Tomoe.Db;
 
 namespace Tomoe.Commands
@@ -61,7 +62,7 @@ namespace Tomoe.Commands
                 { "person_id", guildMemberAddEventArgs.Member.Id.ToString(CultureInfo.InvariantCulture) }
             };
 
-            await Moderation.ModLogAsync(guildMemberAddEventArgs.Guild, keyValuePairs, Moderation.DiscordEvent.MemberJoined, database);
+            await ModLogCommand.ModLogAsync(guildMemberAddEventArgs.Guild, keyValuePairs, Moderation.DiscordEvent.MemberJoined, database);
             await database.SaveChangesAsync();
         }
 
@@ -99,7 +100,7 @@ namespace Tomoe.Commands
                     { "person_id", guildMemberRemoveEventArgs.Member.Id.ToString(CultureInfo.InvariantCulture) }
                 };
 
-                await Moderation.ModLogAsync(guildMemberRemoveEventArgs.Guild, keyValuePairs, Moderation.DiscordEvent.MemberLeft, database);
+                await ModLogCommand.ModLogAsync(guildMemberRemoveEventArgs.Guild, keyValuePairs, Moderation.DiscordEvent.MemberLeft, database);
             }
 
             await database.SaveChangesAsync();

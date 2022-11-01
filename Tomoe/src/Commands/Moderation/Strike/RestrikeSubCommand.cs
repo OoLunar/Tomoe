@@ -52,7 +52,7 @@ namespace Tomoe.Commands.Moderation
                     { "punishment_reason", reason },
                     { "strike_id", strike.LogId.ToString(CultureInfo.InvariantCulture) }
                 };
-            await ModLogAsync(context.Guild, keyValuePairs, CustomEvent.Drop, Database);
+            await ModLogCommand.ModLogAsync(context.Guild, keyValuePairs, CustomEvent.Drop, Database);
 
             await context.EditResponseAsync(new()
             {

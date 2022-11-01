@@ -44,7 +44,7 @@ namespace Tomoe.Commands.Moderation
                 { "moderator_displayname", context.Member.DisplayName },
                 { "punishment_reason", reason }
             };
-            await ModLogAsync(context.Guild, keyValuePairs, DiscordEvent.Ban);
+            await ModLogCommand.ModLogAsync(context.Guild, keyValuePairs, DiscordEvent.Ban);
 
             await context.EditResponseAsync(new()
             {

@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using DSharpPlus.Entities;
+using Tomoe.Commands;
 
 namespace Tomoe.Utilities.Types
 {
@@ -15,7 +16,7 @@ namespace Tomoe.Utilities.Types
             Id = id;
             UserId = userId;
             Components = components;
-            Commands.Listeners.QueueButtons.Add(id, this);
+            ButtonClickedListener.QueueButtons.Add(id, this);
         }
 
         public async Task<bool> WaitAsync()

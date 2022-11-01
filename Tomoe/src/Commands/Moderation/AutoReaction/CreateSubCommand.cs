@@ -92,7 +92,7 @@ namespace Tomoe.Commands.Moderation
                     { "channels_affected", channelsAffected.Humanize() },
                     { "channel_emoji", emoji }
                 };
-            await ModLogAsync(context.Guild, keyValuePairs, CustomEvent.AutoReactionCreate, Database, true);
+            await ModLogCommand.ModLogAsync(context.Guild, keyValuePairs, CustomEvent.AutoReactionCreate, Database, true);
 
             await context.EditResponseAsync(new()
             {

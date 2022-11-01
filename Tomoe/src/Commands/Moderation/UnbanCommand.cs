@@ -66,7 +66,7 @@ namespace Tomoe.Commands.Moderation
                 { "moderator_displayname", context.Member.DisplayName },
                 { "punishment_reason", unbanReason }
             };
-            await ModLogAsync(context.Guild, keyValuePairs, DiscordEvent.Unban);
+            await ModLogCommand.ModLogAsync(context.Guild, keyValuePairs, DiscordEvent.Unban);
 
             await context.EditResponseAsync(new()
             {

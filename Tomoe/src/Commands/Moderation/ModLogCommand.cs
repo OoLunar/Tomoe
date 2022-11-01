@@ -118,7 +118,7 @@ namespace Tomoe.Commands.Moderation
 
         public static async Task ModLogAsync(DiscordGuild guild, Dictionary<string, string> parameters, DiscordEvent logType = DiscordEvent.Unknown, Database database = null)
         {
-            database ??= Program.ServiceProvider.CreateScope().ServiceProvider.GetService<Database>();
+            database ??= Program.ServiceProvider.CreateScope().ServiceProvider.GetRequiredService<Database>();
             LogSetting logSetting = database.LogSettings.FirstOrDefault(logSetting => logSetting.GuildId == guild.Id && logSetting.DiscordEvent == logType);
             if (logSetting == null || logSetting.ChannelId == 0)
             {

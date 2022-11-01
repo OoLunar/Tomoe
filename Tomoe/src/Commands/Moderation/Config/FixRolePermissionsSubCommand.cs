@@ -55,7 +55,7 @@ namespace Tomoe.Commands.Moderation
                     { "role_id", role.Id.ToString(CultureInfo.InvariantCulture) },
                     { "role_type", roleType.Humanize() }
                 };
-            await ModLogAsync(guild, keyValuePairs, CustomEvent.RoleCreation, database, false);
+            await ModLogCommand.ModLogAsync(guild, keyValuePairs, CustomEvent.RoleCreation, database, false);
         }
     }
 }

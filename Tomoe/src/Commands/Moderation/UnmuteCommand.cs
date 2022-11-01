@@ -96,7 +96,7 @@ namespace Tomoe.Commands.Moderation
                 { "moderator_displayname", context.Member.DisplayName },
                 { "punishment_reason", reason }
             };
-            await ModLogAsync(context.Guild, keyValuePairs, CustomEvent.Antimeme);
+            await ModLogCommand.ModLogAsync(context.Guild, keyValuePairs, CustomEvent.Antimeme);
 
             await context.EditResponseAsync(new()
             {
