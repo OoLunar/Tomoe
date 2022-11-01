@@ -13,8 +13,9 @@ namespace Tomoe.Commands.Moderation
     public sealed class BanCommand : ApplicationCommandModule
     {
         [SlashCommand("ban", "Bans a member from the guild, sending them off with a dm."), Hierarchy(Permissions.BanMembers, true)]
-        public static async Task BanAsync(InteractionContext context, [Option("victim", "Who to ban from the guild.")] DiscordUser user, [Option("reason", "Why is the victim being banned from the guild?")] string reason = Constants.MissingReason, [Option("delete_message_days", "Remove their messages from the past X days. Default = 0")] int deleteMessageDays = 1)
+        public static async Task BanAsync(InteractionContext context, [Option("person", "Who to ban from the guild.")] DiscordUser user, [Option("reason", "Why is the victim being banned from the guild?")] string reason = Constants.MissingReason, [Option("delete_message_days", "Remove their messages from the past X days. Default = 0")] int deleteMessageDays = 1)
         {
+            // Test if they're banned already
             try
             {
                 DiscordBan ban = await context.Guild.GetBanAsync(user.Id);
@@ -22,17 +23,24 @@ namespace Tomoe.Commands.Moderation
                 {
                     Content = $"Error: {user.Mention} ({Formatter.InlineCode(user.Id.ToString(CultureInfo.InvariantCulture))}) was already banned! Reason: {ban.Reason}"
                 });
+                return;
             }
             catch (DiscordException error)
             {
-                await context.EditResponseAsync(new()
+                // Wanted to use a when clause but that breaks my intellisense/autocomplete.
+                if (error.WebResponse.ResponseCode != 404)
                 {
-                    Content = $"Discord Error {error.WebResponse.ResponseCode}, failed to grab ban information for {user.Mention} ({Formatter.InlineCode(user.Id.ToString(CultureInfo.InvariantCulture))}): {error.JsonMessage}"
-                });
+                    await context.EditResponseAsync(new()
+                    {
+                        Content = $"Discord Error {error.WebResponse.ResponseCode}, failed to grab ban information for {user.Mention} ({Formatter.InlineCode(user.Id.ToString(CultureInfo.InvariantCulture))}): {error.JsonMessage}"
+                    });
+                    return;
+                }
             }
 
-            DiscordMember? member = null;
+            // Send a DM letting them know they've been banned
             bool sentDm = false;
+            DiscordMember? member = null;
             try
             {
                 member = await context.Guild.GetMemberAsync(user.Id);
@@ -40,7 +48,26 @@ namespace Tomoe.Commands.Moderation
                 sentDm = true;
             }
             catch (DiscordException) { }
-            await context.Guild.BanMemberAsync(user.Id, deleteMessageDays, reason);
+
+            // Try to ban them, if it fails then let the moderator know and attempt to let the user know we failed.
+            try
+            {
+                await context.Guild.BanMemberAsync(user.Id, deleteMessageDays, reason);
+            }
+            catch (DiscordException error)
+            {
+                await context.EditResponseAsync(new()
+                {
+                    Content = $"Discord Error {error.WebResponse.ResponseCode}, failed to ban {user.Mention} ({Formatter.InlineCode(user.Id.ToString(CultureInfo.InvariantCulture))}): {error.JsonMessage}"
+                });
+
+                // Try to let them know that we failed to ban them if we previously let them know that we were going to ban them.
+                if (member != null && sentDm)
+                {
+                    await member.SendMessageAsync($"Nevermind, I failed to ban you. Please contact {context.User.Mention} ({Formatter.InlineCode(context.User.Id.ToString(CultureInfo.InvariantCulture))}) for more information.");
+                }
+                return;
+            }
 
             Dictionary<string, string> keyValuePairs = new()
             {
@@ -59,8 +86,8 @@ namespace Tomoe.Commands.Moderation
                 { "moderator_displayname", context.Member.DisplayName },
                 { "punishment_reason", reason }
             };
-            await ModLogCommand.ModLogAsync(context.Guild, keyValuePairs, DiscordEvent.Ban);
 
+            await ModLogCommand.ModLogAsync(context.Guild, keyValuePairs, DiscordEvent.Ban);
             await context.EditResponseAsync(new()
             {
                 Content = $"{user.Mention} has been banned{(sentDm ? "" : "(failed to dm)")}. Reason: {reason}"
