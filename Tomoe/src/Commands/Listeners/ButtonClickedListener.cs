@@ -30,11 +30,11 @@ namespace Tomoe.Commands
                             componentInteractionCreateEventArgs.Handled = true;
                             if (stage == 1)
                             {
-                                await Moderation.MenuRoles.AssignAsync(componentInteractionCreateEventArgs.Interaction, await componentInteractionCreateEventArgs.User.Id.GetMemberAsync(componentInteractionCreateEventArgs.Guild)!, componentInteractionCreateEventArgs.Id, database);
+                                await Moderation.MenuRoleCommand.AssignAsync(componentInteractionCreateEventArgs.Interaction, await componentInteractionCreateEventArgs.User.Id.GetMemberAsync(componentInteractionCreateEventArgs.Guild)!, componentInteractionCreateEventArgs.Id, database);
                             }
                             else if (stage == 2)
                             {
-                                await Moderation.MenuRoles.AssignAsync(componentInteractionCreateEventArgs, componentInteractionCreateEventArgs.Id, database);
+                                await Moderation.MenuRoleCommand.AssignAsync(componentInteractionCreateEventArgs, componentInteractionCreateEventArgs.Id, database);
                             }
                             break;
                         default:

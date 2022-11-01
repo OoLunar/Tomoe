@@ -14,6 +14,6 @@ namespace Tomoe.Db
         public bool IsMuted { get; internal set; }
         public bool IsAntimemed { get; internal set; }
         public bool IsVoicebanned { get; internal set; }
-        public DateTime JoinedAt { get; init; }
+        public DateTimeOffset JoinedAt { get; init; }
     }
 }

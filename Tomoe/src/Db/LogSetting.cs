@@ -10,12 +10,12 @@ namespace Tomoe.Db
         public int Id { get; init; }
         public ulong GuildId { get; init; }
         public ulong ChannelId { get; internal set; }
-        public CustomEvent CustomEvent { get; init; }
-        public DiscordEvent DiscordEvent { get; init; }
+        public CustomEvent? CustomEvent { get; init; }
+        public DiscordEvent? DiscordEvent { get; init; }
         public string Format { get; internal set; }
         public bool IsLoggingEnabled { get; internal set; }
 
-        public LogSetting(ulong guildId, ulong channelId, CustomEvent customEvent, DiscordEvent discordEvent, string format, bool isLoggingEnabled)
+        public LogSetting(ulong guildId, ulong channelId, CustomEvent? customEvent, DiscordEvent? discordEvent, string format, bool isLoggingEnabled)
         {
             GuildId = guildId;
             ChannelId = channelId;

@@ -14,7 +14,7 @@ namespace Tomoe.Commands
 {
     public sealed class CommandErroredListener
     {
-        private static readonly ILogger Logger = Log.ForContext<Listeners>();
+        private static readonly ILogger Logger = Log.ForContext<CommandErroredListener>();
 
         public static async Task CommandErroredAsync(SlashCommandsExtension slashCommandExtension, SlashCommandErrorEventArgs slashCommandErrorEventArgs)
         {

@@ -18,7 +18,7 @@ namespace Tomoe.Commands
 {
     public sealed class GuildDownloadCompletedListener
     {
-        private static readonly ILogger logger = Log.ForContext<Listeners>();
+        private static readonly ILogger logger = Log.ForContext<GuildDownloadCompletedListener>();
 
         public static async Task GuildDownloadCompletedAsync(DiscordClient discordClient, GuildDownloadCompletedEventArgs guildDownloadCompletedEventArgs)
         {

@@ -10,10 +10,10 @@ namespace Tomoe.Db
         public int LogId { get; init; }
         public ulong GuildId { get; init; }
         public string Reason { get; init; }
-        public CustomEvent LogType { get; internal set; }
-        public DiscordEvent DiscordEvent { get; internal set; }
+        public CustomEvent? LogType { get; internal set; }
+        public DiscordEvent? DiscordEvent { get; internal set; }
 
-        public ModLog(int logId, ulong guildId, string reason, CustomEvent logType, DiscordEvent discordEvent)
+        public ModLog(int logId, ulong guildId, string reason, CustomEvent? logType, DiscordEvent? discordEvent)
         {
             LogId = logId;
             GuildId = guildId;
