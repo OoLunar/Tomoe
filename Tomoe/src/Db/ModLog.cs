@@ -1,15 +1,25 @@
 using System.ComponentModel.DataAnnotations;
+using Tomoe.Commands.Moderation;
 
 namespace Tomoe.Db
 {
     public class ModLog
     {
         [Key]
-        public int Id { get; internal set; }
-        public int LogId { get; internal set; }
-        public ulong GuildId { get; internal set; }
-        public string Reason { get; internal set; }
-        public Commands.Moderation.CustomEvent LogType { get; internal set; }
-        public Commands.Moderation.DiscordEvent DiscordEvent { get; internal set; }
+        public int Id { get; init; }
+        public int LogId { get; init; }
+        public ulong GuildId { get; init; }
+        public string Reason { get; init; }
+        public CustomEvent LogType { get; internal set; }
+        public DiscordEvent DiscordEvent { get; internal set; }
+
+        public ModLog(int logId, ulong guildId, string reason, CustomEvent logType, DiscordEvent discordEvent)
+        {
+            LogId = logId;
+            GuildId = guildId;
+            Reason = string.IsNullOrWhiteSpace(reason) ? "No reason provided." : reason;
+            LogType = logType;
+            DiscordEvent = discordEvent;
+        }
     }
 }

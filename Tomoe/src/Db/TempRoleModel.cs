@@ -12,5 +12,14 @@ namespace Tomoe.Db
         public ulong Assignee { get; init; }
         public ulong Assigner { get; init; }
         public DateTime ExpiresAt { get; init; }
+
+        public TempRoleModel(ulong guildId, ulong roleId, ulong assignee, ulong assigner, DateTime expiresAt)
+        {
+            GuildId = guildId;
+            RoleId = roleId;
+            Assignee = assignee;
+            Assigner = assigner;
+            ExpiresAt = expiresAt;
+        }
     }
 }

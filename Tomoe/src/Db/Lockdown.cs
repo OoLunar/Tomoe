@@ -6,12 +6,22 @@ namespace Tomoe.Db
     public class Lock
     {
         [Key]
-        public int Id { get; internal set; }
-        public ulong GuildId { get; internal set; }
-        public ulong ChannelId { get; internal set; }
-        public ulong RoleId { get; internal set; }
-        public bool HadPreviousOverwrite { get; internal set; }
-        public Permissions Allowed { get; internal set; }
-        public Permissions Denied { get; internal set; }
+        public int Id { get; init; }
+        public ulong GuildId { get; init; }
+        public ulong ChannelId { get; init; }
+        public ulong RoleId { get; init; }
+        public bool HadPreviousOverwrite { get; init; }
+        public Permissions Allowed { get; init; }
+        public Permissions Denied { get; init; }
+
+        public Lock(ulong guildId, ulong channelId, ulong roleId, bool hadPreviousOverwrite, Permissions allowed, Permissions denied)
+        {
+            GuildId = guildId;
+            ChannelId = channelId;
+            RoleId = roleId;
+            HadPreviousOverwrite = hadPreviousOverwrite;
+            Allowed = allowed;
+            Denied = denied;
+        }
     }
 }

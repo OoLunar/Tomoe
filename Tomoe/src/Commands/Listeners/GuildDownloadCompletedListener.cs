@@ -22,8 +22,8 @@ namespace Tomoe.Commands
 
         public static async Task GuildDownloadCompletedAsync(DiscordClient discordClient, GuildDownloadCompletedEventArgs guildDownloadCompletedEventArgs)
         {
-            int guildCount = Public.TotalMemberCount.Count;
-            int memberCount = Public.TotalMemberCount.Values.Sum();
+            int guildCount = Program.TotalMemberCount.Count;
+            int memberCount = Program.TotalMemberCount.Values.Sum();
             logger.Information($"Guild download completed! Handling {guildCount} guilds and {memberCount} members, with a total of {discordClient.ShardCount.ToMetric()} shard{(discordClient.ShardCount == 1 ? "" : "s")}!");
             await discordClient.UpdateStatusAsync(new DiscordActivity("for bad things", ActivityType.Watching), UserStatus.Online);
 

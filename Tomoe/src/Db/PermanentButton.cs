@@ -2,17 +2,19 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Tomoe.Db
 {
-    public enum ButtonType
-    {
-        MenuRole
-    }
-
     public class PermanentButton
     {
         [Key]
-        public int Id { get; set; }
-        public string ButtonId { get; set; }
-        public ButtonType ButtonType { get; set; }
-        public ulong GuildId { get; set; }
+        public int Id { get; init; }
+        public string ButtonId { get; init; }
+        public ButtonType ButtonType { get; init; }
+        public ulong GuildId { get; init; }
+
+        public PermanentButton(string buttonId, ButtonType buttonType, ulong guildId)
+        {
+            ButtonId = buttonId;
+            ButtonType = buttonType;
+            GuildId = guildId;
+        }
     }
 }

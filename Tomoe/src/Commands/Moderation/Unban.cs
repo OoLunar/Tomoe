@@ -53,7 +53,7 @@ namespace Tomoe.Commands.Moderation
             Dictionary<string, string> keyValuePairs = new()
             {
                 { "guild_name", context.Guild.Name },
-                { "guild_count", Public.TotalMemberCount[context.Guild.Id].ToMetric() },
+                { "guild_count", Program.TotalMemberCount[context.Guild.Id].ToMetric() },
                 { "guild_id", context.Guild.Id.ToString(CultureInfo.InvariantCulture) },
                 { "victim_username", victim.Username },
                 { "victim_tag", victim.Discriminator },

@@ -12,7 +12,7 @@ namespace Tomoe.Db
             Config config = Config.LoadAsync().GetAwaiter().GetResult();
             config.Logger.Load(services);
             config.Database.LoadAsync(services).GetAwaiter().GetResult();
-            return services.BuildServiceProvider().GetService<Database>();
+            return services.BuildServiceProvider().GetRequiredService<Database>();
         }
     }
 }

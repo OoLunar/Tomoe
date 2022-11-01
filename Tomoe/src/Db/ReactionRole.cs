@@ -5,9 +5,16 @@ namespace Tomoe.Db
     public class MenuRole
     {
         [Key]
-        public int Id { get; set; }
-        public string ButtonId { get; internal set; }
-        public ulong GuildId { get; internal set; }
-        public ulong RoleId { get; internal set; }
+        public int Id { get; init; }
+        public string ButtonId { get; init; }
+        public ulong GuildId { get; init; }
+        public ulong RoleId { get; init; }
+
+        public MenuRole(string buttonId, ulong guildId, ulong roleId)
+        {
+            ButtonId = buttonId;
+            GuildId = guildId;
+            RoleId = roleId;
+        }
     }
 }

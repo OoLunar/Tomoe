@@ -6,23 +6,22 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Tomoe.Db
 {
-    public class Database : DbContext
+    public sealed class Database : DbContext
     {
+        public DbSet<MenuRole> MenuRoles { get; init; } = null!;
+        public DbSet<AutoReaction> AutoReactions { get; init; } = null!;
+        public DbSet<ModLog> ModLogs { get; init; } = null!;
+        public DbSet<Strike> Strikes { get; init; } = null!;
+        public DbSet<GuildMember> GuildMembers { get; init; } = null!;
+        public DbSet<GuildConfig> GuildConfigs { get; init; } = null!;
+        public DbSet<Tag> Tags { get; init; } = null!;
+        public DbSet<Lock> Locks { get; init; } = null!;
+        public DbSet<LogSetting> LogSettings { get; init; } = null!;
+        public DbSet<Reminder> Reminders { get; init; } = null!;
+        public DbSet<PermanentButton> PermanentButtons { get; init; } = null!;
+        public DbSet<TempRoleModel> TemporaryRoles { get; init; } = null!;
+
         public Database(DbContextOptions<Database> options) : base(options) { }
-
-        public DbSet<MenuRole> MenuRoles { get; set; }
-        public DbSet<AutoReaction> AutoReactions { get; set; }
-        public DbSet<ModLog> ModLogs { get; set; }
-        public DbSet<Strike> Strikes { get; set; }
-        public DbSet<GuildMember> GuildMembers { get; set; }
-        public DbSet<GuildConfig> GuildConfigs { get; set; }
-        public DbSet<Tag> Tags { get; set; }
-        public DbSet<Lock> Locks { get; set; }
-        public DbSet<LogSetting> LogSettings { get; set; }
-        public DbSet<Reminder> Reminders { get; set; }
-        public DbSet<PermanentButton> PermanentButtons { get; set; }
-        public DbSet<TempRoleModel> TemporaryRoles { get; set; }
-
         protected override void OnModelCreating(ModelBuilder modelBuilder) { }
 
         public bool AddGuildMember(DiscordMember discordMember)
@@ -33,7 +32,7 @@ namespace Tomoe.Db
             }
 
             bool added = false;
-            GuildMember guildMember = GuildMembers.FirstOrDefault(databaseGuildMember => databaseGuildMember.GuildId == discordMember.Guild.Id && databaseGuildMember.UserId == discordMember.Id);
+            GuildMember? guildMember = GuildMembers.FirstOrDefault(databaseGuildMember => databaseGuildMember.GuildId == discordMember.Guild.Id && databaseGuildMember.UserId == discordMember.Id);
             if (guildMember == null)
             {
                 added = true;
@@ -62,17 +61,14 @@ namespace Tomoe.Db
             List<GuildMember> guildMembers = new();
             foreach (DiscordMember discordMember in discordMembers)
             {
-                GuildMember guildMember = GuildMembers.FirstOrDefault(databaseGuildMember => databaseGuildMember.GuildId == discordMember.Guild.Id && databaseGuildMember.UserId == discordMember.Id);
-                if (guildMember == null)
+                GuildMember? guildMember = GuildMembers.FirstOrDefault(databaseGuildMember => databaseGuildMember.GuildId == discordMember.Guild.Id && databaseGuildMember.UserId == discordMember.Id);
+                guildMember ??= new GuildMember()
                 {
-                    guildMember = new GuildMember()
-                    {
-                        GuildId = discordMember.Guild.Id,
-                        UserId = discordMember.Id,
-                        Roles = discordMember.Roles.Except(new[] { discordMember.Guild.EveryoneRole }).Select(discordRole => discordRole.Id).ToList(),
-                        JoinedAt = discordMember.JoinedAt.UtcDateTime
-                    };
-                }
+                    GuildId = discordMember.Guild.Id,
+                    UserId = discordMember.Id,
+                    Roles = discordMember.Roles.Except(new[] { discordMember.Guild.EveryoneRole }).Select(discordRole => discordRole.Id).ToList(),
+                    JoinedAt = discordMember.JoinedAt.UtcDateTime
+                };
                 guildMembers.Add(guildMember);
                 added.Add(guildMember.UserId);
             }

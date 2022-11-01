@@ -16,7 +16,7 @@ namespace Tomoe.Commands
     {
         public static async Task PersistentRolesAsync(DiscordClient discordClient, GuildMemberAddEventArgs guildMemberAddEventArgs)
         {
-            Public.TotalMemberCount[guildMemberAddEventArgs.Guild.Id]++;
+            Program.TotalMemberCount[guildMemberAddEventArgs.Guild.Id]++;
 
             using IServiceScope scope = Program.ServiceProvider.CreateScope();
             Database database = scope.ServiceProvider.GetRequiredService<Database>();
@@ -54,7 +54,7 @@ namespace Tomoe.Commands
             Dictionary<string, string> keyValuePairs = new()
             {
                 { "guild_name", guildMemberAddEventArgs.Guild.Name },
-                { "guild_count", Public.TotalMemberCount[guildMemberAddEventArgs.Guild.Id].ToMetric() },
+                { "guild_count", Program.TotalMemberCount[guildMemberAddEventArgs.Guild.Id].ToMetric() },
                 { "person_username", guildMemberAddEventArgs.Member.Username },
                 { "person_tag", guildMemberAddEventArgs.Member.Discriminator },
                 { "person_mention", $"<@{guildMemberAddEventArgs.Member.Id}>" },
@@ -67,7 +67,7 @@ namespace Tomoe.Commands
 
         public static async Task PersistentRolesAsync(DiscordClient discordClient, GuildMemberRemoveEventArgs guildMemberRemoveEventArgs)
         {
-            Public.TotalMemberCount[guildMemberRemoveEventArgs.Guild.Id]--;
+            Program.TotalMemberCount[guildMemberRemoveEventArgs.Guild.Id]--;
 
             using IServiceScope scope = Program.ServiceProvider.CreateScope();
             Database database = scope.ServiceProvider.GetRequiredService<Database>();
@@ -92,7 +92,7 @@ namespace Tomoe.Commands
                 Dictionary<string, string> keyValuePairs = new()
                 {
                     { "guild_name", guildMemberRemoveEventArgs.Guild.Name },
-                    { "guild_count", Public.TotalMemberCount[guildMemberRemoveEventArgs.Guild.Id].ToMetric() },
+                    { "guild_count", Program.TotalMemberCount[guildMemberRemoveEventArgs.Guild.Id].ToMetric() },
                     { "person_username", guildMemberRemoveEventArgs.Member.Username },
                     { "person_tag", guildMemberRemoveEventArgs.Member.Discriminator },
                     { "person_mention", guildMemberRemoveEventArgs.Member.Mention },

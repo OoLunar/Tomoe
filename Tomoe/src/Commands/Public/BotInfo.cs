@@ -32,7 +32,7 @@ namespace Tomoe.Commands.Common
 
             embedBuilder.AddField("Runtime Version", RuntimeInformation.FrameworkDescription, true);
             embedBuilder.AddField("Guild Count", context.Client.Guilds.Count.ToMetric(), true);
-            embedBuilder.AddField("Member Count", TotalMemberCount.Values.Sum().ToMetric(), true);
+            embedBuilder.AddField("Member Count", Program.TotalMemberCount.Values.Sum().ToMetric(), true);
 
             embedBuilder.AddField("Prefixes", "`/`", true);
             embedBuilder.AddField("Bot Uptime", LastCommaRegex().Replace((Process.GetCurrentProcess().StartTime - DateTime.Now).Humanize(3), " and "), true);

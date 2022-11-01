@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Timers;
 using DSharpPlus;
@@ -12,9 +13,10 @@ namespace Tomoe
 {
     public class Program
     {
-        public static Config Config { get; private set; } = null!;
-        public static DiscordShardedClient Client { get; private set; } = null!;
-        public static ServiceProvider ServiceProvider { get; private set; } = null!;
+        internal static Config Config { get; private set; } = null!;
+        internal static DiscordShardedClient Client { get; private set; } = null!;
+        internal static ServiceProvider ServiceProvider { get; private set; } = null!;
+        internal static readonly Dictionary<ulong, int> TotalMemberCount = new();
 
         public static async Task Main()
         {

@@ -45,9 +45,9 @@ namespace Tomoe.Commands
             database.AddGuildMembers(newDiscordMembers);
             await database.SaveChangesAsync();
 
-            if (!Public.TotalMemberCount.TryAdd(guildCreateEventArgs.Guild.Id, guildCreateEventArgs.Guild.MemberCount))
+            if (!Program.TotalMemberCount.TryAdd(guildCreateEventArgs.Guild.Id, guildCreateEventArgs.Guild.MemberCount))
             {
-                Public.TotalMemberCount[guildCreateEventArgs.Guild.Id] += guildCreateEventArgs.Guild.MemberCount;
+                Program.TotalMemberCount[guildCreateEventArgs.Guild.Id] += guildCreateEventArgs.Guild.MemberCount;
             }
             Logger.Information($"{guildCreateEventArgs.Guild.Id}, shard {discordClient.ShardId}, {guildCreateEventArgs.Guild.Name}, {guildCreateEventArgs.Guild.MemberCount} member{(guildCreateEventArgs.Guild.MemberCount == 1 ? "" : "s")}");
         }
