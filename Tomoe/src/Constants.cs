@@ -5,7 +5,7 @@ namespace Tomoe
 {
     public class Constants
     {
-        public const string MissingReason = "Notice: No reason was provided.";
+        public const string MissingReason = "No reason was provided.";
         public const string GuildCommand = "Error: This command can only be used in a guild!";
 
         // Not constants, but they got no where else to go.

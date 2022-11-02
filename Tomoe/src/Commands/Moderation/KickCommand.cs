@@ -21,7 +21,7 @@ namespace Tomoe.Commands.Moderation
             try
             {
                 member = await context.Guild.GetMemberAsync(user.Id);
-                await member.SendMessageAsync($"You've been kicked from {context.Guild.Name} by {context.Member.Mention} ({Formatter.InlineCode(context.Member.Id.ToString(CultureInfo.InvariantCulture))}). Reason: {reason}");
+                await member.SendMessageAsync($"You've been kicked from {context.Guild.Name} by {context.Member.Mention} ({Formatter.InlineCode(context.Member.Id.ToString(CultureInfo.InvariantCulture))}). Reason:\n>>> {reason}");
                 sentDm = true;
             }
             catch (DiscordException error) when (error.WebResponse.ResponseCode == 404)
@@ -42,7 +42,7 @@ namespace Tomoe.Commands.Moderation
             {
                 await context.EditResponseAsync(new()
                 {
-                    Content = $"Discord Error {error.WebResponse.ResponseCode}, failed to kick {user.Mention} ({Formatter.InlineCode(user.Id.ToString(CultureInfo.InvariantCulture))}): {error.JsonMessage}"
+                    Content = $"Discord Error {error.WebResponse.ResponseCode}, failed to kick {user.Mention} ({Formatter.InlineCode(user.Id.ToString(CultureInfo.InvariantCulture))}):\n>>> {error.JsonMessage}"
                 });
 
                 // If we were able to DM them, let them know we failed.
@@ -71,10 +71,10 @@ namespace Tomoe.Commands.Moderation
                 { "punishment_reason", reason }
             };
 
-            await ModLogCommand.ModLogAsync(context.Guild, keyValuePairs, DiscordEvent.Ban);
+            await ModLogCommand.ModLogAsync(context.Guild, keyValuePairs, DiscordEvent.Kick);
             await context.EditResponseAsync(new()
             {
-                Content = $"{member.Mention} has been kicked{(sentDm ? "" : " (failed to dm)")}. Reason: {reason}"
+                Content = $"{member.Mention} has been kicked{(sentDm ? "" : " (failed to dm)")}. Reason:\n>>> {reason}"
             });
         }
     }

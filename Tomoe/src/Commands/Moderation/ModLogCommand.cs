@@ -41,10 +41,13 @@ namespace Tomoe.Commands.Moderation
     {
         Ban,
         Kick,
+        Mute,
+        Unmute,
         Unban,
         MemberJoined,
         MemberLeft,
         MessageCreated,
+        MessageEdited,
         MessageDeleted,
         Unknown
     }

@@ -12,7 +12,7 @@ namespace Tomoe.Commands.Moderation
 {
     public sealed class MuteCommand : ApplicationCommandModule
     {
-        [SlashCommand("mute", "Prevents a user from having any sort of interaction in the guild."), Hierarchy(Permissions.ManageMessages)]
+        [SlashCommand("mute", "Prevents a user from having any sort of interaction in the guild."), Hierarchy(Permissions.ModerateMembers)]
         public static async Task MuteAsync(InteractionContext context, [Option("person", "Who is being muted.")] DiscordMember member, [Option("length", "How long should they be muted.")] TimeSpan? length = null, [Option("reason", "Why are they being muted")] string reason = Constants.MissingReason)
         {
             if (length is not null && length <= TimeSpan.FromSeconds(5))
@@ -33,15 +33,6 @@ namespace Tomoe.Commands.Moderation
             }
 
             length ??= TimeSpan.FromMinutes(5);
-
-            bool sentDm = false;
-            try
-            {
-                await member.SendMessageAsync($"You have been muted in {context.Guild.Name} until {Formatter.Timestamp(DateTimeOffset.UtcNow + length.Value, TimestampFormat.ShortTime)} for: {reason}.");
-                sentDm = true;
-            }
-            catch (DiscordException) { }
-
             try
             {
                 await member.TimeoutAsync(DateTimeOffset.UtcNow.Add(length.Value), reason);
@@ -50,15 +41,18 @@ namespace Tomoe.Commands.Moderation
             {
                 await context.EditResponseAsync(new()
                 {
-                    Content = $"Discord Error {error.WebResponse.ResponseCode}, failed to mute {member.Mention} ({Formatter.InlineCode(member.Id.ToString(CultureInfo.InvariantCulture))}): {error.JsonMessage}"
+                    Content = $"Discord Error {error.WebResponse.ResponseCode}, failed to mute {member.Mention} ({Formatter.InlineCode(member.Id.ToString(CultureInfo.InvariantCulture))}):\n>>> {error.JsonMessage}"
                 });
-
-                if (sentDm)
-                {
-                    await member.SendMessageAsync($"Nevermind, I failed to mute you. Please contact {context.User.Mention} ({Formatter.InlineCode(context.User.Id.ToString(CultureInfo.InvariantCulture))}) for more information.");
-                }
                 return;
             }
+
+            bool sentDm = false;
+            try
+            {
+                await member.SendMessageAsync($"You were muted by {context.User.Mention} ({Formatter.InlineCode(context.User.Id.ToString(CultureInfo.InvariantCulture))}) in {context.Guild.Name} until {Formatter.Timestamp(DateTimeOffset.UtcNow + length.Value, TimestampFormat.ShortTime)}. Reason:\n>>> {reason}");
+                sentDm = true;
+            }
+            catch (DiscordException) { }
 
             Dictionary<string, string> keyValuePairs = new()
             {
@@ -81,7 +75,7 @@ namespace Tomoe.Commands.Moderation
             await ModLogCommand.ModLogAsync(context.Guild, keyValuePairs, DiscordEvent.Mute);
             await context.EditResponseAsync(new()
             {
-                Content = $"{member.Mention} ({Formatter.InlineCode(member.Id.ToString(CultureInfo.InvariantCulture))}) is muted until {Formatter.Timestamp(length.Value, TimestampFormat.RelativeTime)}{(sentDm ? "" : " (failed to dm)")}.\nReason: {reason}"
+                Content = $"{member.Mention} ({Formatter.InlineCode(member.Id.ToString(CultureInfo.InvariantCulture))}) is muted until {Formatter.Timestamp(length.Value, TimestampFormat.RelativeTime)}{(sentDm ? "" : " (failed to dm)")}.\nReason:\n>>> {reason}"
             });
         }
     }
