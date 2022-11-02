@@ -1,9 +1,9 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
+using Humanizer;
 
 namespace Tomoe.Commands.Attributes
 {
@@ -27,49 +27,56 @@ namespace Tomoe.Commands.Attributes
 
         public override async Task<bool> ExecuteChecksAsync(InteractionContext context)
         {
+            // Hierarchies are only checked in guilds.
             if (context.Guild is null)
             {
                 return true;
+            }
+            else if (!context.Member.HasPermission(RequiredPermissions))
+            {
+                // https://stackoverflow.com/a/8949772/10942966, test if we're missing a singular permission or multiple permissions (for the error message).
+                await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+                {
+                    IsEphemeral = true,
+                    Content = (RequiredPermissions & (RequiredPermissions - 1)) != 0 // Has more than 1 flag
+                        ? "Error: You're lacking some of the following permissions: " + RequiredPermissions.Humanize()
+                        : $"Error: You're lacking the {RequiredPermissions.Humanize(LetterCasing.LowerCase)} permission."
+                });
+                return false;
             }
 
             // This forces all commands which use this attribute to edit a response instead of creating it.
             await context.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource, new());
 
-            foreach (DiscordInteractionDataOption val in context.Interaction.Data.Options.Where(option => option.Type == ApplicationCommandOptionType.User || (option.Type == ApplicationCommandOptionType.String && option.Value is ulong)))
+            // Iterate through all the users mentioned in the command.
+            foreach (DiscordInteractionDataOption value in context.Interaction.Data.Options)
             {
-                DiscordMember? discordMember = null;
-                if (val.Value is DiscordMember member)
+                DiscordMember? member = null;
+
+                // Check if the option is a user id.
+                if (value.Type == ApplicationCommandOptionType.User)
                 {
-                    discordMember = member;
+                    member = await context.Guild.GetMemberAsync((ulong)value.Value);
                 }
-                else if (val.Value is DiscordUser user)
+                // Check if the option is a snowflake (which must be passed through a string)
+                else if (value.Type == ApplicationCommandOptionType.String && ulong.TryParse((string)value.Value, out ulong userId))
                 {
-                    discordMember = await user.Id.GetMemberAsync(context.Guild);
-                }
-                else if (val.Value is ulong id)
-                {
-                    discordMember = await id.GetMemberAsync(context.Guild);
+                    member = await context.Guild.GetMemberAsync(userId);
                 }
 
-                if (discordMember is null)
+                // If value.Type is not a user or a string, is a user but isn't in the guild, or is a string but isn't a valid user ID, skip.
+                if (member is null)
                 {
                     continue;
                 }
 
-                if (discordMember.Id.GetMemberAsync(context.Guild) is null)
-                {
-                    await context.CreateResponseAsync(new()
-                    {
-                        Content = $"Error: {discordMember.Mention} is not a member of this guild!"
-                    });
-                    return false;
-                }
-                else if (discordMember == context.Member)
+                // Check to see if the user can use the command on themself.
+                if (member == context.Member)
                 {
                     if (CanSelfPunish)
                     {
-                        bool selfPunish = await context.ConfirmAsync("Error: You're about to punish yourself. Do you wish to continue?");
-                        if (selfPunish)
+                        bool confirmed = await context.ConfirmAsync($"Error: You're about to use `/{context.CommandName}` yourself. Do you wish to continue?");
+                        if (confirmed)
                         {
                             continue;
                         }
@@ -77,66 +84,33 @@ namespace Tomoe.Commands.Attributes
                         {
                             await context.EditResponseAsync(new()
                             {
-                                Content = "Error: Cancelling self punishment."
+                                Content = $"Error: Cancelling `/{context.CommandName}`."
                             });
                             return false;
                         }
                     }
                     else
                     {
-                        await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+                        await context.EditResponseAsync(new()
                         {
-                            Content = $"Error: Cannot issue self punishment with the {context.CommandName} command.",
-                            IsEphemeral = true
+                            Content = $"Error: `/{context.CommandName}` does not allow itself to be used on the command invoker."
                         });
                         return false;
                     }
                 }
-                else if (!context.Member.HasPermission(RequiredPermissions))
+                else if (member.Hierarchy >= context.Member.Hierarchy)
                 {
-                    // https://stackoverflow.com/a/8949772/10942966, tests if there are more than one flag set in the Permissions enum.
-                    if ((RequiredPermissions & (RequiredPermissions - 1)) != 0)
+                    await context.EditResponseAsync(new()
                     {
-                        await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
-                        {
-                            IsEphemeral = true,
-                            Content = $"Error: You're lacking the {RequiredPermissions.ToPermissionString()} permission."
-                        });
-                    }
-                    else
-                    {
-                        await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
-                        {
-                            IsEphemeral = true,
-                            Content = "Error: You're lacking following permissions: " + RequiredPermissions.ToPermissionString()
-                        });
-                    }
-                    return false;
-                }
-                else if (discordMember.Hierarchy >= context.Member.Hierarchy)
-                {
-                    await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
-                    {
-                        Content = $"Error: {discordMember.Mention}'s highest role is greater than or equal to your highest role. You do not have enough power over them!",
-                        IsEphemeral = true
+                        Content = $"Error: {member.Mention}'s highest role is greater than or equal to your highest role. You do not have enough power over them!"
                     });
                     return false;
                 }
-                else if (discordMember.Hierarchy >= context.Guild.CurrentMember.Hierarchy)
+                else if (member.Hierarchy >= context.Guild.CurrentMember.Hierarchy)
                 {
-                    await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+                    await context.EditResponseAsync(new()
                     {
-                        Content = $"Error: {discordMember.Mention}'s highest role is greater than or equal to my highest role. I do not have enough power over them!",
-                        IsEphemeral = true
-                    });
-                    return false;
-                }
-                else if (discordMember.IsOwner)
-                {
-                    await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
-                    {
-                        Content = $"Error: {discordMember.Mention} is the owner!",
-                        IsEphemeral = true
+                        Content = $"Error: {member.Mention}'s highest role is greater than or equal to my highest role. I do not have enough power over them!"
                     });
                     return false;
                 }
