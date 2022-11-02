@@ -90,7 +90,7 @@ namespace Tomoe.Commands.Moderation
             await ModLogCommand.ModLogAsync(context.Guild, keyValuePairs, DiscordEvent.Ban);
             await context.EditResponseAsync(new()
             {
-                Content = $"{user.Mention} has been banned{(sentDm ? "" : "(failed to dm)")}. Reason: {reason}"
+                Content = $"{user.Mention} has been banned{(sentDm ? "" : " (failed to dm)")}. Reason: {reason}"
             });
         }
     }

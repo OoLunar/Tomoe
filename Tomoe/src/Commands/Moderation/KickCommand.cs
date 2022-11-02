@@ -17,7 +17,7 @@ namespace Tomoe.Commands.Moderation
         {
             // Test if the user is in the guild and attempt to DM them informing them they've been kicked.
             bool sentDm;
-            DiscordMember member = null!; // shouldn't be null cause the try/catch will either set it or throw an exception and return
+            DiscordMember member;
             try
             {
                 member = await context.Guild.GetMemberAsync(user.Id);
@@ -74,7 +74,7 @@ namespace Tomoe.Commands.Moderation
             await ModLogCommand.ModLogAsync(context.Guild, keyValuePairs, DiscordEvent.Ban);
             await context.EditResponseAsync(new()
             {
-                Content = $"{member.Mention} has been kicked{(sentDm ? "" : "(failed to dm)")}. Reason: {reason}"
+                Content = $"{member.Mention} has been kicked{(sentDm ? "" : " (failed to dm)")}. Reason: {reason}"
             });
         }
     }
