@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
+using DSharpPlus.SlashCommands.Attributes;
 using Tomoe.Commands.Attributes;
 using Tomoe.Models;
 
@@ -20,28 +21,7 @@ namespace Tomoe.Commands.Moderation
             [Option("channel", "Which guild channel to autoreact too.")] DiscordChannel channel,
             [Option("message_text", "The text on the message.")] string messageContent,
             [Option("button_text", "The text on the button.")] string buttonText,
-            [Option("role1", "Which role to add as a menu role.")] DiscordRole role1,
-            [Option("role2", "Which role to add as a menu role.")] DiscordRole? role2 = null,
-            [Option("role3", "Which role to add as a menu role.")] DiscordRole? role3 = null,
-            [Option("role4", "Which role to add as a menu role.")] DiscordRole? role4 = null,
-            [Option("role5", "Which role to add as a menu role.")] DiscordRole? role5 = null,
-            [Option("role6", "Which role to add as a menu role.")] DiscordRole? role6 = null,
-            [Option("role7", "Which role to add as a menu role.")] DiscordRole? role7 = null,
-            [Option("role8", "Which role to add as a menu role.")] DiscordRole? role8 = null,
-            [Option("role9", "Which role to add as a menu role.")] DiscordRole? role9 = null,
-            [Option("role10", "Which role to add as a menu role.")] DiscordRole? role10 = null,
-            [Option("role11", "Which role to add as a menu role.")] DiscordRole? role11 = null,
-            [Option("role12", "Which role to add as a menu role.")] DiscordRole? role12 = null,
-            [Option("role13", "Which role to add as a menu role.")] DiscordRole? role13 = null,
-            [Option("role14", "Which role to add as a menu role.")] DiscordRole? role14 = null,
-            [Option("role15", "Which role to add as a menu role.")] DiscordRole? role15 = null,
-            [Option("role16", "Which role to add as a menu role.")] DiscordRole? role16 = null,
-            [Option("role17", "Which role to add as a menu role.")] DiscordRole? role17 = null,
-            [Option("role18", "Which role to add as a menu role.")] DiscordRole? role18 = null,
-            [Option("role19", "Which role to add as a menu role.")] DiscordRole? role19 = null,
-            [Option("role20", "Which role to add as a menu role.")] DiscordRole? role20 = null,
-            [Option("role21", "Which role to add as a menu role.")] DiscordRole? role21 = null,
-            [Option("role22", "Which role to add as a menu role.")] DiscordRole? role22 = null)
+            [Option("role_num", "Which role to add"), ParamLimit(1, 25)] params DiscordRole[] roles)
         {
             if (channel.Type != ChannelType.Text && channel.Type != ChannelType.News)
             {
@@ -53,7 +33,6 @@ namespace Tomoe.Commands.Moderation
             }
 
             List<MenuRole> reactionRoles = new();
-            IEnumerable<DiscordRole> roles = new[] { role1, role2, role3, role4, role5, role6, role7, role8, role9, role10, role11, role12, role13, role14, role15, role16, role17, role18, role19, role20, role21, role22 }.Where(role => role is not null)!;
             List<DiscordRole> botUnassignableRoles = new();
             List<DiscordRole> userUnassignableRoles = new();
             foreach (DiscordRole role in roles)

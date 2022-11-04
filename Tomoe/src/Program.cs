@@ -43,7 +43,8 @@ namespace Tomoe
 
             SlashCommandsConfiguration slashCommandsConfiguration = new()
             {
-                Services = ServiceProvider
+                Services = ServiceProvider,
+                ParamNamingStrategy = ParamNamingStrategy.Underscored
             };
 
             Client = new(discordConfiguration);
@@ -66,8 +67,8 @@ namespace Tomoe
                 slashCommandShardExtension.RegisterCommands(Assembly.GetExecutingAssembly(), Config.DiscordDebugGuildId);
 #else
                 slashCommandShardExtension.RegisterCommands(Assembly.GetExecutingAssembly(), 0);
-#endif
                 slashCommandShardExtension.SlashCommandErrored += CommandErroredListener.CommandErroredAsync;
+#endif
                 slashCommandShardExtension.SlashCommandExecuted += CommandExecutedListener.CommandExecutedAsync;
             }
             logger.Information("Commands up!");
