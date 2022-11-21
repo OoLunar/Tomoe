@@ -21,7 +21,7 @@ namespace Tomoe.Commands.Moderation
             [Option("channel", "Which guild channel to autoreact too.")] DiscordChannel channel,
             [Option("message_text", "The text on the message.")] string messageContent,
             [Option("button_text", "The text on the button.")] string buttonText,
-            [Option("role_num", "Which role to add"), ParamLimit(1, 25)] params DiscordRole[] roles)
+            [Option("role_num", "Which role to add"), ParameterLimit(1, 25)] params DiscordRole[] roles)
         {
             if (channel.Type != ChannelType.Text && channel.Type != ChannelType.News)
             {
