@@ -46,8 +46,6 @@ namespace Tomoe.Commands
                         }
 
                         await guild.BulkOverwriteApplicationCommandsAsync(Array.Empty<DiscordApplicationCommand>());
-                        database.MenuRoles.RemoveRange(database.MenuRoles.Where(menuRole => !guild.Roles.Keys.Contains(menuRole.RoleId)));
-                        await database.SaveChangesAsync();
                     }
                 }
             });

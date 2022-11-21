@@ -14,7 +14,9 @@ namespace Tomoe.Commands.Moderation
         [SlashCommandGroup("tomoe", "Handles Tomoe related events for logging.")]
         public sealed partial class TomoeSubCommand : ApplicationCommandModule
         {
-            public Database Database { private get; set; } = null!;
+            public readonly Database Database;
+
+            public TomoeSubCommand(Database database) => Database = database;
 
             [SlashCommand("change", "Changes where events are logged."), Hierarchy(Permissions.ManageGuild)]
             public async Task ChangeAsync(InteractionContext context, [Option("log_type", "Which event to change.")] CustomEvent logType, [Option("channel", "Where will the new logging messages be sent?")] DiscordChannel channel, [Option("formatted_message", "What message to send. Please read the documentation to know how to use this properly.")] string? formatting = null)

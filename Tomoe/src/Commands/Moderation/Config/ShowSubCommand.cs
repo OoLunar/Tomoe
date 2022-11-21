@@ -11,7 +11,9 @@ namespace Tomoe.Commands.Moderation
     [SlashCommandGroup("config", "Manages the bot settings.")]
     public partial class ConfigCommand : ApplicationCommandModule
     {
-        public Database Database { private get; set; } = null!;
+        public readonly Database Database;
+
+        public ConfigCommand(Database database) => Database = database;
 
         [SlashCommand("show", "Shows the current bot settings for the server.")]
         public async Task ShowAsync(InteractionContext context)
