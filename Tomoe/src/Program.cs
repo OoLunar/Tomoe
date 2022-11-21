@@ -44,7 +44,7 @@ namespace Tomoe
             SlashCommandsConfiguration slashCommandsConfiguration = new()
             {
                 Services = ServiceProvider,
-                ParamNamingStrategy = ParamNamingStrategy.Underscored
+                ParameterNamingStrategy = ParameterNamingStrategy.Underscored
             };
 
             Client = new(discordConfiguration);
