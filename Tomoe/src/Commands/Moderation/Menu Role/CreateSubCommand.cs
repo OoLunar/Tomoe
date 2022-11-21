@@ -14,14 +14,16 @@ namespace Tomoe.Commands.Moderation
     [SlashCommandGroup("menu_role", "Select which roles you want!")]
     public partial class MenuRoleCommand : ApplicationCommandModule
     {
-        public Database Database { private get; set; } = null!;
+        public readonly Database Database;
+
+        public MenuRoleCommand(Database database) => Database = database;
 
         [SlashCommand("create", "Creates a new autoreaction on a channel."), Hierarchy(Permissions.ManageChannels | Permissions.ManageMessages)]
         public async Task CreateAsync(InteractionContext context,
             [Option("channel", "Which guild channel to autoreact too.")] DiscordChannel channel,
             [Option("message_text", "The text on the message.")] string messageContent,
             [Option("button_text", "The text on the button.")] string buttonText,
-            [Option("role_num", "Which role to add"), ParameterLimit(1, 25)] params DiscordRole[] roles)
+            [Option("role_num", "Which role to add"), ParameterLimit(1, 22)] params DiscordRole[] roles)
         {
             if (channel.Type != ChannelType.Text && channel.Type != ChannelType.News)
             {

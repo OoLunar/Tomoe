@@ -32,14 +32,14 @@ namespace Tomoe.Commands.Attributes
             {
                 return true;
             }
-            else if (!context.Member.HasPermission(RequiredPermissions))
+            else if (!context.Member.Permissions.HasPermission(RequiredPermissions))
             {
                 // https://stackoverflow.com/a/8949772/10942966, test if we're missing a singular permission or multiple permissions (for the error message).
                 await context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
                 {
                     IsEphemeral = true,
                     Content = (RequiredPermissions & (RequiredPermissions - 1)) != 0 // Has more than 1 flag
-                        ? "Error: You're lacking some of the following permissions: " + RequiredPermissions.Humanize()
+                        ? "Error: You're lacking some of the following permissions: " + RequiredPermissions.Humanize(LetterCasing.LowerCase)
                         : $"Error: You're lacking the {RequiredPermissions.Humanize(LetterCasing.LowerCase)} permission."
                 });
                 return false;
