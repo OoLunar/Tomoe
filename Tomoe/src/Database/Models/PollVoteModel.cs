@@ -1,5 +1,4 @@
 using EdgeDB;
-using OoLunar.Tomoe.Database.Converters;
 
 namespace OoLunar.Tomoe.Database.Models
 {
@@ -17,7 +16,7 @@ namespace OoLunar.Tomoe.Database.Models
         /// <summary>
         /// Who the vote represents.
         /// </summary>
-        [EdgeDBTypeConverter(typeof(UlongTypeConverter))]
+        //[EdgeDBTypeConverter(typeof(UlongTypeConverter))]
         public ulong VoterId { get; private set; }
 
         /// <summary>

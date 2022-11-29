@@ -5,7 +5,6 @@ using ConcurrentCollections;
 using EdgeDB;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using OoLunar.Tomoe.Database.Converters;
 
 namespace OoLunar.Tomoe.Database.Models
 {
@@ -18,7 +17,7 @@ namespace OoLunar.Tomoe.Database.Models
         /// <summary>
         /// The guild id.
         /// </summary>
-        [EdgeDBTypeConverter(typeof(UlongTypeConverter))]
+        //[EdgeDBTypeConverter(typeof(UlongTypeConverter))]
         public ulong GuildId { get; private set; }
 
         /// <summary>
@@ -41,7 +40,7 @@ namespace OoLunar.Tomoe.Database.Models
         /// </summary>
         [EdgeDBIgnore]
         public IReadOnlyList<GuildPrefixModel> Prefixes => _prefixes.ToArray();
-        [EdgeDBTypeConverter(typeof(IEnumerableTypeConverter<GuildMemberModel, GuildMemberModel>))]
+        //[EdgeDBTypeConverter(typeof(IEnumerableTypeConverter<GuildMemberModel, GuildMemberModel>))]
         private ConcurrentHashSet<GuildPrefixModel> _prefixes { get; set; } = new();
 
         /// <summary>
@@ -49,7 +48,7 @@ namespace OoLunar.Tomoe.Database.Models
         /// </summary>
         [EdgeDBIgnore]
         public IReadOnlyList<GuildMemberModel> Members => _members.ToArray();
-        [EdgeDBTypeConverter(typeof(IEnumerableTypeConverter<GuildMemberModel, GuildMemberModel>))]
+        //[EdgeDBTypeConverter(typeof(IEnumerableTypeConverter<GuildMemberModel, GuildMemberModel>))]
         private ConcurrentHashSet<GuildMemberModel> _members { get; set; } = new();
 
         private ILogger<GuildModel> Logger { get; init; } = null!;

@@ -1,7 +1,5 @@
 using System;
 using DSharpPlus;
-using EdgeDB;
-using OoLunar.Tomoe.Database.Converters;
 
 namespace OoLunar.Tomoe.Database.Models
 {
@@ -13,7 +11,7 @@ namespace OoLunar.Tomoe.Database.Models
         /// <summary>
         /// Who the reminder is for.
         /// </summary>
-        [EdgeDBTypeConverter(typeof(UlongTypeConverter))]
+        //[EdgeDBTypeConverter(typeof(UlongTypeConverter))]
         public ulong OwnerId { get; private set; }
 
         /// <summary>

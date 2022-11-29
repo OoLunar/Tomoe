@@ -18,7 +18,7 @@ namespace OoLunar.Tomoe.Database.Models
         /// <summary>
         /// The id of the user who created the prefix.
         /// </summary>
-        [EdgeDBTypeConverter(typeof(UlongTypeConverter))]
+        //[EdgeDBTypeConverter(typeof(UlongTypeConverter))]
         public ulong Creator { get; private set; }
 
         /// <summary>

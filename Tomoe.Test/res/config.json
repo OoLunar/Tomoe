@@ -1,0 +1,21 @@
+{
+    "database": {
+        "host": "10.13.13.0",
+        "port": 5656,
+        "databaseName": "tomoe_dev",
+        "username": "edgedb",
+        "password": "edgedb"
+    },
+    "discord": {
+        "token": "NDgxMzE0MDk1NzIzODM5NTA4.G0TaDy.mNMyg5x89hAaMKY1rsls-kyU9-RFnDQHvZ9fGs",
+        "prefixes": [
+            ">>"
+        ]
+    },
+    "testing": {
+        "guild_id": 832354798153236510,
+        "channel_id": 832362208209010721,
+        "user_id": 735620710948405248,
+        "message": "This is a **test** `message`. I `*think*` it should work."
+    }
+}

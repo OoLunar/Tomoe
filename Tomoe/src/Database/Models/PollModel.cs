@@ -26,25 +26,25 @@ namespace OoLunar.Tomoe.Database.Models
         /// <summary>
         /// Who created the poll.
         /// </summary>
-        [EdgeDBTypeConverter(typeof(UlongTypeConverter))]
+        //[EdgeDBTypeConverter(typeof(UlongTypeConverter))]
         public ulong CreatorId { get; private set; }
 
         /// <summary>
         /// Which guild the poll was sent in, if any.
         /// </summary>
-        [EdgeDBTypeConverter(typeof(UlongTypeConverter))]
+        //[EdgeDBTypeConverter(typeof(UlongTypeConverter))]
         public ulong? GuildId { get; private set; }
 
         /// <summary>
         /// Which channel the poll was sent in.
         /// </summary>
-        [EdgeDBTypeConverter(typeof(UlongTypeConverter))]
+        //[EdgeDBTypeConverter(typeof(UlongTypeConverter))]
         public ulong ChannelId { get; private set; }
 
         /// <summary>
         /// The id of the poll.
         /// </summary>
-        [EdgeDBTypeConverter(typeof(UlongTypeConverter))]
+        //[EdgeDBTypeConverter(typeof(UlongTypeConverter))]
         public ulong? MessageId { get; private set; }
 
         /// <summary>
@@ -62,7 +62,7 @@ namespace OoLunar.Tomoe.Database.Models
         /// </summary>
         [EdgeDBIgnore]
         public IReadOnlyList<PollOptionModel> Options => _options.ToArray();
-        [EdgeDBTypeConverter(typeof(IEnumerableTypeConverter<PollOptionModel, PollOptionModel>))]
+        //[EdgeDBTypeConverter(typeof(IEnumerableTypeConverter<PollOptionModel, PollOptionModel>))]
         private ConcurrentHashSet<PollOptionModel> _options { get; set; } = new();
 
         /// <summary>
@@ -70,7 +70,7 @@ namespace OoLunar.Tomoe.Database.Models
         /// </summary>
         [EdgeDBIgnore]
         public IReadOnlyList<PollVoteModel> Votes => _votes.ToArray();
-        [EdgeDBTypeConverter(typeof(IEnumerableTypeConverter<PollVoteModel, PollVoteModel>))]
+        //[EdgeDBTypeConverter(typeof(IEnumerableTypeConverter<PollVoteModel, PollVoteModel>))]
         private ConcurrentHashSet<PollVoteModel> _votes { get; set; } = new();
 
         private ILogger<PollModel> Logger { get; init; } = null!;

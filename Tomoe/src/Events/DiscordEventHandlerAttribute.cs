@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 
-namespace OoLunar.Tomoe.Attributes
+namespace OoLunar.Tomoe.Events
 {
     /// <summary>
     /// Subscribe to a Discord event.

@@ -22,7 +22,7 @@ namespace OoLunar.Tomoe.Database.Models
         /// <summary>
         /// The user's id.
         /// </summary>
-        [EdgeDBTypeConverter(typeof(UlongTypeConverter))]
+        //[EdgeDBTypeConverter(typeof(UlongTypeConverter))]
         public ulong UserId { get; private set; }
 
         /// <summary>
@@ -40,7 +40,7 @@ namespace OoLunar.Tomoe.Database.Models
         /// </summary>
         [EdgeDBIgnore]
         public IReadOnlyList<ulong> Roles => _roles.ToArray();
-        [EdgeDBTypeConverter(typeof(IEnumerableTypeConverter<ulong, long>))]
+        //[EdgeDBTypeConverter(typeof(IEnumerableTypeConverter<ulong, long>))]
         private ConcurrentHashSet<ulong> _roles { get; set; } = new();
 
         private ILogger<GuildMemberModel> Logger { get; init; } = null!;
