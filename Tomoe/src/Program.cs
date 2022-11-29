@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using DSharpPlus;
@@ -10,7 +9,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OoLunar.DSharpPlus.CommandAll;
-using OoLunar.DSharpPlus.CommandAll.Commands.Builders.Commands;
 using OoLunar.DSharpPlus.CommandAll.Parsers;
 using OoLunar.Tomoe.Events;
 using Serilog;
@@ -101,6 +99,7 @@ namespace OoLunar.Tomoe
 
             ServiceProvider services = serviceCollection.BuildServiceProvider();
             DiscordShardedClient shardedClient = services.GetRequiredService<DiscordShardedClient>();
+            DiscordEventManager eventManager = services.GetRequiredService<DiscordEventManager>();
             IReadOnlyDictionary<int, CommandAllExtension> extensions = await shardedClient.UseCommandAllAsync(new(serviceCollection)
             {
                 DebugGuildId = configuration.GetValue<ulong>("discord:debug_guild_id"),
@@ -111,37 +110,13 @@ namespace OoLunar.Tomoe
             {
                 extension.CommandManager.AddCommands(extension, currentAssembly);
                 extension.ArgumentConverterManager.AddArgumentConverters(currentAssembly);
-                extension.ConfigureCommands += (sender, eventArgs) => Task.Run(() => DescribeCommands(eventArgs.CommandManager.CommandBuilders.Values.Distinct()));
+                eventManager.RegisterEventHandlers(extension);
             }
 
             await shardedClient.StartAsync();
 
             // Wait indefinitely
             await Task.Delay(-1);
-        }
-
-        private static void DescribeCommands(IEnumerable<CommandBuilder> builders)
-        {
-            foreach (CommandBuilder command in builders)
-            {
-                if (string.IsNullOrWhiteSpace(command.Description))
-                {
-                    command.Description = "No description provided.";
-                }
-
-                foreach (CommandOverloadBuilder overload in command.Overloads)
-                {
-                    foreach (CommandParameterBuilder parameter in overload.Parameters)
-                    {
-                        if (string.IsNullOrWhiteSpace(parameter.Description))
-                        {
-                            parameter.Description = "No description provided.";
-                        }
-                    }
-                }
-
-                DescribeCommands(command.Subcommands);
-            }
         }
     }
 }

@@ -4,7 +4,7 @@ using DSharpPlus;
 using DSharpPlus.EventArgs;
 using Microsoft.Extensions.Logging;
 
-namespace OoLunar.Tomoe.Events.Handler
+namespace OoLunar.Tomoe.Events.Handlers
 {
     public sealed class GuildDownloadCompletedHandler
     {
