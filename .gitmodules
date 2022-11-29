@@ -1,0 +1,4 @@
+[submodule "libs/DSharpPlus"]
+	path = libs/DSharpPlus
+	url = git@github.com:OoLunar/DSharpPlus.git
+	branch = fix/v4/slashies-cleanup

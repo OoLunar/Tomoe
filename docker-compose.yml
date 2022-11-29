@@ -1,0 +1,8 @@
+version: "3"
+
+services:
+  tomoe:
+    build: .
+    volumes:
+      - ./configs:/src/res
+    restart: unless-stopped
