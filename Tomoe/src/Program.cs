@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using OoLunar.DSharpPlus.CommandAll;
 using OoLunar.DSharpPlus.CommandAll.Commands.Builders.Commands;
 using OoLunar.DSharpPlus.CommandAll.Parsers;
+using OoLunar.Tomoe.Events;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.SystemConsole.Themes;
@@ -73,9 +74,18 @@ namespace OoLunar.Tomoe
                 logger.AddSerilog(loggerConfiguration.CreateLogger());
             });
 
+            Assembly currentAssembly = typeof(Program).Assembly;
+            serviceCollection.AddSingleton((serviceProvider) =>
+            {
+                DiscordEventManager eventManager = new(serviceProvider);
+                eventManager.GatherEventHandlers(currentAssembly);
+                return eventManager;
+            });
+
             // Register the Discord sharded client to the service collection
             serviceCollection.AddSingleton((serviceProvider) =>
             {
+                DiscordEventManager eventManager = serviceProvider.GetRequiredService<DiscordEventManager>();
                 IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
                 DiscordConfiguration discordConfig = new()
                 {
@@ -85,6 +95,7 @@ namespace OoLunar.Tomoe
                 };
 
                 DiscordShardedClient shardedClient = new(discordConfig);
+                eventManager.RegisterEventHandlers(shardedClient);
                 return shardedClient;
             });
 
@@ -96,7 +107,6 @@ namespace OoLunar.Tomoe
                 PrefixParser = new PrefixParser(configuration.GetSection("discord:default_prefixes").Get<string[]>() ?? new[] { ">>" })
             });
 
-            Assembly currentAssembly = typeof(Program).Assembly;
             foreach (CommandAllExtension extension in extensions.Values)
             {
                 extension.CommandManager.AddCommands(extension, currentAssembly);
