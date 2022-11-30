@@ -13,6 +13,7 @@ using OoLunar.DSharpPlus.CommandAll.Parsers;
 using OoLunar.Tomoe.Events;
 using Serilog;
 using Serilog.Events;
+using Serilog.Filters;
 using Serilog.Sinks.SystemConsole.Themes;
 
 namespace OoLunar.Tomoe
@@ -42,7 +43,9 @@ namespace OoLunar.Tomoe
                 string loggingFormat = "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u4}] {SourceContext}: {Message:lj}{NewLine}{Exception}";
 
                 // Log both to console and the file
-                LoggerConfiguration loggerConfiguration = new LoggerConfiguration().MinimumLevel.Is(LogEventLevel.Information)
+                LoggerConfiguration loggerConfiguration = new LoggerConfiguration()
+                .MinimumLevel.Is(LogEventLevel.Debug)
+                .Filter.ByExcluding(Matching.FromSource("DSharpPlus"))
                 .WriteTo.Console(outputTemplate: loggingFormat, theme: new AnsiConsoleTheme(new Dictionary<ConsoleThemeStyle, string>
                 {
                     [ConsoleThemeStyle.Text] = "\x1b[0m",

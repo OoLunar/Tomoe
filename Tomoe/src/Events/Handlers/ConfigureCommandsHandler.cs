@@ -37,6 +37,11 @@ namespace OoLunar.Tomoe.Events.Handlers
                 {
                     foreach (CommandParameterBuilder parameter in overload.Parameters)
                     {
+                        if (parameter.Name == "message")
+                        {
+                            parameter.SlashMetadata.IsRequired = true;
+                        }
+
                         if (string.IsNullOrWhiteSpace(parameter.Description))
                         {
                             Logger.LogWarning("Parameter {ParameterName} of command {CommandName} does not have a description.", parameter.Name, command.Name);

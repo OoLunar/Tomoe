@@ -20,7 +20,7 @@ namespace OoLunar.Tomoe.Commands.Common
         private static readonly ReadOnlyMemory<char> SlashPrefix = new[] { ',', ' ', '`', '/', '`' };
 
         [Command("bot_info")]
-        public static Task BotInfoAsync(CommandContext context)
+        public static Task ExecuteAsync(CommandContext context)
         {
             DiscordEmbedBuilder embedBuilder = new()
             {
