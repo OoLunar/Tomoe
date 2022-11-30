@@ -17,7 +17,7 @@ namespace OoLunar.Tomoe.Commands.Common
 {
     public sealed partial class BotInfoCommand : BaseCommand
     {
-        private static readonly ReadOnlyMemory<char> SlashPrefix = new[] { ',', ' ', '`', '/', '`' };
+        private static readonly ReadOnlyMemory<char> _slashPrefix = new[] { ',', ' ', '`', '/', '`' };
 
         [Command("bot_info")]
         public static Task ExecuteAsync(CommandContext context)
@@ -70,7 +70,7 @@ namespace OoLunar.Tomoe.Commands.Common
                 prefixes[i++] = '`';
             }
 
-            SlashPrefix.Span.CopyTo(prefixes[i..(i += 5)]);
+            _slashPrefix.Span.CopyTo(prefixes[i..(i += 5)]);
             ReadOnlySpan<char> mentionPrefix = context.Client.CurrentUser.Mention.AsSpan();
             prefixes[i++] = ',';
             prefixes[i++] = ' ';
