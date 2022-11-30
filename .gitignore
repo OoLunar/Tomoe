@@ -1,7 +1,6 @@
 bin/
 obj/
 logs/
-res/config.json
 res/config.json.prod
 res/*.bak
 .vscode
