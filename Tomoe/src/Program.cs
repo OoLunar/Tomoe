@@ -29,6 +29,12 @@ namespace OoLunar.Tomoe
             {
                 configurationBuilder.AddJsonFile(Path.Join(Environment.CurrentDirectory, "res", "config.json"), true, true);
             }
+
+            if (File.Exists(Path.Join(Environment.CurrentDirectory, "res", "config.json.prod")))
+            {
+                configurationBuilder.AddJsonFile(Path.Join(Environment.CurrentDirectory, "res", "config.json.prod"), true, true);
+            }
+
             // Override the default configuration with the environment variables
             configurationBuilder.AddEnvironmentVariables("DISCORD_BOT_");
             // Then command line args
@@ -89,7 +95,7 @@ namespace OoLunar.Tomoe
                 DiscordConfiguration discordConfig = new()
                 {
                     Token = configuration.GetValue<string>("discord:token"),
-                    Intents = DiscordIntents.AllUnprivileged | DiscordIntents.MessageContents,
+                    Intents = DiscordIntents.DirectMessages | DiscordIntents.GuildMembers | DiscordIntents.GuildMessages | DiscordIntents.Guilds | DiscordIntents.MessageContents,
                     LoggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>()
                 };
 
