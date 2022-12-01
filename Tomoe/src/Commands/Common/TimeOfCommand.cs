@@ -41,7 +41,7 @@ namespace OoLunar.Tomoe.Commands.Common
 
             if (invalidMessageIds.Length != 0)
             {
-                await context.ReplyAsync(new() { Content = $"Invalid message ids or links: {invalidMessageIds}" });
+                await context.ReplyAsync($"Invalid message ids or links: {invalidMessageIds}");
                 return;
             }
 
@@ -52,7 +52,7 @@ namespace OoLunar.Tomoe.Commands.Common
                 timestamps.Append(CultureInfo.InvariantCulture, $"{Formatter.InlineCode(messageId.ToString(CultureInfo.InvariantCulture))} => {Formatter.InlineCode(messageId.GetSnowflakeTime().ToString("yyyy'-'MM'-'dd' 'HH':'mm':'ss'.'ffff", CultureInfo.InvariantCulture))}\n");
             }
 
-            await context.ReplyAsync(new() { Content = timestamps.ToString() });
+            await context.ReplyAsync(timestamps.ToString());
         }
     }
 }

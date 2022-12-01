@@ -12,7 +12,7 @@ namespace OoLunar.Tomoe.Commands.Common
         {
             await context.DelayAsync();
             await Task.Delay(TimeSpan.FromSeconds(3));
-            await context.ReplyAsync(new() { Content = Random.Shared.Next(2) == 0 ? "Heads" : "Tails" });
+            await context.EditAsync(new() { Content = Random.Shared.Next(2) == 0 ? "Heads" : "Tails" });
         }
     }
 }

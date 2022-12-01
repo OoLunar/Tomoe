@@ -12,6 +12,6 @@ namespace OoLunar.Tomoe.Commands.Common
         private static readonly string _sourceCodeUrl = typeof(Program).Assembly.GetCustomAttributes<AssemblyMetadataAttribute>().First(attribute => attribute.Key == "RepositoryUrl").Value!;
 
         [Command("source_code")]
-        public static Task ExecuteAsync(CommandContext context) => context.ReplyAsync(new() { Content = $"You can find my source code here: {Formatter.EmbedlessUrl(new(_sourceCodeUrl))}" });
+        public static Task ExecuteAsync(CommandContext context) => context.ReplyAsync($"You can find my source code here: {Formatter.EmbedlessUrl(new(_sourceCodeUrl))}");
     }
 }

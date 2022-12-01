@@ -21,7 +21,7 @@ namespace OoLunar.Tomoe.Commands.Common
 
             if (message is null)
             {
-                return context.ReplyAsync(new() { Content = "No message provided. Please give a link or reply to a message to use this command." });
+                return context.ReplyAsync("No message provided. Please give a link or reply to a message to use this command.");
             }
 
             DiscordMessageBuilder messageBuilder = new();
