@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging;
 using OoLunar.DSharpPlus.CommandAll;
 using OoLunar.DSharpPlus.CommandAll.Commands.Builders.Commands;
 using OoLunar.DSharpPlus.CommandAll.EventArgs;
+using OoLunar.Tomoe.Commands.Common;
 
 namespace OoLunar.Tomoe.Events.Handlers
 {
@@ -37,9 +39,25 @@ namespace OoLunar.Tomoe.Events.Handlers
                 {
                     foreach (CommandParameterBuilder parameter in overload.Parameters)
                     {
-                        if (parameter.Name == "message")
+                        if (overload.Method.DeclaringType == typeof(RawCommand) && parameter.Name == "message")
                         {
                             parameter.SlashMetadata.IsRequired = true;
+                        }
+                        else if (overload.Method.DeclaringType == typeof(AvatarCommand))
+                        {
+                            if (parameter.Name == "imageDimensions")
+                            {
+                                parameter.SlashMetadata.Choices ??= new();
+                                parameter.SlashMetadata.Choices.Add(new DiscordApplicationCommandOptionChoice("16 x 16px", 16));
+                                parameter.SlashMetadata.Choices.Add(new DiscordApplicationCommandOptionChoice("32 x 32px", 32));
+                                parameter.SlashMetadata.Choices.Add(new DiscordApplicationCommandOptionChoice("64 x 64px", 64));
+                                parameter.SlashMetadata.Choices.Add(new DiscordApplicationCommandOptionChoice("128 x 128px", 128));
+                                parameter.SlashMetadata.Choices.Add(new DiscordApplicationCommandOptionChoice("256 x 256px", 256));
+                                parameter.SlashMetadata.Choices.Add(new DiscordApplicationCommandOptionChoice("512 x 512px", 512));
+                                parameter.SlashMetadata.Choices.Add(new DiscordApplicationCommandOptionChoice("1024 x 1024px", 1024));
+                                parameter.SlashMetadata.Choices.Add(new DiscordApplicationCommandOptionChoice("2048 x 2048px", 2048));
+                                parameter.SlashMetadata.Choices.Add(new DiscordApplicationCommandOptionChoice("4096 x 4096px", 4096));
+                            }
                         }
 
                         if (string.IsNullOrWhiteSpace(parameter.Description))
