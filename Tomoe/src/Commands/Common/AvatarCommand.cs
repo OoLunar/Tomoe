@@ -24,6 +24,11 @@ namespace OoLunar.Tomoe.Commands.Common
             await context.DelayAsync();
 
             user ??= context.User;
+            if (imageFormat == ImageFormat.Unknown)
+            {
+                imageFormat = ImageFormat.Auto;
+            }
+
             string avatarUrl = (imageFormat == ImageFormat.Png && imageDimensions is 0) ? user.AvatarUrl : user.GetAvatarUrl(imageFormat, imageDimensions == 0 ? (ushort)1024 : imageDimensions);
             Stream imageStream = await (await HttpClient.GetAsync(avatarUrl)).Content.ReadAsStreamAsync();
             Image image = await Image.LoadAsync(imageStream);
