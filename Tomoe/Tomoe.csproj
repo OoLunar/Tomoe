@@ -6,13 +6,16 @@
     <RepositoryUrl>https://github.com/OoLunar/Tomoe</RepositoryUrl>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="../libs/OoLunar.DSharpPlus.CommandAll/src/OoLunar.DSharpPlus.CommandAll.csproj" />
+    <ProjectReference Include="../libs/edgedb-net/src/EdgeDB.Net.QueryBuilder/EdgeDB.Net.QueryBuilder.csproj" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="7.0.0" />
     <PackageReference Include="SixLabors.ImageSharp" Version="2.1.3" />
-    <ProjectReference Include="../libs/DSharpPlus.CommandAll/src/OoLunar.DSharpPlus.CommandAll.csproj" />
     <PackageReference Include="Serilog" Version="2.12.0" />
     <PackageReference Include="Serilog.Enrichers.Thread" Version="3.1.0" />
     <PackageReference Include="Serilog.Extensions.Hosting" Version="5.0.1" />
