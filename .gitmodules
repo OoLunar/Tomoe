@@ -1,7 +1,3 @@
 [submodule "libs/OoLunar.DSharpPlus.CommandAll"]
 	path = libs/OoLunar.DSharpPlus.CommandAll
 	url = git@github.com:OoLunar/DSharpPlus.CommandAll.git
-[submodule "libs/edgedb-net"]
-	path = libs/edgedb-net
-	url = git@github.com:edgedb/edgedb-net.git
-	branch = feat/querybuilder-v2
