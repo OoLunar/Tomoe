@@ -3,5 +3,12 @@
         "token": "replace me",
         "debug_guild_id": "custom id",
         "support_invite": "https://discord.gg/replace me"
+    },
+    "database": {
+        "host": "localhost",
+        "port": 6463,
+        "database_name": "edgedb",
+        "username": "tomoe",
+        "password": "replace me"
     }
 }

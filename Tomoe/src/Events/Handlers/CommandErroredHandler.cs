@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
-using Microsoft.Extensions.Logging;
 using OoLunar.DSharpPlus.CommandAll;
 using OoLunar.DSharpPlus.CommandAll.EventArgs;
 using OoLunar.DSharpPlus.CommandAll.Exceptions;
@@ -13,10 +12,6 @@ namespace OoLunar.Tomoe.Events.Handlers
 {
     public sealed class CommandErorredHandler
     {
-        private readonly ILogger<CommandErorredHandler> _logger;
-
-        public CommandErorredHandler(ILogger<CommandErorredHandler> logger) => _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-
         [DiscordEvent]
         public static Task OnErroredAsync(CommandAllExtension extension, CommandErroredEventArgs eventArgs)
         {

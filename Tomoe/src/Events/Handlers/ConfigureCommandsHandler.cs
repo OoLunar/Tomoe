@@ -11,16 +11,16 @@ namespace OoLunar.Tomoe.Events.Handlers
 {
     public sealed class ConfigureCommandsHandler
     {
-        private readonly ILogger<ConfigureCommandsHandler> Logger;
+        private readonly ILogger<ConfigureCommandsHandler> _logger;
 
-        public ConfigureCommandsHandler(ILogger<ConfigureCommandsHandler> logger) => Logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        public ConfigureCommandsHandler(ILogger<ConfigureCommandsHandler> logger) => _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         [DiscordEvent]
         public Task OnConfigureCommandsAsync(CommandAllExtension extension, ConfigureCommandsEventArgs configureCommandsEventArgs)
         {
-            Logger.LogInformation("Configuring commands.");
+            _logger.LogInformation("Configuring commands.");
             DescribeCommands(configureCommandsEventArgs.CommandManager.CommandBuilders.Values);
-            Logger.LogInformation("Commands configured.");
+            _logger.LogInformation("Commands configured.");
             return Task.CompletedTask;
         }
 
@@ -30,7 +30,7 @@ namespace OoLunar.Tomoe.Events.Handlers
             {
                 if (string.IsNullOrWhiteSpace(command.Description))
                 {
-                    Logger.LogWarning("Command {CommandName} does not have a description.", command.Name);
+                    _logger.LogWarning("Command {CommandName} does not have a description.", command.Name);
                     command.Description = "No description provided.";
                 }
 
@@ -58,7 +58,7 @@ namespace OoLunar.Tomoe.Events.Handlers
 
                         if (string.IsNullOrWhiteSpace(parameter.Description))
                         {
-                            Logger.LogWarning("Parameter {ParameterName} of command {CommandName} does not have a description.", parameter.Name, command.Name);
+                            _logger.LogWarning("Parameter {ParameterName} of command {CommandName} does not have a description.", parameter.Name, command.Name);
                             parameter.Description = "No description provided.";
                         }
                     }

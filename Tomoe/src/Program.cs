@@ -6,11 +6,13 @@ using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
 using DSharpPlus;
+using EdgeDB;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OoLunar.DSharpPlus.CommandAll;
 using OoLunar.DSharpPlus.CommandAll.Parsers;
+using OoLunar.Tomoe.Converters.Database;
 using OoLunar.Tomoe.Events;
 using Serilog;
 using Serilog.Events;
@@ -78,6 +80,24 @@ namespace OoLunar.Tomoe
 
                 // Set Log.Logger for a static reference to the logger
                 logger.AddSerilog(loggerConfiguration.CreateLogger());
+            });
+
+            // Add the database
+            TypeBuilder.AddOrUpdateTypeConverter<UInt64DatabaseConverter>();
+            serviceCollection.AddEdgeDB(new EdgeDBConnection()
+            {
+                Hostname = configuration.GetValue<string>("database:host")!,
+                Port = configuration.GetValue<int>("database:port"),
+                Database = configuration.GetValue<string>("database:database_name"),
+                Username = configuration.GetValue<string>("database:username")!,
+                Password = configuration.GetValue<string>("database:password"),
+                // Temporarily insecure until I can figure out how to make it secure.
+                // I guess it can stay insecure in production since it'll only make connections to localhost
+                TLSSecurity = TLSSecurityMode.Insecure
+            }, (config) =>
+            {
+                config.SchemaNamingStrategy = INamingStrategy.SnakeCaseNamingStrategy;
+                config.Logger = serviceCollection.BuildServiceProvider().GetRequiredService<ILogger<EdgeDBConnection>>();
             });
 
             Assembly currentAssembly = typeof(Program).Assembly;
