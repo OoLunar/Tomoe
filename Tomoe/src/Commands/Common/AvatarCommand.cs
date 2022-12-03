@@ -16,9 +16,9 @@ namespace OoLunar.Tomoe.Commands.Common
     [Command("avatar")]
     public sealed class AvatarCommand : BaseCommand
     {
-        private readonly HttpClient HttpClient;
+        private readonly HttpClient _httpClient;
 
-        public AvatarCommand(HttpClient httpClient) => HttpClient = httpClient;
+        public AvatarCommand(HttpClient httpClient) => _httpClient = httpClient;
 
         [Command("user")]
         public Task UserAsync(CommandContext context, DiscordUser? user = null, ImageFormat imageFormat = ImageFormat.Auto, ushort imageDimensions = 0)
@@ -60,7 +60,7 @@ namespace OoLunar.Tomoe.Commands.Common
         private async Task SendAvatarAsync(CommandContext context, string embedTitle, string url, DiscordColor? embedColor = null)
         {
             await context.DelayAsync();
-            Stream imageStream = await (await HttpClient.GetAsync(url)).Content.ReadAsStreamAsync();
+            Stream imageStream = await (await _httpClient.GetAsync(url)).Content.ReadAsStreamAsync();
             Image image = await Image.LoadAsync(imageStream);
             imageStream.Position = 0; // For image format in the next field.
 

@@ -8,7 +8,7 @@ namespace OoLunar.Tomoe.Commands.Common
     public sealed class FlipCommand : BaseCommand
     {
         [Command("flip")]
-        public static async Task FlipAsync(CommandContext context)
+        public static async Task ExecuteAsync(CommandContext context)
         {
             await context.DelayAsync();
             await Task.Delay(TimeSpan.FromSeconds(3));
