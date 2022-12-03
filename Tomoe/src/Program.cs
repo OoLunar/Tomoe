@@ -6,13 +6,12 @@ using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
 using DSharpPlus;
-using EdgeDB;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OoLunar.DSharpPlus.CommandAll;
 using OoLunar.DSharpPlus.CommandAll.Parsers;
-using OoLunar.Tomoe.Converters.Database;
+using OoLunar.Tomoe.Database;
 using OoLunar.Tomoe.Events;
 using Serilog;
 using Serilog.Events;
@@ -26,21 +25,9 @@ namespace OoLunar.Tomoe
         {
             ConfigurationBuilder configurationBuilder = new();
             configurationBuilder.Sources.Clear();
-
-            // Load the default configuration from the config.json file
-            if (File.Exists(Path.Join(Environment.CurrentDirectory, "res", "config.json")))
-            {
-                configurationBuilder.AddJsonFile(Path.Join(Environment.CurrentDirectory, "res", "config.json"), true, true);
-            }
-
-            if (File.Exists(Path.Join(Environment.CurrentDirectory, "res", "config.json.prod")))
-            {
-                configurationBuilder.AddJsonFile(Path.Join(Environment.CurrentDirectory, "res", "config.json.prod"), true, true);
-            }
-
-            // Override the default configuration with the environment variables
-            configurationBuilder.AddEnvironmentVariables("DISCORD_BOT_");
-            // Then command line args
+            configurationBuilder.AddJsonFile(Path.Join(Environment.CurrentDirectory, "res", "config.json"), true, true);
+            configurationBuilder.AddJsonFile(Path.Join(Environment.CurrentDirectory, "res", "config.json.prod"), true, true);
+            configurationBuilder.AddEnvironmentVariables("TOMOE_");
             configurationBuilder.AddCommandLine(args);
 
             IConfiguration configuration = configurationBuilder.Build();
@@ -82,23 +69,9 @@ namespace OoLunar.Tomoe
                 logger.AddSerilog(loggerConfiguration.CreateLogger());
             });
 
-            // Add the database
-            TypeBuilder.AddOrUpdateTypeConverter<UInt64DatabaseConverter>();
-            serviceCollection.AddEdgeDB(new EdgeDBConnection()
-            {
-                Hostname = configuration.GetValue<string>("database:host")!,
-                Port = configuration.GetValue<int>("database:port"),
-                Database = configuration.GetValue<string>("database:database_name"),
-                Username = configuration.GetValue<string>("database:username")!,
-                Password = configuration.GetValue<string>("database:password"),
-                // Temporarily insecure until I can figure out how to make it secure.
-                // I guess it can stay insecure in production since it'll only make connections to localhost
-                TLSSecurity = TLSSecurityMode.Insecure
-            }, (config) =>
-            {
-                config.SchemaNamingStrategy = INamingStrategy.SnakeCaseNamingStrategy;
-                config.Logger = serviceCollection.BuildServiceProvider().GetRequiredService<ILogger<EdgeDBConnection>>();
-            });
+            // Add EFCore.
+            // Scoped because we want a new context for each command.
+            serviceCollection.AddDbContext<DatabaseContext>((services, options) => DatabaseContext.ConfigureOptions(options, services.GetRequiredService<IConfiguration>()), ServiceLifetime.Scoped);
 
             Assembly currentAssembly = typeof(Program).Assembly;
             serviceCollection.AddSingleton(new HttpClient() { DefaultRequestHeaders = { { "User-Agent", $"OoLunar.Tomoe/{currentAssembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion} Github" } } });
@@ -117,7 +90,7 @@ namespace OoLunar.Tomoe
                 DiscordConfiguration discordConfig = new()
                 {
                     Token = configuration.GetValue<string>("discord:token"),
-                    Intents = DiscordIntents.DirectMessages | DiscordIntents.GuildMembers | DiscordIntents.GuildMessages | DiscordIntents.Guilds | DiscordIntents.MessageContents,
+                    Intents = DiscordIntents.All,
                     LoggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>()
                 };
 

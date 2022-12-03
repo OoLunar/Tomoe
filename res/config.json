@@ -6,8 +6,8 @@
     },
     "database": {
         "host": "localhost",
-        "port": 6463,
-        "database_name": "edgedb",
+        "port": 5432,
+        "database_name": "tomoe",
         "username": "tomoe",
         "password": "replace me"
     }
