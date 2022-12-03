@@ -8,7 +8,6 @@ using Humanizer;
 using OoLunar.DSharpPlus.CommandAll.Attributes;
 using OoLunar.DSharpPlus.CommandAll.Commands;
 using OoLunar.DSharpPlus.CommandAll.Commands.System.Commands;
-using OoLunar.DSharpPlus.CommandAll.Converters;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Metadata;
 
@@ -22,11 +21,11 @@ namespace OoLunar.Tomoe.Commands.Common
         public AvatarCommand(HttpClient httpClient) => HttpClient = httpClient;
 
         [Command("user")]
-        public Task UserAsync(CommandContext context, DiscordUser? user = null, [ArgumentConverter<EnumArgumentConverter>] ImageFormat imageFormat = ImageFormat.Auto, ushort imageDimensions = 0)
+        public Task UserAsync(CommandContext context, DiscordUser? user = null, ImageFormat imageFormat = ImageFormat.Auto, ushort imageDimensions = 0)
             => SendAvatarAsync(context, $"{(user ??= context.User).Username}{(user.Username.EndsWith('s') ? "'" : "'s")} Avatar", user.GetAvatarUrl(imageFormat == ImageFormat.Unknown ? ImageFormat.Auto : imageFormat, imageDimensions == 0 ? (ushort)1024 : imageDimensions), user.BannerColor.HasValue && !user.BannerColor.Value.Equals(default(DiscordColor)) ? user.BannerColor.Value : null);
 
         [Command("webhook"), SuppressMessage("Roslyn", "IDE0046", Justification = "Avoid the ternary operator rabbit hole")]
-        public Task WebhookAsync(CommandContext context, DiscordMessage? message = null, [ArgumentConverter<EnumArgumentConverter>] ImageFormat imageFormat = ImageFormat.Auto, ushort imageDimensions = 0)
+        public Task WebhookAsync(CommandContext context, DiscordMessage? message = null, ImageFormat imageFormat = ImageFormat.Auto, ushort imageDimensions = 0)
         {
             if (context.IsSlashCommand || message is not null)
             {
@@ -41,7 +40,7 @@ namespace OoLunar.Tomoe.Commands.Common
         }
 
         [Command("guild")]
-        public async Task GuildAsync(CommandContext context, DiscordMember? member = null, [ArgumentConverter<EnumArgumentConverter>] ImageFormat imageFormat = ImageFormat.Auto, ushort imageDimensions = 0)
+        public async Task GuildAsync(CommandContext context, DiscordMember? member = null, ImageFormat imageFormat = ImageFormat.Auto, ushort imageDimensions = 0)
         {
             if (context.Guild is null)
             {
