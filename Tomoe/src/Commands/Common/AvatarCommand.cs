@@ -23,27 +23,40 @@ namespace OoLunar.Tomoe.Commands.Common
 
         [Command("user")]
         public Task UserAsync(CommandContext context, DiscordUser? user = null, [ArgumentConverter<EnumArgumentConverter>] ImageFormat imageFormat = ImageFormat.Auto, ushort imageDimensions = 0)
-            => SendAvatarAsync(context, $"{(user ??= context.User).Username}{(user.Username.EndsWith('s') ? "'" : "'s")} Avatar", user.GetAvatarUrl(imageFormat, imageDimensions), user.BannerColor.HasValue && !user.BannerColor.Value.Equals(default(DiscordColor)) ? user.BannerColor.Value : null);
+            => SendAvatarAsync(context, $"{(user ??= context.User).Username}{(user.Username.EndsWith('s') ? "'" : "'s")} Avatar", user.GetAvatarUrl(imageFormat == ImageFormat.Unknown ? ImageFormat.Auto : imageFormat, imageDimensions == 0 ? (ushort)1024 : imageDimensions), user.BannerColor.HasValue && !user.BannerColor.Value.Equals(default(DiscordColor)) ? user.BannerColor.Value : null);
 
         [Command("webhook"), SuppressMessage("Roslyn", "IDE0046", Justification = "Avoid the ternary operator rabbit hole")]
         public Task WebhookAsync(CommandContext context, DiscordMessage? message = null, [ArgumentConverter<EnumArgumentConverter>] ImageFormat imageFormat = ImageFormat.Auto, ushort imageDimensions = 0)
         {
             if (context.IsSlashCommand || message is not null)
             {
-                return SendAvatarAsync(context, $"{message!.Author.Username}{(message.Author.Username.EndsWith('s') ? "'" : "'s")} Avatar", message.Author.GetAvatarUrl(imageFormat, imageDimensions));
+                return SendAvatarAsync(context, $"{message!.Author.Username}{(message.Author.Username.EndsWith('s') ? "'" : "'s")} Avatar", message.Author.GetAvatarUrl(imageFormat == ImageFormat.Unknown ? ImageFormat.Auto : imageFormat, imageDimensions == 0 ? (ushort)1024 : imageDimensions));
             }
             else
             {
                 return context.Message!.ReferencedMessage is null
                     ? context.ReplyAsync("Please reply to a message or provide a message link of whose avatar to grab.")
-                    : SendAvatarAsync(context, $"{context.Message.ReferencedMessage.Author.Username}{(context.Message.ReferencedMessage.Author.Username.EndsWith('s') ? "'" : "'s")} Avatar", context.Message.ReferencedMessage.Author.GetAvatarUrl(imageFormat, imageDimensions));
+                    : SendAvatarAsync(context, $"{context.Message.ReferencedMessage.Author.Username}{(context.Message.ReferencedMessage.Author.Username.EndsWith('s') ? "'" : "'s")} Avatar", context.Message.ReferencedMessage.Author.GetAvatarUrl(imageFormat == ImageFormat.Unknown ? ImageFormat.Auto : imageFormat, imageDimensions == 0 ? (ushort)1024 : imageDimensions));
             }
         }
 
         [Command("guild")]
-        public Task GuildAsync(CommandContext context, DiscordMember? member = null, [ArgumentConverter<EnumArgumentConverter>] ImageFormat imageFormat = ImageFormat.Auto, ushort imageDimensions = 0) => context.Guild is null
-            ? context.ReplyAsync($"`/{context.CurrentCommand.FullName}` can only be used in a guild!")
-            : SendAvatarAsync(context, $"{(member ??= context.Member!).Username}{(member.Username.EndsWith('s') ? "'" : "'s")} Guild Avatar", member.GetGuildAvatarUrl(imageFormat, imageDimensions), !member.Color.Equals(default(DiscordColor)) ? member.Color : null);
+        public async Task GuildAsync(CommandContext context, DiscordMember? member = null, [ArgumentConverter<EnumArgumentConverter>] ImageFormat imageFormat = ImageFormat.Auto, ushort imageDimensions = 0)
+        {
+            if (context.Guild is null)
+            {
+                await context.ReplyAsync($"`/{context.CurrentCommand.FullName}` can only be used in a guild!");
+            }
+            else
+            {
+                member ??= context.Member!;
+                if (member.GuildAvatarHash is null)
+                {
+                    member = await context.Guild!.GetMemberAsync(member.Id, true);
+                }
+                await SendAvatarAsync(context, $"{member.Username}{(member.Username.EndsWith('s') ? "'" : "'s")} Guild Avatar", member.GetGuildAvatarUrl(imageFormat == ImageFormat.Unknown ? ImageFormat.Auto : imageFormat, imageDimensions == 0 ? (ushort)1024 : imageDimensions), !member.Color.Equals(default(DiscordColor)) ? member.Color : null);
+            }
+        }
 
         private async Task SendAvatarAsync(CommandContext context, string embedTitle, string url, DiscordColor? embedColor = null)
         {
