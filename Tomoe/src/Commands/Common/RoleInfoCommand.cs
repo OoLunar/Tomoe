@@ -13,6 +13,11 @@ namespace OoLunar.Tomoe.Commands.Common
         [Command("role_info")]
         public static Task ExecuteAsync(CommandContext context, DiscordRole role)
         {
+            if (context.Guild is null)
+            {
+                return context.ReplyAsync($"Command `/{context.CurrentCommand.FullName}` can only be used in a guild.");
+            }
+
             DiscordEmbedBuilder embedBuilder = new()
             {
                 Title = $"Role Info for {role.Name}",

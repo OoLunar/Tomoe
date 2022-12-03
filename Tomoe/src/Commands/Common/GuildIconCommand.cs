@@ -12,7 +12,7 @@ namespace OoLunar.Tomoe.Commands.Common
     {
         [Command("guild_icon"), CommandOverloadPriority(0, true)]
         public static Task ExecuteAsync(CommandContext context, ImageFormat imageFormat = ImageFormat.Auto, ushort imageDimensions = 0) => context.Guild is null
-            ? context.ReplyAsync($"`/{context.CurrentCommand.FullName}` can only be used in a guild!")
+            ? context.ReplyAsync($"Command `/{context.CurrentCommand.FullName}` can only be used in a guild.")
             : context.ReplyAsync(context.Guild.GetIconUrl(imageFormat == ImageFormat.Unknown ? ImageFormat.Auto : imageFormat, imageDimensions == 0 ? (ushort)1024 : imageDimensions));
 
         [Command("guild_icon")]

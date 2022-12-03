@@ -44,7 +44,7 @@ namespace OoLunar.Tomoe.Commands.Common
         {
             if (context.Guild is null)
             {
-                await context.ReplyAsync($"`/{context.CurrentCommand.FullName}` can only be used in a guild!");
+                await context.ReplyAsync($"Command `/{context.CurrentCommand.FullName}` can only be used in a guild.");
             }
             else
             {

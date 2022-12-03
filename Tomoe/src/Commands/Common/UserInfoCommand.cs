@@ -24,7 +24,6 @@ namespace OoLunar.Tomoe.Commands.Common
             embedBuilder.AddField("Mention", user.Mention, true);
             embedBuilder.AddField("User Id", Formatter.InlineCode(user.Id.ToString(CultureInfo.InvariantCulture)), true);
 
-
             if (user is DiscordMember member)
             {
                 if (!member.Color.Equals(default(DiscordColor)))

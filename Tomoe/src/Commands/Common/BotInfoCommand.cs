@@ -25,7 +25,7 @@ namespace OoLunar.Tomoe.Commands.Common
             DiscordEmbedBuilder embedBuilder = new()
             {
                 Title = "Bot Info",
-                Color = new DiscordColor("#7b84d1")
+                Color = new DiscordColor("#6b73db")
             };
 
             Process currentProcess = Process.GetCurrentProcess();
