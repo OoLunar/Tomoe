@@ -15,6 +15,7 @@ using OoLunar.Tomoe.Database;
 using OoLunar.Tomoe.Events;
 using Serilog;
 using Serilog.Events;
+using Serilog.Filters;
 using Serilog.Sinks.SystemConsole.Themes;
 
 namespace OoLunar.Tomoe
@@ -40,6 +41,7 @@ namespace OoLunar.Tomoe
                 // Log both to console and the file
                 LoggerConfiguration loggerConfiguration = new LoggerConfiguration()
                 .MinimumLevel.Is(LogEventLevel.Information)
+                .Filter.ByExcluding(Matching.FromSource("Microsoft.EntityFrameworkCore"))
                 .WriteTo.Console(outputTemplate: loggingFormat, theme: new AnsiConsoleTheme(new Dictionary<ConsoleThemeStyle, string>
                 {
                     [ConsoleThemeStyle.Text] = "\x1b[0m",

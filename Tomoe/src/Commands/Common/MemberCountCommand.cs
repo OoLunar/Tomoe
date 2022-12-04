@@ -14,15 +14,8 @@ namespace OoLunar.Tomoe.Commands.Common
         public MemberCountCommand(DatabaseContext databaseContext) => _databaseContext = databaseContext ?? throw new ArgumentNullException(nameof(databaseContext));
 
         [Command("member_count")]
-        public async Task ExecuteAsync(CommandContext context)
-        {
-            if (context.Guild is null)
-            {
-                await context.ReplyAsync($"Command `/{context.CurrentCommand.FullName}` can only be used in a guild.");
-                return;
-            }
-
-            await context.ReplyAsync($"Current member count: {_databaseContext.Members.Count(member => member.GuildId == context.Guild.Id):N0}");
-        }
+        public Task ExecuteAsync(CommandContext context) => context.Guild is null
+            ? context.ReplyAsync($"Command `/{context.CurrentCommand.FullName}` can only be used in a guild.")
+            : context.ReplyAsync($"Current member count: {_databaseContext.Members.Count(member => member.GuildId == context.Guild.Id):N0}");
     }
 }
