@@ -25,7 +25,7 @@ namespace OoLunar.Tomoe.Commands.Common
             => SendAvatarAsync(context, $"{(user ??= context.User).Username}{(user.Username.EndsWith('s') ? "'" : "'s")} Avatar", user.GetAvatarUrl(imageFormat == ImageFormat.Unknown ? ImageFormat.Auto : imageFormat, imageDimensions == 0 ? (ushort)1024 : imageDimensions), user.BannerColor.HasValue && !user.BannerColor.Value.Equals(default(DiscordColor)) ? user.BannerColor.Value : null);
 
         [Command("webhook"), SuppressMessage("Roslyn", "IDE0046", Justification = "Avoid the ternary operator rabbit hole")]
-        public Task WebhookAsync(CommandContext context, DiscordMessage? message = null, ImageFormat imageFormat = ImageFormat.Auto, ushort imageDimensions = 0)
+        public Task WebhookAsync(CommandContext context, [RequiredBy(RequiredBy.SlashCommand)] DiscordMessage? message = null, ImageFormat imageFormat = ImageFormat.Auto, ushort imageDimensions = 0)
         {
             if (context.IsSlashCommand || message is not null)
             {
@@ -34,7 +34,7 @@ namespace OoLunar.Tomoe.Commands.Common
             else
             {
                 return context.Message!.ReferencedMessage is null
-                    ? context.ReplyAsync("Please reply to a message or provide a message link of whose avatar to grab.")
+                    ? context.ReplyAsync("Please reply to a message or provide a message link of whose avatar to grab. Additionally ensure the message belongs to this guild.")
                     : SendAvatarAsync(context, $"{context.Message.ReferencedMessage.Author.Username}{(context.Message.ReferencedMessage.Author.Username.EndsWith('s') ? "'" : "'s")} Avatar", context.Message.ReferencedMessage.Author.GetAvatarUrl(imageFormat == ImageFormat.Unknown ? ImageFormat.Auto : imageFormat, imageDimensions == 0 ? (ushort)1024 : imageDimensions));
             }
         }

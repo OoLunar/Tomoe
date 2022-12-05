@@ -38,11 +38,7 @@ namespace OoLunar.Tomoe.Events.Handlers
                 {
                     foreach (CommandParameterBuilder parameter in overload.Parameters)
                     {
-                        if (parameter.ParameterInfo!.ParameterType == typeof(DiscordMessage))
-                        {
-                            parameter.SlashMetadata.IsRequired = true;
-                        }
-                        else if (parameter.Name == "imageDimensions" && parameter.ParameterInfo.ParameterType == typeof(ushort))
+                        if (parameter.Name == "imageDimensions" && parameter.ParameterInfo!.ParameterType == typeof(ushort))
                         {
                             parameter.SlashMetadata.Choices ??= new();
                             parameter.SlashMetadata.Choices.Add(new DiscordApplicationCommandOptionChoice("16 x 16px", 16));

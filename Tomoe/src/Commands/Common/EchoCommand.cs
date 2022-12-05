@@ -7,6 +7,6 @@ namespace OoLunar.Tomoe.Commands.Common
     public sealed class EchoCommand : BaseCommand
     {
         [Command("echo")]
-        public static Task ExecuteAsync(CommandContext context, params string[] message) => context.ReplyAsync(string.Join(' ', message));
+        public static Task ExecuteAsync(CommandContext context, [RemainingText] string message) => context.ReplyAsync(message);
     }
 }

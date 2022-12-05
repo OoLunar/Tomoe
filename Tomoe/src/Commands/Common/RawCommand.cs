@@ -12,7 +12,7 @@ namespace OoLunar.Tomoe.Commands.Common
     public sealed class RawCommand : BaseCommand
     {
         [Command("raw")]
-        public static Task ExecuteAsync(CommandContext context, DiscordMessage? message = null, bool jsonfied = false)
+        public static Task ExecuteAsync(CommandContext context, [RequiredBy(RequiredBy.SlashCommand)] DiscordMessage? message = null, bool jsonfied = false)
         {
             if (!context.IsSlashCommand && message is null)
             {
