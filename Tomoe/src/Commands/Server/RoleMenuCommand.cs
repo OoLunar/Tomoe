@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using OoLunar.DSharpPlus.CommandAll.Attributes;
 using OoLunar.DSharpPlus.CommandAll.Commands;
 using OoLunar.DSharpPlus.CommandAll.Converters;
+using OoLunar.Tomoe.Database;
 using OoLunar.Tomoe.Database.Models;
 using OoLunar.Tomoe.Events;
 using OoLunar.Tomoe.Services;
@@ -233,6 +234,18 @@ namespace OoLunar.Tomoe.Commands.Server
                 await message.DeleteAsync("Role menu deleted.");
             }
             await context.ReplyAsync($"Message <{message.JumpLink}> has been deleted.");
+        }
+
+        [DiscordEvent]
+        public Task OnRoleRemoved(DiscordClient client, GuildRoleDeleteEventArgs eventArgs)
+        {
+            DatabaseContext database = _serviceProvider.CreateScope().ServiceProvider.GetRequiredService<DatabaseContext>();
+            foreach (RoleMenuModel roleMenu in database.RoleMenus.Where(roleMenu => roleMenu.RoleIds.Contains(eventArgs.Role.Id)))
+            {
+                roleMenu.RoleIds.Remove(eventArgs.Role.Id);
+            };
+
+            return database.SaveChangesAsync();
         }
 
         [DiscordEvent]
