@@ -13,6 +13,7 @@ using OoLunar.DSharpPlus.CommandAll;
 using OoLunar.DSharpPlus.CommandAll.Parsers;
 using OoLunar.Tomoe.Database;
 using OoLunar.Tomoe.Events;
+using OoLunar.Tomoe.Services;
 using Serilog;
 using Serilog.Events;
 using Serilog.Filters;
@@ -101,6 +102,7 @@ namespace OoLunar.Tomoe
                 return shardedClient;
             });
 
+            serviceCollection.AddScoped<RoleMenuService>();
             ServiceProvider services = serviceCollection.BuildServiceProvider();
             DiscordShardedClient shardedClient = services.GetRequiredService<DiscordShardedClient>();
             DiscordEventManager eventManager = services.GetRequiredService<DiscordEventManager>();
