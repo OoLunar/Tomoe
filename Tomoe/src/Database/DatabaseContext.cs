@@ -13,6 +13,7 @@ namespace OoLunar.Tomoe.Database
     {
         public DbSet<GuildModel> Guilds { get; init; } = null!;
         public DbSet<GuildMemberModel> Members { get; init; } = null!;
+        public DbSet<RoleMenuModel> RoleMenus { get; init; } = null!;
 
         // Standard EFCore convention.
         public DatabaseContext() { }
