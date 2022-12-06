@@ -10,7 +10,7 @@ namespace OoLunar.Tomoe.Commands.Common
 {
     public sealed class RoleInfoCommand : BaseCommand
     {
-        [Command("role_info")]
+        [Command("role_info", "ri")]
         public static Task ExecuteAsync(CommandContext context, DiscordRole role)
         {
             if (context.Guild is null)

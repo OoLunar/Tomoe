@@ -13,7 +13,7 @@ using SixLabors.ImageSharp.Metadata;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
-    [Command("avatar")]
+    [Command("avatar", "pfp", "icon", "profile_picture", "picture")]
     public sealed class AvatarCommand : BaseCommand
     {
         private readonly HttpClient _httpClient;
@@ -24,7 +24,7 @@ namespace OoLunar.Tomoe.Commands.Common
         public Task UserAsync(CommandContext context, DiscordUser? user = null, ImageFormat imageFormat = ImageFormat.Auto, ushort imageDimensions = 0)
             => SendAvatarAsync(context, $"{(user ??= context.User).Username}{(user.Username.EndsWith('s') ? "'" : "'s")} Avatar", user.GetAvatarUrl(imageFormat == ImageFormat.Unknown ? ImageFormat.Auto : imageFormat, imageDimensions == 0 ? (ushort)1024 : imageDimensions), user.BannerColor.HasValue && !user.BannerColor.Value.Equals(default(DiscordColor)) ? user.BannerColor.Value : null);
 
-        [Command("webhook"), SuppressMessage("Roslyn", "IDE0046", Justification = "Avoid the ternary operator rabbit hole")]
+        [Command("webhook", "wb"), SuppressMessage("Roslyn", "IDE0046", Justification = "Avoid the ternary operator rabbit hole")]
         public Task WebhookAsync(CommandContext context, [RequiredBy(RequiredBy.SlashCommand)] DiscordMessage? message = null, ImageFormat imageFormat = ImageFormat.Auto, ushort imageDimensions = 0)
         {
             if (context.IsSlashCommand || message is not null)
@@ -39,7 +39,7 @@ namespace OoLunar.Tomoe.Commands.Common
             }
         }
 
-        [Command("guild")]
+        [Command("guild", "member")]
         public async Task GuildAsync(CommandContext context, DiscordMember? member = null, ImageFormat imageFormat = ImageFormat.Auto, ushort imageDimensions = 0)
         {
             if (context.Guild is null)

@@ -11,7 +11,7 @@ namespace OoLunar.Tomoe.Commands.Common
 
         public SupportCommand(IConfiguration configuration) => _supportServerInvite = configuration.GetValue<string>("discord:debug_guild_id");
 
-        [Command("support")]
+        [Command("support", "server")]
         public Task ExecuteAsync(CommandContext context) => context.ReplyAsync(_supportServerInvite is null
             ? "I'm sorry, but the owner of the bot doesn't seem to have setup a support server."
             : $"Are you looking for support? You can join my support server here: <{_supportServerInvite}>");

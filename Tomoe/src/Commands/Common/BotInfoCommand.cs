@@ -24,7 +24,7 @@ namespace OoLunar.Tomoe.Commands.Common
 
         public BotInfoCommand(DatabaseContext databaseContext) => _databaseContext = databaseContext ?? throw new ArgumentNullException(nameof(databaseContext));
 
-        [Command("bot_info")]
+        [Command("bot_info", "bs", "bot_stats")]
         public Task ExecuteAsync(CommandContext context)
         {
             DiscordEmbedBuilder embedBuilder = new()

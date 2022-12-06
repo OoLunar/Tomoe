@@ -14,7 +14,7 @@ namespace OoLunar.Tomoe.Commands.Common
         [Command("parse")]
         public sealed class ParseSubCommand : BaseCommand
         {
-            [Command("seconds", "second")]
+            [Command("seconds", "second", "s")]
             public static Task ParseSecondsAsync(CommandContext context, params long[] unixTimestamps)
             {
                 StringBuilder builder = new();
@@ -25,7 +25,7 @@ namespace OoLunar.Tomoe.Commands.Common
                 return context.ReplyAsync(builder.ToString());
             }
 
-            [Command("milliseconds", "millisecond")]
+            [Command("milliseconds", "millisecond", "ms")]
             public static Task ParseMillisecondsAsync(CommandContext context, params long[] unixTimestamps)
             {
                 StringBuilder builder = new();
@@ -40,10 +40,10 @@ namespace OoLunar.Tomoe.Commands.Common
         [Command("now")]
         public sealed class NowSubCommand : BaseCommand
         {
-            [Command("seconds", "second")]
+            [Command("seconds", "second", "s")]
             public static Task NowSecondsAsync(CommandContext context) => context.ReplyAsync(Formatter.InlineCode(DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture)));
 
-            [Command("milliseconds", "millisecond")]
+            [Command("milliseconds", "millisecond", "ms")]
             public static Task NowMillisecondsAsync(CommandContext context) => context.ReplyAsync(Formatter.InlineCode(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString(CultureInfo.InvariantCulture)));
         }
     }

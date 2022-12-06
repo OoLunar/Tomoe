@@ -9,7 +9,7 @@ namespace OoLunar.Tomoe.Commands.Common
 {
     public sealed class QuoteCommand : BaseCommand
     {
-        [Command("quote")]
+        [Command("quote", "rat", "mock")]
         public static Task ExecuteAsync(CommandContext context, DiscordMessage message)
         {
             if (!message.Channel.PermissionsFor(context.Member).HasPermission(Permissions.AccessChannels))

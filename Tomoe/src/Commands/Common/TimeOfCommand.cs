@@ -15,7 +15,7 @@ namespace OoLunar.Tomoe.Commands.Common
         private static readonly DiscordMessageArgumentConverter _discordMessageArgumentConverter = new();
         private static readonly UInt64ArgumentConverter _uint64ArgumentConverter = new();
 
-        [Command("time_of")]
+        [Command("time_of", "when_was")]
         public static async Task ExecuteAsync(CommandContext context, params string[] messages)
         {
             List<ulong> messageIds = new();

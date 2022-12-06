@@ -10,7 +10,7 @@ namespace OoLunar.Tomoe.Commands.Common
 {
     public sealed class GuildIconCommand : BaseCommand
     {
-        [Command("guild_icon"), CommandOverloadPriority(0, true)]
+        [Command("guild_icon", "guild_avatar", "guild_picture"), CommandOverloadPriority(0, true)]
         public static Task ExecuteAsync(CommandContext context, ImageFormat imageFormat = ImageFormat.Auto, ushort imageDimensions = 0) => context.Guild is null
             ? context.ReplyAsync($"Command `/{context.CurrentCommand.FullName}` can only be used in a guild.")
             : context.ReplyAsync(context.Guild.GetIconUrl(imageFormat == ImageFormat.Unknown ? ImageFormat.Auto : imageFormat, imageDimensions == 0 ? (ushort)1024 : imageDimensions));

@@ -39,7 +39,7 @@ namespace OoLunar.Tomoe.Commands.Server
             _roleMenuService = roleMenuService ?? throw new ArgumentNullException(nameof(roleMenuService));
         }
 
-        [Command("create")]
+        [Command("create", "add")]
         public async Task CreateAsync(CommandContext context, params DiscordRole[] roles)
         {
             IReadOnlyList<string>? responses = await context.PromptAsync(_prompts);
@@ -102,7 +102,7 @@ namespace OoLunar.Tomoe.Commands.Server
             await context.ReplyAsync("Role menu created!");
         }
 
-        [Command("edit")]
+        [Command("edit", "modify")]
         public async Task EditAsync(CommandContext context, DiscordMessage message, params DiscordRole[] roles)
         {
             if (message.Author != context.Guild!.CurrentMember)
@@ -165,7 +165,7 @@ namespace OoLunar.Tomoe.Commands.Server
             await context.ReplyAsync($"Message <{message.JumpLink}> has been updated.");
         }
 
-        [Command("delete")]
+        [Command("delete", "remove")]
         public async Task DeleteAsync(CommandContext context, DiscordMessage message)
         {
             if (message.Author != context.Guild!.CurrentMember)

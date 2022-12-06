@@ -18,7 +18,7 @@ namespace OoLunar.Tomoe.Commands.Common
 
         public UserInfoCommand(DatabaseContext databaseContext) => _databaseContext = databaseContext ?? throw new ArgumentNullException(nameof(databaseContext));
 
-        [Command("user_info")]
+        [Command("user_info", "ui")]
         public async Task ExecuteAsync(CommandContext context, DiscordUser? user = null)
         {
             user ??= context.User;

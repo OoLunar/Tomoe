@@ -11,7 +11,7 @@ namespace OoLunar.Tomoe.Commands.Common
 {
     public sealed class GuildInfoCommand : BaseCommand
     {
-        [Command("guild_info")]
+        [Command("guild_info", "gs")]
         public static Task ExecuteAsync(CommandContext context)
         {
             if (context.Guild is null)
