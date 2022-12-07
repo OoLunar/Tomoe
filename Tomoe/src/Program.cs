@@ -103,6 +103,7 @@ namespace OoLunar.Tomoe
             });
 
             serviceCollection.AddScoped<RoleMenuService>();
+            serviceCollection.AddScoped<PollService>();
             ServiceProvider services = serviceCollection.BuildServiceProvider();
             DiscordShardedClient shardedClient = services.GetRequiredService<DiscordShardedClient>();
             DiscordEventManager eventManager = services.GetRequiredService<DiscordEventManager>();
