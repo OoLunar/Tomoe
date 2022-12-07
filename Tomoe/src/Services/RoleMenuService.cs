@@ -10,7 +10,7 @@ namespace OoLunar.Tomoe.Services
 {
     public sealed class RoleMenuService
     {
-        private readonly MemoryCache _roleMenuCache;
+        private readonly MemoryCache _cache;
         private readonly DatabaseContext _databaseContext;
         private readonly ILogger<RoleMenuService> _logger;
 
@@ -18,7 +18,7 @@ namespace OoLunar.Tomoe.Services
         {
             _logger = logger;
             _databaseContext = databaseContext;
-            _roleMenuCache = new(new MemoryCacheOptions() { ExpirationScanFrequency = TimeSpan.FromMinutes(2) });
+            _cache = new(new MemoryCacheOptions() { ExpirationScanFrequency = TimeSpan.FromMinutes(2) });
         }
 
         public RoleMenuModel AddRoleMenu(ulong guildId, params ulong[] roleIds)
@@ -26,14 +26,14 @@ namespace OoLunar.Tomoe.Services
             RoleMenuModel roleMenuModel = new(guildId, Guid.NewGuid(), roleIds);
             _databaseContext.RoleMenus.Add(roleMenuModel);
             _databaseContext.SaveChanges();
-            _roleMenuCache.Set(roleMenuModel.Id, roleMenuModel);
+            _cache.Set(roleMenuModel.Id, roleMenuModel);
             _logger.LogDebug("Added role menu {MenuId} to guild {GuildId}.", roleMenuModel.Id, guildId);
             return roleMenuModel;
         }
 
         public RoleMenuModel? GetRoleMenu(Guid menuId)
         {
-            if (_roleMenuCache.TryGetValue(menuId, out RoleMenuModel? roleMenuModel))
+            if (_cache.TryGetValue(menuId, out RoleMenuModel? roleMenuModel))
             {
                 return roleMenuModel;
             }
@@ -41,7 +41,7 @@ namespace OoLunar.Tomoe.Services
             roleMenuModel = _databaseContext.RoleMenus.Find(menuId);
             if (roleMenuModel != null)
             {
-                _roleMenuCache.Set(menuId, roleMenuModel);
+                _cache.Set(menuId, roleMenuModel);
             }
 
             return roleMenuModel;
@@ -65,7 +65,7 @@ namespace OoLunar.Tomoe.Services
             }
 
             _databaseContext.SaveChanges();
-            _roleMenuCache.Set(menuId, roleMenu);
+            _cache.Set(menuId, roleMenu);
             _logger.LogDebug("Updated role menu {MenuId}.", menuId);
             return roleMenu;
         }
@@ -81,7 +81,7 @@ namespace OoLunar.Tomoe.Services
 
             _databaseContext.RoleMenus.Remove(removedRoleMenuModel);
             _databaseContext.SaveChanges();
-            _roleMenuCache.Remove(menuId);
+            _cache.Remove(menuId);
             _logger.LogDebug("Removed role menu {MenuId} from guild {GuildId}.", menuId, removedRoleMenuModel.GuildId);
             return true;
         }

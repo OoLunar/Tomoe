@@ -14,6 +14,7 @@ namespace OoLunar.Tomoe.Database
         public DbSet<GuildModel> Guilds { get; init; } = null!;
         public DbSet<GuildMemberModel> Members { get; init; } = null!;
         public DbSet<RoleMenuModel> RoleMenus { get; init; } = null!;
+        public DbSet<PollModel> Polls { get; init; } = null!;
 
         // Standard EFCore convention.
         public DatabaseContext() { }
@@ -37,6 +38,8 @@ namespace OoLunar.Tomoe.Database
             ConfigureOptions(optionsBuilder, configuration);
             return new(optionsBuilder.Options);
         }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder) => modelBuilder.HasPostgresExtension("hstore");
 
         internal static void ConfigureOptions(DbContextOptionsBuilder optionsBuilder, IConfiguration configuration)
         {

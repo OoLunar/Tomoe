@@ -71,7 +71,7 @@ namespace OoLunar.Tomoe.Commands.Server
             }
 
             RoleMenuModel roleMenu = _roleMenuService.AddRoleMenu(context.Guild!.Id, roles.Select(role => role.Id).ToArray());
-            DiscordButtonComponent button = new(ButtonStyle.Primary, $"{roleMenu.Id}:list", responses[1], false, emojiOptional.IsDefined(out DiscordEmoji? emoji) ? new(emoji) : null);
+            DiscordButtonComponent button = new(ButtonStyle.Primary, $"role-menu:{roleMenu.Id}:list", responses[1], false, emojiOptional.IsDefined(out DiscordEmoji? emoji) ? new(emoji) : null);
 
             DiscordMessageBuilder messageBuilder = new() { Content = responses[0] };
             Optional<DiscordMessage> messageOptional = await _messageConverter.ConvertAsync(context, null!, responses[4]);
@@ -84,7 +84,12 @@ namespace OoLunar.Tomoe.Commands.Server
                 }
 
                 DiscordActionRowComponent actionRowComponent = message.Components.First();
-                if (actionRowComponent.Components.Count == 5)
+                if (!actionRowComponent.Components.All(component => component.CustomId.StartsWith("role-menu:")))
+                {
+                    await context.ReplyAsync($"Message <{message.JumpLink}> contains buttons that aren't role menus! Try creating a new message.");
+                    return;
+                }
+                else if (actionRowComponent.Components.Count == 5)
                 {
                     await context.ReplyAsync($"Message <{message.JumpLink}> already has 5 role menus on it. Try creating a new message.");
                     return;
@@ -122,6 +127,11 @@ namespace OoLunar.Tomoe.Commands.Server
                 await context.ReplyAsync($"Message <{message.JumpLink}> is not a role menu!");
                 return;
             }
+            else if (!actionRowComponent.Components.All(component => component.CustomId.StartsWith("role-menu:")))
+            {
+                await context.ReplyAsync($"Message <{message.JumpLink}> contains buttons that aren't role menus! Try creating a new message.");
+                return;
+            }
 
             int editRoleMenu = 0;
             if (actionRowComponent.Components.Count > 1)
@@ -148,7 +158,7 @@ namespace OoLunar.Tomoe.Commands.Server
             }
 
             DiscordComponent component = actionRowComponent.Components.ElementAt(editRoleMenu);
-            if (!Guid.TryParse(component.CustomId.Split(':')[0], out Guid roleMenuId))
+            if (!Guid.TryParse(component.CustomId.Split(':')[1], out Guid roleMenuId))
             {
                 await context.ReplyAsync($"Message <{message.JumpLink}> is not a role menu!");
                 return;
@@ -185,6 +195,11 @@ namespace OoLunar.Tomoe.Commands.Server
                 await context.ReplyAsync($"Message <{message.JumpLink}> is not a role menu!");
                 return;
             }
+            else if (!actionRowComponent.Components.All(component => component.CustomId.StartsWith("role-menu:")))
+            {
+                await context.ReplyAsync($"Message <{message.JumpLink}> contains buttons that aren't role menus! Try creating a new message.");
+                return;
+            }
 
             int deleteRoleMenu = 0;
             if (actionRowComponent.Components.Count > 1)
@@ -211,7 +226,7 @@ namespace OoLunar.Tomoe.Commands.Server
             }
 
             DiscordComponent component = actionRowComponent.Components.ElementAt(deleteRoleMenu);
-            if (!Guid.TryParse(component.CustomId.Split(':')[0], out Guid roleMenuId))
+            if (!Guid.TryParse(component.CustomId.Split(':')[1], out Guid roleMenuId))
             {
                 await context.ReplyAsync($"Message <{message.JumpLink}> is not a role menu!");
                 return;
@@ -252,7 +267,12 @@ namespace OoLunar.Tomoe.Commands.Server
         public async Task OnButtonClickAsync(DiscordClient client, ComponentInteractionCreateEventArgs eventArgs)
         {
             string[] args = eventArgs.Id.Split(':');
-            if (!Guid.TryParse(args[0], out Guid roleMenuId))
+            if (args.Length != 3 || args[0] != "role-menu")
+            {
+                return;
+            }
+
+            if (!Guid.TryParse(args[1], out Guid roleMenuId))
             {
                 return;
             }
@@ -264,7 +284,7 @@ namespace OoLunar.Tomoe.Commands.Server
                 return;
             }
 
-            switch (args[1])
+            switch (args[2])
             {
                 case "list":
                     List<ulong> updatedRoles = new();
@@ -292,7 +312,7 @@ namespace OoLunar.Tomoe.Commands.Server
                         roleMenuService.UpdateRoleMenu(roleMenuId, updatedRoles);
                     }
 
-                    await eventArgs.Interaction.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().AddComponents(new DiscordSelectComponent($"{roleMenuId}:update", "Select your roles!", options.ToArray(), false, 0, options.Count)).AsEphemeral());
+                    await eventArgs.Interaction.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().AddComponents(new DiscordSelectComponent($"role-menu:{roleMenuId}:update", "Select your roles!", options.ToArray(), false, 0, options.Count)).AsEphemeral());
                     return;
                 case "update":
                     DiscordMember member = (DiscordMember)eventArgs.User;
