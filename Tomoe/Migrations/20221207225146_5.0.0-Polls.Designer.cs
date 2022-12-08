@@ -13,8 +13,8 @@ using OoLunar.Tomoe.Database;
 namespace Tomoe.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20221207041218_5.0.0-polls")]
-    partial class _500polls
+    [Migration("20221207225146_5.0.0-Polls")]
+    partial class _500Polls
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -80,9 +80,9 @@ namespace Tomoe.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("expires_at");
 
-                    b.Property<Dictionary<string, string>>("Options")
+                    b.Property<List<string>>("Options")
                         .IsRequired()
-                        .HasColumnType("jsonb")
+                        .HasColumnType("text[]")
                         .HasColumnName("options");
 
                     b.Property<string>("Question")

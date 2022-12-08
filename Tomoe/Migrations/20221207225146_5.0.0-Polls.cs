@@ -7,21 +7,18 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Tomoe.Migrations
 {
     /// <inheritdoc />
-    public partial class _500polls : Migration
+    public partial class _500Polls : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterDatabase()
-                .Annotation("Npgsql:PostgresExtension:hstore", ",,");
-
             migrationBuilder.CreateTable(
                 name: "polls",
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
                     question = table.Column<string>(type: "text", nullable: false),
-                    options = table.Column<Dictionary<string, string>>(type: "jsonb", nullable: false),
+                    options = table.Column<List<string>>(type: "text[]", nullable: false),
                     votes = table.Column<Dictionary<ulong, int>>(type: "json", nullable: false),
                     expiresat = table.Column<DateTimeOffset>(name: "expires_at", type: "timestamp with time zone", nullable: false)
                 },
@@ -36,9 +33,6 @@ namespace Tomoe.Migrations
         {
             migrationBuilder.DropTable(
                 name: "polls");
-
-            migrationBuilder.AlterDatabase()
-                .OldAnnotation("Npgsql:PostgresExtension:hstore", ",,");
         }
     }
 }

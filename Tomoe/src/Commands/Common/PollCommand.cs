@@ -4,10 +4,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Entities;
+using DSharpPlus.EventArgs;
+using Microsoft.Extensions.DependencyInjection;
 using OoLunar.DSharpPlus.CommandAll.Attributes;
 using OoLunar.DSharpPlus.CommandAll.Commands;
 using OoLunar.DSharpPlus.CommandAll.Converters;
 using OoLunar.Tomoe.Database.Models;
+using OoLunar.Tomoe.Events;
 using OoLunar.Tomoe.Services;
 
 namespace OoLunar.Tomoe.Commands.Common
@@ -17,8 +20,13 @@ namespace OoLunar.Tomoe.Commands.Common
     {
         private static readonly DiscordEmojiArgumentConverter _emojiArgumentConverter = new();
         private readonly PollService _pollService;
+        private readonly IServiceProvider _serviceProvider;
 
-        public PollCommand(PollService pollService) => _pollService = pollService ?? throw new ArgumentNullException(nameof(pollService));
+        public PollCommand(PollService pollService, IServiceProvider serviceProvider)
+        {
+            _pollService = pollService ?? throw new ArgumentNullException(nameof(pollService));
+            _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+        }
 
         [Command("create", "new")]
         public Task CreateAsync(CommandContext context, string question, params string[] options) => CreateAsync(context, question, DateTime.UtcNow.AddMinutes(5), options);
@@ -61,13 +69,13 @@ namespace OoLunar.Tomoe.Commands.Common
                 return;
             }
 
-            PollModel poll = _pollService.CreatePoll(question, choices.ToDictionary(option => option.Key, option => option.Value?.ToString()), expiresAt.ToUniversalTime());
+            PollModel poll = _pollService.CreatePoll(question, choices.Keys, expiresAt.ToUniversalTime());
             List<DiscordActionRowComponent> buttonRows = new();
             List<DiscordComponent> buttons = new();
             for (int i = 0; i < choices.Count; i++)
             {
                 (string choice, DiscordEmoji? optionalEmoji) = choices.ElementAt(i);
-                buttons.Add(new DiscordButtonComponent(ButtonStyle.Secondary, $"poll:{poll.Id}:{i}", choice, false, optionalEmoji is not null ? new(optionalEmoji) : null));
+                buttons.Add(new DiscordButtonComponent(ButtonStyle.Secondary, $"poll:{poll.Id}:vote:{i}", choice, false, optionalEmoji is not null ? new(optionalEmoji) : null));
 
                 if (buttons.Count == 5)
                 {
@@ -96,5 +104,54 @@ namespace OoLunar.Tomoe.Commands.Common
 
         [Command("list")]
         public static Task ListAsync(CommandContext context) => Task.FromException<NotImplementedException>(new NotImplementedException());
+
+        [DiscordEvent]
+        public Task PollSubmitted(DiscordClient client, ComponentInteractionCreateEventArgs eventArgs)
+        {
+            string[] splitCustomId = eventArgs.Id.Split(':');
+            if (splitCustomId.Length < 3 || splitCustomId[0] != "poll" || !Guid.TryParse(splitCustomId[1], out Guid pollId))
+            {
+                return Task.CompletedTask;
+            }
+
+            PollService pollService = _serviceProvider.CreateScope().ServiceProvider.GetRequiredService<PollService>();
+            PollModel? poll = pollService.GetPoll(pollId);
+            if (poll is null)
+            {
+                return eventArgs.Interaction.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().AsEphemeral().WithContent("I'm sorry, this poll has ended!"));
+            }
+
+            DiscordMessageBuilder messageBuilder = new();
+            DiscordEmbedBuilder embedBuilder = new(eventArgs.Message.Embeds[0]);
+            messageBuilder.WithContent(eventArgs.Message.Content);
+            messageBuilder.AddComponents(eventArgs.Message.Components);
+            messageBuilder.WithAllowedMentions(Mentions.None);
+
+            switch (splitCustomId[2])
+            {
+                case "remove":
+                    DiscordFollowupMessageBuilder responseBuilder = new DiscordFollowupMessageBuilder()
+                        .AsEphemeral()
+                        .WithContent(pollService.RemoveVote(poll.Id, eventArgs.User.Id) ? "Your vote has been removed!" : "You haven't voted yet!");
+
+                    embedBuilder.Fields[1].Value = pollService.GetTotalVotes(poll.Id).ToString("N0");
+                    messageBuilder.AddEmbed(embedBuilder);
+                    return eventArgs.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder(messageBuilder))
+                        .ContinueWith(_ => eventArgs.Interaction.CreateFollowupMessageAsync(responseBuilder));
+                case "vote":
+                    if (!int.TryParse(splitCustomId[3], out int choiceIndex) || choiceIndex < 0 || choiceIndex >= poll.Options.Count)
+                    {
+                        return Task.CompletedTask;
+                    }
+
+                    pollService.SetVote(poll.Id, eventArgs.User.Id, choiceIndex);
+                    embedBuilder.Fields[1].Value = pollService.GetTotalVotes(poll.Id).ToString("N0");
+                    messageBuilder.AddEmbed(embedBuilder);
+                    return eventArgs.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder(messageBuilder))
+                        .ContinueWith(_ => eventArgs.Interaction.CreateFollowupMessageAsync(new DiscordFollowupMessageBuilder().AsEphemeral().WithContent($"You successfully voted for option \"{poll.Options[choiceIndex]}\"!")));
+                default:
+                    return Task.CompletedTask;
+            }
+        }
     }
 }
