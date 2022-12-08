@@ -82,9 +82,9 @@ namespace Tomoe.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("expires_at");
 
-                    b.Property<Dictionary<string, string>>("Options")
+                    b.Property<List<string>>("Options")
                         .IsRequired()
-                        .HasColumnType("jsonb")
+                        .HasColumnType("text[]")
                         .HasColumnName("options");
 
                     b.Property<string>("Question")

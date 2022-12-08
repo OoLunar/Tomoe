@@ -27,16 +27,19 @@ namespace OoLunar.Tomoe.Services
             _cache = new(new MemoryCacheOptions() { ExpirationScanFrequency = TimeSpan.FromMinutes(2) });
         }
 
-        public PollModel CreatePoll(string question, Dictionary<string, string?> options, DateTimeOffset expiresAt)
+        public PollModel CreatePoll(string question, IEnumerable<string> options, DateTimeOffset expiresAt)
         {
             PollModel poll = new(Guid.NewGuid(), question, options, expiresAt);
-            _databaseContext.Polls.Add(poll);
-            _databaseContext.SaveChanges();
+            lock (_databaseContext)
+            {
+                _databaseContext.Polls.Add(poll);
+                _databaseContext.SaveChanges();
+            }
             _cache.Set(poll.Id, poll, CreateCancellationChangeToken(poll));
             return poll;
         }
 
-        public PollModel? GetPollById(Guid pollId)
+        public PollModel? GetPoll(Guid pollId)
         {
             if (_cache.TryGetValue(pollId, out PollModel? poll))
             {
@@ -55,43 +58,54 @@ namespace OoLunar.Tomoe.Services
 
         public bool TryRemovePoll(Guid pollId, [NotNullWhen(true)] out PollModel? poll)
         {
-            poll = GetPollById(pollId);
+            poll = GetPoll(pollId);
             if (poll == null)
             {
                 return false;
             }
 
             _cache.Remove(pollId);
-            _databaseContext.Polls.Remove(poll);
-            _databaseContext.SaveChanges();
+            lock (_databaseContext)
+            {
+                _databaseContext.Polls.Remove(poll);
+                _databaseContext.SaveChanges();
+            }
             return true;
         }
 
         public void SetVote(Guid pollId, ulong userId, int option)
         {
-            PollModel poll = GetPollById(pollId)!;
+            PollModel poll = GetPoll(pollId)!;
             poll.Votes[userId] = option;
-            _databaseContext.Update(poll);
-            _databaseContext.SaveChanges();
+
+            lock (_databaseContext)
+            {
+                _databaseContext.Update(poll);
+                _databaseContext.SaveChanges();
+            }
             _cache.Set(poll.Id, poll, CreateCancellationChangeToken(poll));
         }
 
         public bool RemoveVote(Guid pollId, ulong userId)
         {
-            PollModel poll = GetPollById(pollId)!;
+            PollModel poll = GetPoll(pollId)!;
             if (!poll.Votes.ContainsKey(userId))
             {
                 return false;
             }
 
             poll.Votes.Remove(userId);
-            _databaseContext.Update(poll);
-            _databaseContext.SaveChanges();
+            lock (_databaseContext)
+            {
+                _databaseContext.Update(poll);
+                _databaseContext.SaveChanges();
+            }
+
             _cache.Set(poll.Id, poll, CreateCancellationChangeToken(poll));
             return true;
         }
 
-        public int GetTotalVotes(Guid pollId) => GetPollById(pollId)?.Votes.Count ?? 0;
+        public int GetTotalVotes(Guid pollId) => GetPoll(pollId)?.Votes.Count ?? 0;
 
         private CancellationChangeToken CreateCancellationChangeToken(PollModel poll)
         {
@@ -99,11 +113,12 @@ namespace OoLunar.Tomoe.Services
             cct.RegisterChangeCallback(pollObject =>
             {
                 PollModel poll = (PollModel)pollObject!;
-                _databaseContext.Update(poll);
-                if (_databaseContext.ChangeTracker.HasChanges())
+                lock (_databaseContext)
                 {
+                    _databaseContext.Polls.Update(poll);
                     _databaseContext.SaveChanges();
                 }
+
                 _cache.Remove(poll.Id);
                 _logger.LogInformation("Poll {PollId} has expired from the cache.", poll.Id);
             }, poll);
