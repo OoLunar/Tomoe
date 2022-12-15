@@ -314,7 +314,7 @@ namespace OoLunar.Tomoe.Commands.Server
                     memberRoles.RemoveAll(role => roleMenu.RoleIds.Contains(role) && !roles.Contains(role));
                     await member.ReplaceRolesAsync(memberRoles.Union(roles).Select(role => eventArgs.Guild.GetRole(role)));
 
-                    await eventArgs.Interaction.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new()
+                    await eventArgs.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage, new()
                     {
                         Content = "Assigned roles!",
                         IsEphemeral = true
