@@ -28,96 +28,87 @@ namespace Tomoe.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
+                        .HasColumnType("uuid");
 
                     b.Property<int>("Flags")
-                        .HasColumnType("integer")
-                        .HasColumnName("flags");
+                        .HasColumnType("integer");
 
                     b.Property<decimal>("GuildId")
-                        .HasColumnType("numeric(20,0)")
-                        .HasColumnName("guild_id");
+                        .HasColumnType("numeric(20,0)");
 
                     b.Property<DateTime>("JoinedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("joined_at");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<decimal>("UserId")
-                        .HasColumnType("numeric(20,0)")
-                        .HasColumnName("user_id");
+                        .HasColumnType("numeric(20,0)");
 
-                    b.HasKey("Id")
-                        .HasName("pk_members");
+                    b.HasKey("Id");
 
-                    b.ToTable("members", (string)null);
+                    b.ToTable("Members");
                 });
 
             modelBuilder.Entity("OoLunar.Tomoe.Database.Models.GuildModel", b =>
                 {
                     b.Property<decimal>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("numeric(20,0)")
-                        .HasColumnName("id");
+                        .HasColumnType("numeric(20,0)");
 
-                    b.HasKey("Id")
-                        .HasName("pk_guilds");
+                    b.HasKey("Id");
 
-                    b.ToTable("guilds", (string)null);
+                    b.ToTable("Guilds");
                 });
 
             modelBuilder.Entity("OoLunar.Tomoe.Database.Models.PollModel", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("ChannelId")
+                        .HasColumnType("numeric(20,0)");
 
                     b.Property<DateTimeOffset>("ExpiresAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("expires_at");
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("GuildId")
+                        .HasColumnType("numeric(20,0)");
+
+                    b.Property<decimal>("MessageId")
+                        .HasColumnType("numeric(20,0)");
 
                     b.Property<List<string>>("Options")
                         .IsRequired()
-                        .HasColumnType("text[]")
-                        .HasColumnName("options");
+                        .HasColumnType("text[]");
 
                     b.Property<string>("Question")
                         .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("question");
+                        .HasColumnType("text");
 
                     b.Property<Dictionary<ulong, int>>("Votes")
                         .IsRequired()
-                        .HasColumnType("json")
-                        .HasColumnName("votes");
+                        .HasColumnType("json");
 
-                    b.HasKey("Id")
-                        .HasName("pk_polls");
+                    b.HasKey("Id");
 
-                    b.ToTable("polls", (string)null);
+                    b.ToTable("Polls");
                 });
 
             modelBuilder.Entity("OoLunar.Tomoe.Database.Models.RoleMenuModel", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
+                        .HasColumnType("uuid");
 
                     b.Property<decimal>("GuildId")
-                        .HasColumnType("numeric(20,0)")
-                        .HasColumnName("guild_id");
+                        .HasColumnType("numeric(20,0)");
 
                     b.Property<decimal[]>("RoleIds")
                         .IsRequired()
-                        .HasColumnType("numeric(20,0)[]")
-                        .HasColumnName("role_ids");
+                        .HasColumnType("numeric(20,0)[]");
 
-                    b.HasKey("Id")
-                        .HasName("pk_role_menus");
+                    b.HasKey("Id");
 
-                    b.ToTable("role_menus", (string)null);
+                    b.ToTable("RoleMenus");
                 });
 #pragma warning restore 612, 618
         }

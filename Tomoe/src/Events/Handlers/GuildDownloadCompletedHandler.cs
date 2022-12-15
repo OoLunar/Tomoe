@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OoLunar.Tomoe.Database;
 using OoLunar.Tomoe.Database.Models;
+using OoLunar.Tomoe.Services;
 
 namespace OoLunar.Tomoe.Events.Handlers
 {
@@ -17,11 +18,13 @@ namespace OoLunar.Tomoe.Events.Handlers
     {
         private readonly ILogger<GuildDownloadCompletedHandler> _logger;
         private readonly IServiceProvider _serviceProvider;
+        private readonly ExpirableService<PollModel> _expirableService;
 
-        public GuildDownloadCompletedHandler(ILogger<GuildDownloadCompletedHandler> logger, IServiceProvider serviceProvider)
+        public GuildDownloadCompletedHandler(ILogger<GuildDownloadCompletedHandler> logger, IServiceProvider serviceProvider, ExpirableService<PollModel> expirableService)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            _expirableService = expirableService ?? throw new ArgumentNullException(nameof(expirableService));
         }
 
         [DiscordEvent]
