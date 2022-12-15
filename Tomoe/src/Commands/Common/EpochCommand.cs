@@ -14,6 +14,8 @@ namespace OoLunar.Tomoe.Commands.Common
         [Command("parse")]
         public sealed class ParseSubCommand : BaseCommand
         {
+            private static readonly DateTimeOffset DiscordEpoch = new(2015, 1, 1, 0, 0, 0, TimeSpan.Zero);
+
             [Command("seconds", "second", "s")]
             public static Task ParseSecondsAsync(CommandContext context, params long[] unixTimestamps)
             {
@@ -32,6 +34,17 @@ namespace OoLunar.Tomoe.Commands.Common
                 foreach (long unixTimestamp in unixTimestamps)
                 {
                     _ = builder.AppendLine(CultureInfo.InvariantCulture, $"`{unixTimestamp}` => {Formatter.Timestamp(DateTimeOffset.FromUnixTimeMilliseconds(unixTimestamp), TimestampFormat.LongDateTime)}");
+                }
+                return context.ReplyAsync(builder.ToString());
+            }
+
+            [Command("snowflake", "discord", "d")]
+            public static Task ParseSnowflakeAsync(CommandContext context, params ulong[] unixTimestamps)
+            {
+                StringBuilder builder = new();
+                foreach (ulong unixTimestamp in unixTimestamps)
+                {
+                    _ = builder.AppendLine(CultureInfo.InvariantCulture, $"`{unixTimestamp}` => {Formatter.Timestamp(DiscordEpoch.AddMilliseconds(unixTimestamp >> 22), TimestampFormat.LongDateTime)}");
                 }
                 return context.ReplyAsync(builder.ToString());
             }
