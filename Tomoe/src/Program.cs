@@ -79,6 +79,10 @@ namespace OoLunar.Tomoe
             Assembly currentAssembly = typeof(Program).Assembly;
             serviceCollection.AddSingleton(new HttpClient() { DefaultRequestHeaders = { { "User-Agent", $"OoLunar.Tomoe/{currentAssembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion} Github" } } });
             serviceCollection.AddSingleton<ImageUtilitiesService>();
+            serviceCollection.AddSingleton(typeof(ExpirableService<>));
+            serviceCollection.AddScoped<RoleMenuService>();
+            serviceCollection.AddScoped<PollService>();
+
             serviceCollection.AddSingleton((serviceProvider) =>
             {
                 DiscordEventManager eventManager = new(serviceProvider);
@@ -103,8 +107,6 @@ namespace OoLunar.Tomoe
                 return shardedClient;
             });
 
-            serviceCollection.AddScoped<RoleMenuService>();
-            serviceCollection.AddScoped<PollService>();
             ServiceProvider services = serviceCollection.BuildServiceProvider();
             DiscordShardedClient shardedClient = services.GetRequiredService<DiscordShardedClient>();
             DiscordEventManager eventManager = services.GetRequiredService<DiscordEventManager>();

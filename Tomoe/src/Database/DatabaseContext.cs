@@ -1,5 +1,4 @@
 using System;
-using System.Globalization;
 using System.IO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
@@ -53,7 +52,6 @@ namespace OoLunar.Tomoe.Database
                 Password = configuration.GetValue<string>("database:password")
             };
             optionsBuilder.UseNpgsql(connectionBuilder.ToString(), options => options.EnableRetryOnFailure(5));
-            optionsBuilder.UseSnakeCaseNamingConvention(CultureInfo.InvariantCulture);
         }
     }
 }
