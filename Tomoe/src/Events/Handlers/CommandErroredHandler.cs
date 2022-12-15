@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
+using Humanizer;
 using OoLunar.DSharpPlus.CommandAll;
 using OoLunar.DSharpPlus.CommandAll.EventArgs;
 using OoLunar.DSharpPlus.CommandAll.Exceptions;
@@ -35,7 +36,7 @@ namespace OoLunar.Tomoe.Events.Handlers
                     return eventArgs.Context.ReplyAsync(new DiscordMessageBuilder().AddEmbed(embedBuilder));
                 default:
                     embedBuilder.AddField("Error Message", eventArgs.Exception.Message, true);
-                    embedBuilder.AddField("Stack Trace", Formatter.BlockCode(FormatStackTrace(eventArgs.Exception.StackTrace), "csharp"), false);
+                    embedBuilder.AddField("Stack Trace", Formatter.BlockCode(FormatStackTrace(eventArgs.Exception.StackTrace).Truncate(1014, "…"), "cs"), false);
                     return eventArgs.Context.ReplyAsync(new DiscordMessageBuilder().AddEmbed(embedBuilder));
             }
         }
@@ -46,8 +47,8 @@ namespace OoLunar.Tomoe.Events.Handlers
 
         private static string ReplaceFirst(string text, string search, string replace)
         {
-            int pos = text.IndexOf(search);
             ReadOnlySpan<char> textSpan = text.AsSpan();
+            int pos = textSpan.IndexOf(search);
             return pos < 0 ? text : string.Concat(textSpan[..pos], replace, textSpan[(pos + search.Length)..]);
         }
     }
