@@ -13,11 +13,11 @@ namespace OoLunar.Tomoe.Services
     public sealed class PollService
     {
         private readonly MemoryCache _cache;
-        private readonly ILogger<RoleMenuService> _logger;
+        private readonly ILogger<PollService> _logger;
         private readonly TimeSpan _pollSaveDuration;
         private readonly ExpirableService<PollModel> _expirableService;
 
-        public PollService(IConfiguration configuration, ILogger<RoleMenuService> logger, ExpirableService<PollModel> expirableService)
+        public PollService(IConfiguration configuration, ILogger<PollService> logger, ExpirableService<PollModel> expirableService)
         {
             _pollSaveDuration = TimeSpan.FromMinutes(configuration.GetValue("poll:save_duration", 2));
             _logger = logger;
@@ -92,12 +92,12 @@ namespace OoLunar.Tomoe.Services
             cct.RegisterChangeCallback(async pollObject =>
             {
                 PollModel poll = (PollModel)pollObject!;
+                _cache.Remove(poll.Id);
                 if (poll.ExpiresAt > DateTime.UtcNow)
                 {
                     await _expirableService.UpdateAsync(poll);
                 }
 
-                _cache.Remove(poll.Id);
                 _logger.LogInformation("Poll {PollId} has expired from the cache.", poll.Id);
             }, poll);
             return cct;

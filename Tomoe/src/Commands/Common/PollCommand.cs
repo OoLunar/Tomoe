@@ -15,7 +15,7 @@ using OoLunar.Tomoe.Services;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
-    [Command("poll", "democratic")]
+    [Command("poll", "democrat", "democratic", "anti-tyrant-deterrent")]
     public sealed class PollCommand : BaseCommand
     {
         private static readonly DiscordEmojiArgumentConverter _emojiArgumentConverter = new();
@@ -30,7 +30,7 @@ namespace OoLunar.Tomoe.Commands.Common
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         }
 
-        [Command("create", "new"), CommandOverloadPriority(-1, true)]
+        [Command("create", "new"), CommandOverloadPriority(0, true)]
         public async Task CreateAsync(CommandContext context, string question, string timeOrDate, params string[] options)
         {
             if ((await _timeSpanArgumentConverter.ConvertAsync(context, null!, timeOrDate)).IsDefined(out TimeSpan timeSpan))
@@ -47,8 +47,7 @@ namespace OoLunar.Tomoe.Commands.Common
             }
         }
 
-        [Command("create")]
-        public async Task CreateAsync(CommandContext context, string question, DateTime expiresAt, params string[] options)
+        private async Task CreateAsync(CommandContext context, string question, DateTime expiresAt, params string[] options)
         {
             // Pre-execution checks.
             if (string.IsNullOrWhiteSpace(question))
@@ -112,6 +111,7 @@ namespace OoLunar.Tomoe.Commands.Common
             DiscordMessageBuilder messageBuilder = new();
             messageBuilder.AddEmbed(embedBuilder);
             messageBuilder.AddComponents(buttonRows);
+            messageBuilder.AddMentions(Mentions.All);
             await context.ReplyAsync(messageBuilder);
             await _pollService.CreatePollAsync(pollId, question, choices.Keys, expiresAt, context.Guild?.Id, context.Channel.Id, (await context.GetOriginalResponse()).Id);
         }
@@ -163,10 +163,63 @@ namespace OoLunar.Tomoe.Commands.Common
                     await pollService.SetVoteAsync(poll.Id, eventArgs.User.Id, choiceIndex);
                     messageBuilder.Embeds[0].Fields[1].Value = (await pollService.GetTotalVotesAsync(poll.Id)).ToString("N0");
                     await eventArgs.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder(messageBuilder));
-                    await eventArgs.Interaction.CreateFollowupMessageAsync(new DiscordFollowupMessageBuilder().AsEphemeral().WithContent($"You successfully voted for option \"{poll.Options[choiceIndex]}\"!"));
+                    await eventArgs.Interaction.CreateFollowupMessageAsync(new DiscordFollowupMessageBuilder().AsEphemeral().WithContent($"You successfully voted for option \"{poll.Options[choiceIndex]}\""));
                     return;
                 default:
                     return;
+            }
+        }
+
+        [DiscordEvent]
+        public async Task PollDeletedAsync(DiscordClient client, MessageDeleteEventArgs eventArgs)
+        {
+            if (eventArgs.Message.Author.Id != client.CurrentUser.Id
+                || eventArgs.Message.Components is null
+                || !eventArgs.Message.Components.Any()
+                || eventArgs.Message.Components.FirstOrDefault()?.Components?.FirstOrDefault() is not DiscordButtonComponent button)
+            {
+                return;
+            }
+
+            string[] splitCustomId = button.CustomId.Split(':');
+            if (splitCustomId.Length < 3 || splitCustomId[0] != "poll" || !Guid.TryParse(splitCustomId[1], out Guid pollId))
+            {
+                return;
+            }
+
+            PollService pollService = _serviceProvider.CreateScope().ServiceProvider.GetRequiredService<PollService>();
+            PollModel? poll = await pollService.GetPollAsync(pollId);
+            if (poll is not null)
+            {
+                await pollService.RemovePollAsync(poll.Id);
+            }
+        }
+
+        [DiscordEvent]
+        public async Task PollDeletedAsync(DiscordClient client, MessageBulkDeleteEventArgs eventArgs)
+        {
+            PollService pollService = _serviceProvider.CreateScope().ServiceProvider.GetRequiredService<PollService>();
+            foreach (DiscordMessage message in eventArgs.Messages)
+            {
+                if (message.Author.Id != client.CurrentUser.Id
+                    || message.Components is null
+                    || !message.Components.Any()
+                    || message.Components.FirstOrDefault()?.Components?.FirstOrDefault() is not DiscordButtonComponent button)
+                {
+                    return;
+                }
+
+                string[] splitCustomId = button.CustomId.Split(':');
+                if (splitCustomId.Length < 3 || splitCustomId[0] != "poll" || !Guid.TryParse(splitCustomId[1], out Guid pollId))
+                {
+                    return;
+                }
+
+                PollModel? poll = await pollService.GetPollAsync(pollId);
+                if (poll is not null)
+                {
+                    await pollService.RemovePollAsync(poll.Id);
+                }
             }
         }
     }
