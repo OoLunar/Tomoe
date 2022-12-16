@@ -38,6 +38,7 @@ namespace OoLunar.Tomoe.Services
         private readonly Dictionary<PreparedStatementType, DbCommand> _preparedStatements = new();
         private readonly Dictionary<string, Func<object, object?>> _propertyGetDelegateCache = new();
         private readonly Dictionary<string, Action<object, object?>> _propertySetDelegateCache = new();
+        private readonly SemaphoreSlim _commandLock = new(1, 1);
 
         public ExpirableService(IServiceProvider serviceProvider, DatabaseContext databaseContext, ILogger<ExpirableService<T>> logger)
         {
@@ -47,7 +48,8 @@ namespace OoLunar.Tomoe.Services
             _cache = new MemoryCache(new MemoryCacheOptions() { ExpirationScanFrequency = TimeSpan.FromMinutes(2) });
 
             _databaseContext.Database.OpenConnection();
-            DbConnection connection = _databaseContext.Database.GetDbConnection();
+            NpgsqlConnection connection = new(_databaseContext.Database.GetConnectionString());
+            connection.Open();
 
             string typeName = $"\"{typeof(DatabaseContext).GetProperties().First(property => property.PropertyType == typeof(DbSet<T>) && property.PropertyType.GenericTypeArguments[0] == typeof(T)).Name}\"";
             DbCommand selectByIdCommand = connection.CreateCommand();
@@ -177,13 +179,11 @@ namespace OoLunar.Tomoe.Services
                 }
                 createStatement.Parameters[$"@{kvp.Key}"].Value = value;
             }
-            await createStatement.ExecuteNonQueryAsync();
 
-            lock (_cache)
-            {
-                _cache.Remove(expirable.Id);
-                _cache.Set(expirable.Id, expirable, CreateCancellationChangeToken(expirable));
-            }
+            await _commandLock.WaitAsync();
+            await createStatement.ExecuteNonQueryAsync();
+            _cache.Set(expirable.Id, expirable, CreateCancellationChangeToken(expirable));
+            _commandLock.Release();
 
             _logger.LogDebug("Added expirable {ExpirableId} with expiration {ExpiresAt}.", expirable.Id, expirable.ExpiresAt);
             return expirable;
@@ -198,37 +198,49 @@ namespace OoLunar.Tomoe.Services
 
             DbCommand selectByIdStatement = _preparedStatements[PreparedStatementType.SelectById];
             selectByIdStatement.Parameters["@Id"].Value = id;
-            using DbDataReader reader = await selectByIdStatement.ExecuteReaderAsync();
-            if (reader.Read())
+
+            await _commandLock.WaitAsync();
+            DbDataReader reader = await selectByIdStatement.ExecuteReaderAsync();
+            if (!reader.HasRows || !reader.Read())
             {
-                expirable = (T)Activator.CreateInstance(typeof(T), true)!;
-                foreach (KeyValuePair<string, Action<object, object?>> kvp in _propertySetDelegateCache)
+                await reader.DisposeAsync();
+                _commandLock.Release();
+                return null;
+            }
+
+            expirable = (T)Activator.CreateInstance(typeof(T), true)!;
+            foreach (KeyValuePair<string, Action<object, object?>> kvp in _propertySetDelegateCache)
+            {
+                PropertyInfo property = (PropertyInfo)kvp.Value.Target!;
+                if (property.PropertyType == typeof(ulong) && reader[kvp.Key] is decimal dValue)
                 {
-                    PropertyInfo property = (PropertyInfo)kvp.Value.Target!;
-                    if (property.PropertyType == typeof(ulong) && reader[kvp.Key] is decimal dValue)
-                    {
-                        kvp.Value(expirable, (ulong)dValue);
-                    }
-                    else if (property.PropertyType.GetInterfaces().Contains(typeof(IDictionary)))
-                    {
-                        kvp.Value(expirable, JsonSerializer.Deserialize(reader[kvp.Key].ToString()!, ((PropertyInfo)kvp.Value.Target!).PropertyType)!);
-                    }
-                    else
-                    {
-                        kvp.Value(expirable, reader[kvp.Key]!);
-                    }
+                    kvp.Value(expirable, (ulong)dValue);
+                }
+                else if (property.PropertyType.GetInterfaces().Contains(typeof(IDictionary)))
+                {
+                    kvp.Value(expirable, JsonSerializer.Deserialize(reader[kvp.Key].ToString()!, ((PropertyInfo)kvp.Value.Target!).PropertyType)!);
+                }
+                else
+                {
+                    kvp.Value(expirable, reader[kvp.Key]!);
                 }
             }
 
+            await reader.DisposeAsync();
             if (expirable != null)
             {
-                lock (_cache)
+                if (expirable.ExpiresAt <= DateTime.UtcNow)
                 {
-                    _cache.Remove(expirable.Id);
-                    _cache.Set(expirable.Id, expirable, CreateCancellationChangeToken(expirable));
+                    _commandLock.Release();
+                    await RemoveAsync(expirable.Id);
+                    await ExpireItemAsync(expirable);
+                    return null;
                 }
+
+                _cache.Set(expirable.Id, expirable, CreateCancellationChangeToken(expirable));
             }
 
+            _commandLock.Release();
             return expirable;
         }
 
@@ -244,13 +256,11 @@ namespace OoLunar.Tomoe.Services
                 }
                 updateByIdStatement.Parameters[$"@{kvp.Key}"].Value = value;
             }
+            await _commandLock.WaitAsync();
             await updateByIdStatement.ExecuteNonQueryAsync();
+            _cache.Set(expirable.Id, expirable, CreateCancellationChangeToken(expirable));
+            _commandLock.Release();
 
-            lock (_cache)
-            {
-                _cache.Remove(expirable.Id);
-                _cache.Set(expirable.Id, expirable, CreateCancellationChangeToken(expirable));
-            }
             _logger.LogDebug("Updated expirable {ExpirableId} with expiration {ExpiresAt}.", expirable.Id, expirable.ExpiresAt);
         }
 
@@ -258,8 +268,11 @@ namespace OoLunar.Tomoe.Services
         {
             DbCommand deleteByIdStatement = _preparedStatements[PreparedStatementType.DeleteById];
             deleteByIdStatement.Parameters["@Id"].Value = id;
+
+            await _commandLock.WaitAsync();
             await deleteByIdStatement.ExecuteNonQueryAsync();
             _cache.Remove(id);
+            _commandLock.Release();
 
             _logger.LogDebug("Removed expirable {ExpirableId}.", id);
         }
@@ -272,7 +285,6 @@ namespace OoLunar.Tomoe.Services
                 throw new ArgumentException("The expirable item has already expired.", nameof(expirable));
             }
 
-            // TODO: `expirable.ExpiresAt - now` will throw on expired items. Find a way to prune these expired items before they're added to the cache.
             CancellationChangeToken cct = new(new CancellationTokenSource(expirable.ExpiresAt - now).Token);
             cct.RegisterChangeCallback(async expirableObject =>
             {
@@ -289,14 +301,53 @@ namespace OoLunar.Tomoe.Services
             // Checks if the cancellation token has been cancelled.
             while (await _periodicTimer.WaitForNextTickAsync())
             {
-                DateTime expireTime = DateTime.UtcNow.AddMinutes(5);
-                foreach (T expirable in _databaseContext.Set<T>().AsNoTracking().Where(item => item.ExpiresAt <= expireTime))
+                await _commandLock.WaitAsync();
+                DbCommand findExpired = _preparedStatements[PreparedStatementType.SelectByExpiresAt];
+                findExpired.Parameters["@ExpiresAt"].Value = DateTime.UtcNow.AddMinutes(5);
+                DbDataReader reader = await findExpired.ExecuteReaderAsync();
+                await reader.ReadAsync();
+
+                if (!reader.HasRows)
+                {
+                    await reader.DisposeAsync();
+                    _commandLock.Release();
+                    continue;
+                }
+
+                List<T> expirables = new();
+                while (reader.Read())
+                {
+                    T expirable = (T)Activator.CreateInstance(typeof(T), true)!;
+                    foreach (KeyValuePair<string, Action<object, object?>> kvp in _propertySetDelegateCache)
+                    {
+                        PropertyInfo property = (PropertyInfo)kvp.Value.Target!;
+                        if (property.PropertyType == typeof(ulong) && reader[kvp.Key] is decimal dValue)
+                        {
+                            kvp.Value(expirable, (ulong)dValue);
+                        }
+                        else if (property.PropertyType.GetInterfaces().Contains(typeof(IDictionary)))
+                        {
+                            kvp.Value(expirable, JsonSerializer.Deserialize(reader[kvp.Key].ToString()!, ((PropertyInfo)kvp.Value.Target!).PropertyType)!);
+                        }
+                        else
+                        {
+                            kvp.Value(expirable, reader[kvp.Key]!);
+                        }
+                    }
+
+                    expirables.Add(expirable);
+                }
+
+                await reader.DisposeAsync();
+                _commandLock.Release();
+
+                foreach (T expirable in expirables.AsParallel())
                 {
                     if (expirable.ExpiresAt <= DateTimeOffset.Now)
                     {
                         await ExpireItemAsync(expirable);
                     }
-                    else
+                    else if (!_cache.TryGetValue(expirable.Id, out _))
                     {
                         _cache.Set(expirable.Id, expirable, CreateCancellationChangeToken(expirable));
                     }

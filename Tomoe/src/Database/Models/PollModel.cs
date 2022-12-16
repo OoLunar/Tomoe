@@ -123,5 +123,11 @@ namespace OoLunar.Tomoe.Database.Models
 
             await pollService.RemovePollAsync(Id);
         }
+
+        private void GenerateBarGraph()
+        {
+            // Using Options as the bars, Votes as the data, generate the bar graph with ImageSharp
+
+        }
     }
 }

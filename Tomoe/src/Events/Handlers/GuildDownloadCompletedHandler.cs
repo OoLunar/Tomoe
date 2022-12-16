@@ -18,18 +18,17 @@ namespace OoLunar.Tomoe.Events.Handlers
     {
         private readonly ILogger<GuildDownloadCompletedHandler> _logger;
         private readonly IServiceProvider _serviceProvider;
-        private readonly ExpirableService<PollModel> _expirableService;
 
-        public GuildDownloadCompletedHandler(ILogger<GuildDownloadCompletedHandler> logger, IServiceProvider serviceProvider, ExpirableService<PollModel> expirableService)
+        public GuildDownloadCompletedHandler(ILogger<GuildDownloadCompletedHandler> logger, IServiceProvider serviceProvider)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
-            _expirableService = expirableService ?? throw new ArgumentNullException(nameof(expirableService));
         }
 
         [DiscordEvent]
         public async Task OnGuildDownloadCompletedAsync(DiscordClient client, GuildDownloadCompletedEventArgs guildDownloadCompletedEventArgs)
         {
+            _ = _serviceProvider.GetService<ExpirableService<PollModel>>() ?? throw new InvalidOperationException("ExpirableService<PollModel> is null.");
             DatabaseContext databaseContext = _serviceProvider.CreateScope().ServiceProvider.GetRequiredService<DatabaseContext>();
             foreach (DiscordGuild discordGuild in guildDownloadCompletedEventArgs.Guilds.Values)
             {
