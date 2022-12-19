@@ -19,9 +19,9 @@ namespace OoLunar.Tomoe.Services
 
         public PollService(IConfiguration configuration, ILogger<PollService> logger, ExpirableService<PollModel> expirableService)
         {
-            _pollSaveDuration = TimeSpan.FromMinutes(configuration.GetValue("poll:save_duration", 2));
+            _pollSaveDuration = TimeSpan.FromMinutes(configuration.GetValue("poll:save_duration", 1));
             _logger = logger;
-            _cache = new(new MemoryCacheOptions() { ExpirationScanFrequency = TimeSpan.FromMinutes(2) });
+            _cache = new(new MemoryCacheOptions() { ExpirationScanFrequency = TimeSpan.FromSeconds(30) });
             _expirableService = expirableService;
         }
 
@@ -29,22 +29,23 @@ namespace OoLunar.Tomoe.Services
         {
             PollModel poll = new(pollId, question, options, expiresAt, guildId, channelId, messageId);
             await _expirableService.AddAsync(poll);
-            _cache.Set(poll.Id, poll, CreateCancellationChangeToken(poll));
+            _cache.Set(pollId, poll, CreateCancellationChangeToken(poll));
             return poll;
         }
 
         public async Task<PollModel?> GetPollAsync(Guid pollId)
         {
-            if (_cache.TryGetValue(pollId, out PollModel? poll))
+            if (_cache.TryGetValue(pollId, out PollModel? poll) && poll is not null)
             {
-                _cache.Set(poll!.Id, poll, CreateCancellationChangeToken(poll)); // Reset the timeout everytime it's accessed.
+                _cache.Remove(pollId);
+                _cache.Set(pollId, poll, CreateCancellationChangeToken(poll)); // Reset the timeout everytime it's accessed.
                 return poll;
             }
 
             poll = await _expirableService.GetAsync(pollId);
-            if (poll != null)
+            if (poll is not null)
             {
-                _cache.Set(poll.Id, poll, CreateCancellationChangeToken(poll));
+                _cache.Set(pollId, poll, CreateCancellationChangeToken(poll));
             }
 
             return poll;
@@ -53,7 +54,7 @@ namespace OoLunar.Tomoe.Services
         public async Task<PollModel?> RemovePollAsync(Guid pollId)
         {
             PollModel? poll = await GetPollAsync(pollId);
-            if (poll != null)
+            if (poll is not null)
             {
                 _cache.Remove(pollId);
                 await _expirableService.RemoveAsync(pollId);
@@ -64,23 +65,36 @@ namespace OoLunar.Tomoe.Services
 
         public async Task SetVoteAsync(Guid pollId, ulong userId, int option)
         {
-            PollModel poll = (await GetPollAsync(pollId))!;
+            PollModel? poll = await GetPollAsync(pollId);
+            if (poll is null)
+            {
+                _logger.LogWarning("Poll {PollId} does not exist. User {UserId} attempted to vote for option {Option}", pollId, userId, option);
+                return;
+            }
+
             poll.Votes[userId] = option;
             await _expirableService.UpdateAsync(poll);
-            _cache.Set(poll.Id, poll, CreateCancellationChangeToken(poll));
+            _cache.Remove(pollId);
+            _cache.Set(pollId, poll, CreateCancellationChangeToken(poll));
         }
 
         public async Task<bool> RemoveVoteAsync(Guid pollId, ulong userId)
         {
-            PollModel poll = (await GetPollAsync(pollId))!;
-            if (!poll.Votes.ContainsKey(userId))
+            PollModel? poll = await GetPollAsync(pollId);
+            if (poll is null)
+            {
+                _logger.LogWarning("Poll {PollId} does not exist. User {UserId} attempted to remove their vote.", pollId, userId);
+                return false;
+            }
+            else if (!poll.Votes.ContainsKey(userId))
             {
                 return false;
             }
 
             poll.Votes.Remove(userId);
             await _expirableService.UpdateAsync(poll);
-            _cache.Set(poll.Id, poll, CreateCancellationChangeToken(poll));
+            _cache.Remove(pollId);
+            _cache.Set(pollId, poll, CreateCancellationChangeToken(poll));
             return true;
         }
 
@@ -88,16 +102,11 @@ namespace OoLunar.Tomoe.Services
 
         private CancellationChangeToken CreateCancellationChangeToken(PollModel poll)
         {
-            CancellationChangeToken cct = new(new CancellationTokenSource(_pollSaveDuration).Token);
-            cct.RegisterChangeCallback(async pollObject =>
+            DateTimeOffset now = DateTimeOffset.UtcNow;
+            CancellationChangeToken cct = new(new CancellationTokenSource(poll.ExpiresAt < now.Add(_pollSaveDuration) ? poll.ExpiresAt - now : _pollSaveDuration).Token);
+            cct.RegisterChangeCallback(pollObject =>
             {
                 PollModel poll = (PollModel)pollObject!;
-                _cache.Remove(poll.Id);
-                if (poll.ExpiresAt > DateTime.UtcNow)
-                {
-                    await _expirableService.UpdateAsync(poll);
-                }
-
                 _logger.LogInformation("Poll {PollId} has expired from the cache.", poll.Id);
             }, poll);
             return cct;

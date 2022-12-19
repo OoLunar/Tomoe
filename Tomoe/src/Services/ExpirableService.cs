@@ -46,123 +46,6 @@ namespace OoLunar.Tomoe.Services
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _databaseContext = databaseContext ?? throw new ArgumentNullException(nameof(databaseContext));
             _cache = new MemoryCache(new MemoryCacheOptions() { ExpirationScanFrequency = TimeSpan.FromMinutes(2) });
-
-            _databaseContext.Database.OpenConnection();
-            NpgsqlConnection connection = new(_databaseContext.Database.GetConnectionString());
-            connection.Open();
-
-            string typeName = $"\"{typeof(DatabaseContext).GetProperties().First(property => property.PropertyType == typeof(DbSet<T>) && property.PropertyType.GenericTypeArguments[0] == typeof(T)).Name}\"";
-            DbCommand selectByIdCommand = connection.CreateCommand();
-            DbParameter selectIdParameter = selectByIdCommand.CreateParameter();
-            selectIdParameter.ParameterName = "@Id";
-            selectIdParameter.DbType = DbType.Guid;
-            selectIdParameter.SourceColumn = "Id";
-
-            selectByIdCommand.CommandText = $"SELECT * FROM {typeName} WHERE \"Id\" = @Id";
-            selectByIdCommand.Parameters.Add(selectIdParameter);
-            selectByIdCommand.Prepare();
-            _preparedStatements.Add(PreparedStatementType.SelectById, selectByIdCommand);
-
-            DbCommand selectByExpiresAtCommand = connection.CreateCommand();
-            DbParameter expiresAtParameter = selectByExpiresAtCommand.CreateParameter();
-            expiresAtParameter.ParameterName = "@ExpiresAt";
-            expiresAtParameter.DbType = DbType.DateTimeOffset;
-            expiresAtParameter.SourceColumn = "ExpiresAt";
-
-            selectByExpiresAtCommand.CommandText = $"SELECT * FROM {typeName} WHERE \"ExpiresAt\" <= @ExpiresAt";
-            selectByExpiresAtCommand.Parameters.Add(expiresAtParameter);
-            selectByExpiresAtCommand.Prepare();
-            _preparedStatements.Add(PreparedStatementType.SelectByExpiresAt, selectByExpiresAtCommand);
-
-            DbCommand deleteByIdCommand = connection.CreateCommand();
-            DbParameter deleteIdParameter = selectByIdCommand.CreateParameter();
-            deleteIdParameter.ParameterName = "@Id";
-            deleteIdParameter.DbType = DbType.Guid;
-            deleteIdParameter.SourceColumn = "Id";
-
-            deleteByIdCommand.Parameters.Add(deleteIdParameter);
-            deleteByIdCommand.CommandText = $"DELETE FROM {typeName} WHERE \"Id\" = @Id";
-            deleteByIdCommand.Prepare();
-            _preparedStatements.Add(PreparedStatementType.DeleteById, deleteByIdCommand);
-
-            DbCommand createCommand = connection.CreateCommand();
-            NpgsqlCommand updateByIdCommand = new(null, connection as NpgsqlConnection);
-
-            StringBuilder createCommandStringBuilder = new();
-            createCommandStringBuilder.Append($"INSERT INTO {typeName} VALUES (");
-
-            StringBuilder updateCommandColumnStringBuilder = new();
-            updateCommandColumnStringBuilder.Append($"UPDATE {typeName} SET (");
-            StringBuilder updateCommandValueStringBuilder = new();
-            updateCommandValueStringBuilder.Append(") = (");
-
-            PropertyInfo[] properties = typeof(T).GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.GetProperty);
-            foreach (PropertyInfo property in properties)
-            {
-                if (property.GetCustomAttribute<NotMappedAttribute>() is not null)
-                {
-                    continue;
-                }
-
-                ColumnAttribute? columnAttribute = property.GetCustomAttribute<ColumnAttribute>();
-                _propertyGetDelegateCache.Add(columnAttribute?.Name ?? property.Name, property.GetValue);
-                _propertySetDelegateCache.Add(columnAttribute?.Name ?? property.Name, property.SetValue);
-
-                NpgsqlParameter createParameter = updateByIdCommand.CreateParameter();
-                NpgsqlParameter updateParameter = updateByIdCommand.CreateParameter();
-                createParameter.ParameterName = updateParameter.ParameterName = columnAttribute?.Name ?? property.Name;
-
-                NpgsqlDbType dataType = columnAttribute?.TypeName?.ToLowerInvariant() switch
-                {
-                    "json" => NpgsqlDbType.Json,
-                    "jsonb" => NpgsqlDbType.Jsonb,
-                    _ => 0
-                };
-
-                if (dataType is 0)
-                {
-                    Type type = property.PropertyType;
-                    if (property.PropertyType.IsArray)
-                    {
-                        dataType |= NpgsqlDbType.Array;
-                        type = property.PropertyType.GetElementType()!;
-                    }
-
-                    dataType |= type switch
-                    {
-                        Type when type == typeof(string) => NpgsqlDbType.Text,
-                        Type when type == typeof(Guid) => NpgsqlDbType.Uuid,
-                        Type when type == typeof(ulong) => NpgsqlDbType.Numeric,
-                        Type when type == typeof(DateTimeOffset) => NpgsqlDbType.TimestampTz,
-                        Type when type == typeof(DateTime) => NpgsqlDbType.TimestampTz,
-                        _ => throw new NotImplementedException($"Type {property.PropertyType} does not have a database conversion implemented.")
-                    };
-                }
-
-                createParameter.NpgsqlDbType = updateParameter.NpgsqlDbType = dataType;
-                updateParameter.SourceColumn = createParameter.ParameterName;
-
-                createCommand.Parameters.Add(createParameter);
-                updateByIdCommand.Parameters.Add(updateParameter);
-                createCommandStringBuilder.Append($"@{createParameter.ParameterName}, ");
-                updateCommandColumnStringBuilder.Append($"\"{updateParameter.SourceColumn}\", ");
-                updateCommandValueStringBuilder.Append($"@{createParameter.ParameterName}, ");
-            }
-
-            createCommandStringBuilder.Remove(createCommandStringBuilder.Length - 2, 2);
-            createCommandStringBuilder.Append(");");
-            createCommand.CommandText = createCommandStringBuilder.ToString();
-            createCommand.Prepare();
-            _preparedStatements.Add(PreparedStatementType.Create, createCommand);
-
-            updateCommandColumnStringBuilder.Remove(updateCommandColumnStringBuilder.Length - 2, 2);
-            updateCommandValueStringBuilder.Remove(updateCommandValueStringBuilder.Length - 2, 2);
-            updateCommandValueStringBuilder.Append(") WHERE \"Id\" = @Id;");
-
-            updateByIdCommand.CommandText = updateCommandColumnStringBuilder.Append(updateCommandValueStringBuilder).ToString();
-            updateByIdCommand.Prepare();
-            _preparedStatements.Add(PreparedStatementType.UpdateById, updateByIdCommand);
-
             _periodicTimer = new PeriodicTimer(TimeSpan.FromMinutes(1));
             _ = ExpireTimerAsync();
         }
@@ -286,26 +169,25 @@ namespace OoLunar.Tomoe.Services
             }
 
             CancellationChangeToken cct = new(new CancellationTokenSource(expirable.ExpiresAt - now).Token);
-            cct.RegisterChangeCallback(async expirableObject =>
+            cct.RegisterChangeCallback(expirableObject =>
             {
                 T expirable = (T)expirableObject!;
-                await ExpireItemAsync(expirable);
+                _ = Task.Run(async () => await ExpireItemAsync(expirable));
             }, expirable);
             return cct;
         }
 
         private async Task ExpireTimerAsync()
         {
+            await PrepareStatementsAsync();
             _logger.LogInformation("Starting the expirable service for {ItemType}.", typeof(T).FullName);
 
             // Checks if the cancellation token has been cancelled.
-            while (await _periodicTimer.WaitForNextTickAsync())
+            do
             {
                 await _commandLock.WaitAsync();
                 DbCommand findExpired = _preparedStatements[PreparedStatementType.SelectByExpiresAt];
-                findExpired.Parameters["@ExpiresAt"].Value = DateTime.UtcNow.AddMinutes(5);
                 DbDataReader reader = await findExpired.ExecuteReaderAsync();
-                await reader.ReadAsync();
 
                 if (!reader.HasRows)
                 {
@@ -352,7 +234,7 @@ namespace OoLunar.Tomoe.Services
                         _cache.Set(expirable.Id, expirable, CreateCancellationChangeToken(expirable));
                     }
                 }
-            }
+            } while (await _periodicTimer.WaitForNextTickAsync());
         }
 
         private async Task ExpireItemAsync(T expirable)
@@ -364,13 +246,11 @@ namespace OoLunar.Tomoe.Services
             }
 
             DiscordShardedClient client = _serviceProvider.GetRequiredService<DiscordShardedClient>();
-            if (client.ShardClients.Count == 0)
+            while (client.ShardClients.Count == 0)
             {
                 await Task.Delay(TimeSpan.FromMilliseconds(100));
-                return;
             }
 
-            _cache.Remove(expirable.Id);
             await expirable.IsExecuting.WaitAsync();
             if (expirable.HasExecuted)
             {
@@ -388,7 +268,123 @@ namespace OoLunar.Tomoe.Services
                 _logger.LogError(error, "Item {ExpirableId} threw an exception.", expirable.Id);
             }
             expirable.IsExecuting.Release();
-            _logger.LogInformation("Poll {PollId} has expired from the cache.", expirable.Id);
+            _logger.LogInformation("Expirable {ExpirableId} has expired from the database.", expirable.Id);
+        }
+
+        private async Task PrepareStatementsAsync()
+        {
+            NpgsqlConnection connection = new(_databaseContext.Database.GetConnectionString());
+            await connection.OpenAsync();
+
+            string typeName = $"\"{typeof(DatabaseContext).GetProperties().First(property => property.PropertyType == typeof(DbSet<T>) && property.PropertyType.GenericTypeArguments[0] == typeof(T)).Name}\"";
+            DbCommand selectByIdCommand = connection.CreateCommand();
+            DbParameter selectIdParameter = selectByIdCommand.CreateParameter();
+            selectIdParameter.ParameterName = "@Id";
+            selectIdParameter.DbType = DbType.Guid;
+            selectIdParameter.SourceColumn = "Id";
+
+            selectByIdCommand.CommandText = $"SELECT * FROM {typeName} WHERE \"Id\" = @Id";
+            selectByIdCommand.Parameters.Add(selectIdParameter);
+            await selectByIdCommand.PrepareAsync();
+            _preparedStatements.Add(PreparedStatementType.SelectById, selectByIdCommand);
+
+            DbCommand selectByExpiresAtCommand = connection.CreateCommand();
+            DbParameter expiresAtParameter = selectByExpiresAtCommand.CreateParameter();
+            expiresAtParameter.ParameterName = "@ExpiresAt";
+            expiresAtParameter.DbType = DbType.DateTimeOffset;
+            expiresAtParameter.SourceColumn = "ExpiresAt";
+
+            selectByExpiresAtCommand.CommandText = $"SELECT * FROM {typeName} WHERE \"ExpiresAt\" <= now() + '5 days'";
+            await selectByExpiresAtCommand.PrepareAsync();
+            _preparedStatements.Add(PreparedStatementType.SelectByExpiresAt, selectByExpiresAtCommand);
+
+            DbCommand deleteByIdCommand = connection.CreateCommand();
+            DbParameter deleteIdParameter = selectByIdCommand.CreateParameter();
+            deleteIdParameter.ParameterName = "@Id";
+            deleteIdParameter.DbType = DbType.Guid;
+            deleteIdParameter.SourceColumn = "Id";
+
+            deleteByIdCommand.Parameters.Add(deleteIdParameter);
+            deleteByIdCommand.CommandText = $"DELETE FROM {typeName} WHERE \"Id\" = @Id";
+            await deleteByIdCommand.PrepareAsync();
+            _preparedStatements.Add(PreparedStatementType.DeleteById, deleteByIdCommand);
+
+            DbCommand createCommand = connection.CreateCommand();
+            NpgsqlCommand updateByIdCommand = new(null, connection);
+
+            StringBuilder createCommandStringBuilder = new();
+            createCommandStringBuilder.Append($"INSERT INTO {typeName} VALUES (");
+
+            StringBuilder updateCommandColumnStringBuilder = new();
+            updateCommandColumnStringBuilder.Append($"UPDATE {typeName} SET (");
+            StringBuilder updateCommandValueStringBuilder = new();
+            updateCommandValueStringBuilder.Append(") = (");
+
+            PropertyInfo[] properties = typeof(T).GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.GetProperty);
+            foreach (PropertyInfo property in properties)
+            {
+                if (property.GetCustomAttribute<NotMappedAttribute>() is not null)
+                {
+                    continue;
+                }
+
+                ColumnAttribute? columnAttribute = property.GetCustomAttribute<ColumnAttribute>();
+                _propertyGetDelegateCache.Add(columnAttribute?.Name ?? property.Name, property.GetValue);
+                _propertySetDelegateCache.Add(columnAttribute?.Name ?? property.Name, property.SetValue);
+
+                NpgsqlParameter createParameter = updateByIdCommand.CreateParameter();
+                NpgsqlParameter updateParameter = updateByIdCommand.CreateParameter();
+                createParameter.ParameterName = updateParameter.ParameterName = columnAttribute?.Name ?? property.Name;
+
+                NpgsqlDbType dataType = columnAttribute?.TypeName?.ToLowerInvariant() switch
+                {
+                    "json" => NpgsqlDbType.Json,
+                    "jsonb" => NpgsqlDbType.Jsonb,
+                    _ => 0
+                };
+
+                if (dataType is 0)
+                {
+                    Type type = property.PropertyType;
+                    if (property.PropertyType.IsArray)
+                    {
+                        dataType |= NpgsqlDbType.Array;
+                        type = property.PropertyType.GetElementType()!;
+                    }
+
+                    dataType |= type switch
+                    {
+                        Type when type == typeof(string) => NpgsqlDbType.Text,
+                        Type when type == typeof(Guid) => NpgsqlDbType.Uuid,
+                        Type when type == typeof(ulong) => NpgsqlDbType.Numeric,
+                        Type when type == typeof(DateTimeOffset) => NpgsqlDbType.TimestampTz,
+                        Type when type == typeof(DateTime) => NpgsqlDbType.TimestampTz,
+                        _ => throw new NotImplementedException($"Type {property.PropertyType} does not have a database conversion implemented.")
+                    };
+                }
+
+                createParameter.NpgsqlDbType = updateParameter.NpgsqlDbType = dataType;
+                updateParameter.SourceColumn = createParameter.ParameterName;
+
+                createCommand.Parameters.Add(createParameter);
+                updateByIdCommand.Parameters.Add(updateParameter);
+                createCommandStringBuilder.Append($"@{createParameter.ParameterName}, ");
+                updateCommandColumnStringBuilder.Append($"\"{updateParameter.SourceColumn}\", ");
+                updateCommandValueStringBuilder.Append($"@{createParameter.ParameterName}, ");
+            }
+
+            createCommandStringBuilder.Remove(createCommandStringBuilder.Length - 2, 2);
+            createCommandStringBuilder.Append(");");
+            createCommand.CommandText = createCommandStringBuilder.ToString();
+            await createCommand.PrepareAsync();
+            _preparedStatements.Add(PreparedStatementType.Create, createCommand);
+
+            updateCommandColumnStringBuilder.Remove(updateCommandColumnStringBuilder.Length - 2, 2);
+            updateCommandValueStringBuilder.Remove(updateCommandValueStringBuilder.Length - 2, 2);
+            updateCommandValueStringBuilder.Append(") WHERE \"Id\" = @Id;");
+            updateByIdCommand.CommandText = updateCommandColumnStringBuilder.Append(updateCommandValueStringBuilder).ToString();
+            await updateByIdCommand.PrepareAsync();
+            _preparedStatements.Add(PreparedStatementType.UpdateById, updateByIdCommand);
         }
 
         private enum PreparedStatementType

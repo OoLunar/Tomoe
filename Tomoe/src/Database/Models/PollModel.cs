@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,6 +9,9 @@ using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
 using Humanizer;
+using LiveChartsCore;
+using LiveChartsCore.SkiaSharpView;
+using LiveChartsCore.SkiaSharpView.SKCharts;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OoLunar.Tomoe.Interfaces;
@@ -33,6 +37,24 @@ namespace OoLunar.Tomoe.Database.Models
         public SemaphoreSlim IsExecuting { get; } = new(1, 1);
         [NotMapped]
         public bool HasExecuted { get; set; }
+        [NotMapped]
+        private Dictionary<string, int> Winners
+        {
+            get
+            {
+                // Create a dictionary to count the votes for each option
+                Dictionary<int, int> optionVotes = Options.Select((_, i) => new KeyValuePair<int, int>(i, 0)).ToDictionary(x => x.Key, x => x.Value);
+
+                // Iterate through the Votes dictionary and increment the count for each option
+                foreach ((ulong userId, int option) in Votes)
+                {
+                    optionVotes[option]++;
+                }
+
+                // Sort the dictionary by the value (the number of votes)
+                return new Dictionary<string, int>(optionVotes.OrderByDescending(x => x.Value).Select(x => new KeyValuePair<string, int>(Options[x.Key], x.Value)));
+            }
+        }
 
         public PollModel() { }
         public PollModel(Guid id, string question, IEnumerable<string> options, DateTime expiresAt, ulong? guildId, ulong channelId, ulong messageId)
@@ -49,6 +71,11 @@ namespace OoLunar.Tomoe.Database.Models
 
         public async Task ExpireAsync(IServiceProvider serviceProvider)
         {
+            if (serviceProvider is null)
+            {
+                throw new ArgumentNullException(nameof(serviceProvider));
+            }
+
             ILogger<PollModel> logger = serviceProvider.GetRequiredService<ILogger<PollModel>>();
             ExpirableService<PollModel> expirableService = serviceProvider.GetRequiredService<ExpirableService<PollModel>>();
             PollService pollService = serviceProvider.GetRequiredService<PollService>();
@@ -85,14 +112,7 @@ namespace OoLunar.Tomoe.Database.Models
                 return;
             }
 
-            Dictionary<string, int> winners = Votes
-                .GroupBy(vote => vote.Value) // Group by vote
-                .OrderByDescending(group => group.Count()) // Order by vote count
-                .GroupBy(group => group) // Grab the top X winners
-                .Where(group => group.Any()) // Filter out the rest
-                .Select(group => group.Key) // Grab the key
-                .ToDictionary(vote => Options[vote.Key], vote => Votes.Where(voter => voter.Value == vote.Key).Count()); // Grab the option
-
+            Dictionary<string, int> winners = Winners.TakeWhile(x => x.Value == Winners.First().Value).ToDictionary(x => x.Key, x => x.Value);
             DiscordMessageBuilder messageBuilder = new()
             {
                 // We... don't talk about this. Improvements are welcome.
@@ -106,12 +126,13 @@ namespace OoLunar.Tomoe.Database.Models
                 }
             };
 
-            messageBuilder.WithReply(MessageId);
-            messageBuilder.WithAllowedMentions(Mentions.None);
+            _ = messageBuilder.WithReply(MessageId);
+            _ = messageBuilder.WithAllowedMentions(Mentions.None);
+            _ = messageBuilder.AddFile("image.png", GenerateBarGraph());
 
             try
             {
-                await channel.SendMessageAsync(messageBuilder);
+                _ = await channel.SendMessageAsync(messageBuilder);
                 logger.LogInformation("Sent poll results for poll {PollId}.", Id);
             }
             catch (DiscordException error) when (error.WebResponse.ResponseCode >= 500)
@@ -121,13 +142,65 @@ namespace OoLunar.Tomoe.Database.Models
                 await expirableService.UpdateAsync(this);
             }
 
-            await pollService.RemovePollAsync(Id);
+            _ = await pollService.RemovePollAsync(Id);
         }
 
-        private void GenerateBarGraph()
+        private Stream GenerateBarGraph()
         {
-            // Using Options as the bars, Votes as the data, generate the bar graph with ImageSharp
+            // Create a dictionary to count the votes for each option
+            Dictionary<int, int> optionVotes = Options.Select((_, i) => new KeyValuePair<int, int>(i, 0)).ToDictionary(x => x.Key, x => x.Value);
 
+            // Iterate through the Votes dictionary and increment the count for each option
+            foreach ((ulong userId, int option) in Votes)
+            {
+                optionVotes[option]++;
+            }
+
+            // Sort the dictionary by the value (the number of votes)
+            optionVotes = new(optionVotes.OrderByDescending(x => x.Value));
+            int maxVotes = optionVotes.First().Value;
+
+            //Axis[] axes = new Axis[Options.Length];
+            //for (int i = 0; i < Options.Length; i++)
+            //{
+            //    ISeries[] bars = new ISeries[Options.Length];
+            //    bars[i] = new ColumnSeries<int>
+            //    {
+            //        Name = Options[i],
+            //        Values = optionVotes.Values.ToArray(),
+            //        IsHoverable = false
+            //    };
+            //
+            //    axes[i] = new Axis
+            //    {
+            //        Labels = Options,
+            //        Series = bars
+            //    };
+            //}
+
+            ISeries[] bars = new[] {
+                new ColumnSeries<int>
+                {
+                    Values = optionVotes.Values
+                }
+            };
+
+            SKCartesianChart barChart = new()
+            {
+                Width = 600,
+                Height = 400,
+                Series = bars,
+                XAxes = new Axis[]
+                {
+                    new()
+                    {
+                        Labels = optionVotes.Keys.Select(x => Options[x]).ToArray(),
+                        ForceStepToMin = true
+                    }
+                }
+            };
+
+            return barChart.GetImage().Encode().AsStream();
         }
     }
 }
