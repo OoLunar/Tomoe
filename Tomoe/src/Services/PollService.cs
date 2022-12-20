@@ -1,27 +1,24 @@
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Primitives;
 using OoLunar.Tomoe.Database.Models;
 
 namespace OoLunar.Tomoe.Services
 {
     public sealed class PollService
     {
-        private readonly MemoryCache _cache;
+        private readonly MemoryCacheService _cache;
         private readonly ILogger<PollService> _logger;
         private readonly TimeSpan _pollSaveDuration;
         private readonly ExpirableService<PollModel> _expirableService;
 
         public PollService(IConfiguration configuration, ILogger<PollService> logger, ExpirableService<PollModel> expirableService)
         {
-            _pollSaveDuration = TimeSpan.FromMinutes(configuration.GetValue("poll:save_duration", 1));
+            _pollSaveDuration = TimeSpan.FromMinutes(configuration.GetValue("expirables:save_duration", 1));
             _logger = logger;
-            _cache = new(new MemoryCacheOptions() { ExpirationScanFrequency = TimeSpan.FromSeconds(30) });
+            _cache = new();
             _expirableService = expirableService;
         }
 
@@ -29,7 +26,7 @@ namespace OoLunar.Tomoe.Services
         {
             PollModel poll = new(pollId, question, options, expiresAt, guildId, channelId, messageId);
             await _expirableService.AddAsync(poll);
-            _cache.Set(pollId, poll, CreateCancellationChangeToken(poll));
+            _cache.Set(pollId, poll, CacheExpiration(poll.ExpiresAt));
             return poll;
         }
 
@@ -37,15 +34,14 @@ namespace OoLunar.Tomoe.Services
         {
             if (_cache.TryGetValue(pollId, out PollModel? poll) && poll is not null)
             {
-                _cache.Remove(pollId);
-                _cache.Set(pollId, poll, CreateCancellationChangeToken(poll)); // Reset the timeout everytime it's accessed.
+                _cache.Set(pollId, poll, CacheExpiration(poll.ExpiresAt));
                 return poll;
             }
 
             poll = await _expirableService.GetAsync(pollId);
             if (poll is not null)
             {
-                _cache.Set(pollId, poll, CreateCancellationChangeToken(poll));
+                _cache.Set(pollId, poll, CacheExpiration(poll.ExpiresAt));
             }
 
             return poll;
@@ -56,7 +52,6 @@ namespace OoLunar.Tomoe.Services
             PollModel? poll = await GetPollAsync(pollId);
             if (poll is not null)
             {
-                _cache.Remove(pollId);
                 await _expirableService.RemoveAsync(pollId);
             }
 
@@ -74,8 +69,7 @@ namespace OoLunar.Tomoe.Services
 
             poll.Votes[userId] = option;
             await _expirableService.UpdateAsync(poll);
-            _cache.Remove(pollId);
-            _cache.Set(pollId, poll, CreateCancellationChangeToken(poll));
+            _cache.Set(pollId, poll, CacheExpiration(poll.ExpiresAt));
         }
 
         public async Task<bool> RemoveVoteAsync(Guid pollId, ulong userId)
@@ -93,23 +87,16 @@ namespace OoLunar.Tomoe.Services
 
             poll.Votes.Remove(userId);
             await _expirableService.UpdateAsync(poll);
-            _cache.Remove(pollId);
-            _cache.Set(pollId, poll, CreateCancellationChangeToken(poll));
+            _cache.Set(pollId, poll, CacheExpiration(poll.ExpiresAt));
             return true;
         }
 
         public async Task<int> GetTotalVotesAsync(Guid pollId) => (await GetPollAsync(pollId))?.Votes.Count ?? 0;
 
-        private CancellationChangeToken CreateCancellationChangeToken(PollModel poll)
+        private DateTimeOffset CacheExpiration(DateTimeOffset expiresAt)
         {
-            DateTimeOffset now = DateTimeOffset.UtcNow;
-            CancellationChangeToken cct = new(new CancellationTokenSource(poll.ExpiresAt < now.Add(_pollSaveDuration) ? poll.ExpiresAt - now : _pollSaveDuration).Token);
-            cct.RegisterChangeCallback(pollObject =>
-            {
-                PollModel poll = (PollModel)pollObject!;
-                _logger.LogInformation("Poll {PollId} has expired from the cache.", poll.Id);
-            }, poll);
-            return cct;
+            DateTimeOffset expiresInCache = DateTimeOffset.UtcNow.Add(_pollSaveDuration);
+            return expiresAt > expiresInCache ? expiresInCache : expiresAt;
         }
     }
 }
