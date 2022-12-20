@@ -1,6 +1,4 @@
 using System;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace OoLunar.Tomoe.Interfaces
@@ -19,12 +17,6 @@ namespace OoLunar.Tomoe.Interfaces
         /// When the object is set to expire. This is allowed to change.
         /// </summary>
         DateTime ExpiresAt { get; set; }
-
-        [NotMapped]
-        SemaphoreSlim IsExecuting { get; }
-
-        [NotMapped]
-        bool HasExecuted { get; set; }
 
         /// <summary>
         /// Attempts to expire the object.

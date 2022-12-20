@@ -1,22 +1,18 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using DSharpPlus;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Primitives;
 using Npgsql;
 using NpgsqlTypes;
 using OoLunar.Tomoe.Database;
@@ -31,9 +27,9 @@ namespace OoLunar.Tomoe.Services
     public sealed class ExpirableService<T> where T : class, IExpirable<T>, new()
     {
         private readonly IServiceProvider _serviceProvider;
-        private readonly DatabaseContext _databaseContext;
+        private readonly string _connectionString;
         private readonly ILogger<ExpirableService<T>> _logger;
-        private readonly MemoryCache _cache;
+        private readonly MemoryCacheService _cache;
         private readonly PeriodicTimer _periodicTimer;
         private readonly Dictionary<PreparedStatementType, DbCommand> _preparedStatements = new();
         private readonly Dictionary<string, Func<object, object?>> _propertyGetDelegateCache = new();
@@ -44,8 +40,8 @@ namespace OoLunar.Tomoe.Services
         {
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _databaseContext = databaseContext ?? throw new ArgumentNullException(nameof(databaseContext));
-            _cache = new MemoryCache(new MemoryCacheOptions() { ExpirationScanFrequency = TimeSpan.FromMinutes(2) });
+            _connectionString = (databaseContext ?? throw new ArgumentNullException(nameof(databaseContext))).Database.GetConnectionString() ?? throw new InvalidOperationException("Database connection string is null.");
+            _cache = new MemoryCacheService();
             _periodicTimer = new PeriodicTimer(TimeSpan.FromMinutes(1));
             _ = ExpireTimerAsync();
         }
@@ -53,19 +49,18 @@ namespace OoLunar.Tomoe.Services
         public async Task<T> AddAsync(T expirable)
         {
             DbCommand createStatement = _preparedStatements[PreparedStatementType.Create];
+
+            // Iterate through the object's properties, setting the values of the prepared statement's parameters.
             foreach (KeyValuePair<string, Func<object, object?>> kvp in _propertyGetDelegateCache)
             {
-                object? value = kvp.Value(expirable);
-                if (value is ulong uValue)
-                {
-                    value = Unsafe.As<ulong, long>(ref uValue);
-                }
-                createStatement.Parameters[$"@{kvp.Key}"].Value = value;
+                createStatement.Parameters[$"@{kvp.Key}"].Value = kvp.Value(expirable);
             }
 
+            // Lock the command so that only one command can be executed at a time.
+            // This is a poor attempt to make this class thread safe.
             await _commandLock.WaitAsync();
-            await createStatement.ExecuteNonQueryAsync();
-            _cache.Set(expirable.Id, expirable, CreateCancellationChangeToken(expirable));
+            await ExecutePreparedStatementAsync(createStatement, PreparedStatementType.Create);
+            _cache.Set(expirable.Id, expirable, CacheExpiration(expirable.ExpiresAt), (obj) => Task.Run(async () => await ExpireItemAsync((T)obj)));
             _commandLock.Release();
 
             _logger.LogDebug("Added expirable {ExpirableId} with expiration {ExpiresAt}.", expirable.Id, expirable.ExpiresAt);
@@ -83,7 +78,7 @@ namespace OoLunar.Tomoe.Services
             selectByIdStatement.Parameters["@Id"].Value = id;
 
             await _commandLock.WaitAsync();
-            DbDataReader reader = await selectByIdStatement.ExecuteReaderAsync();
+            DbDataReader reader = await ExecutePreparedStatementAsync(selectByIdStatement, PreparedStatementType.SelectById) ?? throw new InvalidOperationException("Failed to get reader from select by id statement.");
             if (!reader.HasRows || !reader.Read())
             {
                 await reader.DisposeAsync();
@@ -91,27 +86,17 @@ namespace OoLunar.Tomoe.Services
                 return null;
             }
 
-            expirable = (T)Activator.CreateInstance(typeof(T), true)!;
+            expirable = Activator.CreateInstance<T>();
             foreach (KeyValuePair<string, Action<object, object?>> kvp in _propertySetDelegateCache)
             {
-                PropertyInfo property = (PropertyInfo)kvp.Value.Target!;
-                if (property.PropertyType == typeof(ulong) && reader[kvp.Key] is decimal dValue)
-                {
-                    kvp.Value(expirable, (ulong)dValue);
-                }
-                else if (property.PropertyType.GetInterfaces().Contains(typeof(IDictionary)))
-                {
-                    kvp.Value(expirable, JsonSerializer.Deserialize(reader[kvp.Key].ToString()!, ((PropertyInfo)kvp.Value.Target!).PropertyType)!);
-                }
-                else
-                {
-                    kvp.Value(expirable, reader[kvp.Key]!);
-                }
+                kvp.Value(expirable, reader[kvp.Key]!);
             }
 
             await reader.DisposeAsync();
             if (expirable != null)
             {
+                // If the item has already expired, remove it from the database, call the expiry method and return null.
+                // This is an edge case that really shouldn't happen but it's better to be safe than sorry.
                 if (expirable.ExpiresAt <= DateTime.UtcNow)
                 {
                     _commandLock.Release();
@@ -120,7 +105,8 @@ namespace OoLunar.Tomoe.Services
                     return null;
                 }
 
-                _cache.Set(expirable.Id, expirable, CreateCancellationChangeToken(expirable));
+                // Cache the result for the first if statement at the top of the method.
+                _cache.Set(expirable.Id, expirable, CacheExpiration(expirable.ExpiresAt), (obj) => Task.Run(async () => await ExpireItemAsync((T)obj)));
             }
 
             _commandLock.Release();
@@ -132,16 +118,12 @@ namespace OoLunar.Tomoe.Services
             DbCommand updateByIdStatement = _preparedStatements[PreparedStatementType.UpdateById];
             foreach (KeyValuePair<string, Func<object, object?>> kvp in _propertyGetDelegateCache)
             {
-                object? value = kvp.Value(expirable);
-                if (value is ulong uValue)
-                {
-                    value = Unsafe.As<ulong, long>(ref uValue);
-                }
-                updateByIdStatement.Parameters[$"@{kvp.Key}"].Value = value;
+                updateByIdStatement.Parameters[$"@{kvp.Key}"].Value = kvp.Value(expirable);
             }
+
             await _commandLock.WaitAsync();
-            await updateByIdStatement.ExecuteNonQueryAsync();
-            _cache.Set(expirable.Id, expirable, CreateCancellationChangeToken(expirable));
+            await ExecutePreparedStatementAsync(updateByIdStatement, PreparedStatementType.UpdateById);
+            _cache.Set(expirable.Id, expirable, CacheExpiration(expirable.ExpiresAt), (obj) => Task.Run(async () => await ExpireItemAsync((T)obj)));
             _commandLock.Release();
 
             _logger.LogDebug("Updated expirable {ExpirableId} with expiration {ExpiresAt}.", expirable.Id, expirable.ExpiresAt);
@@ -153,28 +135,37 @@ namespace OoLunar.Tomoe.Services
             deleteByIdStatement.Parameters["@Id"].Value = id;
 
             await _commandLock.WaitAsync();
-            await deleteByIdStatement.ExecuteNonQueryAsync();
-            _cache.Remove(id);
+            await ExecutePreparedStatementAsync(deleteByIdStatement, PreparedStatementType.DeleteById);
+            _cache.TryRemove(id, out _);
             _commandLock.Release();
 
             _logger.LogDebug("Removed expirable {ExpirableId}.", id);
         }
 
-        private CancellationChangeToken CreateCancellationChangeToken(T expirable)
+        private async Task ExpireItemAsync(T expirable)
         {
-            DateTimeOffset now = DateTimeOffset.Now;
-            if (expirable.ExpiresAt <= now)
+            // Might need to be removed from the cache if it's expiry date is long in the future.
+            if (expirable.ExpiresAt > DateTimeOffset.UtcNow)
             {
-                throw new ArgumentException("The expirable item has already expired.", nameof(expirable));
+                return;
             }
 
-            CancellationChangeToken cct = new(new CancellationTokenSource(expirable.ExpiresAt - now).Token);
-            cct.RegisterChangeCallback(expirableObject =>
+            DiscordShardedClient client = _serviceProvider.GetRequiredService<DiscordShardedClient>();
+            while (client.ShardClients.Count == 0)
             {
-                T expirable = (T)expirableObject!;
-                _ = Task.Run(async () => await ExpireItemAsync(expirable));
-            }, expirable);
-            return cct;
+                await Task.Delay(TimeSpan.FromMilliseconds(50));
+            }
+
+            try
+            {
+                await RemoveAsync(expirable.Id);
+                await expirable.ExpireAsync(_serviceProvider);
+            }
+            catch (Exception error)
+            {
+                _logger.LogError(error, "Item {ExpirableId} threw an exception.", expirable.Id);
+            }
+            _logger.LogInformation("Expirable {ExpirableId} has expired from the database.", expirable.Id);
         }
 
         private async Task ExpireTimerAsync()
@@ -187,7 +178,7 @@ namespace OoLunar.Tomoe.Services
             {
                 await _commandLock.WaitAsync();
                 DbCommand findExpired = _preparedStatements[PreparedStatementType.SelectByExpiresAt];
-                DbDataReader reader = await findExpired.ExecuteReaderAsync();
+                DbDataReader reader = await ExecutePreparedStatementAsync(findExpired, PreparedStatementType.SelectByExpiresAt) ?? throw new InvalidOperationException("The database reader is null.");
 
                 if (!reader.HasRows)
                 {
@@ -199,31 +190,18 @@ namespace OoLunar.Tomoe.Services
                 List<T> expirables = new();
                 while (reader.Read())
                 {
-                    T expirable = (T)Activator.CreateInstance(typeof(T), true)!;
+                    T expirable = Activator.CreateInstance<T>();
                     foreach (KeyValuePair<string, Action<object, object?>> kvp in _propertySetDelegateCache)
                     {
-                        PropertyInfo property = (PropertyInfo)kvp.Value.Target!;
-                        if (property.PropertyType == typeof(ulong) && reader[kvp.Key] is decimal dValue)
-                        {
-                            kvp.Value(expirable, (ulong)dValue);
-                        }
-                        else if (property.PropertyType.GetInterfaces().Contains(typeof(IDictionary)))
-                        {
-                            kvp.Value(expirable, JsonSerializer.Deserialize(reader[kvp.Key].ToString()!, ((PropertyInfo)kvp.Value.Target!).PropertyType)!);
-                        }
-                        else
-                        {
-                            kvp.Value(expirable, reader[kvp.Key]!);
-                        }
+                        kvp.Value(expirable, reader[kvp.Key]!);
                     }
-
                     expirables.Add(expirable);
                 }
 
                 await reader.DisposeAsync();
                 _commandLock.Release();
 
-                foreach (T expirable in expirables.AsParallel())
+                await Parallel.ForEachAsync(expirables, async (expirable, cancellationToken) =>
                 {
                     if (expirable.ExpiresAt <= DateTimeOffset.Now)
                     {
@@ -231,92 +209,65 @@ namespace OoLunar.Tomoe.Services
                     }
                     else if (!_cache.TryGetValue(expirable.Id, out _))
                     {
-                        _cache.Set(expirable.Id, expirable, CreateCancellationChangeToken(expirable));
+                        _cache.Set(expirable.Id, expirable, CacheExpiration(expirable.ExpiresAt), (obj) => Task.Run(async () => await ExpireItemAsync((T)obj)));
                     }
-                }
+                });
             } while (await _periodicTimer.WaitForNextTickAsync());
-        }
-
-        private async Task ExpireItemAsync(T expirable)
-        {
-            if (expirable.ExpiresAt > DateTimeOffset.Now)
-            {
-                // MemoryCache calls this callback when the item has been both updated and removed. We only want to call ExpireAsync when it has been removed.
-                return;
-            }
-
-            DiscordShardedClient client = _serviceProvider.GetRequiredService<DiscordShardedClient>();
-            while (client.ShardClients.Count == 0)
-            {
-                await Task.Delay(TimeSpan.FromMilliseconds(100));
-            }
-
-            await expirable.IsExecuting.WaitAsync();
-            if (expirable.HasExecuted)
-            {
-                return;
-            }
-
-            try
-            {
-                await RemoveAsync(expirable.Id);
-                await expirable.ExpireAsync(_serviceProvider);
-                expirable.HasExecuted = true;
-            }
-            catch (Exception error)
-            {
-                _logger.LogError(error, "Item {ExpirableId} threw an exception.", expirable.Id);
-            }
-            expirable.IsExecuting.Release();
-            _logger.LogInformation("Expirable {ExpirableId} has expired from the database.", expirable.Id);
         }
 
         private async Task PrepareStatementsAsync()
         {
-            NpgsqlConnection connection = new(_databaseContext.Database.GetConnectionString());
+            // Check ahead of time to see if the type has a parameterless constructor.
+            // This allows us to skip a bunch of null checks and prevents runtime errors in other methods.
+            try
+            {
+                _ = Activator.CreateInstance<T>();
+            }
+            catch (MissingMethodException)
+            {
+                throw new InvalidOperationException("The type does not have a parameterless constructor.");
+            }
+
+            NpgsqlConnection connection = new(_connectionString);
             await connection.OpenAsync();
 
-            string typeName = $"\"{typeof(DatabaseContext).GetProperties().First(property => property.PropertyType == typeof(DbSet<T>) && property.PropertyType.GenericTypeArguments[0] == typeof(T)).Name}\"";
+            string typeName = typeof(DatabaseContext).GetProperties().First(property => property.PropertyType == typeof(DbSet<T>)).Name;
             DbCommand selectByIdCommand = connection.CreateCommand();
             DbParameter selectIdParameter = selectByIdCommand.CreateParameter();
-            selectIdParameter.ParameterName = "@Id";
             selectIdParameter.DbType = DbType.Guid;
+            selectIdParameter.ParameterName = "@Id";
             selectIdParameter.SourceColumn = "Id";
-
-            selectByIdCommand.CommandText = $"SELECT * FROM {typeName} WHERE \"Id\" = @Id";
+            selectByIdCommand.CommandText = $"SELECT * FROM \"{typeName}\" WHERE \"Id\" = @Id";
             selectByIdCommand.Parameters.Add(selectIdParameter);
             await selectByIdCommand.PrepareAsync();
             _preparedStatements.Add(PreparedStatementType.SelectById, selectByIdCommand);
 
             DbCommand selectByExpiresAtCommand = connection.CreateCommand();
             DbParameter expiresAtParameter = selectByExpiresAtCommand.CreateParameter();
-            expiresAtParameter.ParameterName = "@ExpiresAt";
             expiresAtParameter.DbType = DbType.DateTimeOffset;
+            expiresAtParameter.ParameterName = "@ExpiresAt";
             expiresAtParameter.SourceColumn = "ExpiresAt";
-
-            selectByExpiresAtCommand.CommandText = $"SELECT * FROM {typeName} WHERE \"ExpiresAt\" <= now() + '5 days'";
+            selectByExpiresAtCommand.CommandText = $"SELECT * FROM \"{typeName}\" WHERE \"ExpiresAt\" <= now() + '5 days'";
             await selectByExpiresAtCommand.PrepareAsync();
             _preparedStatements.Add(PreparedStatementType.SelectByExpiresAt, selectByExpiresAtCommand);
 
             DbCommand deleteByIdCommand = connection.CreateCommand();
             DbParameter deleteIdParameter = selectByIdCommand.CreateParameter();
-            deleteIdParameter.ParameterName = "@Id";
             deleteIdParameter.DbType = DbType.Guid;
+            deleteIdParameter.ParameterName = "@Id";
             deleteIdParameter.SourceColumn = "Id";
-
             deleteByIdCommand.Parameters.Add(deleteIdParameter);
-            deleteByIdCommand.CommandText = $"DELETE FROM {typeName} WHERE \"Id\" = @Id";
+            deleteByIdCommand.CommandText = $"DELETE FROM \"{typeName}\" WHERE \"Id\" = @Id";
             await deleteByIdCommand.PrepareAsync();
             _preparedStatements.Add(PreparedStatementType.DeleteById, deleteByIdCommand);
 
             DbCommand createCommand = connection.CreateCommand();
-            NpgsqlCommand updateByIdCommand = new(null, connection);
-
             StringBuilder createCommandStringBuilder = new();
-            createCommandStringBuilder.Append($"INSERT INTO {typeName} VALUES (");
+            createCommandStringBuilder.Append($"INSERT INTO \"{typeName}\" VALUES (");
 
+            NpgsqlCommand updateByIdCommand = new(null, connection);
             StringBuilder updateCommandColumnStringBuilder = new();
-            updateCommandColumnStringBuilder.Append($"UPDATE {typeName} SET (");
+            updateCommandColumnStringBuilder.Append($"UPDATE \"{typeName}\" SET (");
             StringBuilder updateCommandValueStringBuilder = new();
             updateCommandValueStringBuilder.Append(") = (");
 
@@ -329,39 +280,74 @@ namespace OoLunar.Tomoe.Services
                 }
 
                 ColumnAttribute? columnAttribute = property.GetCustomAttribute<ColumnAttribute>();
-                _propertyGetDelegateCache.Add(columnAttribute?.Name ?? property.Name, property.GetValue);
-                _propertySetDelegateCache.Add(columnAttribute?.Name ?? property.Name, property.SetValue);
+                string columnName = columnAttribute?.Name ?? property.Name;
 
                 NpgsqlParameter createParameter = updateByIdCommand.CreateParameter();
                 NpgsqlParameter updateParameter = updateByIdCommand.CreateParameter();
-                createParameter.ParameterName = updateParameter.ParameterName = columnAttribute?.Name ?? property.Name;
+                createParameter.ParameterName = updateParameter.ParameterName = columnName;
 
-                NpgsqlDbType dataType = columnAttribute?.TypeName?.ToLowerInvariant() switch
+                NpgsqlDbType dataType = 0;
+                if (columnAttribute is not null && columnAttribute.TypeName is not null)
                 {
-                    "json" => NpgsqlDbType.Json,
-                    "jsonb" => NpgsqlDbType.Jsonb,
-                    _ => 0
-                };
+                    switch (columnAttribute.TypeName.ToLowerInvariant())
+                    {
+                        case "json":
+                            dataType = NpgsqlDbType.Json;
 
-                if (dataType is 0)
+                            // Convert the values here to prevent if statements when getting/setting the values
+                            _propertyGetDelegateCache.Add(columnName, (obj) => JsonSerializer.Serialize(property.GetValue(obj)!));
+                            _propertySetDelegateCache.Add(columnName, (obj, value) => property.SetValue(obj, JsonSerializer.Deserialize(value!.ToString()!, property.PropertyType)));
+                            break;
+                        case "jsonb":
+                            dataType = NpgsqlDbType.Jsonb;
+
+                            // Convert the values here to prevent if statements when getting/setting the values
+                            _propertyGetDelegateCache.Add(columnName, (obj) => JsonSerializer.Serialize(property.GetValue(obj)!));
+                            _propertySetDelegateCache.Add(columnName, (obj, value) => property.SetValue(obj, JsonSerializer.Deserialize(value!.ToString()!, property.PropertyType)));
+                            break;
+                        default:
+                            throw new NotImplementedException($"The type {columnAttribute.TypeName} is not implemented.");
+                    }
+                }
+                else
                 {
                     Type type = property.PropertyType;
+
+                    // Get the base type
                     if (property.PropertyType.IsArray)
                     {
                         dataType |= NpgsqlDbType.Array;
                         type = property.PropertyType.GetElementType()!;
                     }
 
-                    dataType |= type switch
+                    switch (type)
                     {
-                        Type when type == typeof(string) => NpgsqlDbType.Text,
-                        Type when type == typeof(Guid) => NpgsqlDbType.Uuid,
-                        Type when type == typeof(ulong) => NpgsqlDbType.Numeric,
-                        Type when type == typeof(DateTimeOffset) => NpgsqlDbType.TimestampTz,
-                        Type when type == typeof(DateTime) => NpgsqlDbType.TimestampTz,
-                        _ => throw new NotImplementedException($"Type {property.PropertyType} does not have a database conversion implemented.")
-                    };
+                        case Type when type == typeof(string):
+                            dataType |= NpgsqlDbType.Text;
+                            break;
+                        case Type when type == typeof(Guid):
+                            dataType |= NpgsqlDbType.Uuid;
+                            break;
+                        case Type when type == typeof(ulong):
+                            dataType |= NpgsqlDbType.Numeric;
+
+                            // Convert the values here to prevent if statements when getting/setting the values
+                            _propertyGetDelegateCache.Add(columnName, (obj) => Convert.ToInt64(property.GetValue(obj)));
+                            _propertySetDelegateCache.Add(columnName, (obj, value) => property.SetValue(obj, Convert.ToUInt64(value)));
+                            break;
+                        case Type when type == typeof(DateTimeOffset):
+                            dataType |= NpgsqlDbType.TimestampTz;
+                            break;
+                        case Type when type == typeof(DateTime):
+                            dataType |= NpgsqlDbType.TimestampTz;
+                            break;
+                        default:
+                            throw new NotImplementedException($"Type {property.PropertyType} does not have a database conversion implemented.");
+                    }
                 }
+
+                _propertyGetDelegateCache.TryAdd(columnName, property.GetValue);
+                _propertySetDelegateCache.TryAdd(columnName, property.SetValue);
 
                 createParameter.NpgsqlDbType = updateParameter.NpgsqlDbType = dataType;
                 updateParameter.SourceColumn = createParameter.ParameterName;
@@ -385,6 +371,45 @@ namespace OoLunar.Tomoe.Services
             updateByIdCommand.CommandText = updateCommandColumnStringBuilder.Append(updateCommandValueStringBuilder).ToString();
             await updateByIdCommand.PrepareAsync();
             _preparedStatements.Add(PreparedStatementType.UpdateById, updateByIdCommand);
+        }
+
+        private async Task<DbDataReader?> ExecutePreparedStatementAsync(DbCommand command, PreparedStatementType statementType, bool isRetry = false)
+        {
+            try
+            {
+                switch (statementType)
+                {
+                    case PreparedStatementType.Create:
+                    case PreparedStatementType.UpdateById:
+                    case PreparedStatementType.DeleteById:
+                        await command.ExecuteNonQueryAsync();
+                        return null;
+                    case PreparedStatementType.SelectById:
+                    case PreparedStatementType.SelectByExpiresAt:
+                        return await command.ExecuteReaderAsync();
+                    default:
+                        throw new NotImplementedException($"Statement type {statementType} does not have a database execution strategy implemented.");
+                }
+            }
+            catch (DbException)
+            {
+                if (isRetry)
+                {
+                    throw;
+                }
+
+                // The connection is probably dead, so we'll try to reconnect and retry the statement once with a new connection.
+                DbConnection connection = new NpgsqlConnection(_connectionString);
+                await connection.OpenAsync();
+                await Parallel.ForEachAsync(_preparedStatements, async (statement, cancellationToken) => await statement.Value.PrepareAsync(cancellationToken));
+                return await ExecutePreparedStatementAsync(command, statementType, true);
+            }
+        }
+
+        private DateTimeOffset CacheExpiration(DateTimeOffset expiresAt)
+        {
+            DateTimeOffset expiresInCache = DateTimeOffset.UtcNow.AddMinutes(5);
+            return expiresAt > expiresInCache ? expiresInCache : expiresAt;
         }
 
         private enum PreparedStatementType
