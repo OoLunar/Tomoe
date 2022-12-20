@@ -151,7 +151,7 @@ namespace OoLunar.Tomoe.Services
             }
 
             DiscordShardedClient client = _serviceProvider.GetRequiredService<DiscordShardedClient>();
-            while (client.ShardClients.Count == 0)
+            while (client.ShardClients.Any(x => x.Value.Guilds.Count == 0))
             {
                 await Task.Delay(TimeSpan.FromMilliseconds(50));
             }
