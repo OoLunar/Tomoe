@@ -85,9 +85,8 @@ namespace OoLunar.Tomoe.Services
             _periodicTimer = new PeriodicTimer(TimeSpan.FromMinutes(1));
             _connectionString = (databaseContext ?? throw new ArgumentNullException(nameof(databaseContext))).Database.GetConnectionString() ?? throw new InvalidOperationException("Database connection string is null.");
 
-            // Start pulling expired items from the database when the bot is ready.
-            DiscordShardedClient client = serviceProvider.GetRequiredService<DiscordShardedClient>();
-            client.GuildDownloadCompleted += (sender, args) => _ = ExpireTimerAsync();
+            // Start the periodic timer, which prepares the statements and pulls nearly expired items from the database into the cache.
+            _ = ExpireTimerAsync();
         }
 
         /// <summary>
@@ -226,6 +225,12 @@ namespace OoLunar.Tomoe.Services
             if (expirable.ExpiresAt > DateTimeOffset.UtcNow)
             {
                 return;
+            }
+
+            DiscordShardedClient client = _serviceProvider.GetRequiredService<DiscordShardedClient>();
+            while (client.ShardClients.Any(shard => !shard.Value.Guilds.Any()))
+            {
+                await Task.Delay(TimeSpan.FromMilliseconds(100));
             }
 
             try

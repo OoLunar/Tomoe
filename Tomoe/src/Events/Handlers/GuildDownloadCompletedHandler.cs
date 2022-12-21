@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OoLunar.Tomoe.Database;
 using OoLunar.Tomoe.Database.Models;
+using OoLunar.Tomoe.Services;
 
 namespace OoLunar.Tomoe.Events.Handlers
 {
@@ -27,6 +28,7 @@ namespace OoLunar.Tomoe.Events.Handlers
         [DiscordEvent]
         public async Task OnGuildDownloadCompletedAsync(DiscordClient client, GuildDownloadCompletedEventArgs guildDownloadCompletedEventArgs)
         {
+            _ = _serviceProvider.GetRequiredService<ExpirableService<PollModel>>();
             DatabaseContext databaseContext = _serviceProvider.CreateScope().ServiceProvider.GetRequiredService<DatabaseContext>();
             foreach (DiscordGuild discordGuild in guildDownloadCompletedEventArgs.Guilds.Values)
             {
