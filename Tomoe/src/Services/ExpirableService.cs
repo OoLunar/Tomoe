@@ -85,7 +85,6 @@ namespace OoLunar.Tomoe.Services
             _periodicTimer = new PeriodicTimer(TimeSpan.FromMinutes(1));
             _connectionString = (databaseContext ?? throw new ArgumentNullException(nameof(databaseContext))).Database.GetConnectionString() ?? throw new InvalidOperationException("Database connection string is null.");
 
-            // Start the periodic timer, which prepares the statements and pulls nearly expired items from the database into the cache.
             _ = ExpireTimerAsync();
         }
 
@@ -221,16 +220,16 @@ namespace OoLunar.Tomoe.Services
         /// <param name="expirable">The object to expire.</param>
         private async Task ExpireItemAsync(T expirable)
         {
+            DiscordShardedClient client = _serviceProvider.GetRequiredService<DiscordShardedClient>();
+            while (client.ShardClients.Count == 0 || client.ShardClients.Values.Any(client => client.Guilds.Count == 0))
+            {
+                await Task.Delay(1000);
+            }
+
             // Ensure the item has actually expired
             if (expirable.ExpiresAt > DateTimeOffset.UtcNow)
             {
                 return;
-            }
-
-            DiscordShardedClient client = _serviceProvider.GetRequiredService<DiscordShardedClient>();
-            while (client.ShardClients.Any(shard => !shard.Value.Guilds.Any()))
-            {
-                await Task.Delay(TimeSpan.FromMilliseconds(100));
             }
 
             try
@@ -252,8 +251,8 @@ namespace OoLunar.Tomoe.Services
         /// </summary>
         private async Task ExpireTimerAsync()
         {
-            // Prepare the statements, ensure the database is ready
             await PrepareStatementsAsync();
+
             _logger.LogInformation("Starting the expirable service for {ItemType}.", typeof(T).FullName);
 
             do
