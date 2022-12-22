@@ -18,7 +18,6 @@ namespace OoLunar.Tomoe.Commands.Common
     [Command("poll", "democrat", "democratic", "anti-tyrant-deterrent")]
     public sealed class PollCommand : BaseCommand
     {
-        private static readonly DiscordEmojiArgumentConverter _emojiArgumentConverter = new();
         private static readonly TimeSpanArgumentConverter _timeSpanArgumentConverter = new();
         private static readonly DateTimeArgumentConverter _dateTimeArgumentConverter = new();
         private readonly PollService _pollService;
@@ -33,7 +32,7 @@ namespace OoLunar.Tomoe.Commands.Common
         [Command("create", "new"), CommandOverloadPriority(0, true)]
         public async Task CreateAsync(CommandContext context, string question, string timeOrDate, params string[] options)
         {
-            if ((await _timeSpanArgumentConverter.ConvertAsync(context, null!, timeOrDate)).IsDefined(out TimeSpan timeSpan))
+            if ((await _timeSpanArgumentConverter.ConvertAsync(context, null!, timeOrDate)).IsDefined(out TimeSpan timeSpan) && timeSpan != TimeSpan.Zero)
             {
                 await CreateAsync(context, question, DateTime.UtcNow.Add(timeSpan), options);
             }
@@ -61,18 +60,37 @@ namespace OoLunar.Tomoe.Commands.Common
                 return;
             }
 
-            Dictionary<string, DiscordEmoji?> choices = new();
+            // Manually parse the first word of each option to test if they contain an emoji id,
+            // then add the emoji to the button.
+            Dictionary<string, DiscordComponentEmoji?> choices = new();
             foreach (string option in options)
             {
-                // Trim and remove duplicates. Extraneous whitespace can occur from quoted parameters.
-                string trimmedChoice = option.Trim();
-                if (!string.IsNullOrWhiteSpace(trimmedChoice) && !choices.ContainsKey(trimmedChoice))
+                // Skip null or empty strings and duplicates.
+                if (choices.ContainsKey(option))
                 {
-                    // Test if the first word is an emoji.
-                    string[] splitChoice = trimmedChoice.Split(' ');
-                    Optional<DiscordEmoji> emoji = await _emojiArgumentConverter.ConvertAsync(context, null!, splitChoice[0]);
-                    choices.Add(string.Join(' ', emoji.HasValue ? splitChoice[1..] : splitChoice), emoji.HasValue ? emoji.Value : null);
+                    continue;
                 }
+
+                // Split the option into an array of words.
+                string[] words = option.Split(' ');
+
+                // Check if the first word is an emoji.
+                if (words.Length > 0 && words[0].Contains(':'))
+                {
+                    // Split the emoji into an array of parts.
+                    string[] parts = words[0].Split(':');
+
+                    // Try to parse the emoji ID.
+                    if (parts.Length > 1 && ulong.TryParse(parts[1][..(parts[1].Length - 1)], out ulong emojiId))
+                    {
+                        // Add the emoji to the dictionary.
+                        choices.Add(option, new DiscordComponentEmoji(emojiId));
+                        continue;
+                    }
+                }
+
+                // Add the option as a regular choice.
+                choices.Add(option, null);
             }
 
             if (choices.Count is < 2 or > 24)
@@ -86,8 +104,8 @@ namespace OoLunar.Tomoe.Commands.Common
             List<DiscordComponent> buttons = new();
             for (int i = 0; i < choices.Count; i++)
             {
-                (string choice, DiscordEmoji? optionalEmoji) = choices.ElementAt(i);
-                buttons.Add(new DiscordButtonComponent(ButtonStyle.Secondary, $"poll:{pollId}:vote:{i}", choice, false, optionalEmoji is not null ? new(optionalEmoji) : null));
+                (string choice, DiscordComponentEmoji? optionalEmoji) = choices.ElementAt(i);
+                buttons.Add(new DiscordButtonComponent(ButtonStyle.Secondary, $"poll:{pollId}:vote:{i}", choice, false, optionalEmoji is not null ? optionalEmoji : null));
 
                 if (buttons.Count == 5)
                 {
@@ -104,6 +122,7 @@ namespace OoLunar.Tomoe.Commands.Common
                 Title = $"Poll Time!",
                 Description = question,
                 Color = new DiscordColor("#6b73db"),
+                Footer = new() { Text = $"Poll ID: {pollId}" }
             };
             embedBuilder.AddField("Expires at", $"{Formatter.Timestamp(expiresAt, TimestampFormat.ShortDateTime)} ({Formatter.Timestamp(expiresAt, TimestampFormat.RelativeTime)})", true);
             embedBuilder.AddField("Votes", $"0 votes so far. {Formatter.Italic("You")}  could be the change!", true); // Double space is intentional.
