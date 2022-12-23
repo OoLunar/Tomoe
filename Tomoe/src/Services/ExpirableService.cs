@@ -221,7 +221,7 @@ namespace OoLunar.Tomoe.Services
         private async Task ExpireItemAsync(T expirable)
         {
             DiscordShardedClient client = _serviceProvider.GetRequiredService<DiscordShardedClient>();
-            while (client.ShardClients.Count == 0 || client.ShardClients.Values.Any(client => client.Guilds.Count == 0))
+            while (client.ShardClients.Count == 0 || client.ShardClients[0].CurrentUser is null || client.ShardClients.Values.Any(client => client.Guilds.Count == 0))
             {
                 await Task.Delay(1000);
             }

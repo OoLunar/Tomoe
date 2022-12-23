@@ -75,17 +75,26 @@ namespace OoLunar.Tomoe.Commands.Common
                 string[] words = option.Split(' ');
 
                 // Check if the first word is an emoji.
-                if (words.Length > 0 && words[0].Contains(':'))
+                if (words.Length > 0)
                 {
-                    // Split the emoji into an array of parts.
-                    string[] parts = words[0].Split(':');
-
-                    // Try to parse the emoji ID.
-                    if (parts.Length > 1 && ulong.TryParse(parts[1][..(parts[1].Length - 1)], out ulong emojiId))
+                    if (!words[0].Contains(':') && DiscordEmoji.IsValidUnicode(words[0]))
                     {
                         // Add the emoji to the dictionary.
-                        choices.Add(option, new DiscordComponentEmoji(emojiId));
+                        choices.Add(string.Join(' ', words[1..]), new DiscordComponentEmoji(words[0]));
                         continue;
+                    }
+                    else
+                    {
+                        // Split the emoji into an array of parts.
+                        string[] parts = words[0].Split(':');
+
+                        // Try to parse the emoji ID.
+                        if (parts.Length > 1 && ulong.TryParse(parts[1][..(parts[1].Length - 1)], out ulong emojiId))
+                        {
+                            // Add the emoji to the dictionary.
+                            choices.Add(option, new DiscordComponentEmoji(emojiId));
+                            continue;
+                        }
                     }
                 }
 
