@@ -38,50 +38,50 @@ docker-compose up -d
 
 ## What features does Tomoe have?
 
-As mentioned previously, Tomoe aims to be the #1 bot choice for Discord Moderation. This means that any and all moderation commands that Vortex, Mee6 and Carl can do, Tomoe will try to implement. Here's the current road map of commands:
+As mentioned previously, Tomoe aims to be the #1 bot choice for Discord Moderation. This means that any and all moderation commands that Vortex, Mee6 and Carl can do, Tomoe will try to appsimplement. Here's the current road map of commands:
 
 | Command                 | Implemented  |
-|-:-----------------------|-:-:----------|
+|------------------------ |--------------|
 | **Moderation Commands** | -            |
-| Antimeme                | ❌           |
-| Autoreact               | ❌           |
 | Ban                     | ❌           |
 | Config                  | ❌           |
 | Doctor                  | ❌           |
 | Kick                    | ❌           |
 | Logging                 | ❌           |
-| Lock                    | ❌           |
 | Modlog                  | ❌           |
 | Mute                    | ❌           |
-| Reaction Roles          | ❌           |
+| Menu Roles              | ✅           |
 | Report                  | ❌           |
 | Strike                  | ❌           |
-| Tempantimeme            | ❌           |
 | Tempban                 | ❌           |
 | Tempmute                | ❌           |
-| Templock                | ❌           |
 | Tempvoiceban            | ❌           |
-| Unantimeme              | ❌           |
 | Unban                   | ❌           |
 | Unmute                  | ❌           |
 | Unvoiceban              | ❌           |
 | Voiceban                | ❌           |
 | **Public commands**     | -            |
 | Bot Info                | ✅           |
-| Flip                    | ❌           |
-| GuildIcon               | ❌           |
-| Invite                  | ❌           |
-| Member Count            | ❌           |
+| Choose                  | ✅           |
+| Echo                    | ✅           |
+| Epoch                   | ✅           |
+| Flip                    | ✅           |
+| GuildIcon               | ✅           |
+| Hex                     | ✅           |
+| Invite                  | ✅           |
+| Member Count            | ✅           |
 | Ping                    | ✅           |
-| Profile Picture         | ❌           |
-| Raw                     | ❌           |
+| Profile Picture         | ✅           |
+| Quote                   | ✅           |
+| Raw                     | ✅           |
 | Reminders               | ❌           |
-| Repository              | ❌           |
-| Role Info               | ❌           |
-| Server Info             | ❌           |
-| Support                 | ❌           |
+| Repository              | ✅           |
+| Role Info               | ✅           |
+| Server Info             | ✅           |
+| Support                 | ✅           |
 | Tag                     | ❌           |
-| Time Of                 | ❌           |
+| Time Of                 | ✅           |
+| Timestamp               | ✅           |
 
 
 ## Why did you chose "Tomoe" as the bots name?
