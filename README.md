@@ -43,45 +43,39 @@ As mentioned previously, Tomoe aims to be the #1 bot choice for Discord Moderati
 | Command                 | Implemented  |
 |------------------------ |--------------|
 | **Moderation Commands** | -            |
-| Antimeme                | ❌           |
-| Autoreact               | ❌           |
 | Ban                     | ❌           |
 | Config                  | ❌           |
 | Doctor                  | ❌           |
 | Kick                    | ❌           |
 | Logging                 | ❌           |
-| Lock                    | ❌           |
 | Modlog                  | ❌           |
 | Mute                    | ❌           |
-| Reaction Roles          | ❌           |
+| Menu Roles              | ❌           |
 | Report                  | ❌           |
 | Strike                  | ❌           |
-| Tempantimeme            | ❌           |
 | Tempban                 | ❌           |
 | Tempmute                | ❌           |
-| Templock                | ❌           |
 | Tempvoiceban            | ❌           |
-| Unantimeme              | ❌           |
 | Unban                   | ❌           |
 | Unmute                  | ❌           |
 | Unvoiceban              | ❌           |
 | Voiceban                | ❌           |
 | **Public commands**     | -            |
 | Bot Info                | ✅           |
-| Flip                    | ❌           |
-| GuildIcon               | ❌           |
-| Invite                  | ❌           |
-| Member Count            | ❌           |
+| Flip                    | ✅           |
+| GuildIcon               | ✅           |
+| Invite                  | ✅           |
+| Member Count            | ✅           |
 | Ping                    | ✅           |
-| Profile Picture         | ❌           |
-| Raw                     | ❌           |
+| Profile Picture         | ✅           |
+| Raw                     | ✅           |
 | Reminders               | ❌           |
-| Repository              | ❌           |
-| Role Info               | ❌           |
-| Server Info             | ❌           |
-| Support                 | ❌           |
+| Repository              | ✅           |
+| Role Info               | ✅           |
+| Server Info             | ✅           |
+| Support                 | ✅           |
 | Tag                     | ❌           |
-| Time Of                 | ❌           |
+| Time Of                 | ✅           |
 
 
 ## Why did you chose "Tomoe" as the bots name?
