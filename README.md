@@ -38,7 +38,7 @@ docker-compose up -d
 
 ## What features does Tomoe have?
 
-As mentioned previously, Tomoe aims to be the #1 bot choice for Discord Moderation. This means that any and all moderation commands that Vortex, Mee6 and Carl can do, Tomoe will try to implement. Here's the current road map of commands:
+As mentioned previously, Tomoe aims to be the #1 bot choice for Discord Moderation. This means that any and all moderation commands that Vortex, Mee6 and Carl can do, Tomoe will try to appsimplement. Here's the current road map of commands:
 
 | Command                 | Implemented  |
 |------------------------ |--------------|
@@ -62,12 +62,16 @@ As mentioned previously, Tomoe aims to be the #1 bot choice for Discord Moderati
 | Voiceban                | ❌           |
 | **Public commands**     | -            |
 | Bot Info                | ✅           |
+| Choose                  | ✅           |
+| Echo                    | ✅           |
+| Epoch                   | ✅           |
 | Flip                    | ✅           |
 | GuildIcon               | ✅           |
 | Invite                  | ✅           |
 | Member Count            | ✅           |
 | Ping                    | ✅           |
 | Profile Picture         | ✅           |
+| Quote                   | ✅           |
 | Raw                     | ✅           |
 | Reminders               | ❌           |
 | Repository              | ✅           |
@@ -76,6 +80,7 @@ As mentioned previously, Tomoe aims to be the #1 bot choice for Discord Moderati
 | Support                 | ✅           |
 | Tag                     | ❌           |
 | Time Of                 | ✅           |
+| Timestamp               | ✅           |
 
 
 ## Why did you chose "Tomoe" as the bots name?
