@@ -50,7 +50,7 @@ As mentioned previously, Tomoe aims to be the #1 bot choice for Discord Moderati
 | Logging                 | ❌           |
 | Modlog                  | ❌           |
 | Mute                    | ❌           |
-| Menu Roles              | ❌           |
+| Menu Roles              | ✅           |
 | Report                  | ❌           |
 | Strike                  | ❌           |
 | Tempban                 | ❌           |
@@ -67,6 +67,7 @@ As mentioned previously, Tomoe aims to be the #1 bot choice for Discord Moderati
 | Epoch                   | ✅           |
 | Flip                    | ✅           |
 | GuildIcon               | ✅           |
+| Hex                     | ✅           |
 | Invite                  | ✅           |
 | Member Count            | ✅           |
 | Ping                    | ✅           |
