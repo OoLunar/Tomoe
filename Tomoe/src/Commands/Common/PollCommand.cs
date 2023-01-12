@@ -1,17 +1,21 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using DSharpPlus;
+using DSharpPlus.CommandAll.Attributes;
+using DSharpPlus.CommandAll.Commands;
+using DSharpPlus.CommandAll.Commands.Converters;
+using DSharpPlus.CommandAll.Commands.Enums;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using Microsoft.Extensions.DependencyInjection;
-using OoLunar.DSharpPlus.CommandAll.Attributes;
-using OoLunar.DSharpPlus.CommandAll.Commands;
-using OoLunar.DSharpPlus.CommandAll.Converters;
+using OoLunar.Tomoe.Database;
 using OoLunar.Tomoe.Database.Models;
 using OoLunar.Tomoe.Events;
 using OoLunar.Tomoe.Services;
+using OoLunar.Tomoe.Services.Pagination;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
@@ -22,21 +26,25 @@ namespace OoLunar.Tomoe.Commands.Common
         private static readonly DateTimeArgumentConverter _dateTimeArgumentConverter = new();
         private readonly PollService _pollService;
         private readonly IServiceProvider _serviceProvider;
+        private readonly DatabaseContext _databaseContext;
+        private readonly PaginatorService _paginatorService;
 
-        public PollCommand(PollService pollService, IServiceProvider serviceProvider)
+        public PollCommand(IServiceProvider serviceProvider, PollService pollService, DatabaseContext databaseContext, PaginatorService paginatorService)
         {
-            _pollService = pollService ?? throw new ArgumentNullException(nameof(pollService));
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            _pollService = pollService ?? throw new ArgumentNullException(nameof(pollService));
+            _databaseContext = databaseContext ?? throw new ArgumentNullException(nameof(databaseContext));
+            _paginatorService = paginatorService ?? throw new ArgumentNullException(nameof(paginatorService));
         }
 
         [Command("create", "new"), CommandOverloadPriority(0, true)]
         public async Task CreateAsync(CommandContext context, string question, string timeOrDate, params string[] options)
         {
-            if ((await _timeSpanArgumentConverter.ConvertAsync(context, null!, timeOrDate)).IsDefined(out TimeSpan timeSpan) && timeSpan != TimeSpan.Zero)
+            if ((await _timeSpanArgumentConverter.ConvertAsync(context, timeOrDate)).IsDefined(out TimeSpan timeSpan) && timeSpan != TimeSpan.Zero)
             {
                 await CreateAsync(context, question, DateTime.UtcNow.Add(timeSpan), options);
             }
-            else if ((await _dateTimeArgumentConverter.ConvertAsync(context, null!, timeOrDate)).IsDefined(out DateTime dateTime))
+            else if ((await _dateTimeArgumentConverter.ConvertAsync(context, timeOrDate)).IsDefined(out DateTime dateTime))
             {
                 await CreateAsync(context, question, dateTime, options);
             }
@@ -141,11 +149,87 @@ namespace OoLunar.Tomoe.Commands.Common
             messageBuilder.AddComponents(buttonRows);
             messageBuilder.AddMentions(Mentions.All);
             await context.ReplyAsync(messageBuilder);
-            await _pollService.CreatePollAsync(pollId, question, choices.Keys, expiresAt, context.Guild?.Id, context.Channel.Id, (await context.GetOriginalResponse()).Id);
+            await _pollService.CreatePollAsync(pollId, question, choices.Keys, expiresAt, context.Guild?.Id, context.Channel.Id, (await context.GetOriginalResponse())!.Id);
         }
 
         [Command("list")]
-        public static Task ListAsync(CommandContext context) => Task.FromException<NotImplementedException>(new NotImplementedException());
+        public async Task ListAsync(CommandContext context, DiscordChannel? channel = null)
+        {
+            await context.DelayAsync();
+
+            List<ulong> channelIds = new();
+            if (channel is not null)
+            {
+                if (!context.Member!.PermissionsIn(channel).HasPermission(Permissions.AccessChannels))
+                {
+                    await context.ReplyAsync("You do not have permission to view polls in that channel.");
+                    return;
+                }
+
+                channelIds.Add(channel.Id);
+            }
+            else
+            {
+                foreach (DiscordChannel guildChannel in context.Guild!.Channels.Values)
+                {
+                    if (context.Member!.PermissionsIn(guildChannel).HasPermission(Permissions.AccessChannels))
+                    {
+                        channelIds.Add(guildChannel.Id);
+                    }
+                }
+            }
+
+            PollModel[] polls = _databaseContext.Polls.Where(poll => poll.GuildId == context.Guild!.Id && channelIds.Contains(poll.ChannelId)).ToArray();
+
+            List<Page> pages = new();
+            foreach (PollModel poll in polls)
+            {
+                DiscordMessageBuilder messageBuilder = new();
+                messageBuilder.AddFile("poll.png", poll.GenerateBarGraph(), true);
+
+                DiscordEmbedBuilder embedBuilder = new()
+                {
+                    Title = poll.Question,
+                    Color = new DiscordColor("#6b73db"),
+                    ImageUrl = "attachment://poll.png",
+                    Footer = new() { Text = $"Poll ID: {poll.Id}" }
+                };
+
+                embedBuilder.AddField("Expires at", $"{Formatter.Timestamp(poll.ExpiresAt, TimestampFormat.ShortDateTime)} ({Formatter.Timestamp(poll.ExpiresAt, TimestampFormat.RelativeTime)})", true);
+                embedBuilder.AddField("Votes", (await _pollService.GetTotalVotesAsync(poll.Id)).ToString(CultureInfo.InvariantCulture), true);
+                messageBuilder.AddEmbed(embedBuilder);
+
+                pages.Add(new PageBuilder()
+                {
+                    Title = poll.Question,
+                    Description = $"Poll ID: {poll.Id}",
+                    MessageBuilder = messageBuilder
+                });
+            }
+
+            if (pages.Count == 0)
+            {
+                await context.EditAsync($"No polls were found{(channel is null ? "." : $" in {channel.Mention}.")}");
+            }
+            else if (pages.Count == 1)
+            {
+                await context.EditAsync(pages[0].MessageBuilder);
+            }
+            else
+            {
+                Paginator paginator = _paginatorService.CreatePaginator(pages, context.User);
+                await context.EditAsync(paginator.GenerateMessage());
+
+                if (context.InvocationType == CommandInvocationType.SlashCommand)
+                {
+                    paginator.Interaction = context.Interaction;
+                }
+                else
+                {
+                    paginator.CurrentMessage = context.Response;
+                }
+            }
+        }
 
         [DiscordEvent]
         public async Task PollSubmittedAsync(DiscordClient client, ComponentInteractionCreateEventArgs eventArgs)
@@ -201,7 +285,7 @@ namespace OoLunar.Tomoe.Commands.Common
         [DiscordEvent]
         public async Task PollDeletedAsync(DiscordClient client, MessageDeleteEventArgs eventArgs)
         {
-            if (eventArgs.Message.Author.Id != client.CurrentUser.Id
+            if (eventArgs.Message.Author?.Id != client.CurrentUser.Id
                 || eventArgs.Message.Components is null
                 || !eventArgs.Message.Components.Any()
                 || eventArgs.Message.Components.FirstOrDefault()?.Components?.FirstOrDefault() is not DiscordButtonComponent button)

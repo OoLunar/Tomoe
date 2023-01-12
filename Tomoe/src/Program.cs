@@ -14,6 +14,7 @@ using Microsoft.Extensions.Logging;
 using OoLunar.Tomoe.Database;
 using OoLunar.Tomoe.Events;
 using OoLunar.Tomoe.Services;
+using OoLunar.Tomoe.Services.Pagination;
 using Serilog;
 using Serilog.Events;
 using Serilog.Filters;
@@ -105,6 +106,7 @@ namespace OoLunar.Tomoe
             serviceCollection.AddSingleton(new HttpClient() { DefaultRequestHeaders = { { "User-Agent", $"OoLunar.Tomoe/{currentAssembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion} Github" } } });
             serviceCollection.AddSingleton<ImageUtilitiesService>();
             serviceCollection.AddSingleton(typeof(ExpirableService<>));
+            serviceCollection.AddSingleton(typeof(PaginatorService));
             serviceCollection.AddScoped<RoleMenuService>();
             serviceCollection.AddScoped<PollService>();
             serviceCollection.AddSingleton((serviceProvider) =>

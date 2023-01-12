@@ -118,20 +118,24 @@ namespace OoLunar.Tomoe.Database.Models
                 Content = winners.Count switch
                 {
                     // We don't need to account for 0 votes due to the above check.
-                    0 => "The winner is... Nobody! There weren't any votes...",
+                    0 or _ when winners.First().Value == 0 => "The winner is... Nobody! There weren't any votes...",
                     1 => $"The winner is {winners.First().Key} with {winners.First().Value:N0} vote{(winners.First().Value == 1 ? null : "s")}!", // The winner is Minecraft with 14,012 votes!
                     2 => $"We have a two way tie between {winners.First().Key} and {winners.ElementAt(1).Key}. Both have {winners.First().Value:N0} vote{(winners.First().Value == 1 ? null : "s")}!", // We have a two way tie between Minecraft and Terraria. Both have 1 vote!
                     _ => $"We have a {winners.Count.ToWords()} way tie, each with {winners.First().Value:N0} vote{(winners.First().Value == 1 ? null : "s")}! Nobody could decide between {winners.Select(x => x.Key).Humanize()}." // We have a six way tie, each with 14,012 votes! Nobody could decide between Minecraft, Terraria, Hollow Knight, Mario Kart Wii, Wii Sports and Smash Bros.!
                 }
             };
 
-            _ = messageBuilder.WithReply(MessageId);
-            _ = messageBuilder.WithAllowedMentions(Mentions.None);
-            _ = messageBuilder.AddFile("image.png", GenerateBarGraph());
+            messageBuilder.WithReply(MessageId);
+            messageBuilder.WithAllowedMentions(Mentions.None);
+
+            if (winners.First().Value != 0)
+            {
+                messageBuilder.AddFile("image.png", GenerateBarGraph());
+            }
 
             try
             {
-                _ = await channel.SendMessageAsync(messageBuilder);
+                await channel.SendMessageAsync(messageBuilder);
                 logger.LogInformation("Sent poll results for poll {PollId}.", Id);
             }
             catch (DiscordException error) when (error.WebResponse.ResponseCode >= 500)
@@ -141,10 +145,10 @@ namespace OoLunar.Tomoe.Database.Models
                 await expirableService.UpdateAsync(this);
             }
 
-            _ = await pollService.RemovePollAsync(Id);
+            await pollService.RemovePollAsync(Id);
         }
 
-        private Stream GenerateBarGraph()
+        public Stream GenerateBarGraph()
         {
             // Create a dictionary to count the votes for each option
             Dictionary<int, int> optionVotes = Options.Select((_, i) => new KeyValuePair<int, int>(i, 0)).ToDictionary(x => x.Key, x => x.Value);
@@ -158,24 +162,6 @@ namespace OoLunar.Tomoe.Database.Models
             // Sort the dictionary by the value (the number of votes)
             optionVotes = new(optionVotes.OrderByDescending(x => x.Value));
             int maxVotes = optionVotes.First().Value;
-
-            //Axis[] axes = new Axis[Options.Length];
-            //for (int i = 0; i < Options.Length; i++)
-            //{
-            //    ISeries[] bars = new ISeries[Options.Length];
-            //    bars[i] = new ColumnSeries<int>
-            //    {
-            //        Name = Options[i],
-            //        Values = optionVotes.Values.ToArray(),
-            //        IsHoverable = false
-            //    };
-            //
-            //    axes[i] = new Axis
-            //    {
-            //        Labels = Options,
-            //        Series = bars
-            //    };
-            //}
 
             ISeries[] bars = new[] {
                 new ColumnSeries<int>

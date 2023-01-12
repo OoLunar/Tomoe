@@ -14,9 +14,13 @@ namespace OoLunar.Tomoe.Commands.Moderation
 {
     public sealed class MoveCommand : BaseCommand
     {
+<<<<<<< HEAD
         private readonly HttpClient _httpClient;
 
         public MoveCommand(HttpClient httpClient) => _httpClient = httpClient;
+=======
+        public static readonly HttpClient HttpClient = new() { DefaultRequestHeaders = { { "User-Agent", "Tomoe Discord Bot/5.0" } } };
+>>>>>>> b28dba9 (Uh oh)
 
         [Command("move"), Description("Moves a chunk of messages (inclusive) to a different channel.")]
         public async Task MoveAsync(CommandContext context, DiscordChannel channel, DiscordMessage firstMessage, DiscordMessage? lastMessage = null)
@@ -49,7 +53,11 @@ namespace OoLunar.Tomoe.Commands.Moderation
             await webhook.ExecuteAsync(webhookBuilder);
             foreach (DiscordMessage message in messages.OrderBy(x => x.CreationTimestamp))
             {
+<<<<<<< HEAD
                 webhookBuilder = new DiscordWebhookBuilder(new DiscordMessageBuilder(message));
+=======
+                webhookBuilder = (DiscordWebhookBuilder)(IDiscordMessageBuilder)new DiscordMessageBuilder(message);
+>>>>>>> b28dba9 (Uh oh)
                 DiscordMember? member = (DiscordMember)message.Author;
                 webhookBuilder.WithUsername(member.DisplayName);
                 webhookBuilder.WithAvatarUrl(member.GuildAvatarUrl ?? member.AvatarUrl);
@@ -65,6 +73,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
 
                 if (message.Attachments.Count != 0)
                 {
+<<<<<<< HEAD
                     List<string> attachments = new();
                     for (int i = 0; i < message.Attachments.Count; i++)
                     {
@@ -79,6 +88,22 @@ namespace OoLunar.Tomoe.Commands.Moderation
                         }
                         attachments.Add(attachment.FileName);
                     }
+=======
+                    Dictionary<string, Stream> attachments = new();
+                    for (int i = 0; i < message.Attachments.Count; i++)
+                    {
+                        DiscordAttachment attachment = message.Attachments[i];
+                        if (attachments.ContainsKey(attachment.FileName))
+                        {
+                            webhookBuilder.AddFile(attachment.FileName + i.ToString(CultureInfo.InvariantCulture), await HttpClient.GetStreamAsync(attachment.Url), true);
+                        }
+                        else
+                        {
+                            webhookBuilder.AddFile(attachment.FileName, await HttpClient.GetStreamAsync(attachment.Url), true);
+                        }
+                    }
+                    webhookBuilder.AddFiles(attachments, true);
+>>>>>>> b28dba9 (Uh oh)
                 }
 
                 if (message.Components.Count != 0)
