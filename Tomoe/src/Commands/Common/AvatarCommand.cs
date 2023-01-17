@@ -3,11 +3,11 @@ using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
 using DSharpPlus;
+using DSharpPlus.CommandAll.Attributes;
+using DSharpPlus.CommandAll.Commands;
+using DSharpPlus.CommandAll.Commands.Enums;
 using DSharpPlus.Entities;
 using Humanizer;
-using OoLunar.DSharpPlus.CommandAll.Attributes;
-using OoLunar.DSharpPlus.CommandAll.Commands;
-using OoLunar.DSharpPlus.CommandAll.Commands.System.Commands;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Metadata;
 
@@ -27,7 +27,7 @@ namespace OoLunar.Tomoe.Commands.Common
         [Command("webhook", "wb"), SuppressMessage("Roslyn", "IDE0046", Justification = "Avoid the ternary operator rabbit hole")]
         public Task WebhookAsync(CommandContext context, [RequiredBy(RequiredBy.SlashCommand)] DiscordMessage? message = null, ImageFormat imageFormat = ImageFormat.Auto, ushort imageDimensions = 0)
         {
-            if (context.IsSlashCommand || message is not null)
+            if (context.InvocationType.HasFlag(CommandInvocationType.SlashCommand) || message is not null)
             {
                 return SendAvatarAsync(context, $"{message!.Author.Username}{(message.Author.Username.EndsWith('s') ? "'" : "'s")} Avatar", message.Author.GetAvatarUrl(imageFormat == ImageFormat.Unknown ? ImageFormat.Auto : imageFormat, imageDimensions == 0 ? (ushort)1024 : imageDimensions));
             }
@@ -72,7 +72,12 @@ namespace OoLunar.Tomoe.Commands.Common
             };
 
             embedBuilder.AddField("Image Format", Image.DetectFormat(imageStream).Name, true);
-            embedBuilder.AddField("Frame Count", image.Frames.Count.ToString("N0"), true);
+
+            if (url.Contains("a_"))
+            {
+                embedBuilder.AddField("Frame Count", image.Frames.Count.ToString("N0"), true);
+            }
+
             embedBuilder.AddField("File Size", imageStream.Length.Bytes().Humanize(), true);
             embedBuilder.AddField("Image Resolution", image.Metadata.ResolutionUnits switch
             {

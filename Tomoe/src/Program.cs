@@ -6,11 +6,11 @@ using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
 using DSharpPlus;
+using DSharpPlus.CommandAll;
+using DSharpPlus.CommandAll.Parsers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using OoLunar.DSharpPlus.CommandAll;
-using OoLunar.DSharpPlus.CommandAll.Parsers;
 using OoLunar.Tomoe.Database;
 using OoLunar.Tomoe.Events;
 using OoLunar.Tomoe.Services;
@@ -78,6 +78,7 @@ namespace OoLunar.Tomoe
 
             Assembly currentAssembly = typeof(Program).Assembly;
             serviceCollection.AddSingleton(new HttpClient() { DefaultRequestHeaders = { { "User-Agent", $"OoLunar.Tomoe/{currentAssembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion} Github" } } });
+            serviceCollection.AddSingleton<ImageUtilitiesService>();
             serviceCollection.AddSingleton((serviceProvider) =>
             {
                 DiscordEventManager eventManager = new(serviceProvider);

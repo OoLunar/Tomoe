@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging;
-using OoLunar.DSharpPlus.CommandAll;
-using OoLunar.DSharpPlus.CommandAll.Commands.Builders.Commands;
-using OoLunar.DSharpPlus.CommandAll.EventArgs;
+using DSharpPlus.CommandAll;
+using DSharpPlus.CommandAll.Commands.Builders;
+using DSharpPlus.CommandAll.EventArgs;
 
 namespace OoLunar.Tomoe.Events.Handlers
 {
@@ -19,7 +19,7 @@ namespace OoLunar.Tomoe.Events.Handlers
         public Task OnConfigureCommandsAsync(CommandAllExtension extension, ConfigureCommandsEventArgs configureCommandsEventArgs)
         {
             _logger.LogInformation("Configuring commands.");
-            DescribeCommands(configureCommandsEventArgs.CommandManager.CommandBuilders.Values);
+            DescribeCommands(configureCommandsEventArgs.CommandManager.GetCommandBuilders());
             _logger.LogInformation("Commands configured.");
             return Task.CompletedTask;
         }

@@ -5,9 +5,9 @@ using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
 using Humanizer;
-using OoLunar.DSharpPlus.CommandAll;
-using OoLunar.DSharpPlus.CommandAll.EventArgs;
-using OoLunar.DSharpPlus.CommandAll.Exceptions;
+using DSharpPlus.CommandAll;
+using DSharpPlus.CommandAll.EventArgs;
+using DSharpPlus.CommandAll.Exceptions;
 
 namespace OoLunar.Tomoe.Events.Handlers
 {

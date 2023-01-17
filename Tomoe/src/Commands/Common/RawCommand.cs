@@ -1,11 +1,13 @@
+using System;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using DSharpPlus;
+using DSharpPlus.CommandAll.Attributes;
+using DSharpPlus.CommandAll.Commands;
+using DSharpPlus.CommandAll.Commands.Enums;
 using DSharpPlus.Entities;
 using DSharpPlus.Net.Serialization;
-using OoLunar.DSharpPlus.CommandAll.Attributes;
-using OoLunar.DSharpPlus.CommandAll.Commands;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
@@ -14,7 +16,7 @@ namespace OoLunar.Tomoe.Commands.Common
         [Command("raw", "print")]
         public static Task ExecuteAsync(CommandContext context, [RequiredBy(RequiredBy.SlashCommand)] DiscordMessage? message = null, bool jsonfied = false)
         {
-            if (!context.IsSlashCommand && message is null)
+            if (!context.InvocationType.HasFlag(CommandInvocationType.SlashCommand) && message is null)
             {
                 message = context.Message!.ReferencedMessage;
             }
@@ -55,5 +57,7 @@ namespace OoLunar.Tomoe.Commands.Common
 
             return context.ReplyAsync(messageBuilder);
         }
+
+        public override Task OnErrorAsync(CommandContext context, Exception exception) => context.ReplyAsync("Please make sure the message has text or an embed!");
     }
 }

@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
-using OoLunar.DSharpPlus.CommandAll.Attributes;
-using OoLunar.DSharpPlus.CommandAll.Commands;
+using DSharpPlus.CommandAll.Attributes;
+using DSharpPlus.CommandAll.Commands;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
