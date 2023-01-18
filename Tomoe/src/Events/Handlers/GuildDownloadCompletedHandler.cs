@@ -47,6 +47,10 @@ namespace OoLunar.Tomoe.Events.Handlers
                         {
                             newMembers.Add(new GuildMemberModel(discordMember));
                         }
+                        else if (!guildMemberModel.RoleIds.SequenceEqual(discordMember.Roles.Select(role => role.Id)))
+                        {
+                            guildMemberModel.RoleIds = discordMember.Roles.Select(role => role.Id).ToArray();
+                        }
                     }
 
                     databaseContext.Members.AddRange(newMembers);

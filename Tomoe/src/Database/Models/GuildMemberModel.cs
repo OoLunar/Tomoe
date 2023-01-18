@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using DSharpPlus.Entities;
 
 namespace OoLunar.Tomoe.Database.Models
@@ -10,6 +11,7 @@ namespace OoLunar.Tomoe.Database.Models
         public ulong GuildId { get; private set; }
         public DateTime JoinedAt { get; private set; }
         public MemberState Flags { get; internal set; }
+        public ulong[] RoleIds { get; internal set; }
 
         public GuildMemberModel() { }
         public GuildMemberModel(DiscordMember member)
@@ -17,6 +19,8 @@ namespace OoLunar.Tomoe.Database.Models
             UserId = member.Id;
             GuildId = member.Guild.Id;
             JoinedAt = member.JoinedAt.UtcDateTime;
+            Flags = MemberState.None;
+            RoleIds = member.Roles.Select(role => role.Id).ToArray();
         }
     }
 
