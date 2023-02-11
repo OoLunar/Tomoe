@@ -4,10 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.CommandAll.Attributes;
-using DSharpPlus.CommandAll.Attributes;
 using DSharpPlus.CommandAll.Commands;
-using DSharpPlus.CommandAll.Commands;
-using DSharpPlus.CommandAll.Commands.Converters;
 using DSharpPlus.CommandAll.Converters;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
@@ -52,7 +49,7 @@ namespace OoLunar.Tomoe.Commands.Server
                 return;
             }
 
-            Optional<DiscordChannel> channelOptional = await _channelConverter.ConvertAsync(context, responses[3]);
+            Optional<DiscordChannel> channelOptional = await _channelConverter.ConvertAsync(context, null!, responses[3]);
             if (channelOptional.IsDefined(out DiscordChannel? channel))
             {
                 if (!channel!.PermissionsFor(context.Member).HasPermission(Permissions.SendMessages))
@@ -70,14 +67,14 @@ namespace OoLunar.Tomoe.Commands.Server
             Optional<DiscordEmoji> emojiOptional = default;
             if (!string.IsNullOrWhiteSpace(responses[2]))
             {
-                emojiOptional = await _emojiConverter.ConvertAsync(context, responses[2]);
+                emojiOptional = await _emojiConverter.ConvertAsync(context, null!, responses[2]);
             }
 
             RoleMenuModel roleMenu = _roleMenuService.AddRoleMenu(context.Guild!.Id, roles.Select(role => role.Id).ToArray());
             DiscordButtonComponent button = new(ButtonStyle.Primary, $"role-menu:{roleMenu.Id}:list", responses[1], false, emojiOptional.IsDefined(out DiscordEmoji? emoji) ? new(emoji) : null);
 
             DiscordMessageBuilder messageBuilder = new() { Content = responses[0] };
-            Optional<DiscordMessage> messageOptional = await _messageConverter.ConvertAsync(context, responses[4]);
+            Optional<DiscordMessage> messageOptional = await _messageConverter.ConvertAsync(context, null!, responses[4]);
             if (messageOptional.IsDefined(out DiscordMessage? message))
             {
                 if (message!.Author != context.Guild!.CurrentMember)

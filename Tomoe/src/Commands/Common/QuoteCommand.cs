@@ -1,8 +1,6 @@
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.CommandAll.Attributes;
-using DSharpPlus.CommandAll.Attributes;
-using DSharpPlus.CommandAll.Commands;
 using DSharpPlus.CommandAll.Commands;
 using DSharpPlus.Entities;
 

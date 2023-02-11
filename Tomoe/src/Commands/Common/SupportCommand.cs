@@ -1,7 +1,5 @@
 using System.Threading.Tasks;
 using DSharpPlus.CommandAll.Attributes;
-using DSharpPlus.CommandAll.Attributes;
-using DSharpPlus.CommandAll.Commands;
 using DSharpPlus.CommandAll.Commands;
 using Microsoft.Extensions.Configuration;
 
