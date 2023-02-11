@@ -1,0 +1,4 @@
+[submodule "libs/DSharpPlus.CommandAll"]
+	path = libs/DSharpPlus.CommandAll
+	url = git@github.com:OoLunar/DSharpPlus.CommandAll.git
+	branch = feature/ArgumentConvertersRewriteTwo
