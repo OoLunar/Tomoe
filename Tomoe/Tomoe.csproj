@@ -7,7 +7,7 @@
     <Version>5.0.0</Version>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="../libs/OoLunar.DSharpPlus.CommandAll/src/OoLunar.DSharpPlus.CommandAll.csproj" />
+    <ProjectReference Include="../libs/DSharpPlus.CommandAll/src/OoLunar.DSharpPlus.CommandAll.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="EFCore.NamingConventions" Version="7.0.0" />
