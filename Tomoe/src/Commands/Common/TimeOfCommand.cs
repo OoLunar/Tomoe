@@ -22,14 +22,14 @@ namespace OoLunar.Tomoe.Commands.Common
             StringBuilder invalidMessageIds = new();
             foreach (string message in messages)
             {
-                Optional<ulong> parsedMessageId = await _uint64ArgumentConverter.ConvertAsync(context, null!, message);
+                Optional<ulong> parsedMessageId = await _uint64ArgumentConverter.ConvertAsync(context, message);
                 if (parsedMessageId.HasValue)
                 {
                     messageIds.Add(parsedMessageId.Value);
                     continue;
                 }
 
-                Optional<DiscordMessage> parsedMessage = await _discordMessageArgumentConverter.ConvertAsync(context, null!, message);
+                Optional<DiscordMessage> parsedMessage = await _discordMessageArgumentConverter.ConvertAsync(context, message);
                 if (parsedMessage.HasValue)
                 {
                     messageIds.Add(parsedMessage.Value.Id);

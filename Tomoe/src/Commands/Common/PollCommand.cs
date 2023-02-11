@@ -40,11 +40,11 @@ namespace OoLunar.Tomoe.Commands.Common
         [Command("create", "new"), CommandOverloadPriority(0, true)]
         public async Task CreateAsync(CommandContext context, string question, string timeOrDate, params string[] options)
         {
-            if ((await _timeSpanArgumentConverter.ConvertAsync(context, null!, timeOrDate)).IsDefined(out TimeSpan timeSpan) && timeSpan != TimeSpan.Zero)
+            if ((await _timeSpanArgumentConverter.ConvertAsync(context, timeOrDate)).IsDefined(out TimeSpan timeSpan) && timeSpan != TimeSpan.Zero)
             {
                 await CreateAsync(context, question, DateTime.UtcNow.Add(timeSpan), options);
             }
-            else if ((await _dateTimeArgumentConverter.ConvertAsync(context, null!, timeOrDate)).IsDefined(out DateTime dateTime))
+            else if ((await _dateTimeArgumentConverter.ConvertAsync(context, timeOrDate)).IsDefined(out DateTime dateTime))
             {
                 await CreateAsync(context, question, dateTime, options);
             }
