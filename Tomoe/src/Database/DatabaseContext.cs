@@ -1,5 +1,4 @@
 using System;
-using System.Globalization;
 using System.IO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
@@ -14,6 +13,7 @@ namespace OoLunar.Tomoe.Database
         public DbSet<GuildModel> Guilds { get; init; } = null!;
         public DbSet<GuildMemberModel> Members { get; init; } = null!;
         public DbSet<RoleMenuModel> RoleMenus { get; init; } = null!;
+        public DbSet<PollModel> Polls { get; init; } = null!;
 
         // Standard EFCore convention.
         public DatabaseContext() { }
@@ -38,6 +38,8 @@ namespace OoLunar.Tomoe.Database
             return new(optionsBuilder.Options);
         }
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder) => modelBuilder.HasPostgresExtension("hstore");
+
         internal static void ConfigureOptions(DbContextOptionsBuilder optionsBuilder, IConfiguration configuration)
         {
             NpgsqlConnectionStringBuilder connectionBuilder = new()
@@ -50,7 +52,6 @@ namespace OoLunar.Tomoe.Database
                 Password = configuration.GetValue<string>("database:password")
             };
             optionsBuilder.UseNpgsql(connectionBuilder.ToString(), options => options.EnableRetryOnFailure(5));
-            optionsBuilder.UseSnakeCaseNamingConvention(CultureInfo.InvariantCulture);
         }
     }
 }

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using OoLunar.Tomoe.Database;
@@ -12,9 +13,11 @@ using OoLunar.Tomoe.Database;
 namespace Tomoe.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20221210040035_5.0.0")]
+    partial class _500
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -38,11 +41,6 @@ namespace Tomoe.Migrations
 
                     b.Property<DateTime>("JoinedAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<decimal[]>("RoleIds")
-                        .IsRequired()
-                        .HasColumnType("numeric(20,0)[]")
-                        .HasColumnName("role_ids");
 
                     b.Property<decimal>("UserId")
                         .HasColumnType("numeric(20,0)");

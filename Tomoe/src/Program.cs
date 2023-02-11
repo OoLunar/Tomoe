@@ -14,6 +14,7 @@ using Microsoft.Extensions.Logging;
 using OoLunar.Tomoe.Database;
 using OoLunar.Tomoe.Events;
 using OoLunar.Tomoe.Services;
+using OoLunar.Tomoe.Services.Pagination;
 using Serilog;
 using Serilog.Events;
 using Serilog.Filters;
@@ -23,6 +24,8 @@ namespace OoLunar.Tomoe
 {
     public sealed class Program
     {
+        public static IServiceProvider Services { get; private set; } = null!;
+
         public static async Task Main(string[] args)
         {
             ConfigurationBuilder configurationBuilder = new();
@@ -77,8 +80,6 @@ namespace OoLunar.Tomoe
             serviceCollection.AddDbContext<DatabaseContext>((services, options) => DatabaseContext.ConfigureOptions(options, services.GetRequiredService<IConfiguration>()), ServiceLifetime.Scoped);
 
             Assembly currentAssembly = typeof(Program).Assembly;
-            serviceCollection.AddSingleton(new HttpClient() { DefaultRequestHeaders = { { "User-Agent", $"OoLunar.Tomoe/{currentAssembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion} Github" } } });
-            serviceCollection.AddSingleton<ImageUtilitiesService>();
             serviceCollection.AddSingleton((serviceProvider) =>
             {
                 DiscordEventManager eventManager = new(serviceProvider);
@@ -89,7 +90,6 @@ namespace OoLunar.Tomoe
             // Register the Discord sharded client to the service collection
             serviceCollection.AddSingleton((serviceProvider) =>
             {
-                DiscordEventManager eventManager = serviceProvider.GetRequiredService<DiscordEventManager>();
                 IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
                 DiscordConfiguration discordConfig = new()
                 {
@@ -99,14 +99,28 @@ namespace OoLunar.Tomoe
                 };
 
                 DiscordShardedClient shardedClient = new(discordConfig);
-                eventManager.RegisterEventHandlers(shardedClient);
+                shardedClient.InitializeShardsAsync().GetAwaiter().GetResult();
                 return shardedClient;
             });
 
+            serviceCollection.AddSingleton(new HttpClient() { DefaultRequestHeaders = { { "User-Agent", $"OoLunar.Tomoe/{currentAssembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion} Github" } } });
+            serviceCollection.AddSingleton<ImageUtilitiesService>();
+            serviceCollection.AddSingleton(typeof(ExpirableService<>));
+            serviceCollection.AddSingleton(typeof(PaginatorService));
             serviceCollection.AddScoped<RoleMenuService>();
-            ServiceProvider services = serviceCollection.BuildServiceProvider();
-            DiscordShardedClient shardedClient = services.GetRequiredService<DiscordShardedClient>();
-            DiscordEventManager eventManager = services.GetRequiredService<DiscordEventManager>();
+            serviceCollection.AddScoped<PollService>();
+            serviceCollection.AddSingleton((serviceProvider) =>
+            {
+                DiscordEventManager eventManager = new(serviceProvider);
+                eventManager.GatherEventHandlers(currentAssembly);
+                return eventManager;
+            });
+
+            Services = serviceCollection.BuildServiceProvider();
+            DiscordShardedClient shardedClient = Services.GetRequiredService<DiscordShardedClient>();
+            DiscordEventManager eventManager = Services.GetRequiredService<DiscordEventManager>();
+            eventManager.RegisterEventHandlers(shardedClient);
+
             IReadOnlyDictionary<int, CommandAllExtension> extensions = await shardedClient.UseCommandAllAsync(new(serviceCollection)
             {
                 DebugGuildId = configuration.GetValue<ulong>("discord:debug_guild_id"),
