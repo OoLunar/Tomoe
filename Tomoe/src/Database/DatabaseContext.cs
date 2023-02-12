@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
 using OoLunar.Tomoe.Database.Models;
+using OoLunar.Tomoe.Database.Models.Reminders;
 
 namespace OoLunar.Tomoe.Database
 {
@@ -14,6 +15,9 @@ namespace OoLunar.Tomoe.Database
         public DbSet<GuildMemberModel> Members { get; init; } = null!;
         public DbSet<RoleMenuModel> RoleMenus { get; init; } = null!;
         public DbSet<PollModel> Polls { get; init; } = null!;
+        public DbSet<SingleReminderModel> Reminders { get; init; } = null!;
+        public DbSet<RepeatingReminderModel> RepeatingReminders { get; init; } = null!;
+        public DbSet<TodoReminderModel> TodoReminders { get; init; } = null!;
 
         // Standard EFCore convention.
         public DatabaseContext() { }
