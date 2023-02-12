@@ -1,3 +1,5 @@
+using System;
+
 namespace OoLunar.Tomoe.Database.Models.Reminders
 {
     public sealed class TodoReminderModel : IBaseReminderModel
