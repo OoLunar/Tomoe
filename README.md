@@ -23,7 +23,7 @@ dotnet run
 ### Docker
 
 ``` bash
-docker run ghcr.io/oolunar/tomoe --mount ./configs,/src/res
+docker run ghcr.io/oolunar/tomoe --mount ./res,/src/res
 ```
 
 ### Docker-Compose
