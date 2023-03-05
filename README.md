@@ -5,8 +5,7 @@
 Tomoe uses dotnet 7.0. You can get it from [Microsoft](https://dotnet.microsoft.com/download/dotnet/7.0). Tomoe should work on all OS' that .NET is supported on. Mono is not supported due to DSharpPlus intentionally choosing not to support it.
 
 ## Setup
-
-* Edit your `res/config.json` file. If you're planning on contributing to the bot, copy the `res/config.json` file to `config.json.prod` and edit that instead.
+Edit your `res/config.json` file. If you're planning on contributing to the bot, copy the `res/config.json` file to `config.json.prod` and edit that instead.
 
 ``` bash
 git clone https://github.com/OoLunar/Tomoe.git
