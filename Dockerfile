@@ -8,7 +8,6 @@ FROM alpine:latest
 WORKDIR /src
 
 COPY --from=build /src/Tomoe/bin/Release/net7.0/linux-musl-x64/publish /src
-COPY ./Tomoe/res /src/res
-RUN apk upgrade --update-cache --available && apk add openssl libstdc++ icu-libs && rm -rf /var/cache/apk/*
+RUN apk upgrade --update-cache --available && apk add openssl icu-libs && rm -rf /var/cache/apk/*
 
 ENTRYPOINT /src/Tomoe

@@ -4,5 +4,5 @@ services:
   tomoe:
     build: .
     volumes:
-      - ./configs:/src/res
+      - ./res:/src/res
     restart: unless-stopped
