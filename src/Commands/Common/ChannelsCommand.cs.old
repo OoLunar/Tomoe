@@ -1,0 +1,13 @@
+using System.Linq;
+using System.Threading.Tasks;
+using DSharpPlus.CommandAll.Attributes;
+using DSharpPlus.CommandAll.Commands;
+
+namespace OoLunar.Tomoe.Commands.Common
+{
+    public sealed class ChannelsCommand : BaseCommand
+    {
+        [Command("channels")]
+        public static Task ExecuteAsync(CommandContext context) => context.ReplyAsync(string.Join("\n", context.Guild!.OrderedChannels.Select(channel => channel.Mention)));
+    }
+}
