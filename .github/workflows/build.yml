@@ -24,8 +24,6 @@ jobs:
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: 7
-        env:
-          DOTNET_INSTALL_DIR: ${{ github.workspace }}/../.dotnet # Attempts to install to `/usr/share/dotnet`, which is not writable on GitHub Actions by default.
 
       - name: Package
         run: "dotnet build"
