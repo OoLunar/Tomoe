@@ -236,5 +236,24 @@ namespace OoLunar.Tomoe.Database.Models
 
             return barChart.GetImage().Encode().AsStream();
         }
+
+        public static bool operator ==(PollModel? left, PollModel? right) => Equals(left, right);
+        public static bool operator !=(PollModel? left, PollModel? right) => !Equals(left, right);
+        public override bool Equals(object? obj) => obj is PollModel model && Id.Equals(model.Id) && Question == model.Question && EqualityComparer<string[]>.Default.Equals(Options, model.Options) && EqualityComparer<Dictionary<ulong, int>>.Default.Equals(Votes, model.Votes) && ExpiresAt == model.ExpiresAt && GuildId == model.GuildId && ChannelId == model.ChannelId && MessageId == model.MessageId && EqualityComparer<Lazy<Dictionary<string, int>>>.Default.Equals(_winners, model._winners) && EqualityComparer<Dictionary<string, int>>.Default.Equals(Winners, model.Winners);
+        public override int GetHashCode()
+        {
+            HashCode hash = new();
+            hash.Add(Id);
+            hash.Add(Question);
+            hash.Add(Options);
+            hash.Add(Votes);
+            hash.Add(ExpiresAt);
+            hash.Add(GuildId);
+            hash.Add(ChannelId);
+            hash.Add(MessageId);
+            hash.Add(_winners);
+            hash.Add(Winners);
+            return hash.ToHashCode();
+        }
     }
 }

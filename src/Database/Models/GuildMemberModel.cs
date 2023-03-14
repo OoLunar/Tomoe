@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using DSharpPlus.Entities;
 
@@ -52,6 +53,11 @@ namespace OoLunar.Tomoe.Database.Models
             Flags = MemberState.None;
             RoleIds = member.Roles.Select(role => role.Id).ToArray();
         }
+
+        public static bool operator ==(GuildMemberModel? left, GuildMemberModel? right) => Equals(left, right);
+        public static bool operator !=(GuildMemberModel? left, GuildMemberModel? right) => !Equals(left, right);
+        public override bool Equals(object? obj) => obj is GuildMemberModel model && Id.Equals(model.Id) && UserId == model.UserId && GuildId == model.GuildId && JoinedAt == model.JoinedAt && Flags == model.Flags && EqualityComparer<ulong[]>.Default.Equals(RoleIds, model.RoleIds);
+        public override int GetHashCode() => HashCode.Combine(Id, UserId, GuildId, JoinedAt, Flags, RoleIds);
     }
 
     [Flags]

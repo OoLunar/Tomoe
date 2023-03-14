@@ -1,0 +1,4 @@
+root = false
+
+# Silence IDE0053
+dotnet_diagnostic.IDE0053.severity = none

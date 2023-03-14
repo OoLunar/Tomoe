@@ -36,5 +36,10 @@ namespace OoLunar.Tomoe.Database.Models
             Id = menuId;
             RoleIds = roleIds.ToList();
         }
+
+        public static bool operator ==(RoleMenuModel? left, RoleMenuModel? right) => Equals(left, right);
+        public static bool operator !=(RoleMenuModel? left, RoleMenuModel? right) => !Equals(left, right);
+        public override bool Equals(object? obj) => obj is RoleMenuModel model && Id.Equals(model.Id) && GuildId == model.GuildId && EqualityComparer<List<ulong>>.Default.Equals(RoleIds, model.RoleIds);
+        public override int GetHashCode() => HashCode.Combine(Id, GuildId, RoleIds);
     }
 }

@@ -12,5 +12,10 @@ namespace OoLunar.Tomoe.Database.Models.Reminders
         public string Message { get; set; }
         public DateTime Time { get; init; }
         public byte ProcrastinationCount { get; set; }
+
+        public static bool operator ==(SingleReminderModel? left, SingleReminderModel? right) => Equals(left, right);
+        public static bool operator !=(SingleReminderModel? left, SingleReminderModel? right) => !Equals(left, right);
+        public override bool Equals(object? obj) => obj is SingleReminderModel model && Id.Equals(model.Id) && Type == model.Type && UserId == model.UserId && ChannelId == model.ChannelId && GuildId == model.GuildId && Message == model.Message && Time == model.Time && ProcrastinationCount == model.ProcrastinationCount;
+        public override int GetHashCode() => HashCode.Combine(Id, Type, UserId, ChannelId, GuildId, Message, Time, ProcrastinationCount);
     }
 }
