@@ -7,6 +7,7 @@ using DSharpPlus.CommandAll.Attributes;
 using DSharpPlus.CommandAll.Commands;
 using DSharpPlus.CommandAll.Converters;
 using DSharpPlus.Entities;
+using Humanizer;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
@@ -50,6 +51,11 @@ namespace OoLunar.Tomoe.Commands.Common
             foreach (ulong messageId in messageIds)
             {
                 timestamps.Append(CultureInfo.InvariantCulture, $"{Formatter.InlineCode(messageId.ToString(CultureInfo.InvariantCulture))} => {Formatter.InlineCode(messageId.GetSnowflakeTime().ToString("yyyy'-'MM'-'dd' 'HH':'mm':'ss'.'ffff", CultureInfo.InvariantCulture))}\n");
+            }
+
+            if (messageIds.Count == 2)
+            {
+                timestamps.AppendFormat(CultureInfo.InvariantCulture, "Difference: {0}", (messageIds[1].GetSnowflakeTime() - messageIds[0].GetSnowflakeTime()).Humanize(2));
             }
 
             await context.ReplyAsync(timestamps.ToString());

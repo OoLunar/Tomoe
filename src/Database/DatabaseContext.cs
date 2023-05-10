@@ -55,7 +55,8 @@ namespace OoLunar.Tomoe.Database
                 Port = configuration.GetValue("database:port", 5432),
                 Password = configuration.GetValue<string>("database:password")
             };
-            optionsBuilder.UseNpgsql(connectionBuilder.ToString(), options => options.EnableRetryOnFailure(5));
+
+            optionsBuilder.UseNpgsql(connectionBuilder.ToString(), options => options.EnableRetryOnFailure(5).CommandTimeout(5));
         }
     }
 }
