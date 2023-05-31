@@ -22,5 +22,23 @@ namespace OoLunar.Tomoe.Commands.Moderation
             await firstMessage.Channel.DeleteMessagesAsync(messages, reason ?? "No reason provided.");
             await context.ReplyAsync($"{messages.Count():N0} deleted.");
         }
+
+        [Command("clear"), Description("Removes messages by links.")]
+        public static async Task ExecuteAsync(CommandContext context, params DiscordMessage[] messages)
+        {
+            if (messages.DistinctBy(message => message.ChannelId).Count() == 1)
+            {
+                await messages[0].Channel.DeleteMessagesAsync(messages);
+            }
+            else
+            {
+                foreach (DiscordMessage message in messages)
+                {
+                    await message.DeleteAsync();
+                }
+            }
+
+            await context.ReplyAsync($"{messages.Length:N0} messages deleted.");
+        }
     }
 }
