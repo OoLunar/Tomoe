@@ -6,24 +6,20 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using DSharpPlus;
-using DSharpPlus.CommandAll.Attributes;
 using DSharpPlus.CommandAll.Commands;
+using DSharpPlus.CommandAll.Commands.Attributes;
 using DSharpPlus.Entities;
 
 namespace OoLunar.Tomoe.Commands.Moderation
 {
-    public sealed class MoveCommand : BaseCommand
+    public sealed class MoveCommand(HttpClient httpClient)
     {
-        private readonly HttpClient _httpClient;
-
-        public MoveCommand(HttpClient httpClient) => _httpClient = httpClient;
-
         [Command("move"), Description("Moves a chunk of messages (inclusive) to a different channel.")]
         public async Task MoveAsync(CommandContext context, DiscordChannel channel, DiscordMessage firstMessage, DiscordMessage? lastMessage = null)
         {
-            await context.DelayAsync();
-            IEnumerable<DiscordMessage> messages = (await firstMessage.Channel.GetMessagesAfterAsync(firstMessage.Id)).Prepend(firstMessage);
-            if (lastMessage != null)
+            await context.DeleteResponseAsync();
+            IEnumerable<DiscordMessage> messages = firstMessage.Channel.GetMessagesAfterAsync(firstMessage.Id).ToBlockingEnumerable().Prepend(firstMessage);
+            if (lastMessage is not null)
             {
                 messages = messages.OrderBy(x => x.CreationTimestamp).TakeWhile(m => m.Id != lastMessage.Id).Append(lastMessage);
             }
@@ -32,7 +28,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
             {
                 Username = $"{context.Guild!.CurrentMember.Username} (Message Mover)",
                 AvatarUrl = context.Guild.CurrentMember.AvatarUrl,
-                Content = $"Started moving messages. This may take awhile.\nFirst message: {firstMessage.JumpLink}\nLast message: {(lastMessage == null ? "Latest message." : lastMessage.JumpLink)}"
+                Content = $"Started moving messages. This may take awhile.\nFirst message: {firstMessage.JumpLink}\nLast message: {(lastMessage is null ? "Latest message." : lastMessage.JumpLink)}"
             };
 
             DiscordWebhook webhook;
@@ -65,17 +61,17 @@ namespace OoLunar.Tomoe.Commands.Moderation
 
                 if (message.Attachments.Count != 0)
                 {
-                    List<string> attachments = new();
+                    List<string> attachments = [];
                     for (int i = 0; i < message.Attachments.Count; i++)
                     {
                         DiscordAttachment attachment = message.Attachments[i];
                         if (attachments.Contains(attachment.FileName))
                         {
-                            webhookBuilder.AddFile(attachment.FileName + i.ToString(CultureInfo.InvariantCulture), await _httpClient.GetStreamAsync(attachment.Url), false);
+                            webhookBuilder.AddFile(attachment.FileName + i.ToString(CultureInfo.InvariantCulture), await httpClient.GetStreamAsync(attachment.Url), false);
                         }
                         else
                         {
-                            webhookBuilder.AddFile(attachment.FileName, await _httpClient.GetStreamAsync(attachment.Url), false);
+                            webhookBuilder.AddFile(attachment.FileName, await httpClient.GetStreamAsync(attachment.Url), false);
                         }
                         attachments.Add(attachment.FileName);
                     }
@@ -90,7 +86,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
             }
             await webhook.ExecuteAsync(new DiscordWebhookBuilder().WithUsername(context.Guild.CurrentMember.Username + " (Message Mover)").WithAvatarUrl(context.Guild.CurrentMember.AvatarUrl).WithContent($"Messages have been moved."));
             await webhook.DeleteAsync();
-            await context.ReplyAsync($"{messages.Count()} messages have been moved.");
+            await context.RespondAsync($"{messages.Count()} messages have been moved.");
         }
     }
 }

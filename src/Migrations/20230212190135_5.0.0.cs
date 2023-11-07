@@ -21,10 +21,7 @@ namespace Tomoe.Migrations
                 {
                     Id = table.Column<decimal>(type: "numeric(20,0)", nullable: false)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Guilds", x => x.Id);
-                });
+                constraints: table => table.PrimaryKey("PK_Guilds", x => x.Id));
 
             migrationBuilder.CreateTable(
                 name: "Members",
@@ -37,10 +34,7 @@ namespace Tomoe.Migrations
                     Flags = table.Column<int>(type: "integer", nullable: false),
                     RoleIds = table.Column<decimal[]>(type: "numeric(20,0)[]", nullable: false)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Members", x => x.Id);
-                });
+                constraints: table => table.PrimaryKey("PK_Members", x => x.Id));
 
             migrationBuilder.CreateTable(
                 name: "Polls",
@@ -55,10 +49,7 @@ namespace Tomoe.Migrations
                     ChannelId = table.Column<decimal>(type: "numeric(20,0)", nullable: false),
                     MessageId = table.Column<decimal>(type: "numeric(20,0)", nullable: false)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Polls", x => x.Id);
-                });
+                constraints: table => table.PrimaryKey("PK_Polls", x => x.Id));
 
             migrationBuilder.CreateTable(
                 name: "Reminders",
@@ -73,10 +64,7 @@ namespace Tomoe.Migrations
                     Time = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     ProcrastinationCount = table.Column<byte>(type: "smallint", nullable: false)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Reminders", x => x.Id);
-                });
+                constraints: table => table.PrimaryKey("PK_Reminders", x => x.Id));
 
             migrationBuilder.CreateTable(
                 name: "RepeatingReminders",
@@ -91,10 +79,7 @@ namespace Tomoe.Migrations
                     DaysOfWeek = table.Column<int[]>(type: "integer[]", nullable: false),
                     ExpireTimes = table.Column<TimeSpan[]>(type: "interval[]", nullable: false)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_RepeatingReminders", x => x.Id);
-                });
+                constraints: table => table.PrimaryKey("PK_RepeatingReminders", x => x.Id));
 
             migrationBuilder.CreateTable(
                 name: "RoleMenus",
@@ -104,10 +89,7 @@ namespace Tomoe.Migrations
                     GuildId = table.Column<decimal>(type: "numeric(20,0)", nullable: false),
                     RoleIds = table.Column<decimal[]>(type: "numeric(20,0)[]", nullable: false)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_RoleMenus", x => x.Id);
-                });
+                constraints: table => table.PrimaryKey("PK_RoleMenus", x => x.Id));
 
             migrationBuilder.CreateTable(
                 name: "TodoReminders",
@@ -121,10 +103,7 @@ namespace Tomoe.Migrations
                     Message = table.Column<string>(type: "text", nullable: false),
                     Status = table.Column<int>(type: "integer", nullable: false)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_TodoReminders", x => x.Id);
-                });
+                constraints: table => table.PrimaryKey("PK_TodoReminders", x => x.Id));
         }
 
         /// <inheritdoc />

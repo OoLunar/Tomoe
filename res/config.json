@@ -2,7 +2,8 @@
     "discord": {
         "token": "replace me",
         "debug_guild_id": "custom id",
-        "support_invite": "https://discord.gg/replace me"
+        "support_invite": "https://discord.gg/replace me",
+        "prefix": ">>"
     },
     "database": {
         "host": "localhost",

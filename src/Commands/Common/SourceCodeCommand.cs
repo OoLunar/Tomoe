@@ -2,16 +2,17 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using DSharpPlus;
-using DSharpPlus.CommandAll.Attributes;
 using DSharpPlus.CommandAll.Commands;
+using DSharpPlus.CommandAll.Commands.Attributes;
+using DSharpPlus.CommandAll.Processors.TextCommands.Attributes;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
-    public sealed class SourceCodeCommand : BaseCommand
+    public sealed class SourceCodeCommand
     {
         private static readonly string _sourceCodeUrl = typeof(Program).Assembly.GetCustomAttributes<AssemblyMetadataAttribute>().First(attribute => attribute.Key == "RepositoryUrl").Value!;
 
-        [Command("source_code", "repository", "source", "code")]
-        public static Task ExecuteAsync(CommandContext context) => context.ReplyAsync($"You can find my source code here: {Formatter.EmbedlessUrl(new(_sourceCodeUrl))}");
+        [Command("source_code"), TextAlias("repository", "source", "code", "repo")]
+        public static async Task ExecuteAsync(CommandContext context) => await context.RespondAsync($"You can find my source code here: {Formatter.EmbedlessUrl(new(_sourceCodeUrl))}");
     }
 }

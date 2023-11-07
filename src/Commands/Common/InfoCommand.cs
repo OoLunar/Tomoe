@@ -8,10 +8,11 @@ using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using DSharpPlus;
-using DSharpPlus.CommandAll.Attributes;
+using DSharpPlus.CommandAll;
 using DSharpPlus.CommandAll.Commands;
-using DSharpPlus.CommandAll.Managers;
-using DSharpPlus.CommandAll.Parsers;
+using DSharpPlus.CommandAll.Commands.Attributes;
+using DSharpPlus.CommandAll.ContextChecks;
+using DSharpPlus.CommandAll.Processors.TextCommands.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
 using Humanizer;
@@ -23,7 +24,7 @@ using OoLunar.Tomoe.Services;
 namespace OoLunar.Tomoe.Commands.Common
 {
     [Command("info")]
-    public sealed partial class InfoCommand : BaseCommand
+    public sealed partial class InfoCommand
     {
         private static readonly ReadOnlyMemory<char> _slashPrefix = new[] { ',', ' ', '`', '/', '`' };
         private static readonly Dictionary<string, string> UnicodeEmojis = (Dictionary<string, string>)typeof(DiscordEmoji).GetProperty("UnicodeEmojis", BindingFlags.NonPublic | BindingFlags.Static)!.GetValue(null)!;
@@ -80,11 +81,11 @@ namespace OoLunar.Tomoe.Commands.Common
                 embedBuilder.AddField("Joined Discord", Formatter.Timestamp(user.CreationTimestamp, TimestampFormat.RelativeTime), true);
             }
 
-            await context.ReplyAsync(embedBuilder);
+            await context.RespondAsync(embedBuilder);
         }
 
         [Command("bot")]
-        public Task BotInfoAsync(CommandContext context)
+        public async Task BotInfoAsync(CommandContext context)
         {
             DiscordEmbedBuilder embedBuilder = new()
             {
@@ -105,61 +106,24 @@ namespace OoLunar.Tomoe.Commands.Common
             embedBuilder.AddField("Guild Count", _database.Guilds.LongCount().ToString("N0"), true);
             embedBuilder.AddField("User Count", _database.Members.LongCount().ToString("N0"), true);
 
-            /*
-            List<string> prefixes = new();
-            foreach (string prefix in ((PrefixParser)context.Extension.PrefixParser).Prefixes)
-            {
-                prefixes.Add($"`{prefix}`");
-            }
-
+            List<string> prefixes = [];
+            prefixes.Add("`>>`");
             prefixes.Add("`/`");
             prefixes.Add(context.Client.CurrentUser.Mention);
             embedBuilder.AddField("Prefixes", string.Join(", ", prefixes), true);
-            */
-
-            // Thank you Aki for teaching me about Spans <3
-            int i = 0;
-            Span<char> prefixes = new char[1024]; // Max embed field length
-            foreach (string prefix in ((PrefixParser)context.Extension.PrefixParser).Prefixes)
-            {
-                if (i != 0)
-                {
-                    prefixes[^2] = ',';
-                    prefixes[^1] = ' ';
-                }
-
-                ReadOnlySpan<char> prefixSpan = prefix.AsSpan();
-                prefixes[i++] = '`';
-                prefixSpan.CopyTo(prefixes[i..(i += prefixSpan.Length)]);
-                prefixes[i++] = '`';
-            }
-
-            _slashPrefix.Span.CopyTo(prefixes[i..(i += 5)]);
-            ReadOnlySpan<char> mentionPrefix = context.Client.CurrentUser.Mention.AsSpan();
-            prefixes[i++] = ',';
-            prefixes[i++] = ' ';
-            mentionPrefix.CopyTo(prefixes[i..(i += mentionPrefix.Length)]);
-
-            embedBuilder.AddField("Prefixes", prefixes.ToString().Trim('\0'), true);
             embedBuilder.AddField("Bot Version", typeof(Program).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion, true);
             embedBuilder.AddField("DSharpPlus Library Version", typeof(DiscordClient).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion, true);
-            embedBuilder.AddField("CommandAll Library Version", typeof(CommandManager).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion, true);
+            embedBuilder.AddField("CommandAll Library Version", typeof(CommandAllExtension).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion, true);
 
-            return context.ReplyAsync(embedBuilder);
+            await context.RespondAsync(embedBuilder);
         }
 
         [GeneratedRegex(", (?=[^,]*$)", RegexOptions.Compiled)]
         private static partial Regex GetLastCommaRegex();
 
-        [Command("role")]
+        [Command("role"), RequireGuild]
         public async Task RoleInfoAsync(CommandContext context, DiscordRole role)
         {
-            if (context.Guild is null)
-            {
-                await context.ReplyAsync($"Command `/{context.CurrentCommand.FullName}` can only be used in a guild.");
-                return;
-            }
-
             DiscordEmbedBuilder embedBuilder = new()
             {
                 Title = $"Role Info for {role.Name}",
@@ -181,13 +145,12 @@ namespace OoLunar.Tomoe.Commands.Common
             embedBuilder.AddField("Role Position", role.Position.ToString("N0"), true);
             embedBuilder.AddField("Permissions", role.Permissions == Permissions.None ? "No permissions." : role.Permissions.ToPermissionString() + ".", false);
 
-            List<GuildMemberModel> members = await _database.Members.AsNoTracking().Where(member => member.GuildId == context.Guild.Id && member.RoleIds.Contains(role.Id) && !member.Flags.HasFlag(MemberState.Absent | MemberState.Banned)).ToListAsync();
+            List<GuildMemberModel> members = await _database.Members.AsNoTracking().Where(member => member.GuildId == context.Guild!.Id && member.RoleIds.Contains(role.Id) && !member.Flags.HasFlag(MemberState.Absent | MemberState.Banned)).ToListAsync();
             members.Sort((member1, member2) => member1.UserId.CompareTo(member2.UserId));
             embedBuilder.AddField("Member Count", members.Count.ToString("N0", CultureInfo.InvariantCulture), false);
             embedBuilder.AddField("Members", string.Join(", ", members.Select(member => $"<@{member.UserId}>").DefaultIfEmpty("None")), true);
 
-            await context.ReplyAsync(embedBuilder);
-            return;
+            await context.RespondAsync(embedBuilder);
         }
 
         [Command("emoji")]
@@ -216,7 +179,7 @@ namespace OoLunar.Tomoe.Commands.Common
                 Match match = GetEmojiRegex().Match(emoji);
                 if (!match.Success)
                 {
-                    await context.ReplyAsync("Invalid emoji.");
+                    await context.RespondAsync("Invalid emoji.");
                     return;
                 }
 
@@ -253,13 +216,13 @@ namespace OoLunar.Tomoe.Commands.Common
             embedBuilder.AddField("Dimensions", image.Dimensions, true);
             embedBuilder.AddField("File Size", image.FileSize, true);
 
-            await context.ReplyAsync(embedBuilder);
+            await context.RespondAsync(embedBuilder);
         }
 
         [GeneratedRegex("<a?:(\\w+):(\\d+)>", RegexOptions.Compiled)]
         private static partial Regex GetEmojiRegex();
 
-        [Command("guild", "server")]
+        [Command("guild"), TextAlias("server")]
         public async Task GuildInfoAsync(CommandContext context, ulong? guildId = null)
         {
             DiscordEmbedBuilder embedBuilder = new()
@@ -285,7 +248,7 @@ namespace OoLunar.Tomoe.Commands.Common
                     }
                     catch (DiscordException)
                     {
-                        await context.ReplyAsync($"That guild is a private server. Since I am not in the guild, I cannot return any information about it.");
+                        await context.RespondAsync($"That guild is a private server. Since I am not in the guild, I cannot return any information about it.");
                         return;
                     }
 
@@ -318,11 +281,11 @@ namespace OoLunar.Tomoe.Commands.Common
             // The command was executed in a DM without a guild id, so return an error.
             else
             {
-                await context.ReplyAsync($"Command `/{context.CurrentCommand.FullName}` should be used in a server or you should provide a guild id.");
+                await context.RespondAsync($"Command `/{context.Command.FullName}` should be used in a server or you should provide a guild id.");
                 return;
             }
 
-            await context.ReplyAsync(embedBuilder);
+            await context.RespondAsync(embedBuilder);
         }
 
         private async Task ProvideGuildInfoAsync(DiscordEmbedBuilder embedBuilder, DiscordGuild guild)

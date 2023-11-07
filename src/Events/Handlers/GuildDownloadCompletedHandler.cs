@@ -14,16 +14,10 @@ using OoLunar.Tomoe.Services;
 
 namespace OoLunar.Tomoe.Events.Handlers
 {
-    public sealed class GuildDownloadCompletedHandler
+    public sealed class GuildDownloadCompletedHandler(ILogger<GuildDownloadCompletedHandler> logger, IServiceProvider serviceProvider)
     {
-        private readonly ILogger<GuildDownloadCompletedHandler> _logger;
-        private readonly IServiceProvider _serviceProvider;
-
-        public GuildDownloadCompletedHandler(ILogger<GuildDownloadCompletedHandler> logger, IServiceProvider serviceProvider)
-        {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
-        }
+        private readonly ILogger<GuildDownloadCompletedHandler> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        private readonly IServiceProvider _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
 
         [DiscordEvent]
         public async Task OnGuildDownloadCompletedAsync(DiscordClient client, GuildDownloadCompletedEventArgs guildDownloadCompletedEventArgs)
@@ -40,7 +34,7 @@ namespace OoLunar.Tomoe.Events.Handlers
                 }
                 else
                 {
-                    List<GuildMemberModel> newMembers = new();
+                    List<GuildMemberModel> newMembers = [];
                     IEnumerable<GuildMemberModel> guildMemberModels = await databaseContext.Members.Where(member => member.GuildId == discordGuild.Id).ToListAsync();
                     foreach (DiscordMember discordMember in discordGuild.Members.Values)
                     {

@@ -1,0 +1,36 @@
+name: Build Commit
+
+on:
+  push:
+    paths:
+      - ".github/workflows/build-commit.yml"
+      - "src/**"
+      - "tests/**"
+      - "*.sln"
+  workflow_dispatch:
+
+env:
+  DOTNET_NOLOGO: 1
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+  DOTNET_SYSTEM_GLOBALIZATION_INVARIANT: 1
+
+jobs:
+  build-commit:
+    name: Build Commit
+    runs-on: ubuntu-latest
+    if: "!contains(format('{0} {1}', github.event.head_commit.message, github.event.pull_request.title), '[ci-skip]')"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+          fetch-depth: 0
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 8
+      - name: Build Project
+        run: dotnet build
+      - name: Build Dockerfile
+        run: docker build -t oolunar/tomoe:latest .

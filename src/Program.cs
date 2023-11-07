@@ -1,13 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.CommandAll;
-using DSharpPlus.CommandAll.Parsers;
+using DSharpPlus.CommandAll.Processors.MessageCommands;
+using DSharpPlus.CommandAll.Processors.SlashCommands;
+using DSharpPlus.CommandAll.Processors.TextCommands;
+using DSharpPlus.CommandAll.Processors.TextCommands.Parsing;
+using DSharpPlus.CommandAll.Processors.UserCommands;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -17,22 +20,21 @@ using OoLunar.Tomoe.Services;
 using OoLunar.Tomoe.Services.Pagination;
 using Serilog;
 using Serilog.Events;
-using Serilog.Filters;
 using Serilog.Sinks.SystemConsole.Themes;
 
 namespace OoLunar.Tomoe
 {
     public sealed class Program
     {
-        public static IServiceProvider Services { get; private set; } = null!;
-
         public static async Task Main(string[] args)
         {
             ConfigurationBuilder configurationBuilder = new();
             configurationBuilder.Sources.Clear();
-            configurationBuilder.AddJsonFile(Path.Join(Environment.CurrentDirectory, "res", "config.json"), true, true);
-            configurationBuilder.AddJsonFile(Path.Join(Environment.CurrentDirectory, "res", "config.json.prod"), true, true);
-            configurationBuilder.AddEnvironmentVariables("TOMOE_");
+            configurationBuilder.AddJsonFile("config.json", true, true);
+#if DEBUG
+            configurationBuilder.AddJsonFile("config.debug.json", true, true);
+#endif
+            configurationBuilder.AddEnvironmentVariables("Tomoe__");
             configurationBuilder.AddCommandLine(args);
 
             IConfiguration configuration = configurationBuilder.Build();
@@ -40,43 +42,56 @@ namespace OoLunar.Tomoe
             serviceCollection.AddSingleton(configuration);
             serviceCollection.AddLogging(logger =>
             {
-                string loggingFormat = "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u4}] {SourceContext}: {Message:lj}{NewLine}{Exception}";
+                string loggingFormat = configuration.GetValue("Logging:Format", "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u4}] {SourceContext}: {Message:lj}{NewLine}{Exception}") ?? throw new InvalidOperationException("Logging:Format is null");
+                string filename = configuration.GetValue("Logging:Filename", "yyyy'-'MM'-'dd' 'HH'.'mm'.'ss") ?? throw new InvalidOperationException("Logging:Filename is null");
 
                 // Log both to console and the file
                 LoggerConfiguration loggerConfiguration = new LoggerConfiguration()
-                .MinimumLevel.Is(LogEventLevel.Information)
-                .Filter.ByExcluding(Matching.FromSource("Microsoft.EntityFrameworkCore"))
-                .WriteTo.Console(outputTemplate: loggingFormat, theme: new AnsiConsoleTheme(new Dictionary<ConsoleThemeStyle, string>
-                {
-                    [ConsoleThemeStyle.Text] = "\x1b[0m",
-                    [ConsoleThemeStyle.SecondaryText] = "\x1b[90m",
-                    [ConsoleThemeStyle.TertiaryText] = "\x1b[90m",
-                    [ConsoleThemeStyle.Invalid] = "\x1b[31m",
-                    [ConsoleThemeStyle.Null] = "\x1b[95m",
-                    [ConsoleThemeStyle.Name] = "\x1b[93m",
-                    [ConsoleThemeStyle.String] = "\x1b[96m",
-                    [ConsoleThemeStyle.Number] = "\x1b[95m",
-                    [ConsoleThemeStyle.Boolean] = "\x1b[95m",
-                    [ConsoleThemeStyle.Scalar] = "\x1b[95m",
-                    [ConsoleThemeStyle.LevelVerbose] = "\x1b[34m",
-                    [ConsoleThemeStyle.LevelDebug] = "\x1b[90m",
-                    [ConsoleThemeStyle.LevelInformation] = "\x1b[36m",
-                    [ConsoleThemeStyle.LevelWarning] = "\x1b[33m",
-                    [ConsoleThemeStyle.LevelError] = "\x1b[31m",
-                    [ConsoleThemeStyle.LevelFatal] = "\x1b[97;91m"
-                }))
+                .MinimumLevel.Is(configuration.GetValue("Logging:Level", LogEventLevel.Debug))
+                .WriteTo.Console(
+                    formatProvider: CultureInfo.InvariantCulture,
+                    outputTemplate: loggingFormat,
+                    theme: new AnsiConsoleTheme(new Dictionary<ConsoleThemeStyle, string>
+                    {
+                        [ConsoleThemeStyle.Text] = "\x1b[0m",
+                        [ConsoleThemeStyle.SecondaryText] = "\x1b[90m",
+                        [ConsoleThemeStyle.TertiaryText] = "\x1b[90m",
+                        [ConsoleThemeStyle.Invalid] = "\x1b[31m",
+                        [ConsoleThemeStyle.Null] = "\x1b[95m",
+                        [ConsoleThemeStyle.Name] = "\x1b[93m",
+                        [ConsoleThemeStyle.String] = "\x1b[96m",
+                        [ConsoleThemeStyle.Number] = "\x1b[95m",
+                        [ConsoleThemeStyle.Boolean] = "\x1b[95m",
+                        [ConsoleThemeStyle.Scalar] = "\x1b[95m",
+                        [ConsoleThemeStyle.LevelVerbose] = "\x1b[34m",
+                        [ConsoleThemeStyle.LevelDebug] = "\x1b[90m",
+                        [ConsoleThemeStyle.LevelInformation] = "\x1b[36m",
+                        [ConsoleThemeStyle.LevelWarning] = "\x1b[33m",
+                        [ConsoleThemeStyle.LevelError] = "\x1b[31m",
+                        [ConsoleThemeStyle.LevelFatal] = "\x1b[97;91m"
+                    }))
                 .WriteTo.File(
-                    $"logs/{DateTime.Now.ToUniversalTime().ToString("yyyy'-'MM'-'dd' 'HH'_'mm'_'ss", CultureInfo.InvariantCulture)}.log",
-                    rollingInterval: RollingInterval.Day,
-                    outputTemplate: loggingFormat
+                    $"logs/{DateTime.Now.ToUniversalTime().ToString("yyyy'-'MM'-'dd' 'HH'.'mm'.'ss", CultureInfo.InvariantCulture)}-.log",
+                    formatProvider: CultureInfo.InvariantCulture,
+                    outputTemplate: loggingFormat,
+                    rollingInterval: RollingInterval.Day
                 );
 
-                // Set Log.Logger for a static reference to the logger
+                // Allow specific namespace log level overrides, which allows us to hush output from things like the database basic SELECT queries on the Information level.
+                foreach (IConfigurationSection logOverride in configuration.GetSection("logging:overrides").GetChildren())
+                {
+                    if (logOverride.Value is null || !Enum.TryParse(logOverride.Value, out LogEventLevel logEventLevel))
+                    {
+                        continue;
+                    }
+
+                    loggerConfiguration.MinimumLevel.Override(logOverride.Key, logEventLevel);
+                }
+
                 logger.AddSerilog(loggerConfiguration.CreateLogger());
             });
 
-            // Add EFCore.
-            // Scoped because we want a new context for each command.
+            // Add EFCore as a scoped service to preserve the same context between converters and commands.
             serviceCollection.AddDbContext<DatabaseContext>((services, options) => DatabaseContext.ConfigureOptions(options, services.GetRequiredService<IConfiguration>()), ServiceLifetime.Scoped);
 
             Assembly currentAssembly = typeof(Program).Assembly;
@@ -91,15 +106,37 @@ namespace OoLunar.Tomoe
             serviceCollection.AddSingleton((serviceProvider) =>
             {
                 IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
-                DiscordConfiguration discordConfig = new()
+                DiscordShardedClient shardedClient = new(new DiscordConfiguration()
                 {
-                    Token = configuration.GetValue<string>("discord:token"),
+                    Token = configuration.GetValue<string>("discord:token") ?? throw new InvalidOperationException("Missing Discord token."),
                     Intents = DiscordIntents.All,
                     LoggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>()
-                };
+                });
 
-                DiscordShardedClient shardedClient = new(discordConfig);
-                shardedClient.InitializeShardsAsync().GetAwaiter().GetResult();
+                IReadOnlyDictionary<int, CommandAllExtension> commandAllExtensions = shardedClient.UseCommandAllAsync(new()
+                {
+                    DebugGuildId = configuration.GetValue<ulong>("discord:debug_guild_id"),
+                    ServiceProvider = serviceProvider
+                }).GetAwaiter().GetResult();
+
+                TextCommandProcessor textCommandProcessor = new(new() { PrefixResolver = new DefaultPrefixResolver(configuration.GetValue("discord:prefix", ">>") ?? throw new InvalidOperationException("Missing Discord prefix.")).ResolvePrefixAsync });
+                textCommandProcessor.AddConverters(currentAssembly);
+
+                SlashCommandProcessor slashCommandProcessor = new();
+                slashCommandProcessor.AddConverters(currentAssembly);
+
+                foreach (CommandAllExtension extension in commandAllExtensions.Values)
+                {
+                    extension.AddProcessors(
+                        textCommandProcessor,
+                        slashCommandProcessor,
+                        new UserCommandProcessor(),
+                        new MessageCommandProcessor()
+                    );
+
+                    extension.AddCommands(currentAssembly);
+                }
+
                 return shardedClient;
             });
 
@@ -107,7 +144,6 @@ namespace OoLunar.Tomoe
             serviceCollection.AddSingleton<ImageUtilitiesService>();
             serviceCollection.AddSingleton(typeof(ExpirableService<>));
             serviceCollection.AddSingleton(typeof(PaginatorService));
-            serviceCollection.AddScoped<RoleMenuService>();
             serviceCollection.AddScoped<PollService>();
             serviceCollection.AddSingleton((serviceProvider) =>
             {
@@ -116,24 +152,10 @@ namespace OoLunar.Tomoe
                 return eventManager;
             });
 
-            Services = serviceCollection.BuildServiceProvider();
-            DiscordShardedClient shardedClient = Services.GetRequiredService<DiscordShardedClient>();
-            DiscordEventManager eventManager = Services.GetRequiredService<DiscordEventManager>();
+            IServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
+            DiscordShardedClient shardedClient = serviceProvider.GetRequiredService<DiscordShardedClient>();
+            DiscordEventManager eventManager = serviceProvider.GetRequiredService<DiscordEventManager>();
             eventManager.RegisterEventHandlers(shardedClient);
-
-            IReadOnlyDictionary<int, CommandAllExtension> extensions = await shardedClient.UseCommandAllAsync(new(serviceCollection)
-            {
-                DebugGuildId = configuration.GetValue<ulong>("discord:debug_guild_id"),
-                PrefixParser = new PrefixParser(configuration.GetSection("discord:default_prefixes").Get<string[]>() ?? new[] { ">>" })
-            });
-
-            foreach (CommandAllExtension extension in extensions.Values)
-            {
-                extension.CommandManager.AddCommands(extension, currentAssembly);
-                extension.ArgumentConverterManager.AddArgumentConverters(currentAssembly);
-                eventManager.RegisterEventHandlers(extension);
-            }
-
             await shardedClient.StartAsync();
 
             // Wait indefinitely

@@ -54,17 +54,17 @@ namespace OoLunar.Tomoe.Services
         /// <summary>
         /// A dictionary of prepared statements, used to execute queries faster.
         /// </summary>
-        private readonly Dictionary<PreparedStatementType, DbCommand> _preparedStatements = new();
+        private readonly Dictionary<PreparedStatementType, DbCommand> _preparedStatements = [];
 
         /// <summary>
         /// A dictionary of property get delegates, used to get property values faster. These delegates are cached to avoid reflection and also contain conversion logic for converting from the database type to the property type.
         /// </summary>
-        private readonly Dictionary<string, Func<object, object?>> _propertyGetDelegateCache = new();
+        private readonly Dictionary<string, Func<object, object?>> _propertyGetDelegateCache = [];
 
         /// <summary>
         /// A dictionary of property set delegates, used to set property values faster. These delegates are cached to avoid reflection and also contain conversion logic for converting from the property type to the database type.
         /// </summary>
-        private readonly Dictionary<string, Action<object, object?>> _propertySetDelegateCache = new();
+        private readonly Dictionary<string, Action<object, object?>> _propertySetDelegateCache = [];
 
         /// <summary>
         /// A lock used to prevent multiple commands from being executed at the same time. This is a poor attempt to make this class thread safe.
@@ -273,7 +273,7 @@ namespace OoLunar.Tomoe.Services
                 }
 
                 // Create a list of items that expire within the next X minutes
-                List<T> expirables = new();
+                List<T> expirables = [];
                 while (reader.Read())
                 {
                     T expirable = new();

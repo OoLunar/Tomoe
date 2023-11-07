@@ -2,8 +2,8 @@ using System;
 using System.Drawing;
 using System.IO;
 using System.Threading.Tasks;
-using DSharpPlus.CommandAll.Attributes;
 using DSharpPlus.CommandAll.Commands;
+using DSharpPlus.CommandAll.Commands.Attributes;
 using DSharpPlus.Entities;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -11,18 +11,17 @@ using SixLabors.ImageSharp.Processing;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
-    public sealed class HexCommand : BaseCommand
+    public sealed class HexCommand
     {
         [Command("hex")]
-        public static Task ExecuteAsync(CommandContext context, string hexCode)
+        public static async Task ExecuteAsync(CommandContext context, string hexCode)
         {
-            ReadOnlySpan<char> hexCodeSpan = hexCode.AsSpan();
-            if (!IsValidHex(ref hexCodeSpan))
+            if (!IsValidHex(hexCode.AsSpan()))
             {
-                return context.ReplyAsync($"#{hexCode} is not a valid hex code. Please send a valid HTML hex code, optionally with a leading '#' or alpha channel.");
+                await context.RespondAsync($"#{hexCode} is not a valid hex code. Please send a valid HTML hex code, optionally with a leading '#' or alpha channel.");
             }
 
-            System.Drawing.Color color = ColorTranslator.FromHtml($"#{hexCodeSpan}");
+            System.Drawing.Color color = ColorTranslator.FromHtml($"#{hexCode.AsSpan()}");
             Image<Rgba32> image = new(256, 256);
             image.Mutate(x => x.BackgroundColor(new Rgba32(color.R, color.G, color.B, color.A)));
 
@@ -39,10 +38,10 @@ namespace OoLunar.Tomoe.Commands.Common
                     ImageUrl = $"attachment://{color.R}{color.G}{color.B}{color.A}.png"
                 });
 
-            return context.ReplyAsync(messageBuilder);
+            await context.RespondAsync(messageBuilder);
         }
 
-        private static bool IsValidHex(ref ReadOnlySpan<char> hexString)
+        private static bool IsValidHex(ReadOnlySpan<char> hexString)
         {
             // Check if the first character is a '#' and remove it
             if (hexString[0] == '#')

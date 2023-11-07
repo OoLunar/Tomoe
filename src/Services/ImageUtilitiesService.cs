@@ -7,11 +7,9 @@ using SixLabors.ImageSharp.Metadata;
 
 namespace OoLunar.Tomoe.Services
 {
-    public sealed class ImageUtilitiesService
+    public sealed class ImageUtilitiesService(HttpClient httpClient)
     {
-        private readonly HttpClient _httpClient;
-
-        public ImageUtilitiesService(HttpClient httpClient) => _httpClient = httpClient;
+        private readonly HttpClient _httpClient = httpClient;
 
         public async Task<ImageData> GetImageDataAsync(string url)
         {

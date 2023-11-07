@@ -1,0 +1,19 @@
+name: Regenerate Resource Files
+
+on:
+  push:
+    paths:
+      - ".github/workflows/resources.yml"
+      - "res/**"
+      - "tools/generate-assets.sh"
+  workflow_dispatch:
+
+jobs:
+  regenerate-assets:
+    name: Regenerate Resource Files
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Generate Assets
+        run: tools/generate-assets.sh

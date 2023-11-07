@@ -6,20 +6,14 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace OoLunar.Tomoe.Events
 {
-    public sealed class DiscordEventManager
+    public sealed class DiscordEventManager(IServiceProvider serviceProvider)
     {
-        private readonly IServiceProvider ServiceProvider;
-        private readonly List<MethodInfo> EventHandlers = new();
-
-        public DiscordEventManager(IServiceProvider serviceProvider) => ServiceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+        private readonly IServiceProvider ServiceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+        private readonly List<MethodInfo> EventHandlers = [];
 
         public void GatherEventHandlers(Assembly assembly)
         {
-            if (assembly is null)
-            {
-                throw new ArgumentNullException(nameof(assembly));
-            }
-
+            ArgumentNullException.ThrowIfNull(assembly);
             foreach (Type type in assembly.GetExportedTypes())
             {
                 foreach (MethodInfo methodInfo in type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static))
@@ -34,11 +28,7 @@ namespace OoLunar.Tomoe.Events
 
         public void RegisterEventHandlers(object obj)
         {
-            if (obj is null)
-            {
-                throw new ArgumentNullException(nameof(obj));
-            }
-
+            ArgumentNullException.ThrowIfNull(obj);
             foreach (EventInfo eventInfo in obj.GetType().GetEvents(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static))
             {
                 foreach (MethodInfo methodInfo in EventHandlers)

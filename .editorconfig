@@ -26,9 +26,11 @@ charset = utf-8
 ###############################
 [*.{cs,vb}]
 
+# Disable require license header
+dotnet_diagnostic.IDE0073.severity = none
+
 # Organize usings
 dotnet_sort_system_directives_first = true:error
-csharp_using_directive_placement = outside_namespace:error
 # Using directive is unnecessary.
 dotnet_diagnostic.IDE0005.severity = error
 

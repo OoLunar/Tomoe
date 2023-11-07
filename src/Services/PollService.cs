@@ -9,7 +9,12 @@ namespace OoLunar.Tomoe.Services
     /// <summary>
     /// A service that handles polls, keeping them optimistically in cache and always in the database until they expire.
     /// </summary>
-    public sealed class PollService
+    /// <remarks>
+    /// Creates a new <see cref="PollService"/>.
+    /// </remarks>
+    /// <param name="logger">The logger to log to.</param>
+    /// <param name="expirableService">The service to handle expirable objects.</param>
+    public sealed class PollService(ILogger<PollService> logger, ExpirableService<PollModel> expirableService)
     {
         /// <summary>
         /// The time to cache polls for.
@@ -19,29 +24,17 @@ namespace OoLunar.Tomoe.Services
         /// <summary>
         /// The logger to log to.
         /// </summary>
-        private readonly ILogger<PollService> _logger;
+        private readonly ILogger<PollService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         /// <summary>
         /// The cache to store polls in. They're removed from the cache within a minute without being accessed.
         /// </summary>
-        private readonly MemoryCacheService _cache;
+        private readonly MemoryCacheService _cache = new();
 
         /// <summary>
         /// The service to handle expirable objects.
         /// </summary>
-        private readonly ExpirableService<PollModel> _expirableService;
-
-        /// <summary>
-        /// Creates a new <see cref="PollService"/>.
-        /// </summary>
-        /// <param name="logger">The logger to log to.</param>
-        /// <param name="expirableService">The service to handle expirable objects.</param>
-        public PollService(ILogger<PollService> logger, ExpirableService<PollModel> expirableService)
-        {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _expirableService = expirableService ?? throw new ArgumentNullException(nameof(expirableService));
-            _cache = new();
-        }
+        private readonly ExpirableService<PollModel> _expirableService = expirableService ?? throw new ArgumentNullException(nameof(expirableService));
 
         /// <summary>
         /// Creates a new poll, adding it to the cache and database.

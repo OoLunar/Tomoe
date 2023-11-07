@@ -187,6 +187,11 @@ namespace OoLunar.Tomoe.Services.Pagination
         {
             if (CurrentPage == -1)
             {
+                if (CurrentMessage is null)
+                {
+                    throw new InvalidOperationException("Cannot generate a new page for a paginator that hasn't been sent.");
+                }
+
                 DiscordMessageBuilder messageBuilder = new(CurrentMessage);
                 messageBuilder.ClearComponents();
                 return messageBuilder
@@ -195,7 +200,7 @@ namespace OoLunar.Tomoe.Services.Pagination
                     .AddComponents(((DiscordSelectComponent)CurrentMessage.Components.ElementAt(1).Components.First()).Disable());
             }
 
-            List<DiscordSelectComponentOption> options = new();
+            List<DiscordSelectComponentOption> options = [];
             int startIndex = Math.Min(23, Pages.Length - CurrentPage);
             int endIndex = CurrentPage + startIndex;
             if (startIndex == endIndex)
@@ -207,7 +212,7 @@ namespace OoLunar.Tomoe.Services.Pagination
             for (int i = startIndex; i < endIndex; i++)
             {
                 Page page = Pages[i];
-                options.Add(new DiscordSelectComponentOption($"Page {i + 1:N0}: {page.Title}".Truncate(100, "…"), $"{Id}:{i.ToString(CultureInfo.InvariantCulture)}", page.Description.Truncate(100), i == CurrentPage, page.Emoji != null ? new(page.Emoji) : null));
+                options.Add(new DiscordSelectComponentOption($"Page {i + 1:N0}: {page.Title}".Truncate(100, "…"), $"{Id}:{i.ToString(CultureInfo.InvariantCulture)}", page.Description.Truncate(100), i == CurrentPage, page.Emoji is not null ? new(page.Emoji) : null!));
             }
 
             if (Pages.Length > 23)
@@ -226,11 +231,11 @@ namespace OoLunar.Tomoe.Services.Pagination
             return new DiscordMessageBuilder(Pages[CurrentPage].MessageBuilder)
                 .WithAllowedMentions(Mentions.None)
                 .AddComponents(new DiscordComponent[] {
-                    new DiscordButtonComponent(ButtonStyle.Secondary, $"{Id}:first", null, false, new("⏪")),
-                    new DiscordButtonComponent(ButtonStyle.Secondary, $"{Id}:previous", null, false, new("◀")),
-                    new DiscordButtonComponent(ButtonStyle.Danger, $"{Id}:cancel", null, false, new("✖️")),
-                    new DiscordButtonComponent(ButtonStyle.Secondary, $"{Id}:next", null, false, new("▶")),
-                    new DiscordButtonComponent(ButtonStyle.Secondary, $"{Id}:last", null, false, new("⏩"))
+                    new DiscordButtonComponent(ButtonStyle.Secondary, $"{Id}:first", null!, false, new("⏪")),
+                    new DiscordButtonComponent(ButtonStyle.Secondary, $"{Id}:previous", null!, false, new("◀")),
+                    new DiscordButtonComponent(ButtonStyle.Danger, $"{Id}:cancel", null!, false, new("✖️")),
+                    new DiscordButtonComponent(ButtonStyle.Secondary, $"{Id}:next", null!, false, new("▶")),
+                    new DiscordButtonComponent(ButtonStyle.Secondary, $"{Id}:last", null!, false, new("⏩"))
                 })
                 .AddComponents(new DiscordSelectComponent("select", "Navigate Pages...", options));
         }

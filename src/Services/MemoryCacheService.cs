@@ -37,15 +37,8 @@ namespace OoLunar.Tomoe.Services
         /// <returns>True if the item was added, false otherwise.</returns>
         public bool TryAdd(object key, object value, DateTimeOffset? expiration = null, Action<object>? callback = null)
         {
-            if (key == null)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
-            else if (value == null)
-            {
-                throw new ArgumentNullException(nameof(value));
-            }
-
+            ArgumentNullException.ThrowIfNull(key);
+            ArgumentNullException.ThrowIfNull(value);
             return _cache.TryAdd(key, new MemoryWrapper(value, expiration, callback));
         }
 
@@ -100,15 +93,8 @@ namespace OoLunar.Tomoe.Services
         /// <returns>True if the item was replaced, false otherwise.</returns>
         public MemoryWrapper Set(object key, object newValue, DateTimeOffset? expiration = null, Action<object>? callback = null)
         {
-            if (key == null)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
-            else if (newValue == null)
-            {
-                throw new ArgumentNullException(nameof(newValue));
-            }
-
+            ArgumentNullException.ThrowIfNull(key);
+            ArgumentNullException.ThrowIfNull(newValue);
             return _cache[key] = new MemoryWrapper(newValue, expiration, callback);
         }
 

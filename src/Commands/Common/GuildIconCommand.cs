@@ -2,25 +2,21 @@ using System;
 using System.Globalization;
 using System.Threading.Tasks;
 using DSharpPlus;
-using DSharpPlus.CommandAll.Attributes;
 using DSharpPlus.CommandAll.Commands;
+using DSharpPlus.CommandAll.Commands.Attributes;
+using DSharpPlus.CommandAll.Processors.TextCommands.Attributes;
 using DSharpPlus.Entities;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
-    public sealed class GuildIconCommand : BaseCommand
+    public sealed class GuildIconCommand
     {
-        [Command("guild_icon", "guild_avatar", "guild_picture"), CommandOverloadPriority(0, true)]
-        public static Task ExecuteAsync(CommandContext context, ImageFormat imageFormat = ImageFormat.Auto, ushort imageDimensions = 0) => context.Guild is null
-            ? context.ReplyAsync($"Command `/{context.CurrentCommand.FullName}` can only be used in a guild.")
-            : context.ReplyAsync(context.Guild.GetIconUrl(imageFormat == ImageFormat.Unknown ? ImageFormat.Auto : imageFormat, imageDimensions == 0 ? (ushort)1024 : imageDimensions));
-
-        [Command("guild_icon")]
+        [Command("guild_icon"), TextAlias("guild_avatar", "guild_picture")]
         public static async Task ExecuteAsync(CommandContext context, ulong guildId = 0, ImageFormat imageFormat = ImageFormat.Auto, ushort imageDimensions = 0)
         {
             if (context.Client.Guilds.TryGetValue(guildId, out DiscordGuild? guild))
             {
-                await context.ReplyAsync(guild.GetIconUrl(imageFormat, imageDimensions));
+                await context.RespondAsync(guild.GetIconUrl(imageFormat, imageDimensions));
                 return;
             }
 
@@ -28,11 +24,11 @@ namespace OoLunar.Tomoe.Commands.Common
             string? iconUrl = GetIconUrl(guildPreview, imageFormat, imageDimensions);
             if (iconUrl == null)
             {
-                await context.ReplyAsync("Could not find an icon for the guild.");
+                await context.RespondAsync("Could not find an icon for the guild.");
             }
             else
             {
-                await context.ReplyAsync(iconUrl);
+                await context.RespondAsync(iconUrl);
             }
         }
 

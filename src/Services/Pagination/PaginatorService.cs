@@ -111,7 +111,7 @@ namespace OoLunar.Tomoe.Services.Pagination
             if (CurrentPaginators.TryRemove(paginatorId, out Paginator? paginator) // If the paginator exists
                 && paginator != null // And isn't null
                 && editMessage // And we're supposed to edit the message
-                && paginator.CurrentMessage != null // And has sent a message
+                && paginator.CurrentMessage is not null // And has sent a message
                 && (!paginator.CurrentMessage.Flags?.HasFlag(MessageFlags.Ephemeral) ?? true) // And isn't ephemeral
             )
             {
@@ -135,7 +135,7 @@ namespace OoLunar.Tomoe.Services.Pagination
                     // 30 second timeout.
                     if (paginator != null && paginator.LastUpdatedAt.Add(PaginatorTimeout) <= DateTimeOffset.UtcNow)
                     {
-                        if (paginator.CurrentMessage != null)
+                        if (paginator.CurrentMessage is not null)
                         {
                             try
                             {

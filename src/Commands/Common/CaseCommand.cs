@@ -3,18 +3,18 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
 using DSharpPlus;
-using DSharpPlus.CommandAll.Attributes;
 using DSharpPlus.CommandAll.Commands;
+using DSharpPlus.CommandAll.Commands.Attributes;
 using Humanizer;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
-    public sealed class CaseCommand : BaseCommand
+    public sealed class CaseCommand
     {
         [Command("case")]
-        public static Task ExecuteAsync(CommandContext context, CaseType caseType, string content)
+        public static async Task ExecuteAsync(CommandContext context, CaseType caseType, string content)
         {
-            List<string> output = new();
+            List<string> output = [];
             foreach (string line in content.Split('\n'))
             {
                 output.Add(caseType switch
@@ -29,7 +29,7 @@ namespace OoLunar.Tomoe.Commands.Common
                 });
             }
 
-            return context.ReplyAsync(Formatter.BlockCode(string.Join('\n', output)));
+            await context.RespondAsync(Formatter.BlockCode(string.Join('\n', output)));
         }
     }
 

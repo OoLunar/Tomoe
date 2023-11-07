@@ -2,18 +2,18 @@
 
 ## Prerequisites
 
-Tomoe uses dotnet 7.0. You can get it from [Microsoft](https://dotnet.microsoft.com/download/dotnet/7.0). Tomoe should work on all OS' that .NET is supported on. Mono is not supported due to DSharpPlus intentionally choosing not to support it.
+Tomoe uses dotnet 8.0. You can get it from [Microsoft](https://dotnet.microsoft.com/download/dotnet/8.0). Tomoe should work on all OS' that .NET is supported on. Mono is not supported due to DSharpPlus intentionally choosing not to support it.
 
 ## Setup
-Edit your `res/config.json` file. If you're planning on contributing to the bot, copy the `res/config.json` file to `config.json.prod` and edit that instead.
+Edit your `res/config.json` file. If you're planning on contributing to the bot, copy the `res/config.json` file to `config.debug.json` and edit that instead.
 
 ``` bash
 git clone https://github.com/OoLunar/Tomoe.git
 cd Tomoe
-dotnet restore
+dotnet build
 ```
 
-Be sure to edit your config file `res/config.json` .
+Be sure to edit your config file.
 
 ``` bash
 dotnet run
@@ -37,7 +37,7 @@ docker-compose up -d
 
 ## What features does Tomoe have?
 
-As mentioned previously, Tomoe aims to be the #1 bot choice for Discord Moderation. This means that any and all moderation commands that Vortex, Mee6 and Carl can do, Tomoe will try to appsimplement. Here's the current road map of commands:
+As mentioned previously, Tomoe aims to be the #1 bot choice for Discord Moderation. This means that any and all moderation commands that Vortex, Mee6 and Carl can do, Tomoe will try to supplement. Here's the current road map of commands:
 
 | Command                 | Implemented  |
 |------------------------ |--------------|
@@ -49,7 +49,6 @@ As mentioned previously, Tomoe aims to be the #1 bot choice for Discord Moderati
 | Logging                 | ❌           |
 | Modlog                  | ❌           |
 | Mute                    | ❌           |
-| Menu Roles              | ✅           |
 | Report                  | ❌           |
 | Strike                  | ❌           |
 | Tempban                 | ❌           |
@@ -78,7 +77,7 @@ As mentioned previously, Tomoe aims to be the #1 bot choice for Discord Moderati
 | Role Info               | ✅           |
 | Server Info             | ✅           |
 | Support                 | ✅           |
-| Tag                     | ❌           |
+| Tag                     | ✅           |
 | Time Of                 | ✅           |
 | Timestamp               | ✅           |
 

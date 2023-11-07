@@ -8,9 +8,10 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using DSharpPlus;
-using DSharpPlus.CommandAll.Attributes;
 using DSharpPlus.CommandAll.Commands;
-using DSharpPlus.CommandAll.Commands.Checks;
+using DSharpPlus.CommandAll.Commands.Attributes;
+using DSharpPlus.CommandAll.ContextChecks;
+using DSharpPlus.CommandAll.Processors.TextCommands.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Net.Serialization;
 using Microsoft.CodeAnalysis;
@@ -21,7 +22,7 @@ using Newtonsoft.Json;
 
 namespace OoLunar.Tomoe.Commands.Moderation
 {
-    public class EvalCommand : BaseCommand
+    public class EvalCommand
     {
         private static readonly ScriptOptions Options;
         internal static readonly JsonSerializer DiscordJson;
@@ -53,18 +54,17 @@ namespace OoLunar.Tomoe.Commands.Moderation
             DiscordJson = (JsonSerializer)typeof(DiscordJson).GetField("_serializer", BindingFlags.NonPublic | BindingFlags.Static)!.GetValue(null)!;
         }
 
-        public override Task BeforeExecutionAsync(CommandContext context) => context.DelayAsync();
-
-        [Command("eval"), Description("Not for you."), RequireOwnerCheck, SuppressMessage("Roslyn", "CA1822", Justification = "We need the BeforeExecutionAsync method to be ran.")]
-        public Task ExecuteAsync(CommandContext context, [RemainingText] string code)
+        [Command("eval"), Description("Not for you."), RequireOwner]
+        public static async Task ExecuteAsync(CommandContext context, [RemainingText] string code)
         {
+            await context.DelayResponseAsync();
             Script<object> script = CSharpScript.Create(code, Options, typeof(EvalContext));
             ImmutableArray<Diagnostic> errors = script.Compile();
 
             if (errors.Length == 1)
             {
                 string errorString = errors[0].ToString();
-                return context.EditAsync(errorString.Length switch
+                await context.EditResponseAsync(errorString.Length switch
                 {
                     < 1992 => new DiscordMessageBuilder().WithContent(Formatter.BlockCode(errorString)),
                     _ => new DiscordMessageBuilder().AddFile("errors.log", new MemoryStream(Encoding.UTF8.GetBytes(errorString)))
@@ -72,55 +72,66 @@ namespace OoLunar.Tomoe.Commands.Moderation
             }
             else if (errors.Length > 1)
             {
-                return context.EditAsync(new DiscordMessageBuilder().AddFile("errors.log", new MemoryStream(Encoding.UTF8.GetBytes(string.Join("\n", errors.Select(x => x.ToString()))))));
+                await context.EditResponseAsync(new DiscordMessageBuilder().AddFile("errors.log", new MemoryStream(Encoding.UTF8.GetBytes(string.Join("\n", errors.Select(x => x.ToString()))))));
+                return;
             }
 
             EvalContext evalContext = new() { Context = context };
-            return script.RunAsync(evalContext).ContinueWith((Task<ScriptState<object>> task) => FinishedAsync(evalContext, task.Exception ?? task.Result.Exception ?? task.Result.ReturnValue));
+            await script.RunAsync(evalContext).ContinueWith((Task<ScriptState<object>> task) => FinishedAsync(evalContext, task.Exception ?? task.Result.Exception ?? task.Result.ReturnValue));
         }
 
-        public static Task FinishedAsync(EvalContext context, object? output)
+        public static async Task FinishedAsync(EvalContext context, object? output)
         {
             string filename = "output.json";
             byte[] utf8Bytes = null!;
             switch (output)
             {
                 case null:
-                    return context.Context.EditAsync("Eval was successful with nothing returned.");
+                    await context.Context.EditResponseAsync("Eval was successful with nothing returned.");
+                    break;
                 case Exception error:
                     throw error;
                 case string outputString when context.IsJson && outputString.Length < 1988:
-                    return context.Context.EditAsync(Formatter.BlockCode(outputString, "json"));
+                    await context.Context.EditResponseAsync(Formatter.BlockCode(outputString, "json"));
+                    break;
                 case string outputString when context.IsJson:
                     utf8Bytes = Encoding.UTF8.GetBytes(outputString);
                     goto default;
                 // < 1992 since Formatter.BlockCode adds a minimum of 8 characters.
                 case string outputString when outputString.Contains('\n') && outputString.Length < 1992:
-                    return context.Context.EditAsync(Formatter.BlockCode(outputString, "cs"));
+                    await context.Context.EditResponseAsync(Formatter.BlockCode(outputString, "cs"));
+                    break;
                 case string outputString when outputString.Length >= 1992:
                     filename = "output.txt";
                     utf8Bytes = Encoding.UTF8.GetBytes(outputString);
                     goto default;
                 case string outputString:
-                    return context.Context.EditAsync(outputString);
+                    await context.Context.EditResponseAsync(outputString);
+                    break;
                 case DiscordMessage message:
-                    return context.Context.EditAsync(new DiscordMessageBuilder(message));
+                    await context.Context.EditResponseAsync(new DiscordMessageBuilder(message));
+                    break;
                 case DiscordMessageBuilder messageBuilder:
-                    return context.Context.EditAsync(messageBuilder);
+                    await context.Context.EditResponseAsync(messageBuilder);
+                    break;
                 case DiscordEmbed embed:
-                    return context.Context.EditAsync(new DiscordMessageBuilder().WithEmbed(embed));
+                    await context.Context.EditResponseAsync(new DiscordMessageBuilder().WithEmbed(embed));
+                    break;
                 case DiscordEmbedBuilder embedBuilder:
-                    return context.Context.EditAsync(new DiscordMessageBuilder().WithEmbed(embedBuilder));
+                    await context.Context.EditResponseAsync(new DiscordMessageBuilder().WithEmbed(embedBuilder));
+                    break;
                 case object:
                     // Check if the ToString method is overridden
                     if (output.GetType().GetMethods(BindingFlags.Public | BindingFlags.Instance).Where(method => method.Name == "ToString").Any(method => method.DeclaringType != typeof(object)))
                     {
-                        return context.Context.EditAsync(output.ToString()!);
+                        await context.Context.EditResponseAsync(output.ToString()!);
+                        break;
                     }
                     goto default;
                 default:
                     utf8Bytes ??= Encoding.UTF8.GetBytes(context.ToJson(output));
-                    return context.Context.EditAsync(new DiscordMessageBuilder().AddFile(filename, new MemoryStream(utf8Bytes)));
+                    await context.Context.EditResponseAsync(new DiscordMessageBuilder().AddFile(filename, new MemoryStream(utf8Bytes)));
+                    break;
             }
         }
     }

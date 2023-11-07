@@ -36,13 +36,13 @@ namespace OoLunar.Tomoe.Database.Models
         /// <summary>
         /// The options presented to the user. The user may only vote for one of these options.
         /// </summary>
-        public string[] Options { get; init; } = Array.Empty<string>();
+        public string[] Options { get; init; } = [];
 
         /// <summary>
         /// A dictionary of user IDs and the option they voted for. The values are used to index into the Options array.
         /// </summary>
         [Column(TypeName = "json")]
-        public Dictionary<ulong, int> Votes { get; init; } = new();
+        public Dictionary<ulong, int> Votes { get; init; } = [];
 
         /// <summary>
         /// When the poll is expected to expire at.
@@ -103,7 +103,7 @@ namespace OoLunar.Tomoe.Database.Models
             Id = id;
             Question = question;
             Options = options.ToArray();
-            Votes = new();
+            Votes = [];
             ExpiresAt = expiresAt;
             GuildId = guildId ?? 0;
             ChannelId = channelId;
@@ -115,10 +115,7 @@ namespace OoLunar.Tomoe.Database.Models
         /// </summary>
         public async Task ExpireAsync(IServiceProvider serviceProvider)
         {
-            if (serviceProvider is null)
-            {
-                throw new ArgumentNullException(nameof(serviceProvider));
-            }
+            ArgumentNullException.ThrowIfNull(serviceProvider);
 
             ILogger<PollModel> logger = serviceProvider.GetRequiredService<ILogger<PollModel>>();
             ExpirableService<PollModel> expirableService = serviceProvider.GetRequiredService<ExpirableService<PollModel>>();
@@ -150,7 +147,7 @@ namespace OoLunar.Tomoe.Database.Models
                 channel = guild.GetChannel(ChannelId);
             }
 
-            if (channel == null)
+            if (channel is null)
             {
                 logger.LogWarning("Channel {ChannelId} not found. Deleting the poll.", ChannelId);
                 return;
@@ -183,7 +180,7 @@ namespace OoLunar.Tomoe.Database.Models
                 await channel.SendMessageAsync(messageBuilder);
                 logger.LogInformation("Sent poll results for poll {PollId}.", Id);
             }
-            catch (DiscordException error) when (error.WebResponse.ResponseCode >= 500)
+            catch (DiscordException error) when (error.Response is not null && (int)error.Response.StatusCode >= 500)
             {
                 logger.LogWarning(error, "Failed to send poll results. Postponing it for 10 minutes.");
                 ExpiresAt = ExpiresAt.AddMinutes(10);

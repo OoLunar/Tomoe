@@ -1,11 +1,14 @@
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
 using DSharpPlus;
-using DSharpPlus.CommandAll.Attributes;
 using DSharpPlus.CommandAll.Commands;
-using DSharpPlus.CommandAll.Commands.Enums;
+using DSharpPlus.CommandAll.Commands.Attributes;
+using DSharpPlus.CommandAll.ContextChecks;
+using DSharpPlus.CommandAll.Processors.SlashCommands.Attributes;
+using DSharpPlus.CommandAll.Processors.TextCommands;
+using DSharpPlus.CommandAll.Processors.TextCommands.Attributes;
+using DSharpPlus.CommandAll.Processors.TextCommands.ContextChecks;
 using DSharpPlus.Entities;
 using Humanizer;
 using SixLabors.ImageSharp;
@@ -13,38 +16,36 @@ using SixLabors.ImageSharp.Metadata;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
-    [Command("avatar", "pfp", "icon", "profile_picture", "picture")]
-    public sealed class AvatarCommand : BaseCommand
+    [Command("avatar"), TextAlias("pfp", "icon", "profile_picture", "picture")]
+    public sealed class AvatarCommand(HttpClient httpClient)
     {
-        private readonly HttpClient _httpClient;
-
-        public AvatarCommand(HttpClient httpClient) => _httpClient = httpClient;
-
-        [Command("user")]
+        [Command("user"), SlashCommandTypes(ApplicationCommandType.SlashCommand, ApplicationCommandType.UserContextMenu)]
         public Task UserAsync(CommandContext context, DiscordUser? user = null, ImageFormat imageFormat = ImageFormat.Auto, ushort imageDimensions = 0)
             => SendAvatarAsync(context, $"{(user ??= context.User).Username}{(user.Username.EndsWith('s') ? "'" : "'s")} Avatar", user.GetAvatarUrl(imageFormat == ImageFormat.Unknown ? ImageFormat.Auto : imageFormat, imageDimensions == 0 ? (ushort)1024 : imageDimensions), user.BannerColor.HasValue && !user.BannerColor.Value.Equals(default(DiscordColor)) ? user.BannerColor.Value : null);
 
-        [Command("webhook", "wb"), SuppressMessage("Roslyn", "IDE0046", Justification = "Avoid the ternary operator rabbit hole")]
-        public Task WebhookAsync(CommandContext context, [RequiredBy(RequiredBy.SlashCommand)] DiscordMessage? message = null, ImageFormat imageFormat = ImageFormat.Auto, ushort imageDimensions = 0)
+        [Command("webhook"), TextAlias("wh")]
+        public async Task WebhookAsync(CommandContext context, [TextMessageReply] DiscordMessage? message = null, ImageFormat imageFormat = ImageFormat.Auto, ushort imageDimensions = 0)
         {
-            if (context.InvocationType.HasFlag(CommandInvocationType.SlashCommand) || message is not null)
+            if (context is not TextCommandContext textContext)
             {
-                return SendAvatarAsync(context, $"{message!.Author.Username}{(message.Author.Username.EndsWith('s') ? "'" : "'s")} Avatar", message.Author.GetAvatarUrl(imageFormat == ImageFormat.Unknown ? ImageFormat.Auto : imageFormat, imageDimensions == 0 ? (ushort)1024 : imageDimensions));
+                await SendAvatarAsync(context, $"{message!.Author.Username}{(message.Author.Username.EndsWith('s') ? "'" : "'s")} Avatar", message.Author.GetAvatarUrl(imageFormat == ImageFormat.Unknown ? ImageFormat.Auto : imageFormat, imageDimensions == 0 ? (ushort)1024 : imageDimensions));
+            }
+            else if (textContext.Message.ReferencedMessage is not null)
+            {
+                await SendAvatarAsync(context, $"{textContext.Message.ReferencedMessage.Author.Username}{(textContext.Message.ReferencedMessage.Author.Username.EndsWith('s') ? "'" : "'s")} Avatar", textContext.Message.ReferencedMessage.Author.GetAvatarUrl(imageFormat == ImageFormat.Unknown ? ImageFormat.Auto : imageFormat, imageDimensions == 0 ? (ushort)1024 : imageDimensions));
             }
             else
             {
-                return context.Message!.ReferencedMessage is null
-                    ? context.ReplyAsync("Please reply to a message or provide a message link of whose avatar to grab. Additionally ensure the message belongs to this guild.")
-                    : SendAvatarAsync(context, $"{context.Message.ReferencedMessage.Author.Username}{(context.Message.ReferencedMessage.Author.Username.EndsWith('s') ? "'" : "'s")} Avatar", context.Message.ReferencedMessage.Author.GetAvatarUrl(imageFormat == ImageFormat.Unknown ? ImageFormat.Auto : imageFormat, imageDimensions == 0 ? (ushort)1024 : imageDimensions));
+                await context.RespondAsync("Please reply to a message or provide a message link of whose avatar to grab. Additionally ensure the message belongs to this guild.");
             }
         }
 
-        [Command("guild", "member")]
+        [Command("guild"), TextAlias("member", "server"), RequireGuild]
         public async Task GuildAsync(CommandContext context, DiscordMember? member = null, ImageFormat imageFormat = ImageFormat.Auto, ushort imageDimensions = 0)
         {
             if (context.Guild is null)
             {
-                await context.ReplyAsync($"Command `/{context.CurrentCommand.FullName}` can only be used in a guild.");
+                await context.RespondAsync($"Command `/{context.Command.FullName}` can only be used in a guild.");
             }
             else
             {
@@ -59,8 +60,8 @@ namespace OoLunar.Tomoe.Commands.Common
 
         private async Task SendAvatarAsync(CommandContext context, string embedTitle, string url, DiscordColor? embedColor = null)
         {
-            await context.DelayAsync();
-            Stream imageStream = await (await _httpClient.GetAsync(url)).Content.ReadAsStreamAsync();
+            await context.DelayResponseAsync();
+            Stream imageStream = await (await httpClient.GetAsync(url)).Content.ReadAsStreamAsync();
             Image image = await Image.LoadAsync(imageStream);
             imageStream.Position = 0; // For image format in the next field.
 
@@ -88,7 +89,7 @@ namespace OoLunar.Tomoe.Commands.Common
             });
 
             embedBuilder.AddField("Image Dimensions (Size)", $"{image.Width} x {image.Height} pixels.", false);
-            await context.EditAsync(new DiscordMessageBuilder().WithEmbed(embedBuilder));
+            await context.EditResponseAsync(new DiscordMessageBuilder().WithEmbed(embedBuilder));
         }
     }
 }

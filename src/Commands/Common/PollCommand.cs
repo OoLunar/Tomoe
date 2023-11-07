@@ -4,10 +4,12 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using DSharpPlus;
-using DSharpPlus.CommandAll.Attributes;
 using DSharpPlus.CommandAll.Commands;
-using DSharpPlus.CommandAll.Commands.Enums;
+using DSharpPlus.CommandAll.Commands.Attributes;
 using DSharpPlus.CommandAll.Converters;
+using DSharpPlus.CommandAll.Processors.SlashCommands;
+using DSharpPlus.CommandAll.Processors.TextCommands;
+using DSharpPlus.CommandAll.Processors.TextCommands.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,38 +21,43 @@ using OoLunar.Tomoe.Services.Pagination;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
-    [Command("poll", "democrat", "democratic", "anti-tyrant-deterrent")]
-    public sealed class PollCommand : BaseCommand
+    [Command("poll"), TextAlias("democrat", "democratic", "anti-tyrant-deterrent", "vote")]
+    public sealed class PollCommand(IServiceProvider serviceProvider, PollService pollService, DatabaseContext databaseContext, PaginatorService paginatorService)
     {
-        private static readonly TimeSpanArgumentConverter _timeSpanArgumentConverter = new();
-        private static readonly DateTimeArgumentConverter _dateTimeArgumentConverter = new();
-        private readonly PollService _pollService;
-        private readonly IServiceProvider _serviceProvider;
-        private readonly DatabaseContext _databaseContext;
-        private readonly PaginatorService _paginatorService;
+        private static readonly TimeSpanConverter _timeSpanArgumentConverter = new();
+        private static readonly DateTimeConverter _dateTimeArgumentConverter = new();
+        private readonly PollService _pollService = pollService ?? throw new ArgumentNullException(nameof(pollService));
+        private readonly IServiceProvider _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+        private readonly DatabaseContext _databaseContext = databaseContext ?? throw new ArgumentNullException(nameof(databaseContext));
+        private readonly PaginatorService _paginatorService = paginatorService ?? throw new ArgumentNullException(nameof(paginatorService));
 
-        public PollCommand(IServiceProvider serviceProvider, PollService pollService, DatabaseContext databaseContext, PaginatorService paginatorService)
-        {
-            _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
-            _pollService = pollService ?? throw new ArgumentNullException(nameof(pollService));
-            _databaseContext = databaseContext ?? throw new ArgumentNullException(nameof(databaseContext));
-            _paginatorService = paginatorService ?? throw new ArgumentNullException(nameof(paginatorService));
-        }
-
-        [Command("create", "new"), CommandOverloadPriority(0, true)]
+        [Command("create"), TextAlias("new")]
         public async Task CreateAsync(CommandContext context, string question, string timeOrDate, params string[] options)
         {
-            if ((await _timeSpanArgumentConverter.ConvertAsync(context, timeOrDate)).IsDefined(out TimeSpan timeSpan) && timeSpan != TimeSpan.Zero)
+            MessageCreateEventArgs messageCreateEventArgs = TextCommandUtilities.CreateFakeMessageEventArgs(context, timeOrDate);
+            TextConverterContext converterContext = new()
+            {
+                Channel = context.Channel,
+                Command = context.Command,
+                Extension = context.Extension,
+                RawArguments = timeOrDate,
+                ServiceScope = context.ServiceProvider.CreateAsyncScope(),
+                Splicer = context.Extension.GetProcessor<TextCommandProcessor>().Configuration.TextArgumentSplicer,
+                User = context.User
+            };
+            converterContext.NextTextArgument();
+
+            if ((await _timeSpanArgumentConverter.ConvertAsync(converterContext, messageCreateEventArgs)).IsDefined(out TimeSpan timeSpan) && timeSpan != TimeSpan.Zero)
             {
                 await CreateAsync(context, question, DateTime.UtcNow.Add(timeSpan), options);
             }
-            else if ((await _dateTimeArgumentConverter.ConvertAsync(context, timeOrDate)).IsDefined(out DateTime dateTime))
+            else if ((await _dateTimeArgumentConverter.ConvertAsync(converterContext, messageCreateEventArgs)).IsDefined(out DateTime dateTime))
             {
                 await CreateAsync(context, question, dateTime, options);
             }
             else
             {
-                await context.ReplyAsync("Please provide a valid time or date for the poll to expire.");
+                await context.RespondAsync("Please provide a valid time or date for the poll to expire.");
             }
         }
 
@@ -59,18 +66,18 @@ namespace OoLunar.Tomoe.Commands.Common
             // Pre-execution checks.
             if (string.IsNullOrWhiteSpace(question))
             {
-                await context.ReplyAsync("Please provide a valid title for the poll. An empty or whitespace title is not allowed.");
+                await context.RespondAsync("Please provide a valid title for the poll. An empty or whitespace title is not allowed.");
                 return;
             }
             else if (expiresAt < DateTime.Now.Add(TimeSpan.FromSeconds(25)))
             {
-                await context.ReplyAsync("Please provide a valid expiration date. The poll must expire at least 30 seconds from now.");
+                await context.RespondAsync("Please provide a valid expiration date. The poll must expire at least 30 seconds from now.");
                 return;
             }
 
             // Manually parse the first word of each option to test if they contain an emoji id,
             // then add the emoji to the button.
-            Dictionary<string, DiscordComponentEmoji?> choices = new();
+            Dictionary<string, DiscordComponentEmoji?> choices = [];
             foreach (string option in options)
             {
                 // Skip null or empty strings and duplicates.
@@ -112,17 +119,17 @@ namespace OoLunar.Tomoe.Commands.Common
 
             if (choices.Count is < 2 or > 24)
             {
-                await context.ReplyAsync("Please provide at least two unique choices and at most 24 unique choices. Extra whitespace (spaces, tabs and newlines at the beginning or end) is stripped from choices.");
+                await context.RespondAsync("Please provide at least two unique choices and at most 24 unique choices. Extra whitespace (spaces, tabs and newlines at the beginning or end) is stripped from choices.");
                 return;
             }
 
             Guid pollId = Guid.NewGuid();
-            List<DiscordActionRowComponent> buttonRows = new();
-            List<DiscordComponent> buttons = new();
+            List<DiscordActionRowComponent> buttonRows = [];
+            List<DiscordComponent> buttons = [];
             for (int i = 0; i < choices.Count; i++)
             {
                 (string choice, DiscordComponentEmoji? optionalEmoji) = choices.ElementAt(i);
-                buttons.Add(new DiscordButtonComponent(ButtonStyle.Secondary, $"poll:{pollId}:vote:{i}", choice, false, optionalEmoji is not null ? optionalEmoji : null));
+                buttons.Add(new DiscordButtonComponent(ButtonStyle.Secondary, $"poll:{pollId}:vote:{i}", choice, false, optionalEmoji is not null ? optionalEmoji : null!));
 
                 if (buttons.Count == 5)
                 {
@@ -148,21 +155,21 @@ namespace OoLunar.Tomoe.Commands.Common
             messageBuilder.AddEmbed(embedBuilder);
             messageBuilder.AddComponents(buttonRows);
             messageBuilder.AddMentions(Mentions.All);
-            await context.ReplyAsync(messageBuilder);
-            await _pollService.CreatePollAsync(pollId, question, choices.Keys, expiresAt, context.Guild?.Id, context.Channel.Id, (await context.GetOriginalResponse())!.Id);
+            await context.RespondAsync(messageBuilder);
+            await _pollService.CreatePollAsync(pollId, question, choices.Keys, expiresAt, context.Guild?.Id, context.Channel.Id, (await context.GetResponseAsync())!.Id);
         }
 
         [Command("list")]
         public async Task ListAsync(CommandContext context, DiscordChannel? channel = null)
         {
-            await context.DelayAsync();
+            await context.DelayResponseAsync();
 
-            List<ulong> channelIds = new();
+            List<ulong> channelIds = [];
             if (channel is not null)
             {
                 if (!context.Member!.PermissionsIn(channel).HasPermission(Permissions.AccessChannels))
                 {
-                    await context.ReplyAsync("You do not have permission to view polls in that channel.");
+                    await context.RespondAsync("You do not have permission to view polls in that channel.");
                     return;
                 }
 
@@ -179,9 +186,9 @@ namespace OoLunar.Tomoe.Commands.Common
                 }
             }
 
-            PollModel[] polls = _databaseContext.Polls.Where(poll => poll.GuildId == context.Guild!.Id && channelIds.Contains(poll.ChannelId)).ToArray();
+            PollModel[] polls = [.. _databaseContext.Polls.Where(poll => poll.GuildId == context.Guild!.Id && channelIds.Contains(poll.ChannelId))];
 
-            List<Page> pages = new();
+            List<Page> pages = [];
             foreach (PollModel poll in polls)
             {
                 DiscordMessageBuilder messageBuilder = new();
@@ -209,24 +216,23 @@ namespace OoLunar.Tomoe.Commands.Common
 
             if (pages.Count == 0)
             {
-                await context.EditAsync($"No polls were found{(channel is null ? "." : $" in {channel.Mention}.")}");
+                await context.EditResponseAsync($"No polls were found{(channel is null ? "." : $" in {channel.Mention}.")}");
             }
             else if (pages.Count == 1)
             {
-                await context.EditAsync(pages[0].MessageBuilder);
+                await context.EditResponseAsync(pages[0].MessageBuilder);
             }
             else
             {
                 Paginator paginator = _paginatorService.CreatePaginator(pages, context.User);
-                await context.EditAsync(paginator.GenerateMessage());
-
-                if (context.InvocationType == CommandInvocationType.SlashCommand)
+                await context.EditResponseAsync(paginator.GenerateMessage());
+                if (context is SlashCommandContext slashCommandContext)
                 {
-                    paginator.Interaction = context.Interaction;
+                    paginator.Interaction = slashCommandContext.Interaction;
                 }
-                else
+                else if (context is TextCommandContext textContext)
                 {
-                    paginator.CurrentMessage = context.Response;
+                    paginator.CurrentMessage = textContext.Response;
                 }
             }
         }
@@ -287,7 +293,7 @@ namespace OoLunar.Tomoe.Commands.Common
         {
             if (eventArgs.Message.Author?.Id != client.CurrentUser.Id
                 || eventArgs.Message.Components is null
-                || !eventArgs.Message.Components.Any()
+                || eventArgs.Message.Components.Count == 0
                 || eventArgs.Message.Components.FirstOrDefault()?.Components?.FirstOrDefault() is not DiscordButtonComponent button)
             {
                 return;
@@ -315,7 +321,7 @@ namespace OoLunar.Tomoe.Commands.Common
             {
                 if (message.Author.Id != client.CurrentUser.Id
                     || message.Components is null
-                    || !message.Components.Any()
+                    || message.Components.Count == 0
                     || message.Components.FirstOrDefault()?.Components?.FirstOrDefault() is not DiscordButtonComponent button)
                 {
                     return;

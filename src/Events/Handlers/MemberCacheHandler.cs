@@ -12,11 +12,9 @@ using OoLunar.Tomoe.Database.Models;
 
 namespace OoLunar.Tomoe.Events.Handlers
 {
-    public sealed class MemberCacheHandler
+    public sealed class MemberCacheHandler(IServiceProvider serviceProvider)
     {
-        private readonly IServiceProvider serviceProvider;
-
-        public MemberCacheHandler(IServiceProvider serviceProvider) => this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+        private readonly IServiceProvider serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
 
         [DiscordEvent]
         public async Task OnGuildMemberAddAsync(DiscordClient client, GuildMemberAddEventArgs eventArgs)

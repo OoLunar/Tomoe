@@ -14,30 +14,32 @@ namespace OoLunar.Tomoe.Events.Handlers
     public sealed class CommandErorredHandler
     {
         [DiscordEvent]
-        public static Task OnErroredAsync(CommandAllExtension extension, CommandErroredEventArgs eventArgs)
+        public static async Task OnErroredAsync(CommandAllExtension extension, CommandErroredEventArgs eventArgs)
         {
             if (eventArgs.Exception is CommandNotFoundException commandNotFoundException)
             {
-                return eventArgs.Context.ReplyAsync($"Unknown command: {commandNotFoundException.CommandString}");
+                await eventArgs.Context.RespondAsync($"Unknown command: {commandNotFoundException.CommandName}");
             }
 
             DiscordEmbedBuilder embedBuilder = new()
             {
                 Title = "Command Error",
-                Description = $"{Formatter.InlineCode(eventArgs.Context.CurrentCommand.FullName)} failed to execute.",
+                Description = $"{Formatter.InlineCode(eventArgs.Context.Command.FullName)} failed to execute.",
                 Color = new DiscordColor("#6b73db")
             };
 
             switch (eventArgs.Exception)
             {
                 case DiscordException discordError:
-                    embedBuilder.AddField("HTTP Code", discordError.WebResponse.ResponseCode.ToString(), true);
-                    embedBuilder.AddField("Error Message", discordError.JsonMessage, true);
-                    return eventArgs.Context.ReplyAsync(new DiscordMessageBuilder().AddEmbed(embedBuilder));
+                    embedBuilder.AddField("HTTP Code", discordError.Response?.StatusCode.ToString() ?? "Not provided.", true);
+                    embedBuilder.AddField("Error Message", discordError.JsonMessage ?? "Not provided.", true);
+                    await eventArgs.Context.RespondAsync(new DiscordMessageBuilder().AddEmbed(embedBuilder));
+                    break;
                 default:
                     embedBuilder.AddField("Error Message", eventArgs.Exception.Message, true);
                     embedBuilder.AddField("Stack Trace", Formatter.BlockCode(FormatStackTrace(eventArgs.Exception.StackTrace).Truncate(1014, "…"), "cs"), false);
-                    return eventArgs.Context.ReplyAsync(new DiscordMessageBuilder().AddEmbed(embedBuilder));
+                    await eventArgs.Context.RespondAsync(new DiscordMessageBuilder().AddEmbed(embedBuilder));
+                    break;
             }
         }
 

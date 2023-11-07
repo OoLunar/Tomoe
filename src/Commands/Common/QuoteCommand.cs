@@ -1,19 +1,21 @@
 using System.Threading.Tasks;
 using DSharpPlus;
-using DSharpPlus.CommandAll.Attributes;
 using DSharpPlus.CommandAll.Commands;
+using DSharpPlus.CommandAll.Commands.Attributes;
+using DSharpPlus.CommandAll.ContextChecks;
+using DSharpPlus.CommandAll.Processors.TextCommands.Attributes;
 using DSharpPlus.Entities;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
-    public sealed class QuoteCommand : BaseCommand
+    public sealed class QuoteCommand
     {
-        [Command("quote", "rat", "mock")]
-        public static Task ExecuteAsync(CommandContext context, DiscordMessage message)
+        [Command("quote"), TextAlias("rat", "mock", "q"), RequireGuild]
+        public static async Task ExecuteAsync(CommandContext context, DiscordMessage message)
         {
-            if (!message.Channel.PermissionsFor(context.Member).HasPermission(Permissions.AccessChannels))
+            if (!message.Channel.PermissionsFor(context.Member!).HasPermission(Permissions.AccessChannels))
             {
-                return context.ReplyAsync("You don't have access to that message!");
+                await context.RespondAsync("You don't have access to that message!");
             }
 
             DiscordMessageBuilder messageBuilder = new();
@@ -40,7 +42,8 @@ namespace OoLunar.Tomoe.Commands.Common
                     ImageUrl = attachment.Url
                 });
             }
-            return context.ReplyAsync(messageBuilder);
+
+            await context.RespondAsync(messageBuilder);
         }
     }
 }

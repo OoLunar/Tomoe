@@ -1,5 +1,3 @@
-using System;
-using System.IO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
@@ -13,7 +11,6 @@ namespace OoLunar.Tomoe.Database
     {
         public DbSet<GuildModel> Guilds { get; init; } = null!;
         public DbSet<GuildMemberModel> Members { get; init; } = null!;
-        public DbSet<RoleMenuModel> RoleMenus { get; init; } = null!;
         public DbSet<PollModel> Polls { get; init; } = null!;
         public DbSet<SingleReminderModel> Reminders { get; init; } = null!;
         public DbSet<RepeatingReminderModel> RepeatingReminders { get; init; } = null!;
@@ -27,15 +24,13 @@ namespace OoLunar.Tomoe.Database
         {
             ConfigurationBuilder configurationBuilder = new();
             configurationBuilder.Sources.Clear();
+            configurationBuilder.AddJsonFile("config.json", true, true);
 #if DEBUG
-            configurationBuilder.AddJsonFile(Path.Join(Environment.CurrentDirectory, "../res", "config.json"), true, true);
-            configurationBuilder.AddJsonFile(Path.Join(Environment.CurrentDirectory, "../res", "config.json.prod"), true, true);
-#else
-            configurationBuilder.AddJsonFile(Path.Join(Environment.CurrentDirectory, "res", "config.json"), true, true);
-            configurationBuilder.AddJsonFile(Path.Join(Environment.CurrentDirectory, "res", "config.json.prod"), true, true);
+            configurationBuilder.AddJsonFile("config.debug.json", true, true);
 #endif
-            configurationBuilder.AddEnvironmentVariables("TOMOE_");
+            configurationBuilder.AddEnvironmentVariables("Tomoe__");
             configurationBuilder.AddCommandLine(args);
+
             IConfigurationRoot configuration = configurationBuilder.Build();
             DbContextOptionsBuilder<DatabaseContext> optionsBuilder = new();
             ConfigureOptions(optionsBuilder, configuration);
