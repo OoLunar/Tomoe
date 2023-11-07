@@ -21,9 +21,6 @@ regenerate()
   # Optimize the SVG file
   svgo --multipass --quiet "$1"
 
-  # Small size for DocFX
-  convert -background none -resize 48x48 "$1" "${1%.*}_small.png"
-
   # Convert to PNG
   convert -background none "$1" "${1%.*}.png"
 
@@ -37,18 +34,15 @@ for file in res/*.svg; do
     regenerate "$file"
 done
 
-# Copy all resource files into the images directory
-cp res/*.{svg,png,ico} docs/images/
-
 # Uncomment the following lines if you want to automatically commit and push changes to Git
 # Check if any files were modified
-#git config --global user.email "github-actions[bot]@users.noreply.github.com"
-#git config --global user.name "github-actions[bot]"
-#git add res > /dev/null
-#git diff-index --quiet HEAD
-#if [ "$?" == "1" ]; then
-#  git commit -m "[ci-skip] Regenerate resource files." > /dev/null
-#  git push > /dev/null
-#else
-#  echo "No resource files were modified."
-#fi
+git config --global user.email "github-actions[bot]@users.noreply.github.com"
+git config --global user.name "github-actions[bot]"
+git add res > /dev/null
+git diff-index --quiet HEAD
+if [ "$?" == "1" ]; then
+  git commit -m "[ci-skip] Regenerate resource files." > /dev/null
+  git push > /dev/null
+else
+  echo "No resource files were modified."
+fi
