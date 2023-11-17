@@ -8,11 +8,10 @@ using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using DSharpPlus;
-using DSharpPlus.CommandAll;
-using DSharpPlus.CommandAll.Commands;
-using DSharpPlus.CommandAll.Commands.Attributes;
-using DSharpPlus.CommandAll.ContextChecks;
-using DSharpPlus.CommandAll.Processors.TextCommands.Attributes;
+using DSharpPlus.Commands.ContextChecks;
+using DSharpPlus.Commands.Processors.TextCommands.Attributes;
+using DSharpPlus.Commands.Trees;
+using DSharpPlus.Commands.Trees.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
 using Humanizer;
@@ -113,7 +112,6 @@ namespace OoLunar.Tomoe.Commands.Common
             embedBuilder.AddField("Prefixes", string.Join(", ", prefixes), true);
             embedBuilder.AddField("Bot Version", typeof(Program).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion, true);
             embedBuilder.AddField("DSharpPlus Library Version", typeof(DiscordClient).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion, true);
-            embedBuilder.AddField("CommandAll Library Version", typeof(CommandAllExtension).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion, true);
 
             await context.RespondAsync(embedBuilder);
         }

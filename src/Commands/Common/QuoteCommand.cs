@@ -1,9 +1,9 @@
 using System.Threading.Tasks;
 using DSharpPlus;
-using DSharpPlus.CommandAll.Commands;
-using DSharpPlus.CommandAll.Commands.Attributes;
-using DSharpPlus.CommandAll.ContextChecks;
-using DSharpPlus.CommandAll.Processors.TextCommands.Attributes;
+using DSharpPlus.Commands.Trees;
+using DSharpPlus.Commands.Trees.Attributes;
+using DSharpPlus.Commands.ContextChecks;
+using DSharpPlus.Commands.Processors.TextCommands.Attributes;
 using DSharpPlus.Entities;
 
 namespace OoLunar.Tomoe.Commands.Common

@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using DSharpPlus;
-using DSharpPlus.CommandAll;
+using DSharpPlus.Commands;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus.Exceptions;
@@ -159,7 +159,7 @@ namespace OoLunar.Tomoe.Services.Pagination
         [DiscordEvent]
         public static async Task PaginateAsync(DiscordClient client, ComponentInteractionCreateEventArgs eventArgs)
         {
-            PaginatorService paginatorService = client.GetCommandAllExtension()!.ServiceProvider.GetRequiredService<PaginatorService>();
+            PaginatorService paginatorService = client.GetCommandsExtension()!.ServiceProvider.GetRequiredService<PaginatorService>();
             string? componentId = eventArgs.Message.Components.FirstOrDefault()?.Components.FirstOrDefault()?.CustomId;
             if (componentId == null || !Guid.TryParse(componentId.Split(':')[0], out Guid id))
             {

@@ -2,13 +2,13 @@ using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
 using DSharpPlus;
-using DSharpPlus.CommandAll.Commands;
-using DSharpPlus.CommandAll.Commands.Attributes;
-using DSharpPlus.CommandAll.ContextChecks;
-using DSharpPlus.CommandAll.Processors.SlashCommands.Attributes;
-using DSharpPlus.CommandAll.Processors.TextCommands;
-using DSharpPlus.CommandAll.Processors.TextCommands.Attributes;
-using DSharpPlus.CommandAll.Processors.TextCommands.ContextChecks;
+using DSharpPlus.Commands.ContextChecks;
+using DSharpPlus.Commands.Processors.SlashCommands.Attributes;
+using DSharpPlus.Commands.Processors.TextCommands;
+using DSharpPlus.Commands.Processors.TextCommands.Attributes;
+using DSharpPlus.Commands.Processors.TextCommands.ContextChecks;
+using DSharpPlus.Commands.Trees;
+using DSharpPlus.Commands.Trees.Attributes;
 using DSharpPlus.Entities;
 using Humanizer;
 using SixLabors.ImageSharp;
@@ -29,6 +29,10 @@ namespace OoLunar.Tomoe.Commands.Common
             if (context is not TextCommandContext textContext)
             {
                 await SendAvatarAsync(context, $"{message!.Author.Username}{(message.Author.Username.EndsWith('s') ? "'" : "'s")} Avatar", message.Author.GetAvatarUrl(imageFormat == ImageFormat.Unknown ? ImageFormat.Auto : imageFormat, imageDimensions == 0 ? (ushort)1024 : imageDimensions));
+            }
+            else if (message is not null)
+            {
+                await SendAvatarAsync(context, $"{message.Author.Username}{(message.Author.Username.EndsWith('s') ? "'" : "'s")} Avatar", message.Author.GetAvatarUrl(imageFormat == ImageFormat.Unknown ? ImageFormat.Auto : imageFormat, imageDimensions == 0 ? (ushort)1024 : imageDimensions));
             }
             else if (textContext.Message.ReferencedMessage is not null)
             {
@@ -60,7 +64,7 @@ namespace OoLunar.Tomoe.Commands.Common
 
         private async Task SendAvatarAsync(CommandContext context, string embedTitle, string url, DiscordColor? embedColor = null)
         {
-            await context.DelayResponseAsync();
+            await context.DeferResponseAsync();
             Stream imageStream = await (await httpClient.GetAsync(url)).Content.ReadAsStreamAsync();
             Image image = await Image.LoadAsync(imageStream);
             imageStream.Position = 0; // For image format in the next field.

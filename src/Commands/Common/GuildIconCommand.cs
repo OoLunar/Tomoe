@@ -2,16 +2,16 @@ using System;
 using System.Globalization;
 using System.Threading.Tasks;
 using DSharpPlus;
-using DSharpPlus.CommandAll.Commands;
-using DSharpPlus.CommandAll.Commands.Attributes;
-using DSharpPlus.CommandAll.Processors.TextCommands.Attributes;
+using DSharpPlus.Commands.Processors.TextCommands.Attributes;
+using DSharpPlus.Commands.Trees;
+using DSharpPlus.Commands.Trees.Attributes;
 using DSharpPlus.Entities;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
     public sealed class GuildIconCommand
     {
-        [Command("guild_icon"), TextAlias("guild_avatar", "guild_picture")]
+        [Command("guild_icon"), TextAlias("guild_picture")]
         public static async Task ExecuteAsync(CommandContext context, ulong guildId = 0, ImageFormat imageFormat = ImageFormat.Auto, ushort imageDimensions = 0)
         {
             if (context.Client.Guilds.TryGetValue(guildId, out DiscordGuild? guild))

@@ -16,7 +16,7 @@ namespace OoLunar.Tomoe.Interfaces
         /// <summary>
         /// When the object is set to expire. This is allowed to change.
         /// </summary>
-        DateTime ExpiresAt { get; set; }
+        DateTimeOffset ExpiresAt { get; set; }
 
         /// <summary>
         /// Attempts to expire the object.

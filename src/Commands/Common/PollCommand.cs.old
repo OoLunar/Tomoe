@@ -4,12 +4,13 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using DSharpPlus;
-using DSharpPlus.CommandAll.Commands;
-using DSharpPlus.CommandAll.Commands.Attributes;
-using DSharpPlus.CommandAll.Converters;
-using DSharpPlus.CommandAll.Processors.SlashCommands;
 using DSharpPlus.CommandAll.Processors.TextCommands;
-using DSharpPlus.CommandAll.Processors.TextCommands.Attributes;
+using DSharpPlus.Commands.Converters;
+using DSharpPlus.Commands.Processors.SlashCommands;
+using DSharpPlus.Commands.Processors.TextCommands;
+using DSharpPlus.Commands.Processors.TextCommands.Attributes;
+using DSharpPlus.Commands.Trees;
+using DSharpPlus.Commands.Trees.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,7 +26,7 @@ namespace OoLunar.Tomoe.Commands.Common
     public sealed class PollCommand(IServiceProvider serviceProvider, PollService pollService, DatabaseContext databaseContext, PaginatorService paginatorService)
     {
         private static readonly TimeSpanConverter _timeSpanArgumentConverter = new();
-        private static readonly DateTimeConverter _dateTimeArgumentConverter = new();
+        private static readonly DateTimeOffsetConverter _dateTimeArgumentConverter = new();
         private readonly PollService _pollService = pollService ?? throw new ArgumentNullException(nameof(pollService));
         private readonly IServiceProvider _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         private readonly DatabaseContext _databaseContext = databaseContext ?? throw new ArgumentNullException(nameof(databaseContext));
@@ -45,13 +46,13 @@ namespace OoLunar.Tomoe.Commands.Common
                 Splicer = context.Extension.GetProcessor<TextCommandProcessor>().Configuration.TextArgumentSplicer,
                 User = context.User
             };
-            converterContext.NextTextArgument();
+            converterContext.NextArgument();
 
             if ((await _timeSpanArgumentConverter.ConvertAsync(converterContext, messageCreateEventArgs)).IsDefined(out TimeSpan timeSpan) && timeSpan != TimeSpan.Zero)
             {
                 await CreateAsync(context, question, DateTime.UtcNow.Add(timeSpan), options);
             }
-            else if ((await _dateTimeArgumentConverter.ConvertAsync(converterContext, messageCreateEventArgs)).IsDefined(out DateTime dateTime))
+            else if ((await _dateTimeArgumentConverter.ConvertAsync(converterContext, messageCreateEventArgs)).IsDefined(out DateTimeOffset dateTime))
             {
                 await CreateAsync(context, question, dateTime, options);
             }
@@ -61,7 +62,7 @@ namespace OoLunar.Tomoe.Commands.Common
             }
         }
 
-        private async Task CreateAsync(CommandContext context, string question, DateTime expiresAt, params string[] options)
+        private async Task CreateAsync(CommandContext context, string question, DateTimeOffset expiresAt, params string[] options)
         {
             // Pre-execution checks.
             if (string.IsNullOrWhiteSpace(question))
@@ -162,7 +163,7 @@ namespace OoLunar.Tomoe.Commands.Common
         [Command("list")]
         public async Task ListAsync(CommandContext context, DiscordChannel? channel = null)
         {
-            await context.DelayResponseAsync();
+            await context.DeferResponseAsync();
 
             List<ulong> channelIds = [];
             if (channel is not null)

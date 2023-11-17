@@ -10,6 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <None Include="$(ProjectRoot)/res/config.json" CopyToOutputDirectory="PreserveNewest" />
+    <ProjectReference Include="$(ProjectRoot)/libs/DSharpPlus/DSharpPlus.Commands/DSharpPlus.Commands.csproj" />
     <PackageReference Include="Humanizer" Version="2.14.1" />
     <PackageReference Include="LiveChartsCore" Version="2.0.0-rc1.2" />
     <PackageReference Include="LiveChartsCore.SkiaSharpView" Version="2.0.0-rc1.2" />
@@ -22,10 +23,8 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="7.0.0" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.11" />
-    <PackageReference Include="OoLunar.DSharpPlus.CommandAll" Version="2.0.0-Nightly-00046" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.0.2" />
     <PackageReference Include="Serilog" Version="3.0.1" />
-    <PackageReference Include="Serilog.Enrichers.Thread" Version="3.1.0" />
     <PackageReference Include="Serilog.Extensions.Hosting" Version="7.0.0" />
     <PackageReference Include="Serilog.Sinks.Console" Version="4.1.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />

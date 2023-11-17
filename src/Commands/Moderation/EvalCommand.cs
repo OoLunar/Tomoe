@@ -8,10 +8,10 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using DSharpPlus;
-using DSharpPlus.CommandAll.Commands;
-using DSharpPlus.CommandAll.Commands.Attributes;
-using DSharpPlus.CommandAll.ContextChecks;
-using DSharpPlus.CommandAll.Processors.TextCommands.Attributes;
+using DSharpPlus.Commands.ContextChecks;
+using DSharpPlus.Commands.Processors.TextCommands.Attributes;
+using DSharpPlus.Commands.Trees;
+using DSharpPlus.Commands.Trees.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Net.Serialization;
 using Microsoft.CodeAnalysis;
@@ -57,7 +57,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
         [Command("eval"), Description("Not for you."), RequireOwner]
         public static async Task ExecuteAsync(CommandContext context, [RemainingText] string code)
         {
-            await context.DelayResponseAsync();
+            await context.DeferResponseAsync();
             Script<object> script = CSharpScript.Create(code, Options, typeof(EvalContext));
             ImmutableArray<Diagnostic> errors = script.Compile();
 

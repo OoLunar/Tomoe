@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using DSharpPlus.CommandAll.Commands;
-using DSharpPlus.CommandAll.Commands.Attributes;
-using DSharpPlus.CommandAll.Processors.TextCommands.Attributes;
+using DSharpPlus.Commands.Processors.TextCommands.Attributes;
+using DSharpPlus.Commands.Trees;
+using DSharpPlus.Commands.Trees.Attributes;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
@@ -11,9 +11,10 @@ namespace OoLunar.Tomoe.Commands.Common
         [Command("sort")]
         public static async Task ExecuteAsync(CommandContext context, [RemainingText] string text)
         {
-            List<string> words = new(text.Split('\n'));
+            char splitChar = !text.Contains('\n') ? ' ' : '\n';
+            List<string> words = new(text.Split(splitChar));
             words.Sort();
-            await context.RespondAsync(string.Join('\n', words));
+            await context.RespondAsync(string.Join(splitChar, words));
         }
     }
 }

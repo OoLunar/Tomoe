@@ -1,10 +1,11 @@
 using System;
 using System.Threading.Tasks;
 using DSharpPlus;
-using DSharpPlus.CommandAll.Commands;
-using DSharpPlus.CommandAll.Commands.Attributes;
-using DSharpPlus.CommandAll.Converters;
 using DSharpPlus.CommandAll.Processors.TextCommands;
+using DSharpPlus.Commands.Converters;
+using DSharpPlus.Commands.Processors.TextCommands;
+using DSharpPlus.Commands.Trees;
+using DSharpPlus.Commands.Trees.Attributes;
 using DSharpPlus.EventArgs;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -13,7 +14,7 @@ namespace OoLunar.Tomoe.Commands.Common
     public sealed class TimestampCommand
     {
         private static readonly TimeSpanConverter _timeSpanArgumentConverter = new();
-        private static readonly DateTimeConverter _dateTimeArgumentConverter = new();
+        private static readonly DateTimeOffsetConverter _dateTimeArgumentConverter = new();
 
         [Command("timestamp")]
         public static async Task ExecuteAsync(CommandContext context, TimestampFormat format = TimestampFormat.LongDateTime, string? when = null)
@@ -35,13 +36,13 @@ namespace OoLunar.Tomoe.Commands.Common
                 Splicer = context.Extension.GetProcessor<TextCommandProcessor>().Configuration.TextArgumentSplicer,
                 User = context.User
             };
-            converterContext.NextTextArgument();
+            converterContext.NextArgument();
 
             if ((await _timeSpanArgumentConverter.ConvertAsync(converterContext, messageCreateEventArgs)).IsDefined(out TimeSpan timeSpan))
             {
                 await context.RespondAsync($"Timestamp: {Formatter.Timestamp(DateTime.UtcNow + timeSpan, format)}");
             }
-            else if ((await _dateTimeArgumentConverter.ConvertAsync(converterContext, messageCreateEventArgs)).IsDefined(out DateTime dateTime))
+            else if ((await _dateTimeArgumentConverter.ConvertAsync(converterContext, messageCreateEventArgs)).IsDefined(out DateTimeOffset dateTime))
             {
                 await context.RespondAsync($"Timestamp: {Formatter.Timestamp(dateTime, format)}");
             }

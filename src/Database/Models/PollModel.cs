@@ -47,7 +47,7 @@ namespace OoLunar.Tomoe.Database.Models
         /// <summary>
         /// When the poll is expected to expire at.
         /// </summary>
-        public DateTime ExpiresAt { get; set; }
+        public DateTimeOffset ExpiresAt { get; set; }
 
         /// <summary>
         /// The guild id that the poll was created in. This will be 0 if the poll was created in a DM.
@@ -98,7 +98,7 @@ namespace OoLunar.Tomoe.Database.Models
         /// <summary>
         /// Creates a new poll.
         /// </summary>
-        public PollModel(Guid id, string question, IEnumerable<string> options, DateTime expiresAt, ulong? guildId, ulong channelId, ulong messageId) : base()
+        public PollModel(Guid id, string question, IEnumerable<string> options, DateTimeOffset expiresAt, ulong? guildId, ulong channelId, ulong messageId) : base()
         {
             Id = id;
             Question = question;

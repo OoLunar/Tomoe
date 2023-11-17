@@ -6,8 +6,8 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using DSharpPlus;
-using DSharpPlus.CommandAll.Commands;
-using DSharpPlus.CommandAll.Commands.Attributes;
+using DSharpPlus.Commands.Trees;
+using DSharpPlus.Commands.Trees.Attributes;
 using DSharpPlus.Entities;
 
 namespace OoLunar.Tomoe.Commands.Moderation

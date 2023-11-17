@@ -1,9 +1,9 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using DSharpPlus.CommandAll.Commands;
-using DSharpPlus.CommandAll.Commands.Attributes;
-using DSharpPlus.CommandAll.ContextChecks;
+using DSharpPlus.Commands.Trees;
+using DSharpPlus.Commands.Trees.Attributes;
+using DSharpPlus.Commands.ContextChecks;
 using OoLunar.Tomoe.Database;
 using OoLunar.Tomoe.Database.Models;
 

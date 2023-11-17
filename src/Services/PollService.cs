@@ -47,7 +47,7 @@ namespace OoLunar.Tomoe.Services
         /// <param name="channelId">The ID of the channel the poll was created in.</param>
         /// <param name="messageId">The ID of the message the poll was created in.</param>
         /// <returns>The created poll.</returns>
-        public async Task<PollModel> CreatePollAsync(Guid pollId, string question, IEnumerable<string> options, DateTime expiresAt, ulong? guildId, ulong channelId, ulong messageId)
+        public async Task<PollModel> CreatePollAsync(Guid pollId, string question, IEnumerable<string> options, DateTimeOffset expiresAt, ulong? guildId, ulong channelId, ulong messageId)
         {
             PollModel poll = new(pollId, question, options, expiresAt, guildId, channelId, messageId);
             await _expirableService.AddAsync(poll);

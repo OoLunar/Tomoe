@@ -1,7 +1,7 @@
 {
     "discord": {
         "token": "replace me",
-        "debug_guild_id": "custom id",
+        "debug_guild_id": "",
         "support_invite": "https://discord.gg/replace me",
         "prefix": ">>"
     },

@@ -3,11 +3,12 @@ using System.Globalization;
 using System.Text;
 using System.Threading.Tasks;
 using DSharpPlus;
-using DSharpPlus.CommandAll.Commands;
-using DSharpPlus.CommandAll.Commands.Attributes;
-using DSharpPlus.CommandAll.Converters;
 using DSharpPlus.CommandAll.Processors.TextCommands;
-using DSharpPlus.CommandAll.Processors.TextCommands.Attributes;
+using DSharpPlus.Commands.Converters;
+using DSharpPlus.Commands.Processors.TextCommands;
+using DSharpPlus.Commands.Processors.TextCommands.Attributes;
+using DSharpPlus.Commands.Trees;
+using DSharpPlus.Commands.Trees.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using Humanizer;
@@ -38,7 +39,7 @@ namespace OoLunar.Tomoe.Commands.Common
             StringBuilder invalidMessageIds = new();
             foreach (string message in messages)
             {
-                converterContext.NextTextArgument();
+                converterContext.NextArgument();
                 MessageCreateEventArgs messageCreateEventArgs = TextCommandUtilities.CreateFakeMessageEventArgs(context, message);
                 Optional<ulong> parsedMessageId = await _uint64Converter.ConvertAsync(converterContext, messageCreateEventArgs);
                 if (parsedMessageId.HasValue)

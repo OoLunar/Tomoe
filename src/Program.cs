@@ -5,12 +5,12 @@ using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
 using DSharpPlus;
-using DSharpPlus.CommandAll;
-using DSharpPlus.CommandAll.Processors.MessageCommands;
-using DSharpPlus.CommandAll.Processors.SlashCommands;
-using DSharpPlus.CommandAll.Processors.TextCommands;
-using DSharpPlus.CommandAll.Processors.TextCommands.Parsing;
-using DSharpPlus.CommandAll.Processors.UserCommands;
+using DSharpPlus.Commands;
+using DSharpPlus.Commands.Processors.MessageCommands;
+using DSharpPlus.Commands.Processors.SlashCommands;
+using DSharpPlus.Commands.Processors.TextCommands;
+using DSharpPlus.Commands.Processors.TextCommands.Parsing;
+using DSharpPlus.Commands.Processors.UserCommands;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -113,9 +113,9 @@ namespace OoLunar.Tomoe
                     LoggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>()
                 });
 
-                IReadOnlyDictionary<int, CommandAllExtension> commandAllExtensions = shardedClient.UseCommandAllAsync(new()
+                IReadOnlyDictionary<int, CommandsExtension> commandsExtensions = shardedClient.UseCommandsAsync(new()
                 {
-                    DebugGuildId = configuration.GetValue<ulong>("discord:debug_guild_id"),
+                    DebugGuildId = configuration.GetValue<ulong?>("discord:debug_guild_id", null),
                     ServiceProvider = serviceProvider
                 }).GetAwaiter().GetResult();
 
@@ -125,7 +125,7 @@ namespace OoLunar.Tomoe
                 SlashCommandProcessor slashCommandProcessor = new();
                 slashCommandProcessor.AddConverters(currentAssembly);
 
-                foreach (CommandAllExtension extension in commandAllExtensions.Values)
+                foreach (CommandsExtension extension in commandsExtensions.Values)
                 {
                     extension.AddProcessors(
                         textCommandProcessor,

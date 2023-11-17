@@ -1,9 +1,10 @@
 using System;
 using System.Drawing;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using DSharpPlus.CommandAll.Commands;
-using DSharpPlus.CommandAll.Commands.Attributes;
+using DSharpPlus.Commands.Trees;
+using DSharpPlus.Commands.Trees.Attributes;
 using DSharpPlus.Entities;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -11,17 +12,21 @@ using SixLabors.ImageSharp.Processing;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
-    public sealed class HexCommand
+    public sealed partial class HexCommand
     {
+        [UnsafeAccessor(UnsafeAccessorKind.Method, Name = "get_Value")]
+        public static extern long _getValue(ref System.Drawing.Color color);
+
         [Command("hex")]
         public static async Task ExecuteAsync(CommandContext context, string hexCode)
         {
-            if (!IsValidHex(hexCode.AsSpan()))
+            if (!IsValidHex(hexCode))
             {
                 await context.RespondAsync($"#{hexCode} is not a valid hex code. Please send a valid HTML hex code, optionally with a leading '#' or alpha channel.");
+                return;
             }
 
-            System.Drawing.Color color = ColorTranslator.FromHtml($"#{hexCode.AsSpan()}");
+            System.Drawing.Color color = ColorTranslator.FromHtml($"#{hexCode.TrimStart('#')}");
             Image<Rgba32> image = new(256, 256);
             image.Mutate(x => x.BackgroundColor(new Rgba32(color.R, color.G, color.B, color.A)));
 
@@ -30,7 +35,7 @@ namespace OoLunar.Tomoe.Commands.Common
             stream.Position = 0;
 
             DiscordMessageBuilder messageBuilder = new DiscordMessageBuilder()
-                .WithContent($"Hex: {hexCode}\nRGBA: {color.R}, {color.G}, {color.B}, {color.A}")
+                .WithContent($"Hex: {_getValue(ref color):X}\nRGBA: {color.R}, {color.G}, {color.B}, {color.A}")
                 .AddFile($"{color.R}{color.G}{color.B}{color.A}.png", stream)
                 .WithEmbed(new DiscordEmbedBuilder()
                 {
@@ -71,6 +76,5 @@ namespace OoLunar.Tomoe.Commands.Common
             // If the string is valid, return true
             return true;
         }
-
     }
 }
