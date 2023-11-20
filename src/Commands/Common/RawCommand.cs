@@ -2,12 +2,12 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using DSharpPlus;
-using DSharpPlus.Commands.Trees;
-using DSharpPlus.Commands.Trees.Attributes;
 using DSharpPlus.Commands.Processors.SlashCommands.Attributes;
 using DSharpPlus.Commands.Processors.TextCommands;
 using DSharpPlus.Commands.Processors.TextCommands.Attributes;
 using DSharpPlus.Commands.Processors.TextCommands.ContextChecks;
+using DSharpPlus.Commands.Trees;
+using DSharpPlus.Commands.Trees.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Net.Serialization;
 
@@ -16,7 +16,7 @@ namespace OoLunar.Tomoe.Commands.Common
     public sealed class RawCommand
     {
         [Command("raw"), TextAlias("print"), SlashCommandTypes(ApplicationCommandType.SlashCommand, ApplicationCommandType.MessageContextMenu)]
-        public static async Task ExecuteAsync(CommandContext context, [TextMessageReply] DiscordMessage? message = null, bool jsonfied = false)
+        public static ValueTask ExecuteAsync(CommandContext context, [TextMessageReply] DiscordMessage? message = null, bool jsonfied = false)
         {
             if (context is TextCommandContext textContext && message is null)
             {
@@ -25,15 +25,14 @@ namespace OoLunar.Tomoe.Commands.Common
 
             if (message is null)
             {
-                await context.RespondAsync("No message provided. Please give a link or reply to a message to use this command.");
-                return;
+                return context.RespondAsync("No message provided. Please give a link or reply to a message to use this command.");
             }
 
             DiscordMessageBuilder messageBuilder = new();
             if (jsonfied)
             {
-                messageBuilder.AddFile("Message.json", new MemoryStream(Encoding.UTF8.GetBytes(DiscordJson.SerializeObject(message))));
-                await context.RespondAsync(messageBuilder);
+                messageBuilder.AddFile("message.json", new MemoryStream(Encoding.UTF8.GetBytes(DiscordJson.SerializeObject(message))));
+                return context.RespondAsync(messageBuilder);
             }
 
             if (message.Content.Length != 0)
@@ -58,7 +57,7 @@ namespace OoLunar.Tomoe.Commands.Common
                 }
             }
 
-            await context.RespondAsync(messageBuilder);
+            return context.RespondAsync(messageBuilder);
         }
     }
 }

@@ -16,13 +16,18 @@ namespace OoLunar.Tomoe.Commands.Moderation
     public sealed class MoveCommand(HttpClient httpClient)
     {
         [Command("move"), Description("Moves a chunk of messages (inclusive) to a different channel."), RequirePermissions(Permissions.ManageMessages)]
-        public async Task MoveAsync(CommandContext context, DiscordChannel channel, DiscordMessage firstMessage, DiscordMessage? lastMessage = null)
+        public async ValueTask MoveAsync(CommandContext context, DiscordChannel channel, DiscordMessage firstMessage, DiscordMessage? lastMessage = null)
         {
             await context.DeleteResponseAsync();
-            IEnumerable<DiscordMessage> messages = firstMessage.Channel.GetMessagesAfterAsync(firstMessage.Id).ToBlockingEnumerable().Prepend(firstMessage);
-            if (lastMessage is not null)
+
+            List<DiscordMessage> messages = [];
+            await foreach (DiscordMessage message in firstMessage.Channel.GetMessagesAfterAsync(firstMessage.Id))
             {
-                messages = messages.OrderBy(x => x.CreationTimestamp).TakeWhile(m => m.Id != lastMessage.Id).Append(lastMessage);
+                messages.Add(message);
+                if (message.Id == lastMessage?.Id)
+                {
+                    break;
+                }
             }
 
             DiscordWebhookBuilder webhookBuilder = new()
@@ -87,7 +92,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
             }
             await webhook.ExecuteAsync(new DiscordWebhookBuilder().WithUsername(context.Guild.CurrentMember.Username + " (Message Mover)").WithAvatarUrl(context.Guild.CurrentMember.AvatarUrl).WithContent($"Messages have been moved."));
             await webhook.DeleteAsync();
-            await context.RespondAsync($"{messages.Count()} messages have been moved.");
+            await context.RespondAsync($"{messages.Count:N0} messages have been moved.");
         }
     }
 }

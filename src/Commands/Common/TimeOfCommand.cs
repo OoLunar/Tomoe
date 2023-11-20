@@ -21,7 +21,7 @@ namespace OoLunar.Tomoe.Commands.Common
         private static readonly UInt64Converter _uint64Converter = new();
 
         [Command("time_of"), TextAlias("when_was")]
-        public static async Task ExecuteAsync(CommandContext context, params string[] messages)
+        public static async ValueTask ExecuteAsync(CommandContext context, params string[] messages)
         {
             TextConverterContext converterContext = new()
             {

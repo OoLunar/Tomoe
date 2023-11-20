@@ -16,7 +16,7 @@ namespace OoLunar.Tomoe.Commands.Common
         private static readonly DateTimeOffsetConverter _dateTimeArgumentConverter = new();
 
         [Command("timestamp")]
-        public static async Task ExecuteAsync(CommandContext context, TimestampFormat format = TimestampFormat.LongDateTime, string? when = null)
+        public static async ValueTask ExecuteAsync(CommandContext context, TimestampFormat format = TimestampFormat.LongDateTime, string? when = null)
         {
             if (when is null)
             {

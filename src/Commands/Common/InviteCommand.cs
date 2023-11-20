@@ -13,7 +13,7 @@ namespace OoLunar.Tomoe.Commands.Common
     public sealed class InviteCommand
     {
         [Command("invite"), Description("Sends the link to add Tomoe to a guild without an embed.")]
-        public static async Task InviteAsync(CommandContext context)
+        public static ValueTask InviteAsync(CommandContext context)
         {
             Permissions requiredPermissions = GetSubcommandsPermissions(context.Extension.Commands.Values);
             StringBuilder stringBuilder = new();
@@ -27,7 +27,7 @@ namespace OoLunar.Tomoe.Commands.Common
             }
 
             stringBuilder.Append('>');
-            await context.RespondAsync(stringBuilder.ToString());
+            return context.RespondAsync(stringBuilder.ToString());
         }
 
         private static Permissions GetSubcommandsPermissions(IEnumerable<Command> subCommands)

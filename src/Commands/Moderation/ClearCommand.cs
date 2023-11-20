@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Commands.ContextChecks;
@@ -14,16 +13,20 @@ namespace OoLunar.Tomoe.Commands.Moderation
     public class ClearCommand
     {
         [Command("clear"), Description("Clears messages from chat."), RequirePermissions(Permissions.ManageMessages)]
-        public static async Task ExecuteAsync(CommandContext context, DiscordMessage firstMessage, DiscordMessage? lastMessage = null, [RemainingText] string? reason = null)
+        public static async ValueTask ExecuteAsync(CommandContext context, DiscordMessage firstMessage, DiscordMessage? lastMessage = null, [RemainingText] string? reason = null)
         {
-            IEnumerable<DiscordMessage> messages = firstMessage.Channel.GetMessagesAfterAsync(firstMessage.Id).ToBlockingEnumerable().Prepend(firstMessage);
-            if (lastMessage is not null)
+            List<DiscordMessage> messages = [];
+            await foreach (DiscordMessage message in firstMessage.Channel.GetMessagesAfterAsync(firstMessage.Id))
             {
-                messages = messages.OrderBy(x => x.CreationTimestamp).TakeWhile(m => m.Id != lastMessage.Id).Append(lastMessage);
+                messages.Add(message);
+                if (message.Id == lastMessage?.Id)
+                {
+                    break;
+                }
             }
 
             await firstMessage.Channel.DeleteMessagesAsync(messages, reason ?? "No reason provided.");
-            await context.RespondAsync($"{messages.Count():N0} deleted.");
+            await context.RespondAsync($"{messages.Count:N0} deleted.");
         }
 
         //[Command("clear"), Description("Removes messages by links.")]

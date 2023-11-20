@@ -16,7 +16,7 @@ namespace OoLunar.Tomoe.Commands.Common
         private readonly HttpClient _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
 
         [Command("trim")]
-        public async Task ExecuteAsync(CommandContext context, DiscordAttachment? attachment = null)
+        public async ValueTask ExecuteAsync(CommandContext context, DiscordAttachment? attachment = null)
         {
             string? message;
             if (attachment is not null)

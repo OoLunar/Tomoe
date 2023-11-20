@@ -9,12 +9,12 @@ namespace OoLunar.Tomoe.Commands.Common
     public sealed class SortCommand
     {
         [Command("sort")]
-        public static async Task ExecuteAsync(CommandContext context, [RemainingText] string text)
+        public static ValueTask ExecuteAsync(CommandContext context, [RemainingText] string text)
         {
             char splitChar = !text.Contains('\n') ? ' ' : '\n';
             List<string> words = new(text.Split(splitChar));
             words.Sort();
-            await context.RespondAsync(string.Join(splitChar, words));
+            return context.RespondAsync(string.Join(splitChar, words));
         }
     }
 }

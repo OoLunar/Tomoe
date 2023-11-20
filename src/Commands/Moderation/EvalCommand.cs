@@ -55,7 +55,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
         }
 
         [Command("eval"), Description("Not for you."), RequireOwner]
-        public static async Task ExecuteAsync(CommandContext context, [RemainingText] string code)
+        public static async ValueTask ExecuteAsync(CommandContext context, [RemainingText] string code)
         {
             await context.DeferResponseAsync();
             Script<object> script = CSharpScript.Create(code, Options, typeof(EvalContext));
@@ -80,7 +80,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
             await script.RunAsync(evalContext).ContinueWith((Task<ScriptState<object>> task) => FinishedAsync(evalContext, task.Exception ?? task.Result.Exception ?? task.Result.ReturnValue));
         }
 
-        public static async Task FinishedAsync(EvalContext context, object? output)
+        public static async ValueTask FinishedAsync(EvalContext context, object? output)
         {
             string filename = "output.json";
             byte[] utf8Bytes = null!;

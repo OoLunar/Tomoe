@@ -3,6 +3,7 @@ using System.Drawing;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using DSharpPlus;
 using DSharpPlus.Commands.Trees;
 using DSharpPlus.Commands.Trees.Attributes;
 using DSharpPlus.Entities;
@@ -18,12 +19,11 @@ namespace OoLunar.Tomoe.Commands.Common
         public static extern long _getValue(ref System.Drawing.Color color);
 
         [Command("hex")]
-        public static async Task ExecuteAsync(CommandContext context, string hexCode)
+        public static ValueTask ExecuteAsync(CommandContext context, string hexCode)
         {
             if (!IsValidHex(hexCode))
             {
-                await context.RespondAsync($"#{hexCode} is not a valid hex code. Please send a valid HTML hex code, optionally with a leading '#' or alpha channel.");
-                return;
+                return context.RespondAsync($"`#{Formatter.Sanitize(hexCode)}` is not a valid hex code. Please send a valid HTML hex code, optionally with a leading '#' or alpha channel.");
             }
 
             System.Drawing.Color color = ColorTranslator.FromHtml($"#{hexCode.TrimStart('#')}");
@@ -43,7 +43,7 @@ namespace OoLunar.Tomoe.Commands.Common
                     ImageUrl = $"attachment://{color.R}{color.G}{color.B}{color.A}.png"
                 });
 
-            await context.RespondAsync(messageBuilder);
+            return context.RespondAsync(messageBuilder);
         }
 
         private static bool IsValidHex(ReadOnlySpan<char> hexString)
