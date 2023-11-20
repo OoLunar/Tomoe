@@ -12,7 +12,7 @@ namespace OoLunar.Tomoe.Commands.Common
     public sealed class CaseCommand
     {
         [Command("case")]
-        public static async Task ExecuteAsync(CommandContext context, CaseType caseType, params string[] content)
+        public static ValueTask ExecuteAsync(CommandContext context, CaseType caseType, params string[] content)
         {
             List<string> output = [];
             foreach (string line in content)
@@ -29,14 +29,10 @@ namespace OoLunar.Tomoe.Commands.Common
                 });
             }
 
-            if (content.Length == 1)
-            {
-                await context.RespondAsync(Formatter.InlineCode(output[0]));
-            }
-            else
-            {
-                await context.RespondAsync(Formatter.BlockCode(string.Join('\n', output)));
-            }
+            return context.RespondAsync(content.Length == 1
+                ? Formatter.InlineCode(output[0])
+                : Formatter.BlockCode(string.Join('\n', output))
+            );
         }
     }
 
