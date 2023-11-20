@@ -9,7 +9,7 @@ using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus.Exceptions;
 
-namespace DSharpPlus.CommandAll.Processors.TextCommands
+namespace OoLunar.Tomoe
 {
     public static partial class TextCommandUtilities
     {
@@ -116,5 +116,28 @@ namespace DSharpPlus.CommandAll.Processors.TextCommands
             _messageMentionedChannelsSetter(message) = channelMentions;
             return message;
         }
+
+        public static string GetDisplayName(this DiscordUser user)
+        {
+            if (user is DiscordMember member)
+            {
+                return member.DisplayName;
+            }
+            else if (!string.IsNullOrEmpty(user.GlobalName))
+            {
+                return user.GlobalName;
+            }
+
+            return user.Username;
+        }
+
+        public static string PluralizeCorrectly(this string str) => str.Length == 0 ? str : str[^1] switch
+        {
+            // Ensure it doesn't already end with `'s`
+            's' when str.Length > 1 && str[^2] == '\'' => str,
+            's' => str + '\'',
+            '\'' => str + 's',
+            _ => str + "'s"
+        };
     }
 }

@@ -26,6 +26,9 @@ charset = utf-8
 ###############################
 [*.{cs,vb}]
 
+# Suppress IDE0058: Expression value is never used
+dotnet_diagnostic.IDE0058.severity = none
+
 # Disable require license header
 dotnet_diagnostic.IDE0073.severity = none
 

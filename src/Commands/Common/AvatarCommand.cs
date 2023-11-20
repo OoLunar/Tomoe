@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -16,59 +17,64 @@ using SixLabors.ImageSharp.Metadata;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
-    [Command("avatar"), TextAlias("pfp", "icon", "profile_picture", "picture")]
+    [Command("avatar"), TextAlias("pfp")]
     public sealed class AvatarCommand(HttpClient httpClient)
     {
         [Command("user"), SlashCommandTypes(ApplicationCommandType.SlashCommand, ApplicationCommandType.UserContextMenu)]
-        public Task UserAsync(CommandContext context, DiscordUser? user = null, ImageFormat imageFormat = ImageFormat.Auto, ushort imageDimensions = 0)
-            => SendAvatarAsync(context, $"{(user ??= context.User).Username}{(user.Username.EndsWith('s') ? "'" : "'s")} Avatar", user.GetAvatarUrl(imageFormat == ImageFormat.Unknown ? ImageFormat.Auto : imageFormat, imageDimensions == 0 ? (ushort)1024 : imageDimensions), user.BannerColor.HasValue && !user.BannerColor.Value.Equals(default(DiscordColor)) ? user.BannerColor.Value : null);
+        public ValueTask UserAsync(CommandContext context, DiscordUser? user = null, ImageFormat imageFormat = ImageFormat.Auto, ushort imageDimensions = 0)
+        {
+            user ??= context.User;
+            string pluralDisplayName = user.GetDisplayName().PluralizeCorrectly();
+            string avatarUrl = user.GetAvatarUrl(imageFormat == ImageFormat.Unknown ? ImageFormat.Auto : imageFormat, imageDimensions == 0 ? (ushort)1024 : imageDimensions);
+            DiscordColor? color = user.BannerColor.HasValue && !user.BannerColor.Value.Equals(default(DiscordColor)) ? user.BannerColor.Value : null;
+            return SendAvatarAsync(context, $"{pluralDisplayName} Avatar", avatarUrl, color);
+        }
 
         [Command("webhook"), TextAlias("wh")]
-        public async Task WebhookAsync(CommandContext context, [TextMessageReply] DiscordMessage? message = null, ImageFormat imageFormat = ImageFormat.Auto, ushort imageDimensions = 0)
+        public ValueTask WebhookAsync(CommandContext context, [TextMessageReply] DiscordMessage? message = null, ImageFormat imageFormat = ImageFormat.Auto, ushort imageDimensions = 0)
         {
-            if (context is not TextCommandContext textContext)
+            if (message is null)
             {
-                await SendAvatarAsync(context, $"{message!.Author.Username}{(message.Author.Username.EndsWith('s') ? "'" : "'s")} Avatar", message.Author.GetAvatarUrl(imageFormat == ImageFormat.Unknown ? ImageFormat.Auto : imageFormat, imageDimensions == 0 ? (ushort)1024 : imageDimensions));
+                if (context is not TextCommandContext textCommandContext)
+                {
+                    return context.RespondAsync("Please provide a message link of whose avatar to grab. Additionally ensure the message belongs to this guild.");
+                }
+                else if (textCommandContext.Message.ReferencedMessage is null)
+                {
+                    return context.RespondAsync("Please reply to a message or provide a message link of whose avatar to grab. Additionally ensure the message belongs to this guild.");
+                }
+
+                message = textCommandContext.Message.ReferencedMessage;
             }
-            else if (message is not null)
-            {
-                await SendAvatarAsync(context, $"{message.Author.Username}{(message.Author.Username.EndsWith('s') ? "'" : "'s")} Avatar", message.Author.GetAvatarUrl(imageFormat == ImageFormat.Unknown ? ImageFormat.Auto : imageFormat, imageDimensions == 0 ? (ushort)1024 : imageDimensions));
-            }
-            else if (textContext.Message.ReferencedMessage is not null)
-            {
-                await SendAvatarAsync(context, $"{textContext.Message.ReferencedMessage.Author.Username}{(textContext.Message.ReferencedMessage.Author.Username.EndsWith('s') ? "'" : "'s")} Avatar", textContext.Message.ReferencedMessage.Author.GetAvatarUrl(imageFormat == ImageFormat.Unknown ? ImageFormat.Auto : imageFormat, imageDimensions == 0 ? (ushort)1024 : imageDimensions));
-            }
-            else
-            {
-                await context.RespondAsync("Please reply to a message or provide a message link of whose avatar to grab. Additionally ensure the message belongs to this guild.");
-            }
+
+            return UserAsync(context, message.Author, imageFormat, imageDimensions);
         }
 
         [Command("guild"), TextAlias("member", "server"), RequireGuild]
-        public async Task GuildAsync(CommandContext context, DiscordMember? member = null, ImageFormat imageFormat = ImageFormat.Auto, ushort imageDimensions = 0)
+        public async ValueTask GuildAsync(CommandContext context, DiscordMember? member = null, ImageFormat imageFormat = ImageFormat.Auto, ushort imageDimensions = 0)
         {
-            if (context.Guild is null)
+            member ??= context.Member!;
+            if (member.GuildAvatarHash is null)
             {
-                await context.RespondAsync($"Command `/{context.Command.FullName}` can only be used in a guild.");
+                member = await context.Guild!.GetMemberAsync(member.Id, true);
             }
-            else
-            {
-                member ??= context.Member!;
-                if (member.GuildAvatarHash is null)
-                {
-                    member = await context.Guild!.GetMemberAsync(member.Id, true);
-                }
-                await SendAvatarAsync(context, $"{member.Username}{(member.Username.EndsWith('s') ? "'" : "'s")} Guild Avatar", member.GetGuildAvatarUrl(imageFormat == ImageFormat.Unknown ? ImageFormat.Auto : imageFormat, imageDimensions == 0 ? (ushort)1024 : imageDimensions), !member.Color.Equals(default(DiscordColor)) ? member.Color : null);
-            }
+
+            await UserAsync(context, member, imageFormat, imageDimensions);
         }
 
-        private async Task SendAvatarAsync(CommandContext context, string embedTitle, string url, DiscordColor? embedColor = null)
+        private async ValueTask SendAvatarAsync(CommandContext context, string embedTitle, string url, DiscordColor? embedColor = null)
         {
             await context.DeferResponseAsync();
-            Stream imageStream = await (await httpClient.GetAsync(url)).Content.ReadAsStreamAsync();
-            Image image = await Image.LoadAsync(imageStream);
-            imageStream.Position = 0; // For image format in the next field.
+            using HttpResponseMessage response = await httpClient.GetAsync(url);
+            if (!response.IsSuccessStatusCode)
+            {
+                // The embed title is set to something like "Lunar's Avatar", so we can just use the embed title.
+                await context.EditResponseAsync(new DiscordMessageBuilder().WithContent($"Failed to retrieve {embedTitle}. HTTP Error `{response.StatusCode}`."));
+                return;
+            }
 
+            using Stream imageStream = await response.Content.ReadAsStreamAsync();
+            Image image = await Image.LoadAsync(imageStream);
             DiscordEmbedBuilder embedBuilder = new()
             {
                 Title = embedTitle,
@@ -76,14 +82,14 @@ namespace OoLunar.Tomoe.Commands.Common
                 Color = embedColor ?? new DiscordColor("#6b73db"),
             };
 
+            imageStream.Position = 0; // For image format
             embedBuilder.AddField("Image Format", Image.DetectFormat(imageStream).Name, true);
-
             if (url.Contains("a_"))
             {
-                embedBuilder.AddField("Frame Count", image.Frames.Count.ToString("N0"), true);
+                embedBuilder.AddField("Frame Count", image.Frames.Count.ToString("N0", CultureInfo.InvariantCulture), true);
             }
 
-            embedBuilder.AddField("File Size", imageStream.Length.Bytes().Humanize(), true);
+            embedBuilder.AddField("File Size", imageStream.Length.Bytes().Humanize(CultureInfo.InvariantCulture), true);
             embedBuilder.AddField("Image Resolution", image.Metadata.ResolutionUnits switch
             {
                 PixelResolutionUnit.PixelsPerCentimeter => $"{image.Metadata.HorizontalResolution} x {image.Metadata.VerticalResolution} cm",

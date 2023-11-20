@@ -1,7 +1,6 @@
 using System;
 using System.Threading.Tasks;
 using DSharpPlus;
-using DSharpPlus.CommandAll.Processors.TextCommands;
 using DSharpPlus.Commands.Converters;
 using DSharpPlus.Commands.Processors.TextCommands;
 using DSharpPlus.Commands.Trees;
