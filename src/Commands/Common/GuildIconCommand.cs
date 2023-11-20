@@ -12,8 +12,29 @@ namespace OoLunar.Tomoe.Commands.Common
     public sealed class GuildIconCommand
     {
         [Command("guild_icon"), TextAlias("guild_picture")]
-        public static async Task ExecuteAsync(CommandContext context, ulong guildId = 0, ImageFormat imageFormat = ImageFormat.Auto, ushort imageDimensions = 0)
+        public static async ValueTask ExecuteAsync(CommandContext context, ulong guildId = 0, ImageFormat imageFormat = ImageFormat.Auto, ushort imageDimensions = 0)
         {
+            if (guildId == 0)
+            {
+                if (context.Guild is null)
+                {
+                    await context.RespondAsync("Please provide a guild id.");
+                    return;
+                }
+
+                guildId = context.Guild.Id;
+            }
+
+            if (imageFormat == ImageFormat.Unknown)
+            {
+                imageFormat = ImageFormat.Auto;
+            }
+
+            if (imageDimensions == 0)
+            {
+                imageDimensions = 1024;
+            }
+
             if (context.Client.Guilds.TryGetValue(guildId, out DiscordGuild? guild))
             {
                 await context.RespondAsync(guild.GetIconUrl(imageFormat, imageDimensions));
