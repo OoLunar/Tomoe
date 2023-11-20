@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using DSharpPlus;
+using DSharpPlus.Commands.ContextChecks;
 using DSharpPlus.Commands.Trees;
 using DSharpPlus.Commands.Trees.Attributes;
 using DSharpPlus.Entities;
@@ -14,7 +15,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
 {
     public sealed class MoveCommand(HttpClient httpClient)
     {
-        [Command("move"), Description("Moves a chunk of messages (inclusive) to a different channel.")]
+        [Command("move"), Description("Moves a chunk of messages (inclusive) to a different channel."), RequirePermissions(Permissions.ManageMessages)]
         public async Task MoveAsync(CommandContext context, DiscordChannel channel, DiscordMessage firstMessage, DiscordMessage? lastMessage = null)
         {
             await context.DeleteResponseAsync();
