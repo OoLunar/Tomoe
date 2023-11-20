@@ -43,7 +43,7 @@ namespace OoLunar.Tomoe.Events.Handlers
             }
         }
 
-        private static string FormatStackTrace(string? text) => text == null
+        private static string FormatStackTrace(string? text) => string.IsNullOrWhiteSpace(text)
             ? "No stack trace available."
             : string.Join('\n', text.Split('\n').Select(line => ReplaceFirst(line.Trim(), "at", "-")));
 

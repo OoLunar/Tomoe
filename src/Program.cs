@@ -14,7 +14,6 @@ using DSharpPlus.Commands.Processors.UserCommands;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using OoLunar.Tomoe.Database;
 using OoLunar.Tomoe.Events;
 using OoLunar.Tomoe.Services;
 using OoLunar.Tomoe.Services.Pagination;
@@ -91,9 +90,6 @@ namespace OoLunar.Tomoe
                 logger.AddSerilog(loggerConfiguration.CreateLogger());
             });
 
-            // Add EFCore as a scoped service to preserve the same context between converters and commands.
-            serviceCollection.AddDbContext<DatabaseContext>((services, options) => DatabaseContext.ConfigureOptions(options, services.GetRequiredService<IConfiguration>()), ServiceLifetime.Scoped);
-
             Assembly currentAssembly = typeof(Program).Assembly;
             serviceCollection.AddSingleton((serviceProvider) =>
             {
@@ -142,9 +138,7 @@ namespace OoLunar.Tomoe
 
             serviceCollection.AddSingleton(new HttpClient() { DefaultRequestHeaders = { { "User-Agent", $"OoLunar.Tomoe/{currentAssembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion} Github" } } });
             serviceCollection.AddSingleton<ImageUtilitiesService>();
-            serviceCollection.AddSingleton(typeof(ExpirableService<>));
             serviceCollection.AddSingleton(typeof(PaginatorService));
-            serviceCollection.AddScoped<PollService>();
             serviceCollection.AddSingleton((serviceProvider) =>
             {
                 DiscordEventManager eventManager = new(serviceProvider);

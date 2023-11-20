@@ -1,19 +1,13 @@
-using System;
-using System.Linq;
 using System.Threading.Tasks;
+using DSharpPlus.Commands.ContextChecks;
 using DSharpPlus.Commands.Trees;
 using DSharpPlus.Commands.Trees.Attributes;
-using DSharpPlus.Commands.ContextChecks;
-using OoLunar.Tomoe.Database;
-using OoLunar.Tomoe.Database.Models;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
-    public sealed class MemberCountCommand(DatabaseContext databaseContext)
+    public sealed class MemberCountCommand
     {
-        private readonly DatabaseContext _databaseContext = databaseContext ?? throw new ArgumentNullException(nameof(databaseContext));
-
         [Command("member_count"), RequireGuild]
-        public async Task ExecuteAsync(CommandContext context) => await context.RespondAsync($"Current member count: {_databaseContext.Members.Count(member => member.GuildId == context.Guild!.Id && !member.Flags.HasFlag(MemberState.Absent | MemberState.Banned)):N0}");
+        public static async Task ExecuteAsync(CommandContext context) => await context.RespondAsync($"Current member count: {context.Guild!.MemberCount:N0}");
     }
 }

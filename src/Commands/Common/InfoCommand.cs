@@ -15,9 +15,6 @@ using DSharpPlus.Commands.Trees.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
 using Humanizer;
-using Microsoft.EntityFrameworkCore;
-using OoLunar.Tomoe.Database;
-using OoLunar.Tomoe.Database.Models;
 using OoLunar.Tomoe.Services;
 
 namespace OoLunar.Tomoe.Commands.Common
@@ -28,16 +25,11 @@ namespace OoLunar.Tomoe.Commands.Common
         private static readonly ReadOnlyMemory<char> _slashPrefix = new[] { ',', ' ', '`', '/', '`' };
         private static readonly Dictionary<string, string> UnicodeEmojis = (Dictionary<string, string>)typeof(DiscordEmoji).GetProperty("UnicodeEmojis", BindingFlags.NonPublic | BindingFlags.Static)!.GetValue(null)!;
         private readonly ImageUtilitiesService _imageUtilitiesService;
-        private readonly DatabaseContext _database;
 
-        public InfoCommand(DatabaseContext database, ImageUtilitiesService imageUtilitiesService)
-        {
-            _database = database;
-            _imageUtilitiesService = imageUtilitiesService;
-        }
+        public InfoCommand(ImageUtilitiesService imageUtilitiesService) => _imageUtilitiesService = imageUtilitiesService;
 
         [Command("user")]
-        public async Task UserInfoAsync(CommandContext context, DiscordUser? user = null)
+        public static async Task UserInfoAsync(CommandContext context, DiscordUser? user = null)
         {
             user ??= context.User;
 
@@ -56,20 +48,19 @@ namespace OoLunar.Tomoe.Commands.Common
                     embedBuilder.Color = member.Color;
                 }
 
-                GuildMemberModel memberModel = await _database.Members.FirstAsync(databaseMember => member.Id == databaseMember.UserId && member.Guild.Id == databaseMember.GuildId);
-                if (memberModel.JoinedAt != member.JoinedAt.UtcDateTime)
-                {
-                    embedBuilder.AddField("User Id", Formatter.InlineCode(user.Id.ToString(CultureInfo.InvariantCulture)), false);
-                    embedBuilder.AddField("Joined Discord", Formatter.Timestamp(user.CreationTimestamp, TimestampFormat.RelativeTime), true);
-                    embedBuilder.AddField("First joined the Server", Formatter.Timestamp(memberModel.JoinedAt, TimestampFormat.RelativeTime), true);
-                }
-                else
-                {
-                    embedBuilder.AddField("User Id", Formatter.InlineCode(user.Id.ToString(CultureInfo.InvariantCulture)), true);
-                    // ZWS field
-                    embedBuilder.AddField("\u200B", "\u200B", true);
-                    embedBuilder.AddField("Joined Discord", Formatter.Timestamp(user.CreationTimestamp, TimestampFormat.RelativeTime), true);
-                }
+                //if (memberModel.JoinedAt != member.JoinedAt.UtcDateTime)
+                //{
+                //    embedBuilder.AddField("User Id", Formatter.InlineCode(user.Id.ToString(CultureInfo.InvariantCulture)), false);
+                //    embedBuilder.AddField("Joined Discord", Formatter.Timestamp(user.CreationTimestamp, TimestampFormat.RelativeTime), true);
+                //    embedBuilder.AddField("First joined the Server", Formatter.Timestamp(memberModel.JoinedAt, TimestampFormat.RelativeTime), true);
+                //}
+                //else
+                //{
+                embedBuilder.AddField("User Id", Formatter.InlineCode(user.Id.ToString(CultureInfo.InvariantCulture)), true);
+                // ZWS field
+                embedBuilder.AddField("\u200B", "\u200B", true);
+                embedBuilder.AddField("Joined Discord", Formatter.Timestamp(user.CreationTimestamp, TimestampFormat.RelativeTime), true);
+                //}
 
                 embedBuilder.AddField("Recently joined the Server", Formatter.Timestamp(member.JoinedAt, TimestampFormat.RelativeTime), true);
                 embedBuilder.AddField("Roles", member.Roles.Any() ? string.Join('\n', member.Roles.OrderByDescending(role => role.Position).Select(role => $"- {role.Mention}")) : "None", false);
@@ -102,8 +93,8 @@ namespace OoLunar.Tomoe.Commands.Common
             embedBuilder.AddField("Uptime", GetLastCommaRegex().Replace((Process.GetCurrentProcess().StartTime - DateTime.Now).Humanize(3), " and "), true);
             embedBuilder.AddField("Websocket Ping", GetLastCommaRegex().Replace(context.Client.Ping.Milliseconds().Humanize(3), " and "), true);
 
-            embedBuilder.AddField("Guild Count", _database.Guilds.LongCount().ToString("N0"), true);
-            embedBuilder.AddField("User Count", _database.Members.LongCount().ToString("N0"), true);
+            embedBuilder.AddField("Guild Count", context.Client.Guilds.Keys.LongCount().ToString("N0"), true);
+            embedBuilder.AddField("User Count", context.Client.Guilds.Values.Sum(guild => guild.MemberCount).ToString("N0"), true);
 
             List<string> prefixes = [];
             prefixes.Add("`>>`");
@@ -120,7 +111,7 @@ namespace OoLunar.Tomoe.Commands.Common
         private static partial Regex GetLastCommaRegex();
 
         [Command("role"), RequireGuild]
-        public async Task RoleInfoAsync(CommandContext context, DiscordRole role)
+        public static async Task RoleInfoAsync(CommandContext context, DiscordRole role)
         {
             DiscordEmbedBuilder embedBuilder = new()
             {
@@ -143,10 +134,10 @@ namespace OoLunar.Tomoe.Commands.Common
             embedBuilder.AddField("Role Position", role.Position.ToString("N0"), true);
             embedBuilder.AddField("Permissions", role.Permissions == Permissions.None ? "No permissions." : role.Permissions.ToPermissionString() + ".", false);
 
-            List<GuildMemberModel> members = await _database.Members.AsNoTracking().Where(member => member.GuildId == context.Guild!.Id && member.RoleIds.Contains(role.Id) && !member.Flags.HasFlag(MemberState.Absent | MemberState.Banned)).ToListAsync();
-            members.Sort((member1, member2) => member1.UserId.CompareTo(member2.UserId));
-            embedBuilder.AddField("Member Count", members.Count.ToString("N0", CultureInfo.InvariantCulture), false);
-            embedBuilder.AddField("Members", string.Join(", ", members.Select(member => $"<@{member.UserId}>").DefaultIfEmpty("None")), true);
+            //List<GuildMemberModel> members = await _database.Members.AsNoTracking().Where(member => member.GuildId == context.Guild!.Id && member.RoleIds.Contains(role.Id) && !member.Flags.HasFlag(MemberState.Absent | MemberState.Banned)).ToListAsync();
+            //members.Sort((member1, member2) => member1.UserId.CompareTo(member2.UserId));
+            //embedBuilder.AddField("Member Count", members.Count.ToString("N0", CultureInfo.InvariantCulture), false);
+            //embedBuilder.AddField("Members", string.Join(", ", members.Select(member => $"<@{member.UserId}>").DefaultIfEmpty("None")), true);
 
             await context.RespondAsync(embedBuilder);
         }
@@ -302,7 +293,7 @@ namespace OoLunar.Tomoe.Commands.Common
             embedBuilder.AddField("Emoji Count", guild.Emojis.Count.ToString("N0", CultureInfo.InvariantCulture), true);
             embedBuilder.AddField("Role Count", guild.Roles.Count.ToString("N0", CultureInfo.InvariantCulture), true);
             embedBuilder.AddField("Sticker Count", guild.Stickers.Count.ToString("N0", CultureInfo.InvariantCulture), true);
-            embedBuilder.AddField("Member Count", (await _database.Members.CountAsync(member => member.GuildId == guild.Id && !member.Flags.HasFlag(MemberState.Absent | MemberState.Banned))).ToString("N0", CultureInfo.InvariantCulture), true);
+            embedBuilder.AddField("Member Count", guild.MemberCount.ToString("N0", CultureInfo.InvariantCulture), true);
             embedBuilder.AddField("Currently Scheduled Events", (guild.ScheduledEvents.Count == 0 ? (await guild.GetEventsAsync(false)).Count : guild.ScheduledEvents.Count).ToString("N0", CultureInfo.InvariantCulture), true);
             embedBuilder.AddField("Features", string.IsNullOrWhiteSpace(features) ? "None" : features, false);
         }
