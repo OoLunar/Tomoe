@@ -1,6 +1,4 @@
 using System.Globalization;
-using System.IO;
-using System.Net.Http;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Commands.ContextChecks;
@@ -11,14 +9,12 @@ using DSharpPlus.Commands.Processors.TextCommands.ContextChecks;
 using DSharpPlus.Commands.Trees;
 using DSharpPlus.Commands.Trees.Attributes;
 using DSharpPlus.Entities;
-using Humanizer;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Metadata;
+using OoLunar.Tomoe.Services;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
     [Command("avatar"), TextAlias("pfp")]
-    public sealed class AvatarCommand(HttpClient httpClient)
+    public sealed class AvatarCommand(ImageUtilitiesService imageUtilitiesService)
     {
         [Command("user"), SlashCommandTypes(ApplicationCommandType.SlashCommand, ApplicationCommandType.UserContextMenu)]
         public ValueTask UserAsync(CommandContext context, DiscordUser? user = null, ImageFormat imageFormat = ImageFormat.Auto, ushort imageDimensions = 0)
@@ -65,16 +61,14 @@ namespace OoLunar.Tomoe.Commands.Common
         private async ValueTask SendAvatarAsync(CommandContext context, string embedTitle, string url, DiscordColor? embedColor = null)
         {
             await context.DeferResponseAsync();
-            using HttpResponseMessage response = await httpClient.GetAsync(url);
-            if (!response.IsSuccessStatusCode)
+            ImageData? imageData = await imageUtilitiesService.GetImageDataAsync(url);
+            if (imageData is null)
             {
                 // The embed title is set to something like "Lunar's Avatar", so we can just use the embed title.
-                await context.EditResponseAsync(new DiscordMessageBuilder().WithContent($"Failed to retrieve {embedTitle}. HTTP Error `{response.StatusCode}`."));
+                await context.RespondAsync(new DiscordMessageBuilder().WithContent($"Failed to retrieve {embedTitle}."));
                 return;
             }
 
-            using Stream imageStream = await response.Content.ReadAsStreamAsync();
-            Image image = await Image.LoadAsync(imageStream);
             DiscordEmbedBuilder embedBuilder = new()
             {
                 Title = embedTitle,
@@ -82,24 +76,16 @@ namespace OoLunar.Tomoe.Commands.Common
                 Color = embedColor ?? new DiscordColor("#6b73db"),
             };
 
-            imageStream.Position = 0; // For image format
-            embedBuilder.AddField("Image Format", Image.DetectFormat(imageStream).Name, true);
+            embedBuilder.AddField("Image Format", imageData.Format, true);
             if (url.Contains("a_"))
             {
-                embedBuilder.AddField("Frame Count", image.Frames.Count.ToString("N0", CultureInfo.InvariantCulture), true);
+                embedBuilder.AddField("Frame Count", imageData.FrameCount.ToString("N0", CultureInfo.InvariantCulture), true);
             }
 
-            embedBuilder.AddField("File Size", imageStream.Length.Bytes().Humanize(CultureInfo.InvariantCulture), true);
-            embedBuilder.AddField("Image Resolution", image.Metadata.ResolutionUnits switch
-            {
-                PixelResolutionUnit.PixelsPerCentimeter => $"{image.Metadata.HorizontalResolution} x {image.Metadata.VerticalResolution} cm",
-                PixelResolutionUnit.PixelsPerInch => $"{image.Metadata.HorizontalResolution / 0.254:#.###} x {image.Metadata.VerticalResolution / 0.254:#.###} cm",
-                PixelResolutionUnit.PixelsPerMeter => $"{image.Metadata.HorizontalResolution / 1000:#.###} x {image.Metadata.VerticalResolution / 1000:#.###} cm",
-                _ => $"{image.Metadata.HorizontalResolution} x {image.Metadata.VerticalResolution} {image.Metadata.ResolutionUnits.Humanize()}"
-            });
-
-            embedBuilder.AddField("Image Dimensions (Size)", $"{image.Width} x {image.Height} pixels.", false);
-            await context.EditResponseAsync(new DiscordMessageBuilder().WithEmbed(embedBuilder));
+            embedBuilder.AddField("File Size", imageData.FileSize, true);
+            embedBuilder.AddField("Image Resolution", imageData.Resolution, false);
+            embedBuilder.AddField("Image Dimensions (Size)", imageData.Dimensions, false);
+            await context.RespondAsync(new DiscordMessageBuilder().WithEmbed(embedBuilder));
         }
     }
 }
