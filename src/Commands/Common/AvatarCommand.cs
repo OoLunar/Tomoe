@@ -16,7 +16,7 @@ namespace OoLunar.Tomoe.Commands.Common
     [Command("avatar"), TextAlias("pfp")]
     public sealed class AvatarCommand(ImageUtilitiesService imageUtilitiesService)
     {
-        [Command("user"), SlashCommandTypes(ApplicationCommandType.SlashCommand, ApplicationCommandType.UserContextMenu)]
+        [Command("user"), DefaultGroupCommand, SlashCommandTypes(ApplicationCommandType.SlashCommand, ApplicationCommandType.UserContextMenu)]
         public ValueTask UserAsync(CommandContext context, DiscordUser? user = null, ImageFormat imageFormat = ImageFormat.Auto, ushort imageDimensions = 0)
         {
             user ??= context.User;

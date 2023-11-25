@@ -9,7 +9,7 @@ namespace OoLunar.Tomoe.Commands.Common
     [Command("base_64")]
     public sealed class Base64Command
     {
-        [Command("encode")]
+        [Command("encode"), DefaultGroupCommand]
         public static ValueTask EncodeAsync(CommandContext context, [RemainingText] string text) => context.RespondAsync(Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(text)));
 
         [Command("decode")]
