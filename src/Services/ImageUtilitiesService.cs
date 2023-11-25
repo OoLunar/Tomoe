@@ -4,18 +4,20 @@ using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Humanizer;
+using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Metadata;
 
 namespace OoLunar.Tomoe.Services
 {
-    public sealed class ImageUtilitiesService(HttpClient httpClient)
+    public sealed class ImageUtilitiesService(HttpClient httpClient, ILogger<ImageUtilitiesService> logger)
     {
         public async ValueTask<ImageData?> GetImageDataAsync(string url)
         {
             using HttpResponseMessage response = await httpClient.GetAsync(url);
             if (!response.IsSuccessStatusCode)
             {
+                logger.LogWarning("Http Error {HttpError}. Failed to get image data from {Url}.", (int)response.StatusCode, url);
                 return null;
             }
 
