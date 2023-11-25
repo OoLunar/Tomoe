@@ -26,7 +26,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
             }
 
             await firstMessage.Channel.DeleteMessagesAsync(messages, reason ?? "No reason provided.");
-            await context.RespondAsync($"{messages.Count:N0} deleted.");
+            await context.RespondAsync($"{messages.Count:N0} messages deleted.");
         }
 
         //[Command("clear"), Description("Removes messages by links.")]
