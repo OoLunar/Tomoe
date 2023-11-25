@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using DSharpPlus.Commands.Processors.TextCommands;
 using DSharpPlus.Commands.Trees;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus.Exceptions;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace OoLunar.Tomoe
 {
@@ -30,6 +32,25 @@ namespace OoLunar.Tomoe
         [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "_mentionedUsers")] private static extern ref List<DiscordUser> _messageMentionedUsersSetter(DiscordMessage message);
         [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "_mentionedRoles")] private static extern ref List<DiscordRole> _messageMentionedRolesSetter(DiscordMessage message);
         [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "_mentionedChannels")] private static extern ref List<DiscordChannel> _messageMentionedChannelsSetter(DiscordMessage message);
+
+        public static Task<Optional<T>> ExecuteAsync<T>(this ITextArgumentConverter<T> converter, CommandContext context, string value)
+        {
+            ArgumentNullException.ThrowIfNull(context, nameof(context));
+            ArgumentException.ThrowIfNullOrWhiteSpace(value, nameof(value));
+            TextConverterContext converterContext = new()
+            {
+                Channel = context.Channel,
+                Command = context.Command,
+                Extension = context.Extension,
+                RawArguments = value,
+                ServiceScope = context.ServiceProvider.CreateAsyncScope(),
+                Splicer = context.Extension.GetProcessor<TextCommandProcessor>().Configuration.TextArgumentSplicer,
+                User = context.User
+            };
+            converterContext.NextArgument();
+
+            return converter.ConvertAsync(converterContext, CreateFakeMessageEventArgs(context, value));
+        }
 
         public static MessageCreateEventArgs CreateFakeMessageEventArgs(TextCommandContext context)
         {
