@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -22,8 +23,8 @@ namespace OoLunar.Tomoe.Commands.Common
     [Command("info")]
     public sealed partial class InfoCommand
     {
-        private static readonly ReadOnlyMemory<char> _slashPrefix = new[] { ',', ' ', '`', '/', '`' };
-        private static readonly Dictionary<string, string> UnicodeEmojis = (Dictionary<string, string>)typeof(DiscordEmoji).GetProperty("UnicodeEmojis", BindingFlags.NonPublic | BindingFlags.Static)!.GetValue(null)!;
+        [GeneratedRegex("<a?:(\\w+):(\\d+)>", RegexOptions.Compiled)] private static partial Regex _getEmojiRegex();
+        [UnsafeAccessor(UnsafeAccessorKind.StaticMethod, Name = "get_UnicodeEmojis")] private static extern IReadOnlyDictionary<string, string> _unicodeEmojis(DiscordEmoji emoji);
         private readonly ImageUtilitiesService _imageUtilitiesService;
 
         public InfoCommand(ImageUtilitiesService imageUtilitiesService) => _imageUtilitiesService = imageUtilitiesService;
@@ -74,7 +75,7 @@ namespace OoLunar.Tomoe.Commands.Common
             await context.RespondAsync(embedBuilder);
         }
 
-        [Command("bot")]
+        [Command("bot"), DefaultGroupCommand]
         public async Task BotInfoAsync(CommandContext context)
         {
             DiscordEmbedBuilder embedBuilder = new()
@@ -145,15 +146,15 @@ namespace OoLunar.Tomoe.Commands.Common
         [Command("emoji")]
         public async Task EmojiInfoAsync(CommandContext context, string emoji)
         {
-            // Grab the emoji name, id, filesize and url.
             DiscordEmbedBuilder embedBuilder = new()
             {
                 Color = new DiscordColor("#6b73db")
             };
 
+            // We parse the emoji by hand in case if the bot doesn't have access to the emoji.
             if (DiscordEmoji.TryFromUnicode(context.Client, emoji, out DiscordEmoji? discordEmoji))
             {
-                embedBuilder.AddField("Emoji Name", UnicodeEmojis.First(x => x.Value == discordEmoji.Name).Key.Replace(":", "\\:"), true);
+                embedBuilder.AddField("Emoji Name", _unicodeEmojis(null!).First(x => x.Value == discordEmoji.Name).Key.Replace(":", "\\:"), true);
                 embedBuilder.AddField("Unicode", $"\\{discordEmoji.Name}", true);
                 embedBuilder.ImageUrl = $"https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/{char.ConvertToUtf32(discordEmoji.Name, 0).ToString("X4").ToLower(CultureInfo.InvariantCulture)}.png";
             }
@@ -165,7 +166,7 @@ namespace OoLunar.Tomoe.Commands.Common
             }
             else
             {
-                Match match = GetEmojiRegex().Match(emoji);
+                Match match = _getEmojiRegex().Match(emoji);
                 if (!match.Success)
                 {
                     await context.RespondAsync("Invalid emoji.");
@@ -186,7 +187,14 @@ namespace OoLunar.Tomoe.Commands.Common
                 embedBuilder.ImageUrl = embedBuilder.ImageUrl.Replace(".png", ".gif");
             }
 
-            ImageData image = await _imageUtilitiesService.GetImageDataAsync(embedBuilder.ImageUrl);
+            ImageData? image = await _imageUtilitiesService.GetImageDataAsync(embedBuilder.ImageUrl);
+            if (image is null)
+            {
+                embedBuilder.WithFooter("Failed to get image data.");
+                await context.RespondAsync(embedBuilder);
+                return;
+            }
+
             if (image.FrameCount != 1)
             {
                 // ZWS field
@@ -207,9 +215,6 @@ namespace OoLunar.Tomoe.Commands.Common
 
             await context.RespondAsync(embedBuilder);
         }
-
-        [GeneratedRegex("<a?:(\\w+):(\\d+)>", RegexOptions.Compiled)]
-        private static partial Regex GetEmojiRegex();
 
         [Command("guild"), TextAlias("server")]
         public async Task GuildInfoAsync(CommandContext context, ulong? guildId = null)
