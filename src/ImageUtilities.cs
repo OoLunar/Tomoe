@@ -8,9 +8,9 @@ using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Metadata;
 
-namespace OoLunar.Tomoe.Services
+namespace OoLunar.Tomoe
 {
-    public sealed class ImageUtilitiesService(HttpClient httpClient, ILogger<ImageUtilitiesService> logger)
+    public sealed class ImageUtilities(HttpClient httpClient, ILogger<ImageUtilities> logger)
     {
         public async ValueTask<ImageData?> GetImageDataAsync(string url)
         {

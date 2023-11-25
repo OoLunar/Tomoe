@@ -9,12 +9,11 @@ using DSharpPlus.Commands.Processors.TextCommands.ContextChecks;
 using DSharpPlus.Commands.Trees;
 using DSharpPlus.Commands.Trees.Attributes;
 using DSharpPlus.Entities;
-using OoLunar.Tomoe.Services;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
     [Command("avatar"), TextAlias("pfp")]
-    public sealed class AvatarCommand(ImageUtilitiesService imageUtilitiesService)
+    public sealed class AvatarCommand(ImageUtilities imageUtilitiesService)
     {
         [Command("user"), DefaultGroupCommand, SlashCommandTypes(ApplicationCommandType.SlashCommand, ApplicationCommandType.UserContextMenu)]
         public ValueTask UserAsync(CommandContext context, DiscordUser? user = null, ImageFormat imageFormat = ImageFormat.Auto, ushort imageDimensions = 0)

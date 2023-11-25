@@ -16,7 +16,6 @@ using DSharpPlus.Commands.Trees.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
 using Humanizer;
-using OoLunar.Tomoe.Services;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
@@ -25,9 +24,9 @@ namespace OoLunar.Tomoe.Commands.Common
     {
         [GeneratedRegex("<a?:(\\w+):(\\d+)>", RegexOptions.Compiled)] private static partial Regex _getEmojiRegex();
         [UnsafeAccessor(UnsafeAccessorKind.StaticMethod, Name = "get_UnicodeEmojis")] private static extern IReadOnlyDictionary<string, string> _unicodeEmojis(DiscordEmoji emoji);
-        private readonly ImageUtilitiesService _imageUtilitiesService;
+        private readonly ImageUtilities _imageUtilitiesService;
 
-        public InfoCommand(ImageUtilitiesService imageUtilitiesService) => _imageUtilitiesService = imageUtilitiesService;
+        public InfoCommand(ImageUtilities imageUtilitiesService) => _imageUtilitiesService = imageUtilitiesService;
 
         [Command("user")]
         public static async Task UserInfoAsync(CommandContext context, DiscordUser? user = null)

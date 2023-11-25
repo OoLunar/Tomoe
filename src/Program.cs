@@ -15,7 +15,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OoLunar.Tomoe.Events;
-using OoLunar.Tomoe.Services;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.SystemConsole.Themes;
@@ -136,7 +135,7 @@ namespace OoLunar.Tomoe
             });
 
             serviceCollection.AddSingleton(new HttpClient() { DefaultRequestHeaders = { { "User-Agent", $"OoLunar.Tomoe/{currentAssembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion} Github" } } });
-            serviceCollection.AddSingleton<ImageUtilitiesService>();
+            serviceCollection.AddSingleton<ImageUtilities>();
             serviceCollection.AddSingleton((serviceProvider) =>
             {
                 DiscordEventManager eventManager = new(serviceProvider);
