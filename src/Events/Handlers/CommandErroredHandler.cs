@@ -19,6 +19,7 @@ namespace OoLunar.Tomoe.Events.Handlers
             if (eventArgs.Exception is CommandNotFoundException commandNotFoundException)
             {
                 await eventArgs.Context.RespondAsync($"Unknown command: {commandNotFoundException.CommandName}");
+                return;
             }
 
             DiscordEmbedBuilder embedBuilder = new()

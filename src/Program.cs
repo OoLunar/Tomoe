@@ -14,6 +14,8 @@ using DSharpPlus.Commands.Processors.UserCommands;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Npgsql;
+using OoLunar.Tomoe.Database;
 using OoLunar.Tomoe.Events;
 using Serilog;
 using Serilog.Events;
@@ -21,7 +23,7 @@ using Serilog.Sinks.SystemConsole.Themes;
 
 namespace OoLunar.Tomoe
 {
-    public sealed class Program
+    public static class Program
     {
         public static async Task Main(string[] args)
         {
@@ -88,6 +90,8 @@ namespace OoLunar.Tomoe
                 logger.AddSerilog(loggerConfiguration.CreateLogger());
             });
 
+            serviceCollection.AddSingleton(DatabaseHandler.Initialize);
+
             Assembly currentAssembly = typeof(Program).Assembly;
             serviceCollection.AddSingleton((serviceProvider) =>
             {
@@ -97,7 +101,7 @@ namespace OoLunar.Tomoe
             });
 
             // Register the Discord sharded client to the service collection
-            serviceCollection.AddSingleton((serviceProvider) =>
+            serviceCollection.AddSingleton(async (serviceProvider) =>
             {
                 IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
                 DiscordShardedClient shardedClient = new(new DiscordConfiguration()
@@ -107,11 +111,11 @@ namespace OoLunar.Tomoe
                     LoggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>()
                 });
 
-                IReadOnlyDictionary<int, CommandsExtension> commandsExtensions = shardedClient.UseCommandsAsync(new()
+                IReadOnlyDictionary<int, CommandsExtension> commandsExtensions = await shardedClient.UseCommandsAsync(new()
                 {
                     DebugGuildId = configuration.GetValue<ulong?>("discord:debug_guild_id", null),
                     ServiceProvider = serviceProvider
-                }).GetAwaiter().GetResult();
+                });
 
                 TextCommandProcessor textCommandProcessor = new(new() { PrefixResolver = new DefaultPrefixResolver(configuration.GetValue("discord:prefix", ">>") ?? throw new InvalidOperationException("Missing Discord prefix.")).ResolvePrefixAsync });
                 textCommandProcessor.AddConverters(currentAssembly);
@@ -121,7 +125,7 @@ namespace OoLunar.Tomoe
 
                 foreach (CommandsExtension extension in commandsExtensions.Values)
                 {
-                    extension.AddProcessors(
+                    await extension.AddProcessorsAsync(
                         textCommandProcessor,
                         slashCommandProcessor,
                         new UserCommandProcessor(),
@@ -144,9 +148,15 @@ namespace OoLunar.Tomoe
             });
 
             IServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
-            DiscordShardedClient shardedClient = serviceProvider.GetRequiredService<DiscordShardedClient>();
+            DiscordShardedClient shardedClient = await serviceProvider.GetRequiredService<Task<DiscordShardedClient>>();
             DiscordEventManager eventManager = serviceProvider.GetRequiredService<DiscordEventManager>();
+            serviceProvider.GetRequiredService<NpgsqlConnection>(); // Init the db connection
             eventManager.RegisterEventHandlers(shardedClient);
+            foreach (CommandsExtension extension in shardedClient.GetCommandsExtensions().Values)
+            {
+                eventManager.RegisterEventHandlers(extension);
+            }
+
             await shardedClient.StartAsync();
 
             // Wait indefinitely
