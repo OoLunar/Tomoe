@@ -84,7 +84,7 @@ namespace OoLunar.Tomoe.Commands.Common
             embedBuilder.AddField("File Size", imageData.FileSize, true);
             embedBuilder.AddField("Image Resolution", imageData.Resolution, false);
             embedBuilder.AddField("Image Dimensions (Size)", imageData.Dimensions, false);
-            await context.RespondAsync(new DiscordMessageBuilder().WithEmbed(embedBuilder));
+            await context.RespondAsync(new DiscordMessageBuilder().AddEmbed(embedBuilder));
         }
     }
 }

@@ -34,8 +34,8 @@ namespace OoLunar.Tomoe.Commands.Moderation
                 .WithEmitDebugInformation(true)
                 .WithLanguageVersion(LanguageVersion.Latest)
                 .AddReferences(assemblies)
-                .AddImports(new string[]
-                {
+                .AddImports(
+                [
                     "System",
                     "System.Threading.Tasks",
                     "System.Text",
@@ -49,7 +49,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
                     "DSharpPlus.Exceptions",
                     "DSharpPlus.Entities",
                     "DSharpPlus.CommandAll"
-                });
+                ]);
 
             DiscordJson = (JsonSerializer)typeof(DiscordJson).GetField("_serializer", BindingFlags.NonPublic | BindingFlags.Static)!.GetValue(null)!;
         }
@@ -115,10 +115,10 @@ namespace OoLunar.Tomoe.Commands.Moderation
                     await context.Context.EditResponseAsync(messageBuilder);
                     break;
                 case DiscordEmbed embed:
-                    await context.Context.EditResponseAsync(new DiscordMessageBuilder().WithEmbed(embed));
+                    await context.Context.EditResponseAsync(new DiscordMessageBuilder().AddEmbed(embed));
                     break;
                 case DiscordEmbedBuilder embedBuilder:
-                    await context.Context.EditResponseAsync(new DiscordMessageBuilder().WithEmbed(embedBuilder));
+                    await context.Context.EditResponseAsync(new DiscordMessageBuilder().AddEmbed(embedBuilder));
                     break;
                 case object:
                     // Check if the ToString method is overridden

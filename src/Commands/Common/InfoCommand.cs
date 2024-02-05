@@ -22,8 +22,12 @@ namespace OoLunar.Tomoe.Commands.Common
     [Command("info")]
     public sealed partial class InfoCommand
     {
-        [GeneratedRegex("<a?:(\\w+):(\\d+)>", RegexOptions.Compiled)] private static partial Regex _getEmojiRegex();
-        [UnsafeAccessor(UnsafeAccessorKind.StaticMethod, Name = "get_UnicodeEmojis")] private static extern IReadOnlyDictionary<string, string> _unicodeEmojis(DiscordEmoji emoji);
+        [GeneratedRegex("<a?:(\\w+):(\\d+)>", RegexOptions.Compiled)]
+        private static partial Regex _getEmojiRegex();
+
+        [UnsafeAccessor(UnsafeAccessorKind.StaticMethod, Name = "get_UnicodeEmojis")]
+        private static extern IReadOnlyDictionary<string, string> _unicodeEmojis(DiscordEmoji emoji);
+
         private readonly ImageUtilities _imageUtilitiesService;
 
         public InfoCommand(ImageUtilities imageUtilitiesService) => _imageUtilitiesService = imageUtilitiesService;
@@ -122,7 +126,7 @@ namespace OoLunar.Tomoe.Commands.Common
                     IconUrl = context.User.AvatarUrl,
                     Url = context.User.AvatarUrl
                 },
-                Color = role.Color.Value == 0x000000 ? Optional.FromNoValue<DiscordColor>() : role.Color
+                Color = role.Color.Value == 0x000000 ? null : role.Color
             };
             embedBuilder.AddField("Color", role.Color.ToString(), true);
             embedBuilder.AddField("Created At", Formatter.Timestamp(role.CreationTimestamp.UtcDateTime, TimestampFormat.LongDateTime), true);

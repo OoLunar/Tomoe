@@ -37,7 +37,7 @@ namespace OoLunar.Tomoe.Commands.Common
             DiscordMessageBuilder messageBuilder = new DiscordMessageBuilder()
                 .WithContent($"Hex: {_getValue(ref color):X}\nRGBA: {color.R}, {color.G}, {color.B}, {color.A}")
                 .AddFile($"{color.R}{color.G}{color.B}{color.A}.png", stream)
-                .WithEmbed(new DiscordEmbedBuilder()
+                .AddEmbed(new DiscordEmbedBuilder()
                 {
                     Color = new DiscordColor(color.R, color.G, color.B),
                     ImageUrl = $"attachment://{color.R}{color.G}{color.B}{color.A}.png"

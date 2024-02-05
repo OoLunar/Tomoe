@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using DSharpPlus.Commands.Processors.TextCommands;
+using DSharpPlus.Commands.Processors.TextCommands.Attributes;
 using DSharpPlus.Commands.Trees;
 using DSharpPlus.Commands.Trees.Attributes;
 using DSharpPlus.Entities;
@@ -15,7 +16,7 @@ namespace OoLunar.Tomoe.Commands.Common
     {
         private readonly HttpClient _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
 
-        [Command("trim")]
+        [Command("trim"), TextAlias("unindent")]
         public async ValueTask ExecuteAsync(CommandContext context, DiscordAttachment? attachment = null)
         {
             string? message;
