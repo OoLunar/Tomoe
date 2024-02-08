@@ -9,7 +9,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Npgsql;
-using OoLunar.Tomoe.Database.Models;
 
 namespace OoLunar.Tomoe.Database
 {
@@ -26,7 +25,7 @@ namespace OoLunar.Tomoe.Database
             List<PrepareAsyncDelegate> prepareAsyncDelegates = [];
             foreach (Type type in typeof(Program).Assembly.GetTypes())
             {
-                if (type.IsAbstract || type.IsInterface || !type.IsAssignableTo(typeof(IDatabaseModel)))
+                if (type.GetCustomAttribute<DatabaseModelAttribute>() is null)
                 {
                     continue;
                 }

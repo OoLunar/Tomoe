@@ -9,7 +9,8 @@ using NpgsqlTypes;
 
 namespace OoLunar.Tomoe.Database.Models
 {
-    public sealed record GuildMemberModel : IDatabaseModel
+    [DatabaseModel]
+    public sealed record GuildMemberModel
     {
         private static readonly SemaphoreSlim Semaphore = new(1, 1);
         private static readonly NpgsqlCommand CreateTable;
