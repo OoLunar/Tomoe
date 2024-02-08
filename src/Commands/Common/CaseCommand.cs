@@ -25,6 +25,7 @@ namespace OoLunar.Tomoe.Commands.Common
                     CaseType.Snake => line.Trim().Underscore(),
                     CaseType.Pascal => line.Trim().Pascalize(),
                     CaseType.Camel => line.Trim().Camelize(),
+                    CaseType.Kebab => line.Trim().Kebaberize(),
                     _ => throw new ArgumentOutOfRangeException(nameof(caseType), caseType, null)
                 });
             }
@@ -43,6 +44,7 @@ namespace OoLunar.Tomoe.Commands.Common
         Title,
         Snake,
         Pascal,
-        Camel
+        Camel,
+        Kebab
     }
 }
