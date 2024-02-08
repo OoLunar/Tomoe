@@ -16,25 +16,32 @@ namespace OoLunar.Tomoe.Commands.Common
     {
         private readonly HttpClient _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
 
-        [Command("trim"), TextAlias("unindent")]
+        [Command("unindent"), TextAlias("trim")]
         public async ValueTask ExecuteAsync(CommandContext context, DiscordAttachment? attachment = null)
         {
             string? message;
-            if (attachment is not null)
+            if (attachment is null)
+            {
+                if (context is not TextCommandContext textCommandContext)
+                {
+                    await context.RespondAsync("Please provide a file to unindent.");
+                    return;
+                }
+
+                message = textCommandContext.Message.ReferencedMessage is not null
+                    ? textCommandContext.Message.ReferencedMessage.Content
+                    : textCommandContext.Message.Content;
+            }
+            else
             {
                 await context.DeferResponseAsync();
                 message = await _httpClient.GetStringAsync(attachment.Url);
             }
-            else if (context is not TextCommandContext textCommandContext)
+
+            if (string.IsNullOrWhiteSpace(message))
             {
-                await context.RespondAsync("Please provide a file to unindent.");
+                await context.RespondAsync("Nothing to unindent.");
                 return;
-            }
-            else
-            {
-                message = textCommandContext.Message.ReferencedMessage is not null
-                    ? textCommandContext.Message.ReferencedMessage.Content
-                    : textCommandContext.Message.Content;
             }
 
             string unindentedContent = Unindent(message);

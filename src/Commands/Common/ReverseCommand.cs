@@ -19,36 +19,43 @@ namespace OoLunar.Tomoe.Commands.Common
         public async ValueTask ExecuteAsync(CommandContext context, DiscordAttachment? attachment = null)
         {
             string? message;
-            if (attachment is not null)
+            if (attachment is null)
             {
-                await context.DeferResponseAsync();
-                message = await _httpClient.GetStringAsync(attachment.Url);
-            }
-            else if (context is not TextCommandContext textCommandContext)
-            {
-                await context.RespondAsync("Please provide a file to unindent.");
-                return;
-            }
-            else
-            {
+                if (context is not TextCommandContext textCommandContext)
+                {
+                    await context.RespondAsync("Please provide a file to reverse.");
+                    return;
+                }
+
                 message = textCommandContext.Message.ReferencedMessage is not null
                     ? textCommandContext.Message.ReferencedMessage.Content
                     : textCommandContext.Message.Content;
             }
+            else
+            {
+                await context.DeferResponseAsync();
+                message = await _httpClient.GetStringAsync(attachment.Url);
+            }
 
-            string unindentedContent = string.Join('\n', message.Split('\n').Reverse());
+            if (string.IsNullOrWhiteSpace(message))
+            {
+                await context.RespondAsync("Nothing to reverse.");
+                return;
+            }
+
+            string reversedContent = string.Join('\n', message.Split('\n').Reverse());
             DiscordMessageBuilder builder = new();
             if (attachment is not null)
             {
-                builder.AddFile(Path.GetFileNameWithoutExtension(attachment.FileName) + "_reversed" + Path.GetExtension(attachment.FileName), new MemoryStream(Encoding.UTF8.GetBytes(unindentedContent)), AddFileOptions.CloseStream);
+                builder.AddFile($"{Path.GetFileNameWithoutExtension(attachment.FileName)}_reversed{Path.GetExtension(attachment.FileName)}", new MemoryStream(Encoding.UTF8.GetBytes(reversedContent)), AddFileOptions.CloseStream);
             }
-            else if (unindentedContent.Length > 1992)
+            else if (reversedContent.Length > 1992)
             {
-                builder.AddFile("reversed.txt", new MemoryStream(Encoding.UTF8.GetBytes(unindentedContent)), AddFileOptions.CloseStream);
+                builder.AddFile("reversed.txt", new MemoryStream(Encoding.UTF8.GetBytes(reversedContent)), AddFileOptions.CloseStream);
             }
             else
             {
-                builder.WithContent($"```\n{unindentedContent}\n```");
+                builder.WithContent($"```\n{reversedContent}\n```");
             }
 
             await context.RespondAsync(builder);

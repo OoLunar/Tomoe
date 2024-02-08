@@ -13,7 +13,7 @@ namespace OoLunar.Tomoe.Commands.Common
         [Command("quote"), TextAlias("rat", "mock", "q"), RequireGuild]
         public static ValueTask ExecuteAsync(CommandContext context, DiscordMessage message)
         {
-            if (!message.Channel.PermissionsFor(context.Member!).HasPermission(Permissions.AccessChannels))
+            if (!message.Channel!.PermissionsFor(context.Member!).HasPermission(Permissions.AccessChannels))
             {
                 return context.RespondAsync("You don't have access to that message!");
             }
@@ -23,7 +23,7 @@ namespace OoLunar.Tomoe.Commands.Common
             {
                 Author = new DiscordEmbedBuilder.EmbedAuthor
                 {
-                    Name = message.Author.Username,
+                    Name = message.Author!.Username,
                     IconUrl = message.Author.AvatarUrl
                 },
                 Color = ((DiscordMember)message.Author).Color,

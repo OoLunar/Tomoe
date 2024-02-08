@@ -16,7 +16,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
         public static async ValueTask ExecuteAsync(CommandContext context, DiscordMessage firstMessage, DiscordMessage? lastMessage = null, [RemainingText] string? reason = null)
         {
             List<DiscordMessage> messages = [];
-            await foreach (DiscordMessage message in firstMessage.Channel.GetMessagesAfterAsync(firstMessage.Id))
+            await foreach (DiscordMessage message in firstMessage.Channel!.GetMessagesAfterAsync(firstMessage.Id))
             {
                 messages.Add(message);
                 if (message.Id == lastMessage?.Id)
