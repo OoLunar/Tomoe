@@ -148,8 +148,12 @@ namespace OoLunar.Tomoe
             {
                 return user.GlobalName;
             }
+            else if (user.Discriminator == "0")
+            {
+                return user.Username;
+            }
 
-            return user.Username;
+            return $"{user.Username}#{user.Discriminator}";
         }
 
         public static string PluralizeCorrectly(this string str) => str.Length == 0 ? str : str[^1] switch
