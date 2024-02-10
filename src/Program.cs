@@ -89,6 +89,7 @@ namespace OoLunar.Tomoe
                 logger.AddSerilog(loggerConfiguration.CreateLogger());
             });
 
+            serviceCollection.AddSingleton<DatabaseConnectionManager>();
             serviceCollection.AddSingleton<DatabaseHandler>();
 
             Assembly currentAssembly = typeof(Program).Assembly;
@@ -146,10 +147,12 @@ namespace OoLunar.Tomoe
                 return eventManager;
             });
 
+            // Start the database before connecting to Discord
             IServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
+            await serviceProvider.GetRequiredService<DatabaseHandler>().InitializeAsync(); // Init the db connection
+
             DiscordShardedClient shardedClient = await serviceProvider.GetRequiredService<Task<DiscordShardedClient>>();
             DiscordEventManager eventManager = serviceProvider.GetRequiredService<DiscordEventManager>();
-            serviceProvider.GetRequiredService<DatabaseHandler>(); // Init the db connection
             eventManager.RegisterEventHandlers(shardedClient);
             foreach (CommandsExtension extension in shardedClient.GetCommandsExtensions().Values)
             {

@@ -4,7 +4,6 @@ using System.Data;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Npgsql;
@@ -14,28 +13,18 @@ namespace OoLunar.Tomoe.Database
     public sealed class DatabaseHandler
     {
         private delegate ValueTask PrepareAsyncDelegate(NpgsqlConnection connection);
-        private readonly Dictionary<NpgsqlConnection, (SemaphoreSlim, PrepareAsyncDelegate)> _tableTypes;
+        private readonly Dictionary<NpgsqlConnection, (SemaphoreSlim, PrepareAsyncDelegate)> _tableTypes = [];
+        private readonly DatabaseConnectionManager _connectionManager;
         private readonly ILogger<DatabaseHandler> _logger;
-        private readonly IConfiguration _configuration;
 
-        public DatabaseHandler(ILogger<DatabaseHandler> logger, IConfiguration configuration)
+        public DatabaseHandler(DatabaseConnectionManager connectionManager, ILogger<DatabaseHandler>? logger = null)
         {
+            _connectionManager = connectionManager ?? throw new ArgumentNullException(nameof(connectionManager));
             _logger = logger ?? NullLogger<DatabaseHandler>.Instance;
-            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            _tableTypes = [];
-            NpgsqlConnectionStringBuilder connectionStringBuilder = new()
-            {
-                Host = _configuration.GetValue("database:host", "localhost"),
-                Port = _configuration.GetValue("database:port", 5432),
-                Username = _configuration.GetValue("database:username", "postgres"),
-                Password = _configuration.GetValue("database:password", "postgres"),
-                Database = _configuration.GetValue("database:database", "tomoe"),
-                CommandTimeout = _configuration.GetValue("database:timeout", 5),
-#if DEBUG
-                IncludeErrorDetail = true
-#endif
-            };
+        }
 
+        public async ValueTask InitializeAsync(CancellationToken cancellationToken = default)
+        {
             foreach (Type type in typeof(Program).Assembly.GetTypes())
             {
                 if (type.GetCustomAttribute<DatabaseModelAttribute>() is null)
@@ -58,10 +47,10 @@ namespace OoLunar.Tomoe.Database
                     continue;
                 }
 
-                NpgsqlConnection connection = new(connectionStringBuilder.ToString());
+                NpgsqlConnection connection = _connectionManager.GetConnection();
                 _tableTypes.Add(connection, (semaphore, prepareAsyncDelegate));
                 connection.StateChange += StateChangedEventHandlerAsync;
-                connection.Open();
+                await connection.OpenAsync(cancellationToken);
             }
         }
 
