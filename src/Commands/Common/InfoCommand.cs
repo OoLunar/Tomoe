@@ -6,22 +6,33 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Commands.ContextChecks;
+using DSharpPlus.Commands.Processors.TextCommands;
 using DSharpPlus.Commands.Processors.TextCommands.Attributes;
+using DSharpPlus.Commands.Processors.TextCommands.Parsing;
 using DSharpPlus.Commands.Trees;
 using DSharpPlus.Commands.Trees.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
 using Humanizer;
+using OoLunar.Tomoe.Database.Models;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
     [Command("info")]
     public sealed partial class InfoCommand
     {
+        private static readonly string _operatingSystem = $"{Environment.OSVersion} {RuntimeInformation.OSArchitecture.ToString().ToLower(CultureInfo.InvariantCulture)}";
+        private static readonly string _botVersion = typeof(Program).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion;
+        private static readonly string _dSharpPlusVersion = typeof(DiscordClient).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion;
+
+        [GeneratedRegex(", (?=[^,]*$)", RegexOptions.Compiled)]
+        private static partial Regex _getLastCommaRegex();
+
         [GeneratedRegex("<a?:(\\w+):(\\d+)>", RegexOptions.Compiled)]
         private static partial Regex _getEmojiRegex();
 
@@ -29,22 +40,55 @@ namespace OoLunar.Tomoe.Commands.Common
         private static extern IReadOnlyDictionary<string, string> _unicodeEmojis(DiscordEmoji emoji);
 
         private readonly ImageUtilities _imageUtilitiesService;
+        public InfoCommand(ImageUtilities imageUtilitiesService) => _imageUtilitiesService = imageUtilitiesService ?? throw new ArgumentNullException(nameof(imageUtilitiesService));
 
-        public InfoCommand(ImageUtilities imageUtilitiesService) => _imageUtilitiesService = imageUtilitiesService;
+        [Command("bot"), DefaultGroupCommand]
+        public static async ValueTask BotInfoAsync(CommandContext context)
+        {
+            DiscordEmbedBuilder embedBuilder = new()
+            {
+                Title = "Bot Info",
+                Color = new DiscordColor("#6b73db")
+            };
+
+            Process currentProcess = Process.GetCurrentProcess();
+            currentProcess.Refresh();
+
+            embedBuilder.AddField("Heap Memory", GC.GetTotalMemory(false).Bytes().ToString(CultureInfo.InvariantCulture), true);
+            embedBuilder.AddField("Process Memory", currentProcess.WorkingSet64.Bytes().ToString(CultureInfo.InvariantCulture), true);
+            embedBuilder.AddField("Runtime Version", RuntimeInformation.FrameworkDescription, true);
+
+            embedBuilder.AddField("Operating System", _operatingSystem, true);
+            embedBuilder.AddField("Uptime", _getLastCommaRegex().Replace((Process.GetCurrentProcess().StartTime - DateTime.Now).Humanize(3), " and "), true);
+            embedBuilder.AddField("Websocket Ping", _getLastCommaRegex().Replace(context.Client.Ping.Milliseconds().Humanize(3), " and "), true);
+
+            embedBuilder.AddField("Guild Count", (await GuildMemberModel.CountGuildsAsync()).ToString("N0", CultureInfo.InvariantCulture), true);
+            embedBuilder.AddField("User Count", (await GuildMemberModel.CountMembersAsync()).ToString("N0", CultureInfo.InvariantCulture), true);
+
+            StringBuilder stringBuilder = new();
+            stringBuilder.Append(context.Client.CurrentUser.Mention);
+            stringBuilder.Append(", `");
+            stringBuilder.Append(((DefaultPrefixResolver)context.Extension.GetProcessor<TextCommandProcessor>().Configuration.PrefixResolver.Target!).Prefix);
+            stringBuilder.Append("`, `/`");
+            embedBuilder.AddField("Prefixes", stringBuilder.ToString(), true);
+            embedBuilder.AddField("Bot Version", _botVersion, true);
+            embedBuilder.AddField("DSharpPlus Library Version", _dSharpPlusVersion, true);
+
+            await context.RespondAsync(embedBuilder);
+        }
 
         [Command("user")]
         public static async Task UserInfoAsync(CommandContext context, DiscordUser? user = null)
         {
             user ??= context.User;
-
             DiscordEmbedBuilder embedBuilder = new()
             {
-                Title = $"Info about {user.Username}",
+                Title = $"Info about {user.GetDisplayName()}",
                 Thumbnail = new() { Url = user.AvatarUrl },
                 Color = new DiscordColor("#6b73db")
             };
-            embedBuilder.AddField("Mention", user.Mention, true);
 
+            embedBuilder.AddField("Mention", user.Mention, true);
             if (user is DiscordMember member)
             {
                 if (!member.Color.Equals(default(DiscordColor)))
@@ -52,19 +96,20 @@ namespace OoLunar.Tomoe.Commands.Common
                     embedBuilder.Color = member.Color;
                 }
 
-                //if (memberModel.JoinedAt != member.JoinedAt.UtcDateTime)
-                //{
-                //    embedBuilder.AddField("User Id", Formatter.InlineCode(user.Id.ToString(CultureInfo.InvariantCulture)), false);
-                //    embedBuilder.AddField("Joined Discord", Formatter.Timestamp(user.CreationTimestamp, TimestampFormat.RelativeTime), true);
-                //    embedBuilder.AddField("First joined the Server", Formatter.Timestamp(memberModel.JoinedAt, TimestampFormat.RelativeTime), true);
-                //}
-                //else
-                //{
-                embedBuilder.AddField("User Id", Formatter.InlineCode(user.Id.ToString(CultureInfo.InvariantCulture)), true);
-                // ZWS field
-                embedBuilder.AddField("\u200B", "\u200B", true);
-                embedBuilder.AddField("Joined Discord", Formatter.Timestamp(user.CreationTimestamp, TimestampFormat.RelativeTime), true);
-                //}
+                GuildMemberModel? memberModel = await GuildMemberModel.FindMemberAsync(context.User.Id, context.Guild!.Id);
+                if (memberModel is not null && memberModel.FirstJoined != member.JoinedAt.UtcDateTime)
+                {
+                    embedBuilder.AddField("User Id", Formatter.InlineCode(user.Id.ToString(CultureInfo.InvariantCulture)), false);
+                    embedBuilder.AddField("Joined Discord", Formatter.Timestamp(user.CreationTimestamp, TimestampFormat.RelativeTime), true);
+                    embedBuilder.AddField("First joined the Server", Formatter.Timestamp(memberModel.FirstJoined, TimestampFormat.RelativeTime), true);
+                }
+                else
+                {
+                    embedBuilder.AddField("User Id", Formatter.InlineCode(user.Id.ToString(CultureInfo.InvariantCulture)), true);
+                    // ZWS field
+                    embedBuilder.AddField("\u200B", "\u200B", true);
+                    embedBuilder.AddField("Joined Discord", Formatter.Timestamp(user.CreationTimestamp, TimestampFormat.RelativeTime), true);
+                }
 
                 embedBuilder.AddField("Recently joined the Server", Formatter.Timestamp(member.JoinedAt, TimestampFormat.RelativeTime), true);
                 embedBuilder.AddField("Roles", member.Roles.Any() ? string.Join('\n', member.Roles.OrderByDescending(role => role.Position).Select(role => $"- {role.Mention}")) : "None", false);
@@ -77,42 +122,6 @@ namespace OoLunar.Tomoe.Commands.Common
 
             await context.RespondAsync(embedBuilder);
         }
-
-        [Command("bot"), DefaultGroupCommand]
-        public async Task BotInfoAsync(CommandContext context)
-        {
-            DiscordEmbedBuilder embedBuilder = new()
-            {
-                Title = "Bot Info",
-                Color = new DiscordColor("#6b73db")
-            };
-
-            Process currentProcess = Process.GetCurrentProcess();
-            currentProcess.Refresh();
-            embedBuilder.AddField("Heap Memory", GC.GetTotalMemory(false).Bytes().ToString(), true);
-            embedBuilder.AddField("Process Memory", currentProcess.WorkingSet64.Bytes().ToString(), true);
-            embedBuilder.AddField("Runtime Version", RuntimeInformation.FrameworkDescription, true);
-
-            embedBuilder.AddField("Operating System", $"{Environment.OSVersion} {RuntimeInformation.OSArchitecture.ToString().ToLower(CultureInfo.InvariantCulture)}", true);
-            embedBuilder.AddField("Uptime", GetLastCommaRegex().Replace((Process.GetCurrentProcess().StartTime - DateTime.Now).Humanize(3), " and "), true);
-            embedBuilder.AddField("Websocket Ping", GetLastCommaRegex().Replace(context.Client.Ping.Milliseconds().Humanize(3), " and "), true);
-
-            embedBuilder.AddField("Guild Count", context.Client.Guilds.Keys.LongCount().ToString("N0"), true);
-            embedBuilder.AddField("User Count", context.Client.Guilds.Values.Sum(guild => guild.MemberCount).ToString("N0"), true);
-
-            List<string> prefixes = [];
-            prefixes.Add("`>>`");
-            prefixes.Add("`/`");
-            prefixes.Add(context.Client.CurrentUser.Mention);
-            embedBuilder.AddField("Prefixes", string.Join(", ", prefixes), true);
-            embedBuilder.AddField("Bot Version", typeof(Program).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion, true);
-            embedBuilder.AddField("DSharpPlus Library Version", typeof(DiscordClient).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion, true);
-
-            await context.RespondAsync(embedBuilder);
-        }
-
-        [GeneratedRegex(", (?=[^,]*$)", RegexOptions.Compiled)]
-        private static partial Regex GetLastCommaRegex();
 
         [Command("role"), RequireGuild]
         public static async Task RoleInfoAsync(CommandContext context, DiscordRole role)

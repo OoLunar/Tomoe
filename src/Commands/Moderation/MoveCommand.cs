@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
@@ -13,8 +14,11 @@ using DSharpPlus.Entities;
 
 namespace OoLunar.Tomoe.Commands.Moderation
 {
-    public sealed class MoveCommand(HttpClient httpClient)
+    public sealed class MoveCommand
     {
+        private readonly HttpClient httpClient;
+        public MoveCommand(HttpClient httpClient) => this.httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+
         [Command("move"), Description("Moves a chunk of messages (inclusive) to a different channel."), RequirePermissions(Permissions.ManageMessages)]
         public async ValueTask MoveAsync(CommandContext context, DiscordChannel channel, DiscordMessage firstMessage, DiscordMessage? lastMessage = null)
         {
@@ -71,19 +75,20 @@ namespace OoLunar.Tomoe.Commands.Moderation
                     for (int i = 0; i < message.Attachments.Count; i++)
                     {
                         DiscordAttachment attachment = message.Attachments[i];
-                        if (attachments.Contains(attachment.FileName))
+                        if (attachments.Contains(attachment.FileName!))
                         {
                             webhookBuilder.AddFile(attachment.FileName + i.ToString(CultureInfo.InvariantCulture), await httpClient.GetStreamAsync(attachment.Url), false);
                         }
                         else
                         {
-                            webhookBuilder.AddFile(attachment.FileName, await httpClient.GetStreamAsync(attachment.Url), false);
+                            webhookBuilder.AddFile(attachment.FileName!, await httpClient.GetStreamAsync(attachment.Url), false);
                         }
-                        attachments.Add(attachment.FileName);
+
+                        attachments.Add(attachment.FileName!);
                     }
                 }
 
-                if (message.Components.Count != 0)
+                if (message.Components?.Count is not null and not 0)
                 {
                     webhookBuilder.AddComponents(message.Components);
                 }

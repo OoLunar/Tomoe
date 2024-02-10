@@ -35,7 +35,7 @@ namespace OoLunar.Tomoe.Commands.Common
                 return context.RespondAsync(messageBuilder);
             }
 
-            if (message.Content?.Length is not null or 0)
+            if (message.Content?.Length is not null and not 0)
             {
                 string escapedContent = Formatter.Sanitize(message.Content);
                 if (escapedContent.Length > 2000)

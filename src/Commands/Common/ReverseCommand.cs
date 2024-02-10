@@ -11,9 +11,10 @@ using DSharpPlus.Entities;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
-    public sealed class ReverseCommand(HttpClient httpClient)
+    public sealed class ReverseCommand
     {
-        private readonly HttpClient _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+        private readonly HttpClient _httpClient;
+        public ReverseCommand(HttpClient httpClient) => _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
 
         [Command("reverse")]
         public async ValueTask ExecuteAsync(CommandContext context, DiscordAttachment? attachment = null)

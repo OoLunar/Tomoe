@@ -34,8 +34,12 @@ dotnet_diagnostic.IDE0073.severity = none
 
 # Organize usings
 dotnet_sort_system_directives_first = true:error
+
 # Using directive is unnecessary.
 dotnet_diagnostic.IDE0005.severity = error
+
+# Use regular consturctors over primary constructors
+csharp_style_prefer_primary_constructors = false
 
 # Yell at people when they don't include the file header template
 dotnet_diagnostic.IDE0073.severity = error
@@ -106,7 +110,7 @@ dotnet_naming_symbols.async_methods.applicable_kinds = method
 dotnet_naming_symbols.async_methods.required_modifiers = async
 
 # Don't force namespaces to match their folder names
-dotnet_diagnostic.IDE0130.severity = none
+dotnet_style_namespace_match_folder = false
 
 ###############################
 # C# Coding Conventions       #

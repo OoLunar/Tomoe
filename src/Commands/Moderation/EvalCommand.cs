@@ -2,9 +2,11 @@ using System;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using DSharpPlus;
@@ -22,17 +24,43 @@ using Newtonsoft.Json;
 
 namespace OoLunar.Tomoe.Commands.Moderation
 {
-    public class EvalCommand
+    public sealed class EvalCommand
     {
-        private static readonly ScriptOptions Options;
-        internal static readonly JsonSerializer DiscordJson;
+        public sealed class EvalContext
+        {
+            public required CommandContext Context { get; init; } = null!;
+            public required CommandContext context { get; init; } = null!;
+            public bool IsJson { get; private set; }
+
+            [return: NotNullIfNotNull(nameof(obj))]
+            public string? ToJson(object? obj)
+            {
+                IsJson = true;
+                StringWriter writer = new();
+                JsonTextWriter jsonTextWriter = new(writer)
+                {
+                    Formatting = Formatting.Indented,
+                    Indentation = 4,
+                    StringEscapeHandling = StringEscapeHandling.EscapeNonAscii
+                };
+
+                _discordJson.Serialize(jsonTextWriter, obj, null);
+                jsonTextWriter.Flush();
+                jsonTextWriter.Close();
+                return writer.ToString();
+            }
+        }
+
+        private static readonly ScriptOptions _evalOptions;
+        private static readonly JsonSerializer _discordJson;
 
         static EvalCommand()
         {
             string[] assemblies = Directory.GetFiles(Path.GetDirectoryName(typeof(EvalCommand).Assembly.Location)!, "*.dll");
-            Options = ScriptOptions.Default
+            _evalOptions = ScriptOptions.Default
+                .WithAllowUnsafe(true)
                 .WithEmitDebugInformation(true)
-                .WithLanguageVersion(LanguageVersion.Latest)
+                .WithLanguageVersion(LanguageVersion.Preview)
                 .AddReferences(assemblies)
                 .AddImports(
                 [
@@ -45,20 +73,20 @@ namespace OoLunar.Tomoe.Commands.Moderation
                     "System.Collections.Generic",
                     "Humanizer",
                     "DSharpPlus",
+                    "DSharpPlus.Commands",
                     "DSharpPlus.Net.Serialization",
                     "DSharpPlus.Exceptions",
-                    "DSharpPlus.Entities",
-                    "DSharpPlus.CommandAll"
+                    "DSharpPlus.Entities"
                 ]);
 
-            DiscordJson = (JsonSerializer)typeof(DiscordJson).GetField("_serializer", BindingFlags.NonPublic | BindingFlags.Static)!.GetValue(null)!;
+            _discordJson = (JsonSerializer)typeof(DiscordJson).GetField("_serializer", BindingFlags.NonPublic | BindingFlags.Static)!.GetValue(null)!;
         }
 
         [Command("eval"), Description("Not for you."), RequireOwner]
         public static async ValueTask ExecuteAsync(CommandContext context, [RemainingText] string code)
         {
             await context.DeferResponseAsync();
-            Script<object> script = CSharpScript.Create(code, Options, typeof(EvalContext));
+            Script<object> script = CSharpScript.Create(code, _evalOptions, typeof(EvalContext));
             ImmutableArray<Diagnostic> errors = script.Compile();
 
             if (errors.Length == 1)
@@ -76,7 +104,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
                 return;
             }
 
-            EvalContext evalContext = new() { Context = context };
+            EvalContext evalContext = new() { Context = context, context = context };
             await script.RunAsync(evalContext).ContinueWith((Task<ScriptState<object>> task) => FinishedAsync(evalContext, task.Exception ?? task.Result.Exception ?? task.Result.ReturnValue));
         }
 
@@ -120,43 +148,43 @@ namespace OoLunar.Tomoe.Commands.Moderation
                 case DiscordEmbedBuilder embedBuilder:
                     await context.Context.EditResponseAsync(new DiscordMessageBuilder().AddEmbed(embedBuilder));
                     break;
-                case object:
+                case DateTime dateTime:
+                    await context.Context.EditResponseAsync(Formatter.Timestamp(dateTime, TimestampFormat.RelativeTime));
+                    break;
+                case DateTimeOffset dateTimeOffset:
+                    await context.Context.EditResponseAsync(Formatter.Timestamp(dateTimeOffset, TimestampFormat.RelativeTime));
+                    break;
+                case TimeSpan timeSpan:
+                    await context.Context.EditResponseAsync(Formatter.Timestamp(timeSpan, TimestampFormat.RelativeTime));
+                    break;
+                case double:
+                case decimal:
+                case float:
+                case ulong:
+                case long:
+                case uint:
+                case int:
+                case ushort:
+                case short:
+                    await context.Context.EditResponseAsync((string)output.GetType().GetMethod("ToString", [typeof(string), typeof(IFormatProvider)])!.Invoke(output, ["N0", CultureInfo.InvariantCulture])!);
+                    break;
+                case object when output is not SnowflakeObject:
                     // Check if the ToString method is overridden
-                    if (output.GetType().GetMethods(BindingFlags.Public | BindingFlags.Instance).Where(method => method.Name == "ToString").Any(method => method.DeclaringType != typeof(object)))
+                    Type outputType = output.GetType();
+                    if (!(outputType.IsClass && outputType.GetMethod("<Clone>$") is not null)
+                     && !(outputType.IsValueType && outputType.GetInterfaces().Any(@interface => @interface.IsGenericType && @interface.GetGenericTypeDefinition() == typeof(IEquatable<>)) && outputType.GetMethods().FirstOrDefault(method => method.Name == "op_Equality") is MethodInfo equalityOperator && equalityOperator.GetCustomAttribute<CompilerGeneratedAttribute>() is not null)
+                       && outputType.GetMethods(BindingFlags.Public | BindingFlags.Instance).Where(method => method.Name == "ToString").Any(method => method.DeclaringType != typeof(object)))
                     {
                         await context.Context.EditResponseAsync(output.ToString()!);
                         break;
                     }
+
                     goto default;
                 default:
                     utf8Bytes ??= Encoding.UTF8.GetBytes(context.ToJson(output));
                     await context.Context.EditResponseAsync(new DiscordMessageBuilder().AddFile(filename, new MemoryStream(utf8Bytes)));
                     break;
             }
-        }
-    }
-
-    public sealed class EvalContext
-    {
-        public CommandContext Context { get; init; } = null!;
-        public bool IsJson { get; private set; }
-
-        [return: NotNullIfNotNull(nameof(obj))]
-        public string? ToJson(object? obj)
-        {
-            IsJson = true;
-            StringWriter writer = new();
-            JsonTextWriter jsonTextWriter = new(writer)
-            {
-                Formatting = Formatting.Indented,
-                Indentation = 4,
-                StringEscapeHandling = StringEscapeHandling.EscapeNonAscii
-            };
-
-            EvalCommand.DiscordJson.Serialize(jsonTextWriter, obj, null);
-            jsonTextWriter.Flush();
-            jsonTextWriter.Close();
-            return writer.ToString();
         }
     }
 }
