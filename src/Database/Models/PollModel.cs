@@ -37,19 +37,19 @@ namespace OoLunar.Tomoe.Database.Models
             );");
 
             CreatePoll = new NpgsqlCommand("INSERT INTO polls (id, user_id, guild_id, channel_id, message_id, title, options) VALUES (@id, @user_id, @guild_id, @channel_id, @message_id, @title, @options);");
-            CreatePoll.Parameters.Add(new NpgsqlParameter<Ulid>("@id", NpgsqlDbType.Uuid));
-            CreatePoll.Parameters.Add(new NpgsqlParameter<ulong>("@user_id", NpgsqlDbType.Bigint));
-            CreatePoll.Parameters.Add(new NpgsqlParameter<ulong>("@guild_id", NpgsqlDbType.Bigint));
-            CreatePoll.Parameters.Add(new NpgsqlParameter<ulong>("@channel_id", NpgsqlDbType.Bigint));
-            CreatePoll.Parameters.Add(new NpgsqlParameter<ulong>("@message_id", NpgsqlDbType.Bigint));
-            CreatePoll.Parameters.Add(new NpgsqlParameter<string>("@title", NpgsqlDbType.Text));
-            CreatePoll.Parameters.Add(new NpgsqlParameter<IReadOnlyList<string>>("@options", NpgsqlDbType.Array | NpgsqlDbType.Text));
+            CreatePoll.Parameters.Add(new NpgsqlParameter("@id", NpgsqlDbType.Uuid));
+            CreatePoll.Parameters.Add(new NpgsqlParameter("@user_id", NpgsqlDbType.Bigint));
+            CreatePoll.Parameters.Add(new NpgsqlParameter("@guild_id", NpgsqlDbType.Bigint));
+            CreatePoll.Parameters.Add(new NpgsqlParameter("@channel_id", NpgsqlDbType.Bigint));
+            CreatePoll.Parameters.Add(new NpgsqlParameter("@message_id", NpgsqlDbType.Bigint));
+            CreatePoll.Parameters.Add(new NpgsqlParameter("@title", NpgsqlDbType.Text));
+            CreatePoll.Parameters.Add(new NpgsqlParameter("@options", NpgsqlDbType.Array | NpgsqlDbType.Text));
 
             GetPoll = new NpgsqlCommand("SELECT * FROM polls WHERE id = @id;");
-            GetPoll.Parameters.Add(new NpgsqlParameter<Ulid>("@id", NpgsqlDbType.Uuid));
+            GetPoll.Parameters.Add(new NpgsqlParameter("@id", NpgsqlDbType.Uuid));
 
             DeletePoll = new NpgsqlCommand("DELETE FROM polls WHERE id = @id;");
-            DeletePoll.Parameters.Add(new NpgsqlParameter<Ulid>("@id", NpgsqlDbType.Uuid));
+            DeletePoll.Parameters.Add(new NpgsqlParameter("@id", NpgsqlDbType.Uuid));
         }
 
         public static async ValueTask<PollModel> CreatePollAsync(ulong userId, ulong guildId, ulong channelId, ulong messageId, string title, IReadOnlyList<string> options)

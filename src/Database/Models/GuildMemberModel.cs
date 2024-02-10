@@ -18,9 +18,11 @@ namespace OoLunar.Tomoe.Database.Models
         private static readonly NpgsqlCommand FindMember;
         private static readonly NpgsqlCommand UpdateMember;
         private static readonly NpgsqlCommand DeleteMember;
-        private static readonly NpgsqlCommand CountMembers;
         private static readonly NpgsqlCommand GetAllMembers;
         private static readonly NpgsqlCommand BulkUpsert;
+        private static readonly NpgsqlCommand CountGuilds;
+        private static readonly NpgsqlCommand CountMembers;
+        private static readonly NpgsqlCommand CountMembersOfGuild;
 
         public ulong UserId { get; init; }
         public ulong GuildId { get; init; }
@@ -61,8 +63,8 @@ namespace OoLunar.Tomoe.Database.Models
             DeleteMember.Parameters.Add(new("@user_id", NpgsqlDbType.Bigint));
             DeleteMember.Parameters.Add(new("@guild_id", NpgsqlDbType.Bigint));
 
-            CountMembers = new("SELECT COUNT(*) FROM guild_members WHERE guild_id = @guild_id;");
-            CountMembers.Parameters.Add(new("@guild_id", NpgsqlDbType.Bigint));
+            CountMembersOfGuild = new("SELECT COUNT(*) FROM guild_members WHERE guild_id = @guild_id;");
+            CountMembersOfGuild.Parameters.Add(new("@guild_id", NpgsqlDbType.Bigint));
 
             GetAllMembers = new("SELECT * FROM guild_members WHERE guild_id = @guild_id;");
             GetAllMembers.Parameters.Add(new("@guild_id", NpgsqlDbType.Bigint));
@@ -87,6 +89,9 @@ namespace OoLunar.Tomoe.Database.Models
             BulkUpsert.Parameters.Add(new("@first_joined", NpgsqlDbType.Array | NpgsqlDbType.TimestampTz));
             BulkUpsert.Parameters.Add(new("@state", NpgsqlDbType.Array | NpgsqlDbType.Smallint));
             BulkUpsert.Parameters.Add(new("@role_ids", NpgsqlDbType.Array | NpgsqlDbType.Bigint));
+
+            CountGuilds = new("SELECT COUNT(DISTINCT guild_id) FROM guild_members;");
+            CountMembers = new("SELECT COUNT(*) FROM guild_members;");
         }
 
         public static async ValueTask<GuildMemberModel> CreateAsync(ulong userId, ulong guildId, DateTimeOffset firstJoined, GuildMemberState state, List<long> roleIds)
@@ -148,7 +153,7 @@ namespace OoLunar.Tomoe.Database.Models
             }
         }
 
-        public static async ValueTask<IReadOnlyList<GuildMemberModel>> GetAllMembersAsync(ulong guildId)
+        public static async IAsyncEnumerable<GuildMemberModel> GetAllMembersAsync(ulong guildId)
         {
             await Semaphore.WaitAsync();
             try
@@ -156,24 +161,21 @@ namespace OoLunar.Tomoe.Database.Models
                 GetAllMembers.Parameters["guild_id"].Value = (long)guildId;
 
                 await using NpgsqlDataReader reader = await GetAllMembers.ExecuteReaderAsync();
-                List<GuildMemberModel> members = [];
                 while (await reader.ReadAsync())
                 {
                     ulong userId = (ulong)reader.GetInt64(0);
                     DateTimeOffset firstJoined = reader.GetFieldValue<DateTimeOffset>(2);
                     GuildMemberState state = (GuildMemberState)reader.GetFieldValue<byte>(3);
                     long[] roleIds = reader.GetFieldValue<long[]>(4);
-                    members.Add(new GuildMemberModel
+                    yield return new GuildMemberModel
                     {
                         UserId = userId,
                         GuildId = guildId,
                         FirstJoined = firstJoined,
                         State = state,
                         RoleIds = new(Unsafe.As<long[], ulong[]>(ref roleIds))
-                    });
+                    };
                 }
-
-                return members;
             }
             finally
             {
@@ -210,21 +212,6 @@ namespace OoLunar.Tomoe.Database.Models
                 BulkUpsert.Parameters["role_ids"].Value = roleIds;
 
                 await BulkUpsert.ExecuteNonQueryAsync();
-            }
-            finally
-            {
-                Semaphore.Release();
-            }
-        }
-
-        public static async ValueTask<ulong> CountAllMembersAsync(ulong guildId)
-        {
-            await Semaphore.WaitAsync();
-            try
-            {
-                CountMembers.Parameters["guild_id"].Value = (long)guildId;
-                long count = (long)(await CountMembers.ExecuteScalarAsync())!;
-                return Unsafe.As<long, ulong>(ref count);
             }
             finally
             {
@@ -269,6 +256,49 @@ namespace OoLunar.Tomoe.Database.Models
             }
         }
 
+        public static async ValueTask<ulong> CountGuildsAsync()
+        {
+            await Semaphore.WaitAsync();
+            try
+            {
+                long count = (long)(await CountGuilds.ExecuteScalarAsync())!;
+                return Unsafe.As<long, ulong>(ref count);
+            }
+            finally
+            {
+                Semaphore.Release();
+            }
+        }
+
+        public static async ValueTask<ulong> CountMembersAsync()
+        {
+            await Semaphore.WaitAsync();
+            try
+            {
+                long count = (long)(await CountMembers.ExecuteScalarAsync())!;
+                return Unsafe.As<long, ulong>(ref count);
+            }
+            finally
+            {
+                Semaphore.Release();
+            }
+        }
+
+        public static async ValueTask<ulong> CountMembersAsync(ulong guildId)
+        {
+            await Semaphore.WaitAsync();
+            try
+            {
+                CountMembersOfGuild.Parameters["guild_id"].Value = (long)guildId;
+                long count = (long)(await CountMembersOfGuild.ExecuteScalarAsync())!;
+                return Unsafe.As<long, ulong>(ref count);
+            }
+            finally
+            {
+                Semaphore.Release();
+            }
+        }
+
         public static async ValueTask PrepareAsync(NpgsqlConnection connection)
         {
             CreateTable.Connection = connection;
@@ -276,18 +306,22 @@ namespace OoLunar.Tomoe.Database.Models
             FindMember.Connection = connection;
             UpdateMember.Connection = connection;
             DeleteMember.Connection = connection;
-            CountMembers.Connection = connection;
             GetAllMembers.Connection = connection;
             BulkUpsert.Connection = connection;
+            CountGuilds.Connection = connection;
+            CountMembers.Connection = connection;
+            CountMembersOfGuild.Connection = connection;
 
             await CreateTable.ExecuteNonQueryAsync();
             await CreateMember.PrepareAsync();
             await FindMember.PrepareAsync();
             await UpdateMember.PrepareAsync();
             await DeleteMember.PrepareAsync();
-            await CountMembers.PrepareAsync();
             await GetAllMembers.PrepareAsync();
             await BulkUpsert.PrepareAsync();
+            await CountGuilds.PrepareAsync();
+            await CountMembers.PrepareAsync();
+            await CountMembersOfGuild.PrepareAsync();
         }
     }
 }

@@ -28,21 +28,21 @@ namespace OoLunar.Tomoe.Database.Models
             );");
 
             CreateVote = new NpgsqlCommand("INSERT INTO poll_votes (poll_id, user_id, option) VALUES (@poll_id, @user_id, @option);");
-            CreateVote.Parameters.Add(new NpgsqlParameter<Ulid>("@poll_id", NpgsqlTypes.NpgsqlDbType.Uuid));
-            CreateVote.Parameters.Add(new NpgsqlParameter<ulong>("@user_id", NpgsqlTypes.NpgsqlDbType.Bigint));
-            CreateVote.Parameters.Add(new NpgsqlParameter<int>("@option", NpgsqlTypes.NpgsqlDbType.Integer));
+            CreateVote.Parameters.Add(new NpgsqlParameter("@poll_id", NpgsqlTypes.NpgsqlDbType.Uuid));
+            CreateVote.Parameters.Add(new NpgsqlParameter("@user_id", NpgsqlTypes.NpgsqlDbType.Bigint));
+            CreateVote.Parameters.Add(new NpgsqlParameter("@option", NpgsqlTypes.NpgsqlDbType.Integer));
 
             EditVote = new NpgsqlCommand("UPDATE poll_votes SET option = @option WHERE poll_id = @poll_id AND user_id = @user_id;");
-            EditVote.Parameters.Add(new NpgsqlParameter<Ulid>("@poll_id", NpgsqlTypes.NpgsqlDbType.Uuid));
-            EditVote.Parameters.Add(new NpgsqlParameter<ulong>("@user_id", NpgsqlTypes.NpgsqlDbType.Bigint));
-            EditVote.Parameters.Add(new NpgsqlParameter<int>("@option", NpgsqlTypes.NpgsqlDbType.Integer));
+            EditVote.Parameters.Add(new NpgsqlParameter("@poll_id", NpgsqlTypes.NpgsqlDbType.Uuid));
+            EditVote.Parameters.Add(new NpgsqlParameter("@user_id", NpgsqlTypes.NpgsqlDbType.Bigint));
+            EditVote.Parameters.Add(new NpgsqlParameter("@option", NpgsqlTypes.NpgsqlDbType.Integer));
 
             GetTotalVoteCount = new NpgsqlCommand("SELECT COUNT(*) FROM poll_votes WHERE poll_id = @poll_id;");
-            GetTotalVoteCount.Parameters.Add(new NpgsqlParameter<Ulid>("@poll_id", NpgsqlTypes.NpgsqlDbType.Uuid));
+            GetTotalVoteCount.Parameters.Add(new NpgsqlParameter("@poll_id", NpgsqlTypes.NpgsqlDbType.Uuid));
 
             GetOptionVoteCount = new NpgsqlCommand("SELECT COUNT(*) FROM poll_votes WHERE poll_id = @poll_id AND option = @option;");
-            GetOptionVoteCount.Parameters.Add(new NpgsqlParameter<Ulid>("@poll_id", NpgsqlTypes.NpgsqlDbType.Uuid));
-            GetOptionVoteCount.Parameters.Add(new NpgsqlParameter<int>("@option", NpgsqlTypes.NpgsqlDbType.Integer));
+            GetOptionVoteCount.Parameters.Add(new NpgsqlParameter("@poll_id", NpgsqlTypes.NpgsqlDbType.Uuid));
+            GetOptionVoteCount.Parameters.Add(new NpgsqlParameter("@option", NpgsqlTypes.NpgsqlDbType.Integer));
         }
 
         public static async ValueTask CreateVoteAsync(Ulid pollId, ulong userId, int option)

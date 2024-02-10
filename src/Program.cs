@@ -14,7 +14,6 @@ using DSharpPlus.Commands.Processors.UserCommands;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Npgsql;
 using OoLunar.Tomoe.Database;
 using OoLunar.Tomoe.Events;
 using Serilog;
@@ -90,7 +89,7 @@ namespace OoLunar.Tomoe
                 logger.AddSerilog(loggerConfiguration.CreateLogger());
             });
 
-            serviceCollection.AddSingleton(DatabaseHandler.Initialize);
+            serviceCollection.AddSingleton<DatabaseHandler>();
 
             Assembly currentAssembly = typeof(Program).Assembly;
             serviceCollection.AddSingleton((serviceProvider) =>
@@ -150,7 +149,7 @@ namespace OoLunar.Tomoe
             IServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
             DiscordShardedClient shardedClient = await serviceProvider.GetRequiredService<Task<DiscordShardedClient>>();
             DiscordEventManager eventManager = serviceProvider.GetRequiredService<DiscordEventManager>();
-            serviceProvider.GetRequiredService<NpgsqlConnection>(); // Init the db connection
+            serviceProvider.GetRequiredService<DatabaseHandler>(); // Init the db connection
             eventManager.RegisterEventHandlers(shardedClient);
             foreach (CommandsExtension extension in shardedClient.GetCommandsExtensions().Values)
             {
