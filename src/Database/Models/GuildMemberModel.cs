@@ -75,15 +75,17 @@ namespace OoLunar.Tomoe.Database.Models
             GetMembersWithRole.Parameters.Add(new("@role_id", NpgsqlDbType.Bigint));
 
             BulkUpsert = new(@"INSERT INTO guild_members (user_id, guild_id, first_joined, state, role_ids)
-    SELECT user_id, guild_id, first_joined, state, ARRAY[role_id] AS role_ids
-    FROM (
-        SELECT
-            UNNEST(@user_ids) AS user_id,
-            UNNEST(@guild_ids) AS guild_id,
-            UNNEST(@first_joined) AS first_joined,
-            UNNEST(@state) AS state,
-            UNNEST(@role_ids) AS role_id
-    ) AS temptable
+    SELECT user_id, guild_id, first_joined, state, idx
+        FROM (
+            SELECT
+                 UNNEST(@user_ids) AS user_id,
+                 UNNEST(@guild_ids) AS guild_id,
+                 UNNEST(@first_joined_dates) first_joined,
+                 UNNEST(@states) AS state,
+                 -- https://stackoverflow.com/a/61679054 (ab)use`jsonb` to de-nest the arrays
+                 -- https://stackoverflow.com/a/37686469 Turn `[]` (jsonb) into `{}` postgres array
+                 TRANSLATE(jsonb_array_elements(to_jsonb(@role_ids::bigint[][]))::text, '[]', '{}')::bigint[] AS idx
+         ) AS _
     WHERE user_id IS NOT NULL -- Filter out null values caused by multi-dimensional arrays
     ON CONFLICT (user_id, guild_id) DO UPDATE
     SET
@@ -91,8 +93,8 @@ namespace OoLunar.Tomoe.Database.Models
         role_ids = EXCLUDED.role_ids;");
             BulkUpsert.Parameters.Add(new("@user_ids", NpgsqlDbType.Array | NpgsqlDbType.Bigint));
             BulkUpsert.Parameters.Add(new("@guild_ids", NpgsqlDbType.Array | NpgsqlDbType.Bigint));
-            BulkUpsert.Parameters.Add(new("@first_joined", NpgsqlDbType.Array | NpgsqlDbType.TimestampTz));
-            BulkUpsert.Parameters.Add(new("@state", NpgsqlDbType.Array | NpgsqlDbType.Smallint));
+            BulkUpsert.Parameters.Add(new("@first_joined_dates", NpgsqlDbType.Array | NpgsqlDbType.TimestampTz));
+            BulkUpsert.Parameters.Add(new("@states", NpgsqlDbType.Array | NpgsqlDbType.Smallint));
             BulkUpsert.Parameters.Add(new("@role_ids", NpgsqlDbType.Array | NpgsqlDbType.Bigint));
 
             CountGuilds = new("SELECT COUNT(DISTINCT guild_id) FROM guild_members;");
@@ -243,8 +245,8 @@ namespace OoLunar.Tomoe.Database.Models
 
                 BulkUpsert.Parameters["user_ids"].Value = userIds.ToArray();
                 BulkUpsert.Parameters["guild_ids"].Value = guildIds.ToArray();
-                BulkUpsert.Parameters["first_joined"].Value = firstJoined.ToArray();
-                BulkUpsert.Parameters["state"].Value = states.ToArray();
+                BulkUpsert.Parameters["first_joined_dates"].Value = firstJoined.ToArray();
+                BulkUpsert.Parameters["states"].Value = states.ToArray();
                 BulkUpsert.Parameters["role_ids"].Value = roleIds;
 
                 await BulkUpsert.ExecuteNonQueryAsync();
