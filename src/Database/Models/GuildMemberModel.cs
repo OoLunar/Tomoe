@@ -19,6 +19,7 @@ namespace OoLunar.Tomoe.Database.Models
         private static readonly NpgsqlCommand UpdateMember;
         private static readonly NpgsqlCommand DeleteMember;
         private static readonly NpgsqlCommand GetAllMembers;
+        private static readonly NpgsqlCommand GetMembersWithRole;
         private static readonly NpgsqlCommand BulkUpsert;
         private static readonly NpgsqlCommand CountGuilds;
         private static readonly NpgsqlCommand CountMembers;
@@ -69,6 +70,10 @@ namespace OoLunar.Tomoe.Database.Models
             GetAllMembers = new("SELECT * FROM guild_members WHERE guild_id = @guild_id;");
             GetAllMembers.Parameters.Add(new("@guild_id", NpgsqlDbType.Bigint));
 
+            GetMembersWithRole = new("SELECT * FROM guild_members WHERE guild_id = @guild_id AND @role_id = ANY(role_ids);");
+            GetMembersWithRole.Parameters.Add(new("@guild_id", NpgsqlDbType.Bigint));
+            GetMembersWithRole.Parameters.Add(new("@role_id", NpgsqlDbType.Bigint));
+
             BulkUpsert = new(@"INSERT INTO guild_members (user_id, guild_id, first_joined, state, role_ids)
     SELECT user_id, guild_id, first_joined, state, ARRAY[role_id] AS role_ids
     FROM (
@@ -94,7 +99,7 @@ namespace OoLunar.Tomoe.Database.Models
             CountMembers = new("SELECT COUNT(*) FROM guild_members;");
         }
 
-        public static async ValueTask<GuildMemberModel> CreateAsync(ulong userId, ulong guildId, DateTimeOffset firstJoined, GuildMemberState state, List<long> roleIds)
+        public static async ValueTask<GuildMemberModel> CreateAsync(ulong userId, ulong guildId, DateTimeOffset firstJoined, GuildMemberState state, IEnumerable<ulong> roleIds)
         {
             await Semaphore.WaitAsync();
             try
@@ -103,7 +108,7 @@ namespace OoLunar.Tomoe.Database.Models
                 CreateMember.Parameters["guild_id"].Value = (long)guildId;
                 CreateMember.Parameters["first_joined"].Value = firstJoined.UtcDateTime;
                 CreateMember.Parameters["state"].Value = (byte)state;
-                CreateMember.Parameters["role_ids"].Value = roleIds;
+                CreateMember.Parameters["role_ids"].Value = new List<long>(Unsafe.As<IEnumerable<ulong>, IEnumerable<long>>(ref roleIds));
 
                 await CreateMember.ExecuteNonQueryAsync();
                 return new GuildMemberModel
@@ -112,7 +117,7 @@ namespace OoLunar.Tomoe.Database.Models
                     GuildId = guildId,
                     FirstJoined = firstJoined,
                     State = state,
-                    RoleIds = Unsafe.As<List<long>, List<ulong>>(ref roleIds)
+                    RoleIds = roleIds.ToList()
                 };
             }
             finally
@@ -161,6 +166,37 @@ namespace OoLunar.Tomoe.Database.Models
                 GetAllMembers.Parameters["guild_id"].Value = (long)guildId;
 
                 await using NpgsqlDataReader reader = await GetAllMembers.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    ulong userId = (ulong)reader.GetInt64(0);
+                    DateTimeOffset firstJoined = reader.GetFieldValue<DateTimeOffset>(2);
+                    GuildMemberState state = (GuildMemberState)reader.GetFieldValue<byte>(3);
+                    long[] roleIds = reader.GetFieldValue<long[]>(4);
+                    yield return new GuildMemberModel
+                    {
+                        UserId = userId,
+                        GuildId = guildId,
+                        FirstJoined = firstJoined,
+                        State = state,
+                        RoleIds = new(Unsafe.As<long[], ulong[]>(ref roleIds))
+                    };
+                }
+            }
+            finally
+            {
+                Semaphore.Release();
+            }
+        }
+
+        public static async IAsyncEnumerable<GuildMemberModel> GetMembersWithRoleAsync(ulong guildId, ulong roleId)
+        {
+            await Semaphore.WaitAsync();
+            try
+            {
+                GetMembersWithRole.Parameters["guild_id"].Value = (long)guildId;
+                GetMembersWithRole.Parameters["role_id"].Value = (long)roleId;
+
+                await using NpgsqlDataReader reader = await GetMembersWithRole.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
                 {
                     ulong userId = (ulong)reader.GetInt64(0);
@@ -307,6 +343,7 @@ namespace OoLunar.Tomoe.Database.Models
             UpdateMember.Connection = connection;
             DeleteMember.Connection = connection;
             GetAllMembers.Connection = connection;
+            GetMembersWithRole.Connection = connection;
             BulkUpsert.Connection = connection;
             CountGuilds.Connection = connection;
             CountMembers.Connection = connection;
@@ -318,6 +355,7 @@ namespace OoLunar.Tomoe.Database.Models
             await UpdateMember.PrepareAsync();
             await DeleteMember.PrepareAsync();
             await GetAllMembers.PrepareAsync();
+            await GetMembersWithRole.PrepareAsync();
             await BulkUpsert.PrepareAsync();
             await CountGuilds.PrepareAsync();
             await CountMembers.PrepareAsync();

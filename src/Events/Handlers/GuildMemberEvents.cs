@@ -42,7 +42,7 @@ namespace OoLunar.Tomoe.Events.Handlers
             GuildMemberModel? guildMemberModel = await GuildMemberModel.FindMemberAsync(eventArgs.Member.Id, eventArgs.Guild.Id);
             if (guildMemberModel is null)
             {
-                guildMemberModel = await GuildMemberModel.CreateAsync(eventArgs.Member.Id, eventArgs.Guild.Id, DateTimeOffset.UtcNow, GuildMemberState.None, eventArgs.Member.Roles.Select(x => (long)x.Id).ToList());
+                guildMemberModel = await GuildMemberModel.CreateAsync(eventArgs.Member.Id, eventArgs.Guild.Id, DateTimeOffset.UtcNow, GuildMemberState.None, eventArgs.Member.Roles.Select(x => x.Id));
                 return;
             }
 
@@ -82,7 +82,7 @@ namespace OoLunar.Tomoe.Events.Handlers
             if (guildMemberModel is null)
             {
                 // If the member doesn't exist, create them with the absent state.
-                await GuildMemberModel.CreateAsync(eventArgs.Member.Id, eventArgs.Guild.Id, eventArgs.Member.JoinedAt, GuildMemberState.Absent, eventArgs.Member.Roles.Select(x => (long)x.Id).ToList());
+                await GuildMemberModel.CreateAsync(eventArgs.Member.Id, eventArgs.Guild.Id, eventArgs.Member.JoinedAt, GuildMemberState.Absent, eventArgs.Member.Roles.Select(x => x.Id));
                 return;
             }
 
@@ -99,7 +99,7 @@ namespace OoLunar.Tomoe.Events.Handlers
             if (guildMemberModel is null)
             {
                 // If the member doesn't exist, create them with the none state.
-                await GuildMemberModel.CreateAsync(eventArgs.Member.Id, eventArgs.Guild.Id, eventArgs.Member.JoinedAt, GuildMemberState.None, eventArgs.Member.Roles.Select(x => (long)x.Id).ToList());
+                await GuildMemberModel.CreateAsync(eventArgs.Member.Id, eventArgs.Guild.Id, eventArgs.Member.JoinedAt, GuildMemberState.None, eventArgs.Member.Roles.Select(x => x.Id));
                 return;
             }
 
@@ -118,7 +118,7 @@ namespace OoLunar.Tomoe.Events.Handlers
                 if (guildMemberModel is null)
                 {
                     // If the member doesn't exist, create them with the none state.
-                    await GuildMemberModel.CreateAsync(member.Id, eventArgs.Guild.Id, member.JoinedAt, GuildMemberState.None, member.Roles.Select(x => (long)x.Id).ToList());
+                    await GuildMemberModel.CreateAsync(member.Id, eventArgs.Guild.Id, member.JoinedAt, GuildMemberState.None, member.Roles.Select(x => x.Id));
                     continue;
                 }
 
@@ -136,7 +136,7 @@ namespace OoLunar.Tomoe.Events.Handlers
             if (guildMemberModel is null)
             {
                 // If the member doesn't exist, create them with the absent and banned state.
-                await GuildMemberModel.CreateAsync(eventArgs.Member.Id, eventArgs.Guild.Id, eventArgs.Member.JoinedAt, GuildMemberState.Absent | GuildMemberState.Banned, eventArgs.Member.Roles.Select(x => (long)x.Id).ToList());
+                await GuildMemberModel.CreateAsync(eventArgs.Member.Id, eventArgs.Guild.Id, eventArgs.Member.JoinedAt, GuildMemberState.Absent | GuildMemberState.Banned, eventArgs.Member.Roles.Select(x => x.Id));
                 return;
             }
 
@@ -153,7 +153,7 @@ namespace OoLunar.Tomoe.Events.Handlers
             if (guildMemberModel is null)
             {
                 // If the member doesn't exist, create them with the absent state.
-                await GuildMemberModel.CreateAsync(eventArgs.Member.Id, eventArgs.Guild.Id, eventArgs.Member.JoinedAt, GuildMemberState.Absent, eventArgs.Member.Roles.Select(x => (long)x.Id).ToList());
+                await GuildMemberModel.CreateAsync(eventArgs.Member.Id, eventArgs.Guild.Id, eventArgs.Member.JoinedAt, GuildMemberState.Absent, eventArgs.Member.Roles.Select(x => x.Id));
                 return;
             }
 

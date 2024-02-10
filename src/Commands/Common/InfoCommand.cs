@@ -142,16 +142,28 @@ namespace OoLunar.Tomoe.Commands.Common
             embedBuilder.AddField("Hoisted", role.IsHoisted.ToString(), true);
             embedBuilder.AddField("Is Managed", role.IsManaged.ToString(), true);
             embedBuilder.AddField("Is Mentionable", role.IsMentionable.ToString(), true);
-            embedBuilder.AddField("Role Id", $"`{role.Id.ToString(CultureInfo.InvariantCulture)}`", true);
+            embedBuilder.AddField("Role Id", Formatter.InlineCode(role.Id.ToString(CultureInfo.InvariantCulture)), true);
             embedBuilder.AddField("Role Name", role.Name, true);
-            embedBuilder.AddField("Role Position", role.Position.ToString("N0"), true);
+            embedBuilder.AddField("Role Position", role.Position.ToString("N0", CultureInfo.InvariantCulture), true);
             embedBuilder.AddField("Permissions", role.Permissions == Permissions.None ? "No permissions." : role.Permissions.ToPermissionString() + ".", false);
 
-            //List<GuildMemberModel> members = await _database.Members.AsNoTracking().Where(member => member.GuildId == context.Guild!.Id && member.RoleIds.Contains(role.Id) && !member.Flags.HasFlag(MemberState.Absent | MemberState.Banned)).ToListAsync();
-            //members.Sort((member1, member2) => member1.UserId.CompareTo(member2.UserId));
-            //embedBuilder.AddField("Member Count", members.Count.ToString("N0", CultureInfo.InvariantCulture), false);
-            //embedBuilder.AddField("Members", string.Join(", ", members.Select(member => $"<@{member.UserId}>").DefaultIfEmpty("None")), true);
+            int fieldCharCount = 0;
+            List<string> memberMentions = [];
+            await foreach (GuildMemberModel member in GuildMemberModel.GetMembersWithRoleAsync(context.Guild!.Id, role.Id))
+            {
+                string mention = $"<@{member.UserId.ToString(CultureInfo.InvariantCulture)}>";
+                fieldCharCount += mention.Length;
+                if (fieldCharCount > 1024)
+                {
+                    break;
+                }
 
+                memberMentions.Add(mention);
+            }
+
+            memberMentions.Sort(string.CompareOrdinal);
+            embedBuilder.AddField("Member Count", memberMentions.Count.ToString("N0", CultureInfo.InvariantCulture), false);
+            embedBuilder.AddField("Members", string.Join(", ", memberMentions.DefaultIfEmpty("None")), true);
             await context.RespondAsync(embedBuilder);
         }
 
