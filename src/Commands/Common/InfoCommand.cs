@@ -180,7 +180,7 @@ namespace OoLunar.Tomoe.Commands.Common
             {
                 embedBuilder.AddField("Emoji Name", _unicodeEmojis(null!).First(x => x.Value == discordEmoji.Name).Key.Replace(":", "\\:"), true);
                 embedBuilder.AddField("Unicode", $"\\{discordEmoji.Name}", true);
-                embedBuilder.ImageUrl = $"https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/{char.ConvertToUtf32(discordEmoji.Name, 0).ToString("X4").ToLower(CultureInfo.InvariantCulture)}.png";
+                embedBuilder.ImageUrl = $"https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/{char.ConvertToUtf32(discordEmoji.Name, 0).ToString("X4", CultureInfo.InvariantCulture).ToLower(CultureInfo.InvariantCulture)}.png";
             }
             else if (DiscordEmoji.TryFromName(context.Client, emoji, out discordEmoji))
             {
@@ -248,7 +248,7 @@ namespace OoLunar.Tomoe.Commands.Common
                 Color = new DiscordColor("#6b73db"),
                 Author = new()
                 {
-                    Name = context.Member?.DisplayName ?? context.User.Username,
+                    Name = context.User.GetDisplayName(),
                     IconUrl = context.User.AvatarUrl,
                     Url = context.User.AvatarUrl
                 },
@@ -272,7 +272,6 @@ namespace OoLunar.Tomoe.Commands.Common
 
                     embedBuilder.Title = guildPreview.Name;
                     embedBuilder.Footer = new() { IconUrl = $"https://cdn.discordapp.com/splashes/{guildId}/{guildPreview.Splash}.png" };
-
                     if (guildPreview.Icon is not null)
                     {
                         embedBuilder.Thumbnail = new() { Url = $"https://cdn.discordapp.com/icons/{guildId}/{guildPreview.Icon}.{(guildPreview.Icon.StartsWith("a_") ? "gif" : "png")}" };
