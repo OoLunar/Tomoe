@@ -6,12 +6,16 @@ using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using OoLunar.Tomoe.Database.Models;
 
 namespace OoLunar.Tomoe.Events.Handlers
 {
-    public sealed class GuildMemberEvents(ILogger<GuildMemberEvents> logger)
+    public sealed class GuildMemberEvents
     {
+        private readonly ILogger<GuildMemberEvents> logger;
+        public GuildMemberEvents(ILogger<GuildMemberEvents> logger) => this.logger = logger ?? NullLogger<GuildMemberEvents>.Instance;
+
         [DiscordEvent]
         public async Task OnGuildCreateAsync(DiscordClient _, GuildCreateEventArgs eventArgs)
         {

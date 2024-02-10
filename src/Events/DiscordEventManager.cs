@@ -6,10 +6,16 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace OoLunar.Tomoe.Events
 {
-    public sealed class DiscordEventManager(IServiceProvider serviceProvider)
+    public sealed class DiscordEventManager
     {
-        private readonly IServiceProvider ServiceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
-        private readonly List<MethodInfo> EventHandlers = [];
+        private readonly IServiceProvider ServiceProvider;
+        private readonly List<MethodInfo> EventHandlers;
+
+        public DiscordEventManager(IServiceProvider serviceProvider)
+        {
+            ServiceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            EventHandlers = [];
+        }
 
         public void GatherEventHandlers(Assembly assembly)
         {

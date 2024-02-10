@@ -5,13 +5,23 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Humanizer;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Metadata;
 
 namespace OoLunar.Tomoe
 {
-    public sealed class ImageUtilities(HttpClient httpClient, ILogger<ImageUtilities> logger)
+    public sealed class ImageUtilities
     {
+        private readonly HttpClient httpClient;
+        private readonly ILogger<ImageUtilities> logger;
+
+        public ImageUtilities(HttpClient httpClient, ILogger<ImageUtilities> logger)
+        {
+            this.httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+            this.logger = logger ?? NullLogger<ImageUtilities>.Instance;
+        }
+
         public async ValueTask<ImageData?> GetImageDataAsync(string url)
         {
             using HttpResponseMessage response = await httpClient.GetAsync(url);
