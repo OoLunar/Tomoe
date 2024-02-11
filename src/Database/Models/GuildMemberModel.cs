@@ -12,18 +12,18 @@ namespace OoLunar.Tomoe.Database.Models
     [DatabaseModel]
     public sealed record GuildMemberModel
     {
-        private static readonly SemaphoreSlim Semaphore = new(1, 1);
-        private static readonly NpgsqlCommand CreateTable;
-        private static readonly NpgsqlCommand CreateMember;
-        private static readonly NpgsqlCommand FindMember;
-        private static readonly NpgsqlCommand UpdateMember;
-        private static readonly NpgsqlCommand DeleteMember;
-        private static readonly NpgsqlCommand GetAllMembers;
-        private static readonly NpgsqlCommand GetMembersWithRole;
-        private static readonly NpgsqlCommand BulkUpsert;
-        private static readonly NpgsqlCommand CountGuilds;
-        private static readonly NpgsqlCommand CountMembers;
-        private static readonly NpgsqlCommand CountMembersOfGuild;
+        private static readonly SemaphoreSlim _semaphore = new(1, 1);
+        private static readonly NpgsqlCommand _createTable;
+        private static readonly NpgsqlCommand _createMember;
+        private static readonly NpgsqlCommand _findMember;
+        private static readonly NpgsqlCommand _updateMember;
+        private static readonly NpgsqlCommand _deleteMember;
+        private static readonly NpgsqlCommand _getAllMembers;
+        private static readonly NpgsqlCommand _getMembersWithRole;
+        private static readonly NpgsqlCommand _bulkUpsert;
+        private static readonly NpgsqlCommand _countGuilds;
+        private static readonly NpgsqlCommand _countMembers;
+        private static readonly NpgsqlCommand _countMembersOfGuild;
 
         public ulong UserId { get; init; }
         public ulong GuildId { get; init; }
@@ -33,7 +33,7 @@ namespace OoLunar.Tomoe.Database.Models
 
         static GuildMemberModel()
         {
-            CreateTable = new(@"CREATE TABLE IF NOT EXISTS guild_members(
+            _createTable = new(@"CREATE TABLE IF NOT EXISTS guild_members(
                 user_id bigint NOT NULL,
                 guild_id bigint NOT NULL,
                 first_joined timestamp with time zone NOT NULL,
@@ -42,40 +42,40 @@ namespace OoLunar.Tomoe.Database.Models
                 PRIMARY KEY (user_id, guild_id));
             ");
 
-            CreateMember = new("INSERT INTO guild_members (user_id, guild_id, first_joined, state, role_ids) VALUES (@user_id, @guild_id, @first_joined, @state, @role_ids);");
-            CreateMember.Parameters.Add(new("@user_id", NpgsqlDbType.Bigint));
-            CreateMember.Parameters.Add(new("@guild_id", NpgsqlDbType.Bigint));
-            CreateMember.Parameters.Add(new("@first_joined", NpgsqlDbType.TimestampTz));
-            CreateMember.Parameters.Add(new("@state", NpgsqlDbType.Smallint));
-            CreateMember.Parameters.Add(new("@role_ids", NpgsqlDbType.Array | NpgsqlDbType.Bigint));
+            _createMember = new("INSERT INTO guild_members (user_id, guild_id, first_joined, state, role_ids) VALUES (@user_id, @guild_id, @first_joined, @state, @role_ids);");
+            _createMember.Parameters.Add(new("@user_id", NpgsqlDbType.Bigint));
+            _createMember.Parameters.Add(new("@guild_id", NpgsqlDbType.Bigint));
+            _createMember.Parameters.Add(new("@first_joined", NpgsqlDbType.TimestampTz));
+            _createMember.Parameters.Add(new("@state", NpgsqlDbType.Smallint));
+            _createMember.Parameters.Add(new("@role_ids", NpgsqlDbType.Array | NpgsqlDbType.Bigint));
 
-            FindMember = new("SELECT * FROM guild_members WHERE user_id = @user_id AND guild_id = @guild_id;");
-            FindMember.Parameters.Add(new("@user_id", NpgsqlDbType.Bigint));
-            FindMember.Parameters.Add(new("@guild_id", NpgsqlDbType.Bigint));
+            _findMember = new("SELECT * FROM guild_members WHERE user_id = @user_id AND guild_id = @guild_id;");
+            _findMember.Parameters.Add(new("@user_id", NpgsqlDbType.Bigint));
+            _findMember.Parameters.Add(new("@guild_id", NpgsqlDbType.Bigint));
 
-            UpdateMember = new("UPDATE guild_members SET first_joined = @first_joined, state = @state, role_ids = @role_ids WHERE user_id = @user_id AND guild_id = @guild_id;");
-            UpdateMember.Parameters.Add(new("@user_id", NpgsqlDbType.Bigint));
-            UpdateMember.Parameters.Add(new("@guild_id", NpgsqlDbType.Bigint));
-            UpdateMember.Parameters.Add(new("@first_joined", NpgsqlDbType.TimestampTz));
-            UpdateMember.Parameters.Add(new("@state", NpgsqlDbType.Smallint));
-            UpdateMember.Parameters.Add(new("@role_ids", NpgsqlDbType.Array | NpgsqlDbType.Bigint));
+            _updateMember = new("UPDATE guild_members SET first_joined = @first_joined, state = @state, role_ids = @role_ids WHERE user_id = @user_id AND guild_id = @guild_id;");
+            _updateMember.Parameters.Add(new("@user_id", NpgsqlDbType.Bigint));
+            _updateMember.Parameters.Add(new("@guild_id", NpgsqlDbType.Bigint));
+            _updateMember.Parameters.Add(new("@first_joined", NpgsqlDbType.TimestampTz));
+            _updateMember.Parameters.Add(new("@state", NpgsqlDbType.Smallint));
+            _updateMember.Parameters.Add(new("@role_ids", NpgsqlDbType.Array | NpgsqlDbType.Bigint));
 
-            DeleteMember = new("DELETE FROM guild_members WHERE user_id = @user_id AND guild_id = @guild_id;");
-            DeleteMember.Parameters.Add(new("@user_id", NpgsqlDbType.Bigint));
-            DeleteMember.Parameters.Add(new("@guild_id", NpgsqlDbType.Bigint));
+            _deleteMember = new("DELETE FROM guild_members WHERE user_id = @user_id AND guild_id = @guild_id;");
+            _deleteMember.Parameters.Add(new("@user_id", NpgsqlDbType.Bigint));
+            _deleteMember.Parameters.Add(new("@guild_id", NpgsqlDbType.Bigint));
 
-            CountMembersOfGuild = new("SELECT COUNT(*) FROM guild_members WHERE guild_id = @guild_id;");
-            CountMembersOfGuild.Parameters.Add(new("@guild_id", NpgsqlDbType.Bigint));
+            _countMembersOfGuild = new("SELECT COUNT(*) FROM guild_members WHERE guild_id = @guild_id;");
+            _countMembersOfGuild.Parameters.Add(new("@guild_id", NpgsqlDbType.Bigint));
 
-            GetAllMembers = new("SELECT * FROM guild_members WHERE guild_id = @guild_id;");
-            GetAllMembers.Parameters.Add(new("@guild_id", NpgsqlDbType.Bigint));
+            _getAllMembers = new("SELECT * FROM guild_members WHERE guild_id = @guild_id;");
+            _getAllMembers.Parameters.Add(new("@guild_id", NpgsqlDbType.Bigint));
 
-            GetMembersWithRole = new("SELECT * FROM guild_members WHERE guild_id = @guild_id AND @role_id = ANY(role_ids);");
-            GetMembersWithRole.Parameters.Add(new("@guild_id", NpgsqlDbType.Bigint));
-            GetMembersWithRole.Parameters.Add(new("@role_id", NpgsqlDbType.Bigint));
+            _getMembersWithRole = new("SELECT * FROM guild_members WHERE guild_id = @guild_id AND @role_id = ANY(role_ids);");
+            _getMembersWithRole.Parameters.Add(new("@guild_id", NpgsqlDbType.Bigint));
+            _getMembersWithRole.Parameters.Add(new("@role_id", NpgsqlDbType.Bigint));
 
-            BulkUpsert = new(@"INSERT INTO guild_members (user_id, guild_id, first_joined, state, role_ids)
-    SELECT user_id, guild_id, first_joined, state, idx
+            _bulkUpsert = new(@"INSERT INTO guild_members (user_id, guild_id, first_joined, state, role_ids)
+    SELECT user_id, guild_id, first_joined, state, role_ids
         FROM (
             SELECT
                  UNNEST(@user_ids) AS user_id,
@@ -84,35 +84,35 @@ namespace OoLunar.Tomoe.Database.Models
                  UNNEST(@states) AS state,
                  -- https://stackoverflow.com/a/61679054 (ab)use`jsonb` to de-nest the arrays
                  -- https://stackoverflow.com/a/37686469 Turn `[]` (jsonb) into `{}` postgres array
-                 TRANSLATE(jsonb_array_elements(to_jsonb(@role_ids::bigint[][]))::text, '[]', '{}')::bigint[] AS idx
+                 TRANSLATE(jsonb_array_elements(to_jsonb(@role_ids::bigint[][]))::text, '[]', '{}')::bigint[] AS role_ids
          ) AS _
     WHERE user_id IS NOT NULL -- Filter out null values caused by multi-dimensional arrays
     ON CONFLICT (user_id, guild_id) DO UPDATE
     SET
         state = EXCLUDED.state,
         role_ids = EXCLUDED.role_ids;");
-            BulkUpsert.Parameters.Add(new("@user_ids", NpgsqlDbType.Array | NpgsqlDbType.Bigint));
-            BulkUpsert.Parameters.Add(new("@guild_ids", NpgsqlDbType.Array | NpgsqlDbType.Bigint));
-            BulkUpsert.Parameters.Add(new("@first_joined_dates", NpgsqlDbType.Array | NpgsqlDbType.TimestampTz));
-            BulkUpsert.Parameters.Add(new("@states", NpgsqlDbType.Array | NpgsqlDbType.Smallint));
-            BulkUpsert.Parameters.Add(new("@role_ids", NpgsqlDbType.Array | NpgsqlDbType.Bigint));
+            _bulkUpsert.Parameters.Add(new("@user_ids", NpgsqlDbType.Array | NpgsqlDbType.Bigint));
+            _bulkUpsert.Parameters.Add(new("@guild_ids", NpgsqlDbType.Array | NpgsqlDbType.Bigint));
+            _bulkUpsert.Parameters.Add(new("@first_joined_dates", NpgsqlDbType.Array | NpgsqlDbType.TimestampTz));
+            _bulkUpsert.Parameters.Add(new("@states", NpgsqlDbType.Array | NpgsqlDbType.Smallint));
+            _bulkUpsert.Parameters.Add(new("@role_ids", NpgsqlDbType.Array | NpgsqlDbType.Bigint));
 
-            CountGuilds = new("SELECT COUNT(DISTINCT guild_id) FROM guild_members;");
-            CountMembers = new("SELECT COUNT(*) FROM guild_members;");
+            _countGuilds = new("SELECT COUNT(DISTINCT guild_id) FROM guild_members;");
+            _countMembers = new("SELECT COUNT(*) FROM guild_members;");
         }
 
         public static async ValueTask<GuildMemberModel> CreateAsync(ulong userId, ulong guildId, DateTimeOffset firstJoined, GuildMemberState state, IEnumerable<ulong> roleIds)
         {
-            await Semaphore.WaitAsync();
+            await _semaphore.WaitAsync();
             try
             {
-                CreateMember.Parameters["user_id"].Value = (long)userId;
-                CreateMember.Parameters["guild_id"].Value = (long)guildId;
-                CreateMember.Parameters["first_joined"].Value = firstJoined.UtcDateTime;
-                CreateMember.Parameters["state"].Value = (byte)state;
-                CreateMember.Parameters["role_ids"].Value = new List<long>(Unsafe.As<IEnumerable<ulong>, IEnumerable<long>>(ref roleIds));
+                _createMember.Parameters["user_id"].Value = (long)userId;
+                _createMember.Parameters["guild_id"].Value = (long)guildId;
+                _createMember.Parameters["first_joined"].Value = firstJoined.UtcDateTime;
+                _createMember.Parameters["state"].Value = (byte)state;
+                _createMember.Parameters["role_ids"].Value = new List<long>(roleIds.Select(value => (long)value));
 
-                await CreateMember.ExecuteNonQueryAsync();
+                await _createMember.ExecuteNonQueryAsync();
                 return new GuildMemberModel
                 {
                     UserId = userId,
@@ -124,19 +124,19 @@ namespace OoLunar.Tomoe.Database.Models
             }
             finally
             {
-                Semaphore.Release();
+                _semaphore.Release();
             }
         }
 
         public static async ValueTask<GuildMemberModel?> FindMemberAsync(ulong userId, ulong guildId)
         {
-            await Semaphore.WaitAsync();
+            await _semaphore.WaitAsync();
             try
             {
-                FindMember.Parameters["user_id"].Value = (long)userId;
-                FindMember.Parameters["guild_id"].Value = (long)guildId;
+                _findMember.Parameters["user_id"].Value = (long)userId;
+                _findMember.Parameters["guild_id"].Value = (long)guildId;
 
-                await using NpgsqlDataReader reader = await FindMember.ExecuteReaderAsync();
+                await using NpgsqlDataReader reader = await _findMember.ExecuteReaderAsync();
                 if (!await reader.ReadAsync())
                 {
                     return null;
@@ -156,18 +156,18 @@ namespace OoLunar.Tomoe.Database.Models
             }
             finally
             {
-                Semaphore.Release();
+                _semaphore.Release();
             }
         }
 
         public static async IAsyncEnumerable<GuildMemberModel> GetAllMembersAsync(ulong guildId)
         {
-            await Semaphore.WaitAsync();
+            await _semaphore.WaitAsync();
             try
             {
-                GetAllMembers.Parameters["guild_id"].Value = (long)guildId;
+                _getAllMembers.Parameters["guild_id"].Value = (long)guildId;
 
-                await using NpgsqlDataReader reader = await GetAllMembers.ExecuteReaderAsync();
+                await using NpgsqlDataReader reader = await _getAllMembers.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
                 {
                     ulong userId = (ulong)reader.GetInt64(0);
@@ -186,19 +186,19 @@ namespace OoLunar.Tomoe.Database.Models
             }
             finally
             {
-                Semaphore.Release();
+                _semaphore.Release();
             }
         }
 
         public static async IAsyncEnumerable<GuildMemberModel> GetMembersWithRoleAsync(ulong guildId, ulong roleId)
         {
-            await Semaphore.WaitAsync();
+            await _semaphore.WaitAsync();
             try
             {
-                GetMembersWithRole.Parameters["guild_id"].Value = (long)guildId;
-                GetMembersWithRole.Parameters["role_id"].Value = (long)roleId;
+                _getMembersWithRole.Parameters["guild_id"].Value = (long)guildId;
+                _getMembersWithRole.Parameters["role_id"].Value = (long)roleId;
 
-                await using NpgsqlDataReader reader = await GetMembersWithRole.ExecuteReaderAsync();
+                await using NpgsqlDataReader reader = await _getMembersWithRole.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
                 {
                     ulong userId = (ulong)reader.GetInt64(0);
@@ -217,13 +217,13 @@ namespace OoLunar.Tomoe.Database.Models
             }
             finally
             {
-                Semaphore.Release();
+                _semaphore.Release();
             }
         }
 
         public static async ValueTask BulkUpsertAsync(IEnumerable<GuildMemberModel> members)
         {
-            await Semaphore.WaitAsync();
+            await _semaphore.WaitAsync();
             try
             {
                 List<long> userIds = [];
@@ -243,125 +243,125 @@ namespace OoLunar.Tomoe.Database.Models
                     }
                 }
 
-                BulkUpsert.Parameters["user_ids"].Value = userIds.ToArray();
-                BulkUpsert.Parameters["guild_ids"].Value = guildIds.ToArray();
-                BulkUpsert.Parameters["first_joined_dates"].Value = firstJoined.ToArray();
-                BulkUpsert.Parameters["states"].Value = states.ToArray();
-                BulkUpsert.Parameters["role_ids"].Value = roleIds;
+                _bulkUpsert.Parameters["user_ids"].Value = userIds.ToArray();
+                _bulkUpsert.Parameters["guild_ids"].Value = guildIds.ToArray();
+                _bulkUpsert.Parameters["first_joined_dates"].Value = firstJoined.ToArray();
+                _bulkUpsert.Parameters["states"].Value = states.ToArray();
+                _bulkUpsert.Parameters["role_ids"].Value = roleIds;
 
-                await BulkUpsert.ExecuteNonQueryAsync();
+                await _bulkUpsert.ExecuteNonQueryAsync();
             }
             finally
             {
-                Semaphore.Release();
+                _semaphore.Release();
             }
         }
 
         public async ValueTask UpdateAsync()
         {
-            await Semaphore.WaitAsync();
+            await _semaphore.WaitAsync();
             try
             {
-                UpdateMember.Parameters["user_id"].Value = (long)UserId;
-                UpdateMember.Parameters["guild_id"].Value = (long)GuildId;
-                UpdateMember.Parameters["first_joined"].Value = FirstJoined;
-                UpdateMember.Parameters["state"].Value = (byte)State;
+                _updateMember.Parameters["user_id"].Value = (long)UserId;
+                _updateMember.Parameters["guild_id"].Value = (long)GuildId;
+                _updateMember.Parameters["first_joined"].Value = FirstJoined;
+                _updateMember.Parameters["state"].Value = (byte)State;
 
                 long[] roleIdsArray = [.. RoleIds.Select(value => (long)value).ToArray()];
-                UpdateMember.Parameters["role_ids"].Value = roleIdsArray;
+                _updateMember.Parameters["role_ids"].Value = roleIdsArray;
 
-                await UpdateMember.ExecuteNonQueryAsync();
+                await _updateMember.ExecuteNonQueryAsync();
             }
             finally
             {
-                Semaphore.Release();
+                _semaphore.Release();
             }
         }
 
         public async ValueTask DeleteAsync()
         {
-            await Semaphore.WaitAsync();
+            await _semaphore.WaitAsync();
             try
             {
-                DeleteMember.Parameters["user_id"].Value = (long)UserId;
-                DeleteMember.Parameters["guild_id"].Value = (long)GuildId;
+                _deleteMember.Parameters["user_id"].Value = (long)UserId;
+                _deleteMember.Parameters["guild_id"].Value = (long)GuildId;
 
-                await DeleteMember.ExecuteNonQueryAsync();
+                await _deleteMember.ExecuteNonQueryAsync();
             }
             finally
             {
-                Semaphore.Release();
+                _semaphore.Release();
             }
         }
 
         public static async ValueTask<ulong> CountGuildsAsync()
         {
-            await Semaphore.WaitAsync();
+            await _semaphore.WaitAsync();
             try
             {
-                long count = (long)(await CountGuilds.ExecuteScalarAsync())!;
+                long count = (long)(await _countGuilds.ExecuteScalarAsync())!;
                 return Unsafe.As<long, ulong>(ref count);
             }
             finally
             {
-                Semaphore.Release();
+                _semaphore.Release();
             }
         }
 
         public static async ValueTask<ulong> CountMembersAsync()
         {
-            await Semaphore.WaitAsync();
+            await _semaphore.WaitAsync();
             try
             {
-                long count = (long)(await CountMembers.ExecuteScalarAsync())!;
+                long count = (long)(await _countMembers.ExecuteScalarAsync())!;
                 return Unsafe.As<long, ulong>(ref count);
             }
             finally
             {
-                Semaphore.Release();
+                _semaphore.Release();
             }
         }
 
         public static async ValueTask<ulong> CountMembersAsync(ulong guildId)
         {
-            await Semaphore.WaitAsync();
+            await _semaphore.WaitAsync();
             try
             {
-                CountMembersOfGuild.Parameters["guild_id"].Value = (long)guildId;
-                long count = (long)(await CountMembersOfGuild.ExecuteScalarAsync())!;
+                _countMembersOfGuild.Parameters["guild_id"].Value = (long)guildId;
+                long count = (long)(await _countMembersOfGuild.ExecuteScalarAsync())!;
                 return Unsafe.As<long, ulong>(ref count);
             }
             finally
             {
-                Semaphore.Release();
+                _semaphore.Release();
             }
         }
 
         public static async ValueTask PrepareAsync(NpgsqlConnection connection)
         {
-            CreateTable.Connection = connection;
-            CreateMember.Connection = connection;
-            FindMember.Connection = connection;
-            UpdateMember.Connection = connection;
-            DeleteMember.Connection = connection;
-            GetAllMembers.Connection = connection;
-            GetMembersWithRole.Connection = connection;
-            BulkUpsert.Connection = connection;
-            CountGuilds.Connection = connection;
-            CountMembers.Connection = connection;
-            CountMembersOfGuild.Connection = connection;
+            _createTable.Connection = connection;
+            _createMember.Connection = connection;
+            _findMember.Connection = connection;
+            _updateMember.Connection = connection;
+            _deleteMember.Connection = connection;
+            _getAllMembers.Connection = connection;
+            _getMembersWithRole.Connection = connection;
+            _bulkUpsert.Connection = connection;
+            _countGuilds.Connection = connection;
+            _countMembers.Connection = connection;
+            _countMembersOfGuild.Connection = connection;
 
-            await CreateTable.ExecuteNonQueryAsync();
-            await CreateMember.PrepareAsync();
-            await FindMember.PrepareAsync();
-            await UpdateMember.PrepareAsync();
-            await DeleteMember.PrepareAsync();
-            await GetAllMembers.PrepareAsync();
-            await GetMembersWithRole.PrepareAsync();
-            await BulkUpsert.PrepareAsync();
-            await CountGuilds.PrepareAsync();
-            await CountMembers.PrepareAsync();
-            await CountMembersOfGuild.PrepareAsync();
+            await _createTable.ExecuteNonQueryAsync();
+            await _createMember.PrepareAsync();
+            await _findMember.PrepareAsync();
+            await _updateMember.PrepareAsync();
+            await _deleteMember.PrepareAsync();
+            await _getAllMembers.PrepareAsync();
+            await _getMembersWithRole.PrepareAsync();
+            await _bulkUpsert.PrepareAsync();
+            await _countGuilds.PrepareAsync();
+            await _countMembers.PrepareAsync();
+            await _countMembersOfGuild.PrepareAsync();
         }
     }
 }

@@ -91,6 +91,7 @@ namespace OoLunar.Tomoe
 
             serviceCollection.AddSingleton<DatabaseConnectionManager>();
             serviceCollection.AddSingleton<DatabaseHandler>();
+            serviceCollection.AddSingleton(typeof(DatabaseExpirableManager<,>), typeof(DatabaseExpirableManager<,>));
 
             Assembly currentAssembly = typeof(Program).Assembly;
             serviceCollection.AddSingleton((serviceProvider) =>
