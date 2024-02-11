@@ -32,7 +32,7 @@ namespace OoLunar.Tomoe.Database
                     continue;
                 }
 
-                FieldInfo? semaphoreField = type.GetField("Semaphore", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
+                FieldInfo? semaphoreField = type.GetField("_semaphore", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
                 MethodInfo? prepareAsyncMethod = type.GetMethod("PrepareAsync", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
                 if (semaphoreField is null || prepareAsyncMethod is null)
                 {

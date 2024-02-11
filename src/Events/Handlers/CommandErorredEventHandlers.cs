@@ -11,7 +11,7 @@ using Humanizer;
 
 namespace OoLunar.Tomoe.Events.Handlers
 {
-    public sealed class CommandErorredHandler
+    public sealed class CommandErorredEventHandlers
     {
         [DiscordEvent]
         public static async Task OnErroredAsync(CommandsExtension _, CommandErroredEventArgs eventArgs)

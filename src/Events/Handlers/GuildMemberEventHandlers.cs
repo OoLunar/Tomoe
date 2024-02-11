@@ -11,10 +11,10 @@ using OoLunar.Tomoe.Database.Models;
 
 namespace OoLunar.Tomoe.Events.Handlers
 {
-    public sealed class GuildMemberEvents
+    public sealed class GuildMemberEventHandlers
     {
-        private readonly ILogger<GuildMemberEvents> logger;
-        public GuildMemberEvents(ILogger<GuildMemberEvents> logger) => this.logger = logger ?? NullLogger<GuildMemberEvents>.Instance;
+        private readonly ILogger<GuildMemberEventHandlers> logger;
+        public GuildMemberEventHandlers(ILogger<GuildMemberEventHandlers> logger) => this.logger = logger ?? NullLogger<GuildMemberEventHandlers>.Instance;
 
         [DiscordEvent]
         public async Task OnGuildCreateAsync(DiscordClient _, GuildCreateEventArgs eventArgs)

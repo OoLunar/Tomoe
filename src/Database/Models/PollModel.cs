@@ -23,6 +23,7 @@ namespace OoLunar.Tomoe.Database.Models
         private static readonly NpgsqlCommand _createPoll;
         private static readonly NpgsqlCommand _getPoll;
         private static readonly NpgsqlCommand _deletePoll;
+        private static readonly NpgsqlCommand _pollExists;
 
         public Ulid Id { get; init; }
         public ulong UserId { get; init; }
@@ -61,6 +62,9 @@ namespace OoLunar.Tomoe.Database.Models
 
             _deletePoll = new NpgsqlCommand("DELETE FROM polls WHERE id = @id;");
             _deletePoll.Parameters.Add(new NpgsqlParameter("@id", NpgsqlDbType.Text));
+
+            _pollExists = new NpgsqlCommand("SELECT EXISTS(SELECT 1 FROM polls WHERE id = @id);");
+            _pollExists.Parameters.Add(new NpgsqlParameter("@id", NpgsqlDbType.Text));
         }
 
         public static async ValueTask<PollModel> CreatePollAsync(Ulid id, ulong userId, ulong guildId, ulong channelId, ulong messageId, string title, DateTimeOffset expiresAt, IReadOnlyList<string> options)
@@ -134,17 +138,33 @@ namespace OoLunar.Tomoe.Database.Models
             }
         }
 
+        public static async ValueTask<bool> PollExistsAsync(Ulid id)
+        {
+            await _semaphore.WaitAsync();
+            try
+            {
+                _pollExists.Parameters["@id"].Value = id.ToString();
+                return (bool)(await _pollExists.ExecuteScalarAsync())!;
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
+        }
+
         public static async ValueTask PrepareAsync(NpgsqlConnection connection)
         {
             _createTable.Connection = connection;
             _createPoll.Connection = connection;
             _getPoll.Connection = connection;
             _deletePoll.Connection = connection;
+            _pollExists.Connection = connection;
 
             await _createTable.ExecuteNonQueryAsync();
             await _createPoll.PrepareAsync();
             await _getPoll.PrepareAsync();
             await _deletePoll.PrepareAsync();
+            await _pollExists.PrepareAsync();
         }
 
         public static bool TryParse(NpgsqlDataReader reader, [NotNullWhen(true)] out PollModel? expirable) => (expirable = new PollModel
@@ -164,13 +184,13 @@ namespace OoLunar.Tomoe.Database.Models
             DiscordClient? client = (await serviceProvider.GetRequiredService<Task<DiscordShardedClient>>()).GetShard(expirable.GuildId);
             if (client is null)
             {
-                return true;
+                return await PollEndedAsync(expirable.Id);
             }
 
             // This can happen when the bot was removed from the guild while a poll was still active.
             if (!client.Guilds.TryGetValue(expirable.GuildId, out DiscordGuild? guild))
             {
-                return true;
+                return await PollEndedAsync(expirable.Id);
             }
             // This can happen when the guild is unavailable due to an outage.
             else if (guild.IsUnavailable)
@@ -181,7 +201,7 @@ namespace OoLunar.Tomoe.Database.Models
             // This can happen when the channel was deleted while a poll was still active.
             if (!guild.Channels.TryGetValue(expirable.ChannelId, out DiscordChannel? channel))
             {
-                return true;
+                return await PollEndedAsync(expirable.Id);
             }
 
             // If the bot does not have permissions to send messages in the poll channel
@@ -200,27 +220,28 @@ namespace OoLunar.Tomoe.Database.Models
             }
 
             // Calculate the winners
-            Dictionary<string, ulong> votes = [];
+            List<(string Key, ulong Value)> votes = new(expirable.Options.Count);
             for (int i = 0; i < expirable.Options.Count; i++)
             {
-                votes[expirable.Options[i]] = await PollVoteModel.GetOptionVoteCountAsync(expirable.Id, i);
+                votes.Add((expirable.Options[i], await PollVoteModel.GetOptionVoteCountAsync(expirable.Id, i)));
             }
 
             // Order the votes by the amount of votes they have
-            votes = votes.OrderByDescending(x => x.Value).ToDictionary();
+            votes.Sort((x, y) => y.Value.CompareTo(x.Value));
+            int winnerCount = votes.Count(x => x.Value == votes[0].Value);
             DiscordMessageBuilder messageBuilder = new()
             {
                 // We... don't talk about this. Improvements are welcome.
-                Content = votes.Count switch
+                Content = winnerCount switch
                 {
                     // We don't need to account for 0 votes due to the above check.
-                    0 or _ when votes.First().Value == 0 => "The winner is... Nobody! There weren't any votes...",
+                    0 or _ when votes[0].Value == 0 => "The winner is... Nobody! There weren't any votes...",
                     // The winner is Minecraft with 14,012 votes!
-                    1 => $"The winner is {votes.First().Key} with {votes.First().Value:N0} vote{(votes.First().Value == 1 ? null : "s")}!",
+                    1 => $"The winner is {votes[0].Key} with {votes[0].Value:N0} vote{(votes[0].Value == 1 ? null : "s")}!",
                     // We have a two way tie between Minecraft and Terraria. Both have 1 vote!
-                    2 => $"We have a two way tie between {votes.First().Key} and {votes.ElementAt(1).Key}. Both have {votes.First().Value:N0} vote{(votes.First().Value == 1 ? null : "s")}!",
+                    2 => $"We have a two way tie between {votes[0].Key} and {votes[1].Key}. Both have {votes[0].Value:N0} vote{(votes[0].Value == 1 ? null : "s")}!",
                     // We have a six way tie, each with 14,012 votes! Nobody could decide between Minecraft, Terraria, Hollow Knight, Mario Kart Wii, Wii Sports and Smash Bros.!
-                    _ => $"We have a {votes.Count.ToWords()} way tie, each with {votes.First().Value:N0} vote{(votes.First().Value == 1 ? null : "s")}! Nobody could decide between {votes.Select(x => x.Key).Humanize()}."
+                    _ => $"We have a {winnerCount.ToWords()} way tie, each with {votes[0].Value:N0} vote{(votes[0].Value == 1 ? null : "s")}! Nobody could decide between {votes[..winnerCount].Select(x => x.Key).Humanize()}."
                 }
             };
 
@@ -232,12 +253,7 @@ namespace OoLunar.Tomoe.Database.Models
                 DiscordEmbedBuilder embedBuilder = new()
                 {
                     Color = new DiscordColor(0x6B73DB),
-                    Description = "The following options were available with their total vote count below:",
-                    Footer = new()
-                    {
-                        Text = "Poll was created "
-                    },
-                    Timestamp = expirable.Id.Time
+                    Description = $"Total Number of Votes: {await PollVoteModel.GetTotalVoteCountAsync(expirable.Id)}\nPoll was created at: {Formatter.Timestamp(expirable.Id.Time)}\nPoll had ended at: {Formatter.Timestamp(expirable.ExpiresAt)}\nThe following options were available with their total vote count below:",
                 };
 
                 foreach ((string option, ulong count) in votes)
@@ -251,9 +267,10 @@ namespace OoLunar.Tomoe.Database.Models
             DiscordMessage winningMessage = await channel.SendMessageAsync(messageBuilder);
             DiscordMessage? message = await channel.GetMessageAsync(expirable.MessageId);
             DiscordMessageBuilder builder = new(message);
+            builder.Content = builder.Content?.Replace("Poll ends <t:", "Poll ended <t:");
             if (message.Components is null)
             {
-                return true;
+                return await PollEndedAsync(expirable.Id);
             }
 
             List<DiscordActionRowComponent> actionRows = [];
@@ -289,6 +306,12 @@ namespace OoLunar.Tomoe.Database.Models
             builder.ClearComponents();
             builder.AddComponents(actionRows);
             await message.ModifyAsync(builder);
+            return await PollEndedAsync(expirable.Id);
+        }
+
+        private static async ValueTask<bool> PollEndedAsync(Ulid pollId)
+        {
+            await PollVoteModel.ClearVotesAsync(pollId);
             return true;
         }
     }

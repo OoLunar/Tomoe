@@ -56,10 +56,13 @@ namespace OoLunar.Tomoe.Commands.Common
                 Content = FormatQuestion(question, expiresAt)
             };
 
-            List<DiscordButtonComponent> buttons = new(25);
+            List<DiscordButtonComponent> buttons = new(5);
             for (int i = 0; i < options.Length; i++)
             {
                 string option = options[i];
+                if (i % 5 == 0)
+                {
+                }
                 buttons.Add(new(ButtonStyle.Primary, $"poll:{pollId}:{i.ToString(CultureInfo.InvariantCulture)}", option));
             }
 

@@ -59,7 +59,7 @@ namespace OoLunar.Tomoe.Database
 
         private async Task PopulateExpiryCacheAsync()
         {
-            _logger.LogInformation("Starting expirary cache population for {Type}!", typeof(TSelf).Name);
+            _logger.LogInformation("Starting expirary cache population for {Type}!", TSelf.TableName);
             do
             {
                 _logger.LogTrace("Waiting for next expiration check...");
