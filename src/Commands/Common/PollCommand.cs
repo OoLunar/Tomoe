@@ -26,6 +26,11 @@ namespace OoLunar.Tomoe.Commands.Common
                 await context.RespondAsync("Please set a reasonable expiration date.");
                 return;
             }
+            else if (DateTimeOffset.UtcNow.AddDays(7) < (DateTimeOffset.UtcNow + expiresAt))
+            {
+                await context.RespondAsync("Polls can only last up to 7 days.");
+                return;
+            }
             else if (options.Length < 2)
             {
                 await context.RespondAsync("Polls must have at least 2 options.");
@@ -57,17 +62,22 @@ namespace OoLunar.Tomoe.Commands.Common
             };
 
             List<DiscordButtonComponent> buttons = new(5);
+            List<DiscordActionRowComponent> buttonRows = new(5);
             for (int i = 0; i < options.Length; i++)
             {
                 string option = options[i];
-                if (i % 5 == 0)
-                {
-                }
                 buttons.Add(new(ButtonStyle.Primary, $"poll:{pollId}:{i.ToString(CultureInfo.InvariantCulture)}", option));
+                if ((i + 1) % 5 == 0 && i != 0)
+                {
+                    buttonRows.Add(new(buttons));
+                    buttons.Clear();
+                }
             }
 
             buttons.Add(new(ButtonStyle.Danger, $"poll:{pollId}", "Remove my vote!"));
-            messageBuilder.AddComponents(buttons);
+            buttonRows.Add(new(buttons));
+            buttons.Clear();
+            messageBuilder.AddComponents(buttonRows);
 
             await context.RespondAsync(messageBuilder);
             DiscordMessage message = await context.GetResponseAsync() ?? throw new InvalidOperationException("How did we get here?");
