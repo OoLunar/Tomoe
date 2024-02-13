@@ -10,6 +10,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using DSharpPlus;
+using DSharpPlus.Commands;
 using DSharpPlus.Commands.ContextChecks;
 using DSharpPlus.Commands.Processors.TextCommands.Attributes;
 using DSharpPlus.Commands.Trees;
@@ -82,7 +83,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
             _discordJson = (JsonSerializer)typeof(DiscordJson).GetField("_serializer", BindingFlags.NonPublic | BindingFlags.Static)!.GetValue(null)!;
         }
 
-        [Command("eval"), Description("Not for you."), RequireOwner]
+        [Command("eval"), Description("Not for you."), RequireApplicationOwner]
         public static async ValueTask ExecuteAsync(CommandContext context, [RemainingText] string code)
         {
             await context.DeferResponseAsync();

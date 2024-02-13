@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Threading.Tasks;
 using DSharpPlus;
+using DSharpPlus.Commands;
 using DSharpPlus.Commands.ContextChecks;
 using DSharpPlus.Commands.Processors.SlashCommands.Attributes;
 using DSharpPlus.Commands.Processors.TextCommands;
