@@ -37,7 +37,13 @@ namespace OoLunar.Tomoe.Events.Handlers
                     await eventArgs.Context.RespondAsync(new DiscordMessageBuilder().AddEmbed(embedBuilder));
                     break;
                 default:
-                    embedBuilder.AddField("Error Message", eventArgs.Exception.Message, true);
+                    Exception? innerMostException = eventArgs.Exception;
+                    while (innerMostException?.InnerException is not null)
+                    {
+                        innerMostException = innerMostException.InnerException;
+                    }
+
+                    embedBuilder.AddField("Error Message", innerMostException?.Message ?? "No message provided.", true);
                     embedBuilder.AddField("Stack Trace", Formatter.BlockCode(FormatStackTrace(eventArgs.Exception.StackTrace).Truncate(1014, "…"), "cs"), false);
                     await eventArgs.Context.RespondAsync(new DiscordMessageBuilder().AddEmbed(embedBuilder));
                     break;
