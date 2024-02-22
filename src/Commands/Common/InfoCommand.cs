@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Commands;
@@ -27,6 +28,26 @@ namespace OoLunar.Tomoe.Commands.Common
     [Command("info")]
     public sealed partial class InfoCommand
     {
+        private class AllocationRateTracker
+        {
+            public long AllocationRate { get; private set; } = GC.GetTotalAllocatedBytes();
+            private long _previousAllocatedBytes;
+
+            public AllocationRateTracker() => _ = TrackAllocationRateAsync();
+
+            private async Task TrackAllocationRateAsync()
+            {
+                PeriodicTimer periodicTimer = new(TimeSpan.FromSeconds(1));
+                while (await periodicTimer.WaitForNextTickAsync())
+                {
+                    long currentAllocatedBytes = GC.GetTotalAllocatedBytes();
+                    AllocationRate = currentAllocatedBytes - _previousAllocatedBytes;
+                    _previousAllocatedBytes = currentAllocatedBytes;
+                }
+            }
+        }
+
+        private static readonly AllocationRateTracker _allocationRateTracker = new();
         private static readonly string _operatingSystem = $"{Environment.OSVersion} {RuntimeInformation.OSArchitecture.ToString().ToLower(CultureInfo.InvariantCulture)}";
         private static readonly string _botVersion = typeof(Program).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion;
         private static readonly string _dSharpPlusVersion = typeof(DiscordClient).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion;
@@ -57,12 +78,13 @@ namespace OoLunar.Tomoe.Commands.Common
 
             embedBuilder.AddField("Heap Memory", GC.GetTotalMemory(false).Bytes().ToString(CultureInfo.InvariantCulture), true);
             embedBuilder.AddField("Process Memory", currentProcess.WorkingSet64.Bytes().ToString(CultureInfo.InvariantCulture), true);
-            embedBuilder.AddField("Runtime Version", RuntimeInformation.FrameworkDescription, true);
+            embedBuilder.AddField("Allocation Rate", $"{_allocationRateTracker.AllocationRate.Bytes().ToString(CultureInfo.InvariantCulture)}/s", true);
 
+            embedBuilder.AddField("Runtime Version", RuntimeInformation.FrameworkDescription, true);
             embedBuilder.AddField("Operating System", _operatingSystem, true);
             embedBuilder.AddField("Uptime", _getLastCommaRegex().Replace((Process.GetCurrentProcess().StartTime - DateTime.Now).Humanize(3), " and "), true);
-            embedBuilder.AddField("Websocket Ping", _getLastCommaRegex().Replace(context.Client.Ping.Milliseconds().Humanize(3), " and "), true);
 
+            embedBuilder.AddField("Discord Latency", _getLastCommaRegex().Replace(context.Client.Ping.Milliseconds().Humanize(3), " and "), true);
             embedBuilder.AddField("Guild Count", (await GuildMemberModel.CountGuildsAsync()).ToString("N0", CultureInfo.InvariantCulture), true);
             embedBuilder.AddField("User Count", (await GuildMemberModel.CountMembersAsync()).ToString("N0", CultureInfo.InvariantCulture), true);
 
