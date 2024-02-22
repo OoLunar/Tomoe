@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Commands;
+using DSharpPlus.Commands.Processors;
 using DSharpPlus.Commands.Processors.MessageCommands;
 using DSharpPlus.Commands.Processors.SlashCommands;
 using DSharpPlus.Commands.Processors.TextCommands;
@@ -118,21 +119,38 @@ namespace OoLunar.Tomoe
                     ServiceProvider = serviceProvider
                 });
 
-                TextCommandProcessor textCommandProcessor = new(new() { PrefixResolver = new DefaultPrefixResolver(configuration.GetValue("discord:prefix", ">>") ?? throw new InvalidOperationException("Missing Discord prefix.")).ResolvePrefixAsync });
-                textCommandProcessor.AddConverters(currentAssembly);
+                List<ICommandProcessor> processors = [];
+                foreach (string processor in configuration.GetSection("discord:processors").Get<string[]>() ?? [])
+                {
+                    if (processor.Equals("text", StringComparison.OrdinalIgnoreCase))
+                    {
+                        TextCommandProcessor textCommandProcessor = new(new()
+                        {
+                            PrefixResolver = new DefaultPrefixResolver(configuration.GetValue("discord:prefix", ">>") ?? throw new InvalidOperationException("Missing Discord prefix.")).ResolvePrefixAsync
+                        });
 
-                SlashCommandProcessor slashCommandProcessor = new();
-                slashCommandProcessor.AddConverters(currentAssembly);
+                        textCommandProcessor.AddConverters(currentAssembly);
+                        processors.Add(textCommandProcessor);
+                    }
+                    else if (processor.Equals("slash", StringComparison.OrdinalIgnoreCase))
+                    {
+                        SlashCommandProcessor slashCommandProcessor = new();
+                        slashCommandProcessor.AddConverters(currentAssembly);
+                        processors.Add(slashCommandProcessor);
+                    }
+                    else if (processor.Equals("user", StringComparison.OrdinalIgnoreCase))
+                    {
+                        processors.Add(new UserCommandProcessor());
+                    }
+                    else if (processor.Equals("message", StringComparison.OrdinalIgnoreCase))
+                    {
+                        processors.Add(new MessageCommandProcessor());
+                    }
+                }
 
                 foreach (CommandsExtension extension in commandsExtensions.Values)
                 {
-                    await extension.AddProcessorsAsync(
-                        textCommandProcessor,
-                        slashCommandProcessor,
-                        new UserCommandProcessor(),
-                        new MessageCommandProcessor()
-                    );
-
+                    await extension.AddProcessorsAsync(processors);
                     extension.AddCommands(currentAssembly);
                 }
 

@@ -3,7 +3,10 @@
         "token": "replace me",
         "debug_guild_id": "",
         "support_invite": "https://discord.gg/replace me",
-        "prefix": ">>"
+        "prefix": ">>",
+        "modules": [
+            "text"
+        ]
     },
     "database": {
         "host": "localhost",
