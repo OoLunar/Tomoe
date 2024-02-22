@@ -6,7 +6,7 @@ RUN apk add git \
     && git submodule update --init --recursive \
     && dotnet publish -c Release -r linux-musl-x64
 
-FROM alpine:latest
+FROM mcr.microsoft.com/dotnet/runtime:8.0-alpine
 WORKDIR /src
 
 COPY --from=build /src/src/bin/Release/net8.0/linux-musl-x64/publish /src
