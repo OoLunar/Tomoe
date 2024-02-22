@@ -7,9 +7,11 @@ using Microsoft.Extensions.Configuration;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
-    public sealed class SupportCommand(IConfiguration configuration)
+    public sealed class SupportCommand
     {
-        private readonly string? _supportServerInvite = configuration.GetValue<string>("discord:debug_guild_id");
+        private readonly string? _supportServerInvite;
+
+        public SupportCommand(IConfiguration configuration) => _supportServerInvite = configuration.GetValue<string>("discord:support_invite");
 
         [Command("support"), TextAlias("server")]
         public ValueTask ExecuteAsync(CommandContext context) => context.RespondAsync(_supportServerInvite is null
