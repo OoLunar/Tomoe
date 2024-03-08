@@ -6,6 +6,6 @@ namespace OoLunar.Tomoe.Configuration
         public string Prefix { get; init; } = ">>";
         public ulong GuildId { get; init; }
         public string SupportInvite { get; init; } = "https://discord.gg/YCSTr2KGq6";
-        public string[] Processors { get; init; } = ["text", "slash", "message", "user"];
+        public string[] Processors { get; init; } = [];
     }
 }
