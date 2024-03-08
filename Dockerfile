@@ -5,7 +5,8 @@ WORKDIR /src
 COPY ./ /src
 RUN apk add git \
     && git submodule update --init --recursive \
-    && dotnet publish -c Release -r linux-musl-x64 -p:Version=$VERSION
+    && sed -i "s/<Version>.*<\/Version>/<Version>${VERSION}<\/Version>/" src/Tomoe.csproj \
+    && dotnet publish -c Release -r linux-musl-x64
 
 FROM mcr.microsoft.com/dotnet/runtime:8.0-alpine
 WORKDIR /src
