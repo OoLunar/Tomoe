@@ -4,9 +4,7 @@
         "debug_guild_id": "",
         "support_invite": "https://discord.gg/replace me",
         "prefix": ">>",
-        "modules": [
-            "text"
-        ]
+        "processors": []
     },
     "database": {
         "host": "localhost",

@@ -3,7 +3,7 @@ using DSharpPlus.Commands;
 using DSharpPlus.Commands.Processors.TextCommands.Attributes;
 using DSharpPlus.Commands.Trees;
 using DSharpPlus.Commands.Trees.Attributes;
-using Microsoft.Extensions.Configuration;
+using OoLunar.Tomoe.Configuration;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
@@ -11,7 +11,7 @@ namespace OoLunar.Tomoe.Commands.Common
     {
         private readonly string? _supportServerInvite;
 
-        public SupportCommand(IConfiguration configuration) => _supportServerInvite = configuration.GetValue<string>("discord:support_invite");
+        public SupportCommand(TomoeConfiguration tomoeConfiguration) => _supportServerInvite = tomoeConfiguration.Discord.SupportInvite;
 
         [Command("support"), TextAlias("server")]
         public ValueTask ExecuteAsync(CommandContext context) => context.RespondAsync(_supportServerInvite is null

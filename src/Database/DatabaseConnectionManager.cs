@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
 using Npgsql;
+using OoLunar.Tomoe.Configuration;
 
 namespace OoLunar.Tomoe.Database
 {
@@ -11,20 +11,18 @@ namespace OoLunar.Tomoe.Database
         private readonly List<NpgsqlConnection> _connections = [];
         private readonly string _connectionString;
 
-        public DatabaseConnectionManager(IConfiguration configuration)
+        public DatabaseConnectionManager(TomoeConfiguration tomoeConfiguration)
         {
-            ArgumentNullException.ThrowIfNull(configuration, nameof(configuration));
+            ArgumentNullException.ThrowIfNull(tomoeConfiguration, nameof(tomoeConfiguration));
             _connectionString = new NpgsqlConnectionStringBuilder()
             {
-                Host = configuration.GetValue("database:host", "localhost"),
-                Port = configuration.GetValue("database:port", 5432),
-                Username = configuration.GetValue("database:username", "postgres"),
-                Password = configuration.GetValue("database:password", "postgres"),
-                Database = configuration.GetValue("database:database", "tomoe"),
-                CommandTimeout = configuration.GetValue("database:timeout", 5),
-#if DEBUG
-                IncludeErrorDetail = true
-#endif
+                Host = tomoeConfiguration.Database.Host,
+                Port = tomoeConfiguration.Database.Port,
+                Username = tomoeConfiguration.Database.Username,
+                Password = tomoeConfiguration.Database.Password,
+                Database = tomoeConfiguration.Database.Database,
+                CommandTimeout = tomoeConfiguration.Database.CommandTimeout,
+                IncludeErrorDetail = tomoeConfiguration.Database.IncludeErrorDetail
             }.ConnectionString;
         }
 

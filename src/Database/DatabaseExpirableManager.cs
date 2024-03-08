@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Npgsql;
 using NpgsqlTypes;
+using OoLunar.Tomoe.Configuration;
 
 namespace OoLunar.Tomoe.Database
 {
@@ -26,13 +26,13 @@ namespace OoLunar.Tomoe.Database
         private readonly PeriodicTimer _expireTimer;
         private readonly Dictionary<TId, DateTimeOffset> _expirableCache = [];
 
-        public DatabaseExpirableManager(IServiceProvider serviceProvider, IConfiguration configuration, DatabaseConnectionManager connectionManager, ILogger<DatabaseExpirableManager<TSelf, TId>>? logger = null)
+        public DatabaseExpirableManager(IServiceProvider serviceProvider, TomoeConfiguration tomoeConfiguration, DatabaseConnectionManager connectionManager, ILogger<DatabaseExpirableManager<TSelf, TId>>? logger = null)
         {
             ArgumentNullException.ThrowIfNull(serviceProvider, nameof(serviceProvider));
-            ArgumentNullException.ThrowIfNull(configuration, nameof(configuration));
+            ArgumentNullException.ThrowIfNull(tomoeConfiguration, nameof(tomoeConfiguration));
             ArgumentNullException.ThrowIfNull(connectionManager, nameof(connectionManager));
             _serviceProvider = serviceProvider;
-            _expireTimer = new(TimeSpan.FromSeconds(configuration.GetValue("database:expire_interval", 30)));
+            _expireTimer = new(TimeSpan.FromSeconds(tomoeConfiguration.Database.ExpireInterval));
             _logger = logger ?? NullLogger<DatabaseExpirableManager<TSelf, TId>>.Instance;
 
             NpgsqlConnection connection = connectionManager.GetConnection();
