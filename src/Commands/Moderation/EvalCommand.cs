@@ -7,12 +7,13 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.ContextChecks;
-using DSharpPlus.Commands.Processors.TextCommands.Attributes;
+using DSharpPlus.Commands.ParameterModifiers;
 using DSharpPlus.Commands.Trees;
 using DSharpPlus.Commands.Trees.Attributes;
 using DSharpPlus.Entities;
@@ -22,6 +23,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
 using Newtonsoft.Json;
+using OoLunar.Tomoe.Events.Handlers;
 
 namespace OoLunar.Tomoe.Commands.Moderation
 {
@@ -84,7 +86,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
         }
 
         [Command("eval"), Description("Not for you."), RequireApplicationOwner]
-        public static async ValueTask ExecuteAsync(CommandContext context, [RemainingText] string code)
+        public static async ValueTask ExecuteAsync(CommandContext context, [FromCode] string code)
         {
             await context.DeferResponseAsync();
             Script<object> script = CSharpScript.Create(code, _evalOptions, typeof(EvalContext));
@@ -106,7 +108,18 @@ namespace OoLunar.Tomoe.Commands.Moderation
             }
 
             EvalContext evalContext = new() { Context = context, context = context };
-            await script.RunAsync(evalContext).ContinueWith((Task<ScriptState<object>> task) => FinishedAsync(evalContext, task.Exception ?? task.Result.Exception ?? task.Result.ReturnValue));
+            object output = null!;
+            try
+            {
+                ScriptState<object> state = await script.RunAsync(evalContext);
+                output = state.Exception ?? state.ReturnValue;
+            }
+            catch (Exception error)
+            {
+                output = error;
+            }
+
+            await FinishedAsync(evalContext, output);
         }
 
         public static async ValueTask FinishedAsync(EvalContext context, object? output)
@@ -118,8 +131,22 @@ namespace OoLunar.Tomoe.Commands.Moderation
                 case null:
                     await context.Context.EditResponseAsync("Eval was successful with nothing returned.");
                     break;
+                case TargetInvocationException error when error.InnerException is not null:
+                    await CommandErorredEventHandlers.OnErroredAsync(context.Context.Extension, new()
+                    {
+                        CommandObject = null,
+                        Context = context.Context,
+                        Exception = ExceptionDispatchInfo.Capture(error.InnerException).SourceException
+                    });
+                    break;
                 case Exception error:
-                    throw error;
+                    await CommandErorredEventHandlers.OnErroredAsync(context.Context.Extension, new()
+                    {
+                        CommandObject = null,
+                        Context = context.Context,
+                        Exception = error
+                    });
+                    break;
                 case string outputString when context.IsJson && outputString.Length < 1988:
                     await context.Context.EditResponseAsync(Formatter.BlockCode(outputString, "json"));
                     break;
