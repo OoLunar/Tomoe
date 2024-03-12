@@ -31,18 +31,21 @@ namespace OoLunar.Tomoe.Commands.Common
         private class AllocationRateTracker
         {
             public long AllocationRate { get; private set; } = GC.GetTotalAllocatedBytes();
-            private long _previousAllocatedBytes;
 
             public AllocationRateTracker() => _ = TrackAllocationRateAsync();
 
             private async Task TrackAllocationRateAsync()
             {
+                long previousMemoryUsage = GC.GetTotalAllocatedBytes();
+
+                // We use a PeriodicTimer to track and update the allocation rate every 200ms
                 PeriodicTimer periodicTimer = new(TimeSpan.FromSeconds(1));
                 while (await periodicTimer.WaitForNextTickAsync())
                 {
-                    long currentAllocatedBytes = GC.GetTotalAllocatedBytes();
-                    AllocationRate = currentAllocatedBytes - _previousAllocatedBytes;
-                    _previousAllocatedBytes = currentAllocatedBytes;
+                    long currentMemoryUsage = GC.GetTotalAllocatedBytes();
+                    AllocationRate = currentMemoryUsage - previousMemoryUsage;
+
+                    previousMemoryUsage = currentMemoryUsage;
                 }
             }
         }
