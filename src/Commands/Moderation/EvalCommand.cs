@@ -86,7 +86,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
         }
 
         [Command("eval"), Description("Not for you."), RequireApplicationOwner]
-        public static async ValueTask ExecuteAsync(CommandContext context, [FromCode(CodeType.Inline)] string code)
+        public static async ValueTask ExecuteAsync(CommandContext context, [FromCode] string code)
         {
             await context.DeferResponseAsync();
             Script<object> script = CSharpScript.Create(code, _evalOptions, typeof(EvalContext));
