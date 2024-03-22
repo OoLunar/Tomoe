@@ -86,7 +86,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
         }
 
         [Command("eval"), Description("Not for you."), RequireApplicationOwner]
-        public static async ValueTask ExecuteAsync(CommandContext context, [FromCode] string code)
+        public static async ValueTask ExecuteAsync(CommandContext context, [FromCode(CodeType.Inline)] string code)
         {
             await context.DeferResponseAsync();
             Script<object> script = CSharpScript.Create(code, _evalOptions, typeof(EvalContext));
@@ -132,7 +132,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
                     await context.Context.EditResponseAsync("Eval was successful with nothing returned.");
                     break;
                 case TargetInvocationException error when error.InnerException is not null:
-                    await CommandErorredEventHandlers.OnErroredAsync(context.Context.Extension, new()
+                    await CommandErroredEventHandlers.OnErroredAsync(context.Context.Extension, new()
                     {
                         CommandObject = null,
                         Context = context.Context,
@@ -140,7 +140,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
                     });
                     break;
                 case Exception error:
-                    await CommandErorredEventHandlers.OnErroredAsync(context.Context.Extension, new()
+                    await CommandErroredEventHandlers.OnErroredAsync(context.Context.Extension, new()
                     {
                         CommandObject = null,
                         Context = context.Context,

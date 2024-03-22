@@ -140,7 +140,9 @@ namespace OoLunar.Tomoe
             IReadOnlyDictionary<int, CommandsExtension> commandsExtensions = await discordClient.UseCommandsAsync(new CommandsConfiguration()
             {
                 ServiceProvider = serviceProvider,
-                DebugGuildId = tomoeConfiguration.Discord!.GuildId == 0 ? null : tomoeConfiguration.Discord.GuildId,
+                DebugGuildId = tomoeConfiguration.Discord.GuildId,
+                UseDefaultCommandErrorHandler = false,
+                RegisterDefaultCommandProcessors = false
             });
 
             // Iterate through each Discord shard
