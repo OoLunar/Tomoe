@@ -181,7 +181,7 @@ namespace OoLunar.Tomoe.Database.Models
 
         public static async ValueTask<bool> ExpireAsync(PollModel expirable, IServiceProvider serviceProvider)
         {
-            DiscordClient? client = (await serviceProvider.GetRequiredService<Task<DiscordShardedClient>>()).GetShard(expirable.GuildId);
+            DiscordClient? client = serviceProvider.GetRequiredService<DiscordShardedClient>().GetShard(expirable.GuildId);
             if (client is null)
             {
                 return await PollEndedAsync(expirable.Id);
