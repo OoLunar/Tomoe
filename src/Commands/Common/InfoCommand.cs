@@ -305,6 +305,7 @@ namespace OoLunar.Tomoe.Commands.Common
 
                     string features = string.Join(", ", guildPreview.Features.Select(feature => feature.ToLowerInvariant().Titleize()));
                     embedBuilder.AddField("Server Description", string.IsNullOrWhiteSpace(guildPreview.Description) ? "No description." : guildPreview.Description, false);
+                    embedBuilder.AddField("Server Id", Formatter.InlineCode(guildPreview.Id.ToString(CultureInfo.InvariantCulture)), true);
                     embedBuilder.AddField("Created At", Formatter.Timestamp(guildPreview.CreationTimestamp.UtcDateTime, TimestampFormat.RelativeTime), true);
                     embedBuilder.AddField("Emoji Count", guildPreview.Emojis.Count.ToString("N0", CultureInfo.InvariantCulture), true);
                     embedBuilder.AddField("Approximate Member Count", guildPreview.ApproximateMemberCount.ToString("N0", CultureInfo.InvariantCulture), true);
@@ -342,8 +343,7 @@ namespace OoLunar.Tomoe.Commands.Common
             embedBuilder.AddField("Server Description", string.IsNullOrWhiteSpace(guild.Description) ? "No description." : guild.Description, false);
             embedBuilder.AddField("Owner", guild.Owner.Mention, true);
             embedBuilder.AddField("Created At", Formatter.Timestamp(guild.CreationTimestamp.UtcDateTime, TimestampFormat.RelativeTime), true);
-            // ZWS field
-            embedBuilder.AddField("\u200B", "\u200B", true);
+            embedBuilder.AddField("Server Id", Formatter.InlineCode(guild.Id.ToString(CultureInfo.InvariantCulture)), true);
             embedBuilder.AddField("Emoji Count", guild.Emojis.Count.ToString("N0", CultureInfo.InvariantCulture), true);
             embedBuilder.AddField("Role Count", guild.Roles.Count.ToString("N0", CultureInfo.InvariantCulture), true);
             embedBuilder.AddField("Sticker Count", guild.Stickers.Count.ToString("N0", CultureInfo.InvariantCulture), true);
