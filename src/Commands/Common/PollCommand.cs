@@ -22,12 +22,13 @@ namespace OoLunar.Tomoe.Commands.Common
         [Command("poll"), Description("Create a poll."), RequireGuild]
         public async ValueTask ExecuteAsync(CommandContext context, string question, TimeSpan expiresAt, params string[] options)
         {
-            if (DateTimeOffset.UtcNow > (DateTimeOffset.UtcNow + expiresAt))
+            DateTimeOffset now = DateTimeOffset.UtcNow;
+            if (now > (now + expiresAt))
             {
                 await context.RespondAsync("Please set a reasonable expiration date.");
                 return;
             }
-            else if (DateTimeOffset.UtcNow.AddDays(7) < (DateTimeOffset.UtcNow + expiresAt))
+            else if (now.AddDays(7) < now.Add(expiresAt))
             {
                 await context.RespondAsync("Polls can only last up to 7 days.");
                 return;
@@ -82,7 +83,7 @@ namespace OoLunar.Tomoe.Commands.Common
 
             await context.RespondAsync(messageBuilder);
             DiscordMessage message = await context.GetResponseAsync() ?? throw new InvalidOperationException("How did we get here?");
-            PollModel poll = await PollModel.CreatePollAsync(pollId, context.User.Id, context.Guild!.Id, context.Channel.Id, message.Id, question, DateTimeOffset.UtcNow + expiresAt, options);
+            PollModel poll = await PollModel.CreatePollAsync(pollId, context.User.Id, context.Guild!.Id, context.Channel.Id, message.Id, question, now + expiresAt, options);
             _pollManager.AddToCache(poll.Id, poll.ExpiresAt);
         }
 
