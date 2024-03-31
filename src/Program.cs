@@ -15,6 +15,7 @@ using DSharpPlus.Commands.Processors.UserCommands;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Npgsql;
 using OoLunar.Tomoe.Configuration;
 using OoLunar.Tomoe.Database;
 using OoLunar.Tomoe.Events;
@@ -134,7 +135,14 @@ namespace OoLunar.Tomoe
             Assembly currentAssembly = typeof(Program).Assembly;
 
             // Connect to the database
-            await databaseHandler.InitializeAsync();
+            try
+            {
+                await databaseHandler.InitializeAsync();
+            }
+            catch (NpgsqlException error)
+            {
+                serviceProvider.GetRequiredService<ILogger<Program>>().LogError(error, "Failed to connect to the database - assume broken functionality.");
+            }
 
             // Register extensions here since these involve asynchronous operations
             IReadOnlyDictionary<int, CommandsExtension> commandsExtensions = await discordClient.UseCommandsAsync(new CommandsConfiguration()
