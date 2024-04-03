@@ -10,7 +10,7 @@ using DSharpPlus.Entities;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
-    public sealed class GuildIconCommand
+    public static class GuildIconCommand
     {
         [Command("guild_icon"), TextAlias("guild_picture")]
         public static async ValueTask ExecuteAsync(CommandContext context, ulong guildId = 0, ImageFormat imageFormat = ImageFormat.Auto, ushort imageDimensions = 0)

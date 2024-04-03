@@ -10,7 +10,6 @@ namespace OoLunar.Tomoe.Commands.Common
     public sealed class SupportCommand
     {
         private readonly string? _supportServerInvite;
-
         public SupportCommand(TomoeConfiguration tomoeConfiguration) => _supportServerInvite = tomoeConfiguration.Discord.SupportInvite;
 
         [Command("support"), TextAlias("server")]

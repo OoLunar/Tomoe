@@ -27,12 +27,12 @@ using OoLunar.Tomoe.Events.Handlers;
 
 namespace OoLunar.Tomoe.Commands.Moderation
 {
-    public sealed class EvalCommand
+    public static class EvalCommand
     {
         public sealed class EvalContext
         {
-            public required CommandContext Context { get; init; } = null!;
-            public required CommandContext context { get; init; } = null!;
+            public required CommandContext Context { get; init; }
+            public required CommandContext context { get; init; }
             public bool IsJson { get; private set; }
 
             [return: NotNullIfNotNull(nameof(obj))]
@@ -107,7 +107,12 @@ namespace OoLunar.Tomoe.Commands.Moderation
                 return;
             }
 
-            EvalContext evalContext = new() { Context = context, context = context };
+            EvalContext evalContext = new()
+            {
+                Context = context,
+                context = context
+            };
+
             object output = null!;
             try
             {

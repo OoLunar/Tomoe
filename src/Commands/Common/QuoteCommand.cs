@@ -9,7 +9,7 @@ using DSharpPlus.Entities;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
-    public sealed class QuoteCommand
+    public static class QuoteCommand
     {
         [Command("quote"), TextAlias("rat", "mock", "q"), RequireGuild]
         public static ValueTask ExecuteAsync(CommandContext context, DiscordMessage message)

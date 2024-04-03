@@ -14,7 +14,7 @@ using DSharpPlus.Net.Serialization;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
-    public sealed class RawCommand
+    public static class RawCommand
     {
         [Command("raw"), TextAlias("print"), SlashCommandTypes(ApplicationCommandType.SlashCommand, ApplicationCommandType.MessageContextMenu)]
         public static ValueTask ExecuteAsync(CommandContext context, [TextMessageReply] DiscordMessage? message = null, bool jsonfied = false)

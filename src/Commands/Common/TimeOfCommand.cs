@@ -16,7 +16,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
-    public sealed class TimeOfCommand
+    public static class TimeOfCommand
     {
         private static readonly DiscordMessageConverter _discordMessageConverter = new();
         private static readonly UInt64Converter _uint64Converter = new();

@@ -13,7 +13,7 @@ using Humanizer;
 
 namespace OoLunar.Tomoe.Commands.Moderation
 {
-    public sealed class MuteCommand
+    public static class MuteCommand
     {
         [Command("mute"), RequirePermissions(Permissions.ModerateMembers), RequireGuild]
         public static async ValueTask MuteAsync(CommandContext context, DiscordMember? member = null, TimeSpan? timeSpan = null, [RemainingText] string? reason = null) => await ExecuteAsync(context, "Muted {0} for {1}. Reason: {2}", member, timeSpan, reason);

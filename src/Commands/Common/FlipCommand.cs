@@ -7,7 +7,7 @@ using DSharpPlus.Commands.Trees.Attributes;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
-    public sealed class FlipCommand
+    public static class FlipCommand
     {
         [Command("flip"), TextAlias("random")]
         public static async ValueTask ExecuteAsync(CommandContext context)

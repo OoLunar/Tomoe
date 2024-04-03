@@ -6,7 +6,7 @@ using DSharpPlus.Commands.Trees.Attributes;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
-    public sealed class EchoCommand
+    public static class EchoCommand
     {
         [Command("echo"), TextAlias("repeat", "say")]
         public static ValueTask ExecuteAsync(CommandContext context, [RemainingText] string message) => context.RespondAsync(message);

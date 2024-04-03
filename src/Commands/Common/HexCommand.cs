@@ -14,7 +14,7 @@ using SixLabors.ImageSharp.Processing;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
-    public sealed partial class HexCommand
+    public static partial class HexCommand
     {
         [UnsafeAccessor(UnsafeAccessorKind.Method, Name = "get_Value")]
         public static extern long _getValue(ref System.Drawing.Color color);

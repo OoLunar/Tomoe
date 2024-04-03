@@ -11,7 +11,7 @@ using DSharpPlus.Entities;
 
 namespace OoLunar.Tomoe.Commands.Moderation
 {
-    public class ClearCommand
+    public static class ClearCommand
     {
         [Command("clear"), Description("Clears messages from chat."), RequirePermissions(Permissions.ManageMessages)]
         public static async ValueTask ExecuteAsync(CommandContext context, DiscordMessage firstMessage, DiscordMessage? lastMessage = null, [RemainingText] string? reason = null)

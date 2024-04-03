@@ -7,7 +7,7 @@ using DSharpPlus.Commands.Trees.Attributes;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
-    public sealed class SortCommand
+    public static class SortCommand
     {
         [Command("sort")]
         public static ValueTask ExecuteAsync(CommandContext context, [RemainingText] string text)

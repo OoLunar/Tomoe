@@ -3,12 +3,13 @@ using DSharpPlus.Commands;
 using DSharpPlus.Commands.ContextChecks;
 using DSharpPlus.Commands.Trees;
 using DSharpPlus.Commands.Trees.Attributes;
+using OoLunar.Tomoe.Database.Models;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
-    public sealed class MemberCountCommand
+    public static class MemberCountCommand
     {
         [Command("member_count"), RequireGuild]
-        public static ValueTask ExecuteAsync(CommandContext context) => context.RespondAsync($"Current member count: {context.Guild!.MemberCount:N0}");
+        public static async ValueTask ExecuteAsync(CommandContext context) => await context.RespondAsync($"Current member count: {await GuildMemberModel.CountMembersAsync(context.Guild!.Id):N0}");
     }
 }

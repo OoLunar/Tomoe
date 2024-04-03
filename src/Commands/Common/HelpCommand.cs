@@ -7,7 +7,7 @@ using DSharpPlus.Entities;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
-    public sealed class HelpCommand
+    public static class HelpCommand
     {
         [Command("help")]
         public static ValueTask ExecuteAsync(CommandContext context, [RemainingText] string? command = null)

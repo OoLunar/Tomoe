@@ -9,7 +9,7 @@ using DSharpPlus.Commands.Trees.Attributes;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
-    public sealed class TimestampCommand
+    public static class TimestampCommand
     {
         private static readonly TimeSpanConverter _timeSpanArgumentConverter = new();
         private static readonly DateTimeOffsetConverter _dateTimeArgumentConverter = new();

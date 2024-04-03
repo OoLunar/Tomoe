@@ -18,8 +18,7 @@ namespace OoLunar.Tomoe.Commands.Common
     public sealed class RotateCommand
     {
         private readonly HttpClient _httpClient;
-
-        public RotateCommand(HttpClient httpClient) => _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+        public RotateCommand(HttpClient httpClient) => _httpClient = httpClient;
 
         [Command("rotate")]
         [Description("Rotates the image by the specified degrees.")]

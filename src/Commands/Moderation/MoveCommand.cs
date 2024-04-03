@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
@@ -18,7 +17,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
     public sealed class MoveCommand
     {
         private readonly HttpClient httpClient;
-        public MoveCommand(HttpClient httpClient) => this.httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+        public MoveCommand(HttpClient httpClient) => this.httpClient = httpClient;
 
         [Command("move"), Description("Moves a chunk of messages (inclusive) to a different channel."), RequirePermissions(Permissions.ManageMessages)]
         public async ValueTask MoveAsync(CommandContext context, DiscordChannel channel, DiscordMessage firstMessage, DiscordMessage? lastMessage = null)
