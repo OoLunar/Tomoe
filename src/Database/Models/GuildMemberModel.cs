@@ -24,12 +24,13 @@ namespace OoLunar.Tomoe.Database.Models
         private static readonly NpgsqlCommand _countGuilds;
         private static readonly NpgsqlCommand _countMembers;
         private static readonly NpgsqlCommand _countMembersOfGuild;
+        private static readonly NpgsqlCommand _findMutualGuild;
 
-        public ulong UserId { get; init; }
-        public ulong GuildId { get; init; }
-        public DateTimeOffset FirstJoined { get; init; }
-        public GuildMemberState State { get; set; }
-        public List<ulong> RoleIds { get; set; } = [];
+        public required ulong UserId { get; init; }
+        public required ulong GuildId { get; init; }
+        public required DateTimeOffset FirstJoined { get; init; }
+        public required GuildMemberState State { get; set; }
+        public required List<ulong> RoleIds { get; set; }
 
         static GuildMemberModel()
         {
@@ -99,6 +100,9 @@ namespace OoLunar.Tomoe.Database.Models
 
             _countGuilds = new("SELECT COUNT(DISTINCT guild_id) FROM guild_members;");
             _countMembers = new("SELECT COUNT(*) FROM guild_members;");
+
+            _findMutualGuild = new("SELECT guild_id FROM guild_members WHERE user_id = @user_id AND state | 1 = 1;");
+            _findMutualGuild.Parameters.Add(new("@user_id", NpgsqlDbType.Bigint));
         }
 
         public static async ValueTask<GuildMemberModel> CreateAsync(ulong userId, ulong guildId, DateTimeOffset firstJoined, GuildMemberState state, IEnumerable<ulong> roleIds)
@@ -337,6 +341,28 @@ namespace OoLunar.Tomoe.Database.Models
             }
         }
 
+        public static async ValueTask<IReadOnlyList<ulong>> FindMutualGuildsAsync(ulong userId)
+        {
+            await _semaphore.WaitAsync();
+            try
+            {
+                _findMutualGuild.Parameters["user_id"].Value = (long)userId;
+
+                await using NpgsqlDataReader reader = await _findMutualGuild.ExecuteReaderAsync();
+                List<ulong> guildIds = [];
+                while (await reader.ReadAsync())
+                {
+                    guildIds.Add((ulong)reader.GetInt64(0));
+                }
+
+                return guildIds;
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
+        }
+
         public static async ValueTask PrepareAsync(NpgsqlConnection connection)
         {
             _createTable.Connection = connection;
@@ -350,6 +376,7 @@ namespace OoLunar.Tomoe.Database.Models
             _countGuilds.Connection = connection;
             _countMembers.Connection = connection;
             _countMembersOfGuild.Connection = connection;
+            _findMutualGuild.Connection = connection;
 
             await _createTable.ExecuteNonQueryAsync();
             await _createMember.PrepareAsync();
@@ -362,6 +389,7 @@ namespace OoLunar.Tomoe.Database.Models
             await _countGuilds.PrepareAsync();
             await _countMembers.PrepareAsync();
             await _countMembersOfGuild.PrepareAsync();
+            await _findMutualGuild.PrepareAsync();
         }
     }
 }
