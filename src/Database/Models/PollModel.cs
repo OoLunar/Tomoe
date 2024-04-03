@@ -25,14 +25,14 @@ namespace OoLunar.Tomoe.Database.Models
         private static readonly NpgsqlCommand _deletePoll;
         private static readonly NpgsqlCommand _pollExists;
 
-        public Ulid Id { get; init; }
-        public ulong UserId { get; init; }
-        public ulong GuildId { get; init; }
-        public ulong ChannelId { get; init; }
-        public ulong MessageId { get; init; }
-        public DateTimeOffset ExpiresAt { get; init; }
-        public string Title { get; init; } = null!;
-        public IReadOnlyList<string> Options { get; init; } = null!;
+        public required Ulid Id { get; init; }
+        public required ulong UserId { get; init; }
+        public required ulong GuildId { get; init; }
+        public required ulong ChannelId { get; init; }
+        public required ulong MessageId { get; init; }
+        public required DateTimeOffset ExpiresAt { get; init; }
+        public required string Title { get; init; }
+        public required IReadOnlyList<string> Options { get; init; }
 
         static PollModel()
         {
