@@ -2,31 +2,30 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using DSharpPlus;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace OoLunar.Tomoe.Events
 {
     public sealed class DiscordEventManager
     {
-        private readonly IServiceProvider ServiceProvider;
-        private readonly List<MethodInfo> EventHandlers;
+        public DiscordIntents Intents { get; private set; }
+        private readonly IServiceProvider _serviceProvider;
+        private readonly List<MethodInfo> _eventHandlers = [];
 
-        public DiscordEventManager(IServiceProvider serviceProvider)
-        {
-            ServiceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
-            EventHandlers = [];
-        }
+        public DiscordEventManager(IServiceProvider serviceProvider) => _serviceProvider = serviceProvider;
 
         public void GatherEventHandlers(Assembly assembly)
         {
-            ArgumentNullException.ThrowIfNull(assembly);
+            ArgumentNullException.ThrowIfNull(assembly, nameof(assembly));
             foreach (Type type in assembly.GetExportedTypes())
             {
                 foreach (MethodInfo methodInfo in type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static))
                 {
-                    if (methodInfo.GetCustomAttribute<DiscordEventAttribute>() is not null)
+                    if (methodInfo.GetCustomAttribute<DiscordEventAttribute>() is DiscordEventAttribute eventAttribute)
                     {
-                        EventHandlers.Add(methodInfo);
+                        Intents |= eventAttribute.Intents;
+                        _eventHandlers.Add(methodInfo);
                     }
                 }
             }
@@ -34,16 +33,16 @@ namespace OoLunar.Tomoe.Events
 
         public void RegisterEventHandlers(object obj)
         {
-            ArgumentNullException.ThrowIfNull(obj);
+            ArgumentNullException.ThrowIfNull(obj, nameof(obj));
             foreach (EventInfo eventInfo in obj.GetType().GetEvents(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static))
             {
-                foreach (MethodInfo methodInfo in EventHandlers)
+                foreach (MethodInfo methodInfo in _eventHandlers)
                 {
                     if (eventInfo.EventHandlerType!.GetGenericArguments().SequenceEqual(methodInfo.GetParameters().Select(parameter => parameter.ParameterType)))
                     {
                         Delegate handler = methodInfo.IsStatic
                             ? Delegate.CreateDelegate(eventInfo.EventHandlerType, methodInfo)
-                            : Delegate.CreateDelegate(eventInfo.EventHandlerType, ActivatorUtilities.CreateInstance(ServiceProvider, methodInfo.DeclaringType!), methodInfo);
+                            : Delegate.CreateDelegate(eventInfo.EventHandlerType, ActivatorUtilities.CreateInstance(_serviceProvider, methodInfo.DeclaringType!), methodInfo);
 
                         eventInfo.AddEventHandler(obj, handler);
                     }

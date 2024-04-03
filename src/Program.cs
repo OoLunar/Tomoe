@@ -116,10 +116,11 @@ namespace OoLunar.Tomoe
                     Environment.Exit(1);
                 }
 
+                DiscordEventManager eventManager = serviceProvider.GetRequiredService<DiscordEventManager>();
                 DiscordShardedClient discordClient = new(new DSharpPlusDiscordConfiguration
                 {
                     Token = tomoeConfiguration.Discord.Token,
-                    Intents = TextCommandProcessor.RequiredIntents | SlashCommandProcessor.RequiredIntents | DiscordIntents.GuildVoiceStates | DiscordIntents.MessageContents,
+                    Intents = eventManager.Intents | TextCommandProcessor.RequiredIntents | SlashCommandProcessor.RequiredIntents | DiscordIntents.MessageContents,
                     LoggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>(),
                 });
 
