@@ -37,9 +37,8 @@ namespace OoLunar.Tomoe.Database
 
             NpgsqlConnection connection = connectionManager.GetConnection();
             connection.Open();
-            _findExpirableCommand = new($"SELECT id, expires_at FROM {TSelf.TableName} WHERE expires_at > @now", connection);
+            _findExpirableCommand = new($"SELECT id, expires_at FROM {TSelf.TableName}", connection);
             _findExpirableCommand.Parameters.Add(new NpgsqlParameter("table", NpgsqlDbType.Text) { Value = TSelf.TableName });
-            _findExpirableCommand.Parameters.Add(new NpgsqlParameter("now", NpgsqlDbType.TimestampTz));
             _deleteExpirableCommand = new($"DELETE FROM {TSelf.TableName} WHERE id = @id", connection);
             _deleteExpirableCommand.Parameters.Add(new NpgsqlParameter("table", NpgsqlDbType.Text) { Value = TSelf.TableName });
             _deleteExpirableCommand.Parameters.Add(new NpgsqlParameter("id", NpgsqlDbType.Text));
@@ -67,9 +66,6 @@ namespace OoLunar.Tomoe.Database
                 // Wait until there aren't any other operations happening.
                 await _semaphore.WaitAsync();
                 _logger.LogTrace("Checking for expired expirables...");
-
-                // Ensure that we'll always get the expirables that have expired and that will expire soon
-                _findExpirableCommand.Parameters["now"].Value = DateTimeOffset.UtcNow + _expireTimer.Period;
 
                 // Asynchronously read the expirables from the database
                 await using NpgsqlDataReader reader = await _findExpirableCommand.ExecuteReaderAsync();
