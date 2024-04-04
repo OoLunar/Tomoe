@@ -1,6 +1,6 @@
 namespace OoLunar.Tomoe.Database.Models
 {
-    public enum ReminderType : byte
+    public enum ReminderType
     {
         /// <summary>
         /// The reminder is a one-time reminder.

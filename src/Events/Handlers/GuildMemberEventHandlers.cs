@@ -16,7 +16,7 @@ namespace OoLunar.Tomoe.Events.Handlers
         private readonly ILogger<GuildMemberEventHandlers> logger;
         public GuildMemberEventHandlers(ILogger<GuildMemberEventHandlers> logger) => this.logger = logger ?? NullLogger<GuildMemberEventHandlers>.Instance;
 
-        [DiscordEvent(DiscordIntents.Guilds)]
+        [DiscordEvent(DiscordIntents.Guilds | DiscordIntents.GuildPresences)]
         public async Task OnGuildCreateAsync(DiscordClient _, GuildCreateEventArgs eventArgs)
         {
             List<GuildMemberModel> guildMemberModels = [];

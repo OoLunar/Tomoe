@@ -31,12 +31,15 @@ namespace OoLunar.Tomoe.Commands.Moderation
             bool didDm = true;
             try
             {
+                // Try to get the user
                 DiscordMember member = await context.Guild!.GetMemberAsync(user.Id);
 
                 DiscordEmbedBuilder embedBuilder = new();
                 embedBuilder.WithTitle($"You've been banned from {context.Guild!.Name}.");
                 embedBuilder.WithDescription(string.IsNullOrWhiteSpace(reason) ? "No reason was provided for the ban." : $"Reason: {reason}");
                 embedBuilder.AddField("Banned by", $"{context.User.Mention} (`{context.User.Id}`)");
+
+                await member.SendMessageAsync(embedBuilder);
             }
             catch (DiscordException)
             {
@@ -48,13 +51,13 @@ namespace OoLunar.Tomoe.Commands.Moderation
 
             // Use a string builder since we don't want multiple inline ternaries.
             StringBuilder stringBuilder = new();
-            stringBuilder.AppendLine(CultureInfo.InvariantCulture, $"Banned {user.Mention}");
+            stringBuilder.Append(CultureInfo.InvariantCulture, $"Banned {user.Mention}");
             if (!didDm)
             {
-                stringBuilder.AppendLine(" (DM failed)");
+                stringBuilder.Append(" (DM failed)");
             }
 
-            stringBuilder.AppendLine(string.IsNullOrWhiteSpace(reason) ? "." : $" for: {reason}");
+            stringBuilder.Append(string.IsNullOrWhiteSpace(reason) ? "." : $" for: {reason}");
             await context.RespondAsync(stringBuilder.ToString());
         }
     }
