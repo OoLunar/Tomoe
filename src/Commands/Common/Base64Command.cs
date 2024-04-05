@@ -7,7 +7,7 @@ using DSharpPlus.Commands.Trees.Attributes;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
-    [Command("base_64")]
+    [Command("base64")]
     public sealed class Base64Command
     {
         [Command("encode"), DefaultGroupCommand]
