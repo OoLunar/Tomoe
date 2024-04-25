@@ -13,11 +13,18 @@ using SixLabors.ImageSharp.Processing;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
+    /// <summary>
+    /// I cast magic missile at the darkness!
+    /// </summary>
     public static partial class HexCommand
     {
         [UnsafeAccessor(UnsafeAccessorKind.Method, Name = "get_Value")]
-        public static extern long _getValue(ref System.Drawing.Color color);
+        private static extern long _getValue(ref System.Drawing.Color color);
 
+        /// <summary>
+        /// Returns information about the provided hex color code.
+        /// </summary>
+        /// <param name="hexCode">Which HTML hex code to get information about.</param>
         [Command("hex")]
         public static ValueTask ExecuteAsync(CommandContext context, string hexCode)
         {

@@ -8,7 +8,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Commands;
@@ -24,32 +23,12 @@ using OoLunar.Tomoe.Database.Models;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
+    /// <summary>
+    /// I should split this into multiple partial files.
+    /// </summary>
     [Command("info")]
     public sealed partial class InfoCommand
     {
-        private class AllocationRateTracker
-        {
-            public long AllocationRate { get; private set; } = GC.GetTotalAllocatedBytes();
-
-            public AllocationRateTracker() => _ = TrackAllocationRateAsync();
-
-            private async Task TrackAllocationRateAsync()
-            {
-                long previousMemoryUsage = GC.GetTotalAllocatedBytes();
-
-                // We use a PeriodicTimer to track and update the allocation rate every 200ms
-                PeriodicTimer periodicTimer = new(TimeSpan.FromSeconds(1));
-                while (await periodicTimer.WaitForNextTickAsync())
-                {
-                    long currentMemoryUsage = GC.GetTotalAllocatedBytes();
-                    AllocationRate = currentMemoryUsage - previousMemoryUsage;
-
-                    previousMemoryUsage = currentMemoryUsage;
-                }
-            }
-        }
-
-        private static readonly AllocationRateTracker _allocationRateTracker = new();
         private static readonly string _operatingSystem = $"{Environment.OSVersion} {RuntimeInformation.OSArchitecture.ToString().ToLower(CultureInfo.InvariantCulture)}";
         private static readonly string _botVersion = typeof(Program).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion;
         private static readonly string _dSharpPlusVersion = typeof(DiscordClient).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion;
@@ -64,10 +43,24 @@ namespace OoLunar.Tomoe.Commands.Common
         private static extern IReadOnlyDictionary<string, string> _unicodeEmojis(DiscordEmoji emoji);
 
         private readonly ImageUtilities _imageUtilitiesService;
-        public InfoCommand(ImageUtilities imageUtilitiesService) => _imageUtilitiesService = imageUtilitiesService ?? throw new ArgumentNullException(nameof(imageUtilitiesService));
+        private readonly AllocationRateTracker _allocationRateTracker = new();
 
+        /// <summary>
+        /// Creates a new instance of <see cref="InfoCommand"/>.
+        /// </summary>
+        /// <param name="imageUtilitiesService">Required service for fetching image metadata.</param>
+        /// <param name="allocationRateTracker">Required service for tracking the memory allocation rate.</param>
+        public InfoCommand(ImageUtilities imageUtilitiesService, AllocationRateTracker allocationRateTracker)
+        {
+            _imageUtilitiesService = imageUtilitiesService;
+            _allocationRateTracker = allocationRateTracker;
+        }
+
+        /// <summary>
+        /// Sends bot statistics.
+        /// </summary>
         [Command("bot"), DefaultGroupCommand]
-        public static async ValueTask BotInfoAsync(CommandContext context)
+        public async ValueTask BotInfoAsync(CommandContext context)
         {
             DiscordEmbedBuilder embedBuilder = new()
             {
@@ -102,6 +95,10 @@ namespace OoLunar.Tomoe.Commands.Common
             await context.RespondAsync(embedBuilder);
         }
 
+        /// <summary>
+        /// Sends information about the provided user.
+        /// </summary>
+        /// <param name="user">Which user to get information about. Leave empty to get information about yourself.</param>
         [Command("user")]
         public static async Task UserInfoAsync(CommandContext context, DiscordUser? user = null)
         {
@@ -148,6 +145,10 @@ namespace OoLunar.Tomoe.Commands.Common
             await context.RespondAsync(embedBuilder);
         }
 
+        /// <summary>
+        /// Sends information about the provided role.
+        /// </summary>
+        /// <param name="role">Which role to get information about.</param>
         [Command("role"), RequireGuild]
         public static async Task RoleInfoAsync(CommandContext context, DiscordRole role)
         {
@@ -192,6 +193,10 @@ namespace OoLunar.Tomoe.Commands.Common
             await context.RespondAsync(embedBuilder);
         }
 
+        /// <summary>
+        /// Sends information about the provided emoji.
+        /// </summary>
+        /// <param name="emoji">The emoji to get information about. Unicode emojis are supported.</param>
         [Command("emoji")]
         public async Task EmojiInfoAsync(CommandContext context, string emoji)
         {
@@ -265,6 +270,10 @@ namespace OoLunar.Tomoe.Commands.Common
             await context.RespondAsync(embedBuilder);
         }
 
+        /// <summary>
+        /// Sends information about the server.
+        /// </summary>
+        /// <param name="guildId">The id of the guild to get information about. Leave empty to get information about the current server.</param>
         [Command("guild"), TextAlias("server")]
         public async Task GuildInfoAsync(CommandContext context, ulong? guildId = null)
         {

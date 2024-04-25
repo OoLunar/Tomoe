@@ -6,8 +6,14 @@ using DSharpPlus.Commands.Trees.Metadata;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
+    /// <summary>
+    /// A cointoss!
+    /// </summary>
     public static class FlipCommand
     {
+        /// <summary>
+        /// Heads or tails?
+        /// </summary>
         [Command("flip"), TextAlias("random")]
         public static async ValueTask ExecuteAsync(CommandContext context)
         {

@@ -13,8 +13,16 @@ using DSharpPlus.Net.Serialization;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
+    /// <summary>
+    /// I like it raw.
+    /// </summary>
     public static class RawCommand
     {
+        /// <summary>
+        /// Returns the raw content of a message.
+        /// </summary>
+        /// <param name="message">The message to get the raw content of.</param>
+        /// <param name="jsonfied">Whether to return the raw content as JSON.</param>
         [Command("raw"), TextAlias("print"), SlashCommandTypes(DiscordApplicationCommandType.SlashCommand, DiscordApplicationCommandType.MessageContextMenu)]
         public static ValueTask ExecuteAsync(CommandContext context, [TextMessageReply] DiscordMessage? message = null, bool jsonfied = false)
         {

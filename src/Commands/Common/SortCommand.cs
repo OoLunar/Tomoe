@@ -6,8 +6,15 @@ using DSharpPlus.Commands.Trees;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
+    /// <summary>
+    /// Why can't this sort out all of my problems?
+    /// </summary>
     public static class SortCommand
     {
+        /// <summary>
+        /// Sorts the given text alphabetically.
+        /// </summary>
+        /// <param name="text">The text to sort.</param>
         [Command("sort")]
         public static ValueTask ExecuteAsync(CommandContext context, [RemainingText] string text)
         {

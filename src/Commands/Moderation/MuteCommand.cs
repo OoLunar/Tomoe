@@ -11,11 +11,25 @@ using Humanizer;
 
 namespace OoLunar.Tomoe.Commands.Moderation
 {
+    /// <summary>
+    /// Sometimes I wish I was mute.
+    /// </summary>
     public static class MuteCommand
     {
+        /// <summary>
+        /// Prevents a member from sending messages in chat.
+        /// </summary>
+        /// <param name="member">Who lost talking privileges?</param>
+        /// <param name="timeSpan">How long are they muted for?</param>
+        /// <param name="reason">Why are they being muted?</param>
         [Command("mute"), RequirePermissions(DiscordPermissions.ModerateMembers), RequireGuild]
         public static async ValueTask MuteAsync(CommandContext context, DiscordMember? member = null, TimeSpan? timeSpan = null, [RemainingText] string? reason = null) => await ExecuteAsync(context, "Muted {0} for {1}. Reason: {2}", member, timeSpan, reason);
 
+        /// <summary>
+        /// Sometimes people stay up too late. This helps them get some rest.
+        /// </summary>
+        /// <param name="member">Who's gonna go to bed?</param>
+        /// <param name="timeSpan">How long are they sleeping for?</param>
         [Command("sleep"), RequirePermissions(DiscordPermissions.ModerateMembers), RequireGuild]
         public static async ValueTask SleepAsync(CommandContext context, DiscordMember? member = null, TimeSpan? timeSpan = null) => await ExecuteAsync(context, "Go sleep {0}. I'll see you in {1}.", member, timeSpan, null);
 

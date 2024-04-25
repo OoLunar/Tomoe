@@ -16,8 +16,15 @@ using OoLunar.Tomoe.Events.Handlers;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
+    /// <summary>
+    /// What a headache this command was.
+    /// </summary>
     public static class HelpCommand
     {
+        /// <summary>
+        /// Sends a list of all commands or information about a specific command.
+        /// </summary>
+        /// <param name="command">Which specific command to get information about. Leave empty to few all commands.</param>
         [Command("help")]
         public static ValueTask ExecuteAsync(CommandContext context, [RemainingText] string? command = null)
         {
@@ -33,27 +40,27 @@ namespace OoLunar.Tomoe.Commands.Common
             return context.RespondAsync($"Command {command} not found.");
         }
 
-        public static DiscordMessageBuilder GetHelpMessage(CommandContext context)
+        private static DiscordMessageBuilder GetHelpMessage(CommandContext context)
         {
             StringBuilder stringBuilder = new();
             foreach (Command command in context.Extension.Commands.Values.OrderBy(x => x.Name))
             {
-                stringBuilder.AppendLine($"`{command.Name}`: {(HelpCommandDocumentationMapperEventHandlers.CommandDocumentation.TryGetValue(command, out string? documentation) ? documentation : "No description provided.")}");
+                stringBuilder.AppendLine($"`{command.Name.Titleize()}`: {(HelpCommandDocumentationMapperEventHandlers.CommandDocumentation.TryGetValue(command, out string? documentation) ? documentation.Replace('\n', ' ').Replace("  ", " ") : "No description provided.")}");
             }
 
             return new DiscordMessageBuilder().WithContent($"A total of {context.Extension.Commands.Values.Select(CountCommands).Sum():N0} commands were found. Use `help <command>` for more information on any of them.").AddEmbed(new DiscordEmbedBuilder().WithTitle("Commands").WithDescription(stringBuilder.ToString()));
         }
 
-        public static DiscordMessageBuilder GetHelpMessage(CommandContext context, Command command)
+        private static DiscordMessageBuilder GetHelpMessage(CommandContext context, Command command)
         {
             DiscordEmbedBuilder embed = new();
-            embed.WithTitle($"Help Command: `{command.Name}`");
+            embed.WithTitle($"Help Command: `{command.Name.Titleize()}`");
             embed.WithDescription(HelpCommandDocumentationMapperEventHandlers.CommandDocumentation.TryGetValue(command, out string? documentation) ? documentation : "No description provided.");
             if (command.Subcommands.Count > 0)
             {
                 foreach (Command subcommand in command.Subcommands.OrderBy(x => x.Name))
                 {
-                    embed.AddField(subcommand.Name, HelpCommandDocumentationMapperEventHandlers.CommandDocumentation.TryGetValue(subcommand, out string? subcommandDocumentation) ? subcommandDocumentation : "No description provided.");
+                    embed.AddField(subcommand.Name.Titleize(), HelpCommandDocumentationMapperEventHandlers.CommandDocumentation.TryGetValue(subcommand, out string? subcommandDocumentation) ? subcommandDocumentation : "No description provided.");
                 }
             }
             else
@@ -140,13 +147,13 @@ namespace OoLunar.Tomoe.Commands.Common
                 if (!parameter.DefaultValue.HasValue)
                 {
                     builder.Append(Formatter.Colorize(" <", AnsiColor.LightGray));
-                    builder.Append(Formatter.Colorize(parameter.Name.Underscore(), AnsiColor.Magenta));
+                    builder.Append(Formatter.Colorize(parameter.Name.Titleize(), AnsiColor.Magenta));
                     builder.Append(Formatter.Colorize(">", AnsiColor.LightGray));
                 }
                 else if (parameter.DefaultValue.Value != (parameter.Type.IsValueType ? Activator.CreateInstance(parameter.Type) : null))
                 {
                     builder.Append(Formatter.Colorize(" [", AnsiColor.Yellow));
-                    builder.Append(Formatter.Colorize(parameter.Name.Underscore(), AnsiColor.Magenta));
+                    builder.Append(Formatter.Colorize(parameter.Name.Titleize(), AnsiColor.Magenta));
                     builder.Append(Formatter.Colorize($" = ", AnsiColor.LightGray));
                     builder.Append(Formatter.Colorize($"\"{parameter.DefaultValue.Value}\"", AnsiColor.Cyan));
                     builder.Append(Formatter.Colorize("]", AnsiColor.Yellow));
@@ -154,7 +161,7 @@ namespace OoLunar.Tomoe.Commands.Common
                 else
                 {
                     builder.Append(Formatter.Colorize(" [", AnsiColor.Yellow));
-                    builder.Append(Formatter.Colorize(parameter.Name.Underscore(), AnsiColor.Magenta));
+                    builder.Append(Formatter.Colorize(parameter.Name.Titleize(), AnsiColor.Magenta));
                     builder.Append(Formatter.Colorize("]", AnsiColor.Yellow));
                 }
             }

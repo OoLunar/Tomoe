@@ -26,9 +26,12 @@ using OoLunar.Tomoe.Events.Handlers;
 
 namespace OoLunar.Tomoe.Commands.Moderation
 {
+    /// <summary>
+    /// "dont eval shit" - Jake from Discord
+    /// </summary>
     public static class EvalCommand
     {
-        public sealed class EvalContext
+        private sealed class EvalContext
         {
             public required CommandContext Context { get; init; }
             public required CommandContext context { get; init; }
@@ -84,6 +87,15 @@ namespace OoLunar.Tomoe.Commands.Moderation
             _discordJson = (JsonSerializer)typeof(DiscordJson).GetField("_serializer", BindingFlags.NonPublic | BindingFlags.Static)!.GetValue(null)!;
         }
 
+        /// <summary>
+        /// Runs C# code and returns the output.
+        /// </summary>
+        /// <remarks>
+        /// Yeah you can't run this command.
+        /// </remarks>
+        /// <param name="context"></param>
+        /// <param name="code"></param>
+        /// <returns></returns>
         [Command("eval"), Description("Not for you."), RequireApplicationOwner]
         public static async ValueTask ExecuteAsync(CommandContext context, [FromCode] string code)
         {
@@ -126,7 +138,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
             await FinishedAsync(evalContext, output);
         }
 
-        public static async ValueTask FinishedAsync(EvalContext context, object? output)
+        private static async ValueTask FinishedAsync(EvalContext context, object? output)
         {
             string filename = "output.json";
             byte[] utf8Bytes = null!;

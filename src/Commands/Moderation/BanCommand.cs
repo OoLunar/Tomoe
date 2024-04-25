@@ -11,8 +11,19 @@ using OoLunar.Tomoe.Database.Models;
 
 namespace OoLunar.Tomoe.Commands.Moderation
 {
+    /// <summary>
+    /// I'm sorry, but you've been banned from reading this command.
+    /// </summary>
     public static class BanCommand
     {
+        /// <summary>
+        /// Bans a user from the server. Will NOT remove their messages. Attempts to DM the user with the reason for the ban.
+        /// </summary>
+        /// <remarks>
+        /// TODO: Add a unban requests system.
+        /// </remarks>
+        /// <param name="user">Who to ban.</param>
+        /// <param name="reason">Why they're being banned.</param>
         [Command("ban"), RequirePermissions(DiscordPermissions.BanMembers), RequireGuild]
         public static async ValueTask ExecuteAsync(CommandContext context, DiscordUser user, [RemainingText] string? reason = null)
         {

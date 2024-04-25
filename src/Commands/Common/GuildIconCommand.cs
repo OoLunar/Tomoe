@@ -9,10 +9,20 @@ using DSharpPlus.Entities;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
+    /// <summary>
+    /// Sends the icon of a guild.
+    /// </summary>
     public static class GuildIconCommand
     {
+        /// <summary>
+        /// Sends the guild icon in the requested format and size.
+        /// </summary>
+        /// <param name="imageFormat">The image format of the icon to get.</param>
+        /// <param name="imageDimensions">The maximum size of the icon. Must be a power of two, minimum 16, maximum 4096.</param>
+        /// <param name="guildId">The ID of the guild to get the icon from. Defaults to the current server.</param>
+        /// <returns></returns>
         [Command("guild_icon"), TextAlias("guild_picture")]
-        public static async ValueTask ExecuteAsync(CommandContext context, ulong guildId = 0, ImageFormat imageFormat = ImageFormat.Auto, ushort imageDimensions = 0)
+        public static async ValueTask ExecuteAsync(CommandContext context, ImageFormat imageFormat = ImageFormat.Auto, ushort imageDimensions = 0, ulong guildId = 0)
         {
             if (guildId == 0)
             {

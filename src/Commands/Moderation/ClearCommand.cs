@@ -9,8 +9,20 @@ using DSharpPlus.Entities;
 
 namespace OoLunar.Tomoe.Commands.Moderation
 {
+    /// <summary>
+    /// Clear as day.
+    /// </summary>
     public static class ClearCommand
     {
+        /// <summary>
+        /// Removes a range of messages from chat.
+        /// </summary>
+        /// <remarks>
+        /// Cannot delete messages older than 2 weeks.
+        /// </remarks>
+        /// <param name="firstMessage">Removes any messages after this message.</param>
+        /// <param name="lastMessage">Removes any messages before this message.</param>
+        /// <param name="reason">Why the messages are being deleted.</param>
         [Command("clear"), Description("Clears messages from chat."), RequirePermissions(DiscordPermissions.ManageMessages)]
         public static async ValueTask ExecuteAsync(CommandContext context, DiscordMessage firstMessage, DiscordMessage? lastMessage = null, [RemainingText] string? reason = null)
         {

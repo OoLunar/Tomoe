@@ -13,11 +13,25 @@ using OoLunar.Tomoe.Database.Models;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
+    /// <summary>
+    /// Democracy in action!
+    /// </summary>
     public sealed class PollCommand
     {
         private readonly DatabaseExpirableManager<PollModel, Ulid> _pollManager;
-        public PollCommand(DatabaseExpirableManager<PollModel, Ulid> pollManager) => _pollManager = pollManager ?? throw new ArgumentNullException(nameof(pollManager));
 
+        /// <summary>
+        /// Creates a new instance of <see cref="PollCommand"/>.
+        /// </summary>
+        /// <param name="pollManager">Required service for managing poll data.</param>
+        public PollCommand(DatabaseExpirableManager<PollModel, Ulid> pollManager) => _pollManager = pollManager;
+
+        /// <summary>
+        /// Sends a new poll to the channel that users can vote anonymously on.
+        /// </summary>
+        /// <param name="question">What question to ask everyone.</param>
+        /// <param name="expiresAt">When the poll should end.</param>
+        /// <param name="options">The choices to choose from.</param>
         [Command("poll"), Description("Create a poll."), RequireGuild]
         public async ValueTask ExecuteAsync(CommandContext context, string question, TimeSpan expiresAt, params string[] options)
         {

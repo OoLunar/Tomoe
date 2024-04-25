@@ -7,9 +7,16 @@ using DSharpPlus.Entities;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
+    /// <summary>
+    /// Tattle-tale.
+    /// </summary>
     public static class QuoteCommand
     {
-        [Command("quote"), TextAlias("rat", "mock", "q"), RequireGuild]
+        /// <summary>
+        /// Links a message from another channel.
+        /// </summary>
+        /// <param name="message">The message to repeat.</param>
+        [Command("quote"), TextAlias("rat", "mock", "q", "tattle-tale", "tattle"), RequireGuild]
         public static ValueTask ExecuteAsync(CommandContext context, DiscordMessage message)
         {
             if (!message.Channel!.PermissionsFor(context.Member!).HasPermission(DiscordPermissions.AccessChannels))

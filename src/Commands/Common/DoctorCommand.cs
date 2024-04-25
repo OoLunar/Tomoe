@@ -11,11 +11,17 @@ using Humanizer;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
+    /// <summary>
+    /// Provides information about the bot's current permissions and the permissions required for each command.
+    /// </summary>
     public static class DoctorCommand
     {
         private const string AdministratorWarning = "I have the `Administrator` permission; I can execute all of my commands without issue. It is advised you re-invite me with the proper permissions - for a boost in security. The `invite` command will give you the link with the correct permissions.";
         private const string DiffExplanation = "The red permissions are the permissions that I do not have. The green permissions are the ones I do have. If a command has a red permission, that means I cannot execute it.";
 
+        /// <summary>
+        /// Helps diagnose permission issues with the bot.
+        /// </summary>
         [Command("doctor"), RequireGuild]
         public static ValueTask ExecuteAsync(CommandContext context)
         {

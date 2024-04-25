@@ -10,8 +10,14 @@ using DSharpPlus.Entities;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
+    /// <summary>
+    /// I want to be invited to a party!
+    /// </summary>
     public static class InviteCommand
     {
+        /// <summary>
+        /// Sends the Discord Authorization link to add the bot to your server.
+        /// </summary>
         [Command("invite"), Description("Sends the link to add Tomoe to a guild without an embed.")]
         public static ValueTask InviteAsync(CommandContext context)
         {

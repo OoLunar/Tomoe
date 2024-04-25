@@ -14,13 +14,25 @@ using SixLabors.ImageSharp.Processing;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
+    /// <summary>
+    /// You spin me right round, baby, right round.
+    /// </summary>
     public sealed class RotateCommand
     {
         private readonly HttpClient _httpClient;
+
+        /// <summary>
+        /// Creates a new instance of <see cref="RotateCommand"/>.
+        /// </summary>
+        /// <param name="httpClient">Required service for retrieving remote files.</param>
         public RotateCommand(HttpClient httpClient) => _httpClient = httpClient;
 
-        [Command("rotate")]
-        [Description("Rotates the image by the specified degrees.")]
+        /// <summary>
+        /// Rotates an image by the specified degrees.
+        /// </summary>
+        /// <param name="attachment">The image to rotate.</param>
+        /// <param name="degrees">The degrees to rotate the image by. Defaults to 90. Only supports increments of 90.</param>
+        [Command("rotate"), Description("Rotates the image by the specified degrees.")]
         public async ValueTask ExecuteAsync(CommandContext context, [TextMessageReply] DiscordAttachment attachment, float degrees = 90.0f)
         {
             // Download the image, rotate it, and send it back

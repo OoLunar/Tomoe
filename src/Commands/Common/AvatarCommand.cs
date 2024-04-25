@@ -19,6 +19,11 @@ namespace OoLunar.Tomoe.Commands.Common
     public sealed class AvatarCommand
     {
         private readonly ImageUtilities imageUtilitiesService;
+
+        /// <summary>
+        /// Creates a new instance of the <see cref="AvatarCommand"/>.
+        /// </summary>
+        /// <param name="imageUtilitiesService">Required service for fetching image metadata.</param>
         public AvatarCommand(ImageUtilities imageUtilitiesService) => this.imageUtilitiesService = imageUtilitiesService;
 
         /// <summary>

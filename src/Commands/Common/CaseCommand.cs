@@ -9,8 +9,16 @@ using Humanizer;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
+    /// <summary>
+    /// Mutates text to different cases.
+    /// </summary>
     public sealed class CaseCommand
     {
+        /// <summary>
+        /// Mutates the provided text to the grammatical case.
+        /// </summary>
+        /// <param name="caseType">The case to modify the text to.</param>
+        /// <param name="content">The text that will be modified.</param>
         [Command("case")]
         public static ValueTask ExecuteAsync(CommandContext context, CaseType caseType, params string[] content)
         {
@@ -37,14 +45,44 @@ namespace OoLunar.Tomoe.Commands.Common
         }
     }
 
+    /// <summary>
+    /// The different cases that text can be mutated to.
+    /// </summary>
     public enum CaseType
     {
+        /// <summary>
+        /// Converts the text to all UPPERCASE.
+        /// </summary>
         Upper,
+
+        /// <summary>
+        /// Converts the text to all lowercase.
+        /// </summary>
         Lower,
+
+        /// <summary>
+        /// Capitalizes the First Letter of Each Word Where Appropriate.
+        /// </summary>
         Title,
-        Snake,
+
+        /// <summary>
+        /// Converts the text to PascalCase.
+        /// </summary>
         Pascal,
+
+        /// <summary>
+        /// Converts the text to camelCase.
+        /// </summary>
         Camel,
+
+        /// <summary>
+        /// Converts the text to snake_case.
+        /// </summary>
+        Snake,
+
+        /// <summary>
+        /// Converts the text to kebab-case.
+        /// </summary>
         Kebab
     }
 }

@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Text;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Commands;
@@ -12,6 +14,9 @@ using OoLunar.Tomoe.Database.Models;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
+    /// <summary>
+    /// Please remind me to remind you to remind me to remind you.
+    /// </summary>
     [Command("reminders"), TextAlias("remind")]
     public sealed class ReminderCommand
     {
@@ -19,8 +24,18 @@ namespace OoLunar.Tomoe.Commands.Common
         private static readonly DateTimeOffsetConverter _dateTimeArgumentConverter = new();
 
         private readonly DatabaseExpirableManager<ReminderModel, Ulid> _reminderManager;
-        public ReminderCommand(DatabaseExpirableManager<ReminderModel, Ulid> reminderManager) => _reminderManager = reminderManager ?? throw new ArgumentNullException(nameof(reminderManager));
 
+        /// <summary>
+        /// Creates a new instance of <see cref="ReminderCommand"/>.
+        /// </summary>
+        /// <param name="reminderManager">Required service for managing reminder data.</param>
+        public ReminderCommand(DatabaseExpirableManager<ReminderModel, Ulid> reminderManager) => _reminderManager = reminderManager;
+
+        /// <summary>
+        /// Creates a new reminder that will either ping or DM you when it expires.
+        /// </summary>
+        /// <param name="expiresAt">When you should be notified.</param>
+        /// <param name="content">What you want to be reminded about.</param>
         [Command("set"), DefaultGroupCommand]
         public async ValueTask SetAsync(CommandContext context, string expiresAt, [RemainingText] string? content = null)
         {
@@ -61,22 +76,31 @@ namespace OoLunar.Tomoe.Commands.Common
             await context.RespondAsync($"Reminder set! I'll ping you {Formatter.Timestamp(expires - now)}.");
         }
 
-        //[Command("list")]
-        //public async ValueTask ListAsync(CommandContext context)
-        //{
-        //    List<ReminderModel> reminders = [];
-        //    await foreach (ReminderModel reminderModel in ReminderModel.ListAsync(context.User.Id))
-        //    {
-        //        reminders.Add(reminderModel);
-        //        if (reminders.Count == 5)
-        //        {
-        //            StringBuilder stringBuilder = new();
-        //            foreach (ReminderModel reminder in reminders)
-        //            {
-        //                stringBuilder.AppendLine($"- {Formatter.Timestamp(reminder.ExpiresAt - DateTimeOffset.UtcNow)}: {reminder.Content}");
-        //            }
-        //        }
-        //    }
-        //}
+        /// <summary>
+        /// Lists all reminders you have set.
+        /// </summary>
+        /// <remarks>
+        /// Currently unfinished. Will only list the first 5 reminders.
+        /// </remarks>
+        [Command("list")]
+        public static async ValueTask ListAsync(CommandContext context)
+        {
+            List<ReminderModel> reminders = [];
+            await foreach (ReminderModel reminderModel in ReminderModel.ListAsync(context.User.Id))
+            {
+                reminders.Add(reminderModel);
+                if (reminders.Count == 5)
+                {
+                    StringBuilder stringBuilder = new();
+                    foreach (ReminderModel reminder in reminders)
+                    {
+                        stringBuilder.AppendLine($"- {Formatter.Timestamp(reminder.ExpiresAt - DateTimeOffset.UtcNow)}: {reminder.Content}");
+                    }
+
+                    await context.RespondAsync(stringBuilder.ToString());
+                    return;
+                }
+            }
+        }
     }
 }

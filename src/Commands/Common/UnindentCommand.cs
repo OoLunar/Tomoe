@@ -12,11 +12,23 @@ using DSharpPlus.Entities;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
-    public sealed class TrimCommand
+    /// <summary>
+    /// I can't believe it's not butter - CoPilot.
+    /// </summary>
+    public sealed class UnindentCommand
     {
         private readonly HttpClient _httpClient;
-        public TrimCommand(HttpClient httpClient) => _httpClient = httpClient;
 
+        /// <summary>
+        /// Creates a new instance of <see cref="UnindentCommand"/>.
+        /// </summary>
+        /// <param name="httpClient">Required service for retrieving remote files.</param>
+        public UnindentCommand(HttpClient httpClient) => _httpClient = httpClient;
+
+        /// <summary>
+        /// Removes the minimum indention from a message or file.
+        /// </summary>
+        /// <param name="attachment">The file to unindent.</param>
         [Command("unindent"), TextAlias("trim")]
         public async ValueTask ExecuteAsync(CommandContext context, DiscordAttachment? attachment = null)
         {

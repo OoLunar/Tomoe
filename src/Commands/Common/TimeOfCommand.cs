@@ -15,11 +15,18 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
+    /// <summary>
+    /// The time it took for you to read this is the time it took for me to get a headache.
+    /// </summary>
     public static class TimeOfCommand
     {
         private static readonly DiscordMessageConverter _discordMessageConverter = new();
         private static readonly UInt64Converter _uint64Converter = new();
 
+        /// <summary>
+        /// Sends the exact time a message was created.
+        /// </summary>
+        /// <param name="messages">The message IDs or links to get the time of. If only two messages were sent, I'll calculate the difference between the two.</param>
         [Command("time_of"), TextAlias("when_was")]
         public static async ValueTask ExecuteAsync(CommandContext context, params string[] messages)
         {

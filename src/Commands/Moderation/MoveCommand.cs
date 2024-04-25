@@ -12,11 +12,25 @@ using DSharpPlus.Entities;
 
 namespace OoLunar.Tomoe.Commands.Moderation
 {
+    /// <summary>
+    /// Moved my heart.
+    /// </summary>
     public sealed class MoveCommand
     {
         private readonly HttpClient httpClient;
+
+        /// <summary>
+        /// Creates a new instance of <see cref="MoveCommand"/>.
+        /// </summary>
+        /// <param name="httpClient">Required service for retrieving remote files.</param>
         public MoveCommand(HttpClient httpClient) => this.httpClient = httpClient;
 
+        /// <summary>
+        /// Copies a chunk of messages to a different channel.
+        /// </summary>
+        /// <param name="channel">Which channel to send the messages to.</param>
+        /// <param name="firstMessage">Where to start copying messages from.</param>
+        /// <param name="lastMessage">Where to stop copying messages from. If not provided, will copy all messages after the first message.</param>
         [Command("move"), Description("Moves a chunk of messages (inclusive) to a different channel."), RequirePermissions(DiscordPermissions.ManageMessages)]
         public async ValueTask MoveAsync(CommandContext context, DiscordChannel channel, DiscordMessage firstMessage, DiscordMessage? lastMessage = null)
         {
