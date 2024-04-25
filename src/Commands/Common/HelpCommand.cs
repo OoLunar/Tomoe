@@ -12,6 +12,7 @@ using DSharpPlus.Commands.Trees;
 using DSharpPlus.Commands.Trees.Attributes;
 using DSharpPlus.Entities;
 using Humanizer;
+using OoLunar.Tomoe.Events.Handlers;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
@@ -37,7 +38,7 @@ namespace OoLunar.Tomoe.Commands.Common
             StringBuilder stringBuilder = new();
             foreach (Command command in context.Extension.Commands.Values.OrderBy(x => x.Name))
             {
-                stringBuilder.AppendLine($"`{command.Name}`: {command.Description ?? "No description provided."}");
+                stringBuilder.AppendLine($"`{command.Name}`: {(HelpCommandDocumentationMapperEventHandlers.CommandDocumentation.TryGetValue(command, out string? documentation) ? documentation : "No description provided.")}");
             }
 
             return new DiscordMessageBuilder().WithContent($"A total of {context.Extension.Commands.Values.Select(CountCommands).Sum():N0} commands were found. Use `help <command>` for more information on any of them.").AddEmbed(new DiscordEmbedBuilder().WithTitle("Commands").WithDescription(stringBuilder.ToString()));
@@ -47,12 +48,12 @@ namespace OoLunar.Tomoe.Commands.Common
         {
             DiscordEmbedBuilder embed = new();
             embed.WithTitle($"Help Command: `{command.Name}`");
-            embed.WithDescription(command.Description ?? "No description provided.");
+            embed.WithDescription(HelpCommandDocumentationMapperEventHandlers.CommandDocumentation.TryGetValue(command, out string? documentation) ? documentation : "No description provided.");
             if (command.Subcommands.Count > 0)
             {
                 foreach (Command subcommand in command.Subcommands.OrderBy(x => x.Name))
                 {
-                    embed.AddField(subcommand.Name, subcommand.Description ?? "No description provided.");
+                    embed.AddField(subcommand.Name, HelpCommandDocumentationMapperEventHandlers.CommandDocumentation.TryGetValue(subcommand, out string? subcommandDocumentation) ? subcommandDocumentation : "No description provided.");
                 }
             }
             else
@@ -86,7 +87,7 @@ namespace OoLunar.Tomoe.Commands.Common
                 embed.AddField("Usage", command.GetUsage());
                 foreach (CommandParameter parameter in command.Parameters)
                 {
-                    embed.AddField($"{parameter.Name.Titleize()} - {context.Extension.GetProcessor<TextCommandProcessor>().Converters[GetConverterFriendlyBaseType(parameter.Type)].ReadableName}", parameter.Description ?? "No description provided.");
+                    embed.AddField($"{parameter.Name.Titleize()} - {context.Extension.GetProcessor<TextCommandProcessor>().Converters[GetConverterFriendlyBaseType(parameter.Type)].ReadableName}", HelpCommandDocumentationMapperEventHandlers.CommandParameterDocumentation.TryGetValue(parameter, out string? parameterDocumentation) ? parameterDocumentation : "No description provided.");
                 }
 
                 embed.WithImageUrl("https://files.forsaken-borders.net/transparent.png?cache-bust=1");

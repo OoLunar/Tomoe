@@ -1,3 +1,6 @@
 [submodule "libs/DSharpPlus"]
 	path = libs/DSharpPlus
 	url = https://github.com/DSharpPlus/DSharpPlus.git
+[submodule "libs/XMLDocs.NET"]
+	path = libs/XMLDocs.NET
+	url = https://github.com/OoLunar/XMLDocs.NET.git

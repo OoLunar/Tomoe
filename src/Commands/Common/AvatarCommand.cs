@@ -13,9 +13,22 @@ using DSharpPlus.Entities;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
+    /// <summary>
+    /// A command module for retrieving avatars from different sources. <see cref="AvatarCommand"/> is a top-level command.
+    /// </summary>
     [Command("avatar"), TextAlias("pfp")]
-    public sealed class AvatarCommand(ImageUtilities imageUtilitiesService)
+    public sealed class AvatarCommand
     {
+        private readonly ImageUtilities imageUtilitiesService;
+        public AvatarCommand(ImageUtilities imageUtilitiesService) => this.imageUtilitiesService = imageUtilitiesService;
+
+        /// <summary>
+        /// Fetches the avatar of the requested user.
+        /// </summary>
+        /// <param name="user">The user to fetch the avatar from. If no user is provided, the command will default to the author.</param>
+        /// <param name="imageFormat">The format of the image to fetch. Valid options include: png, gif, jpeg, webp, or auto. Auto will display the gif when available and fallback to png when it's not.</param>
+        /// <param name="imageDimensions">A number between 16 and 4096 that represents the dimensions of the image to fetch. If no dimensions are provided, the command will default to 1024. The dimensions must be a power of two.</param>
+        /// <returns>Nothing</returns>
         [Command("user"), DefaultGroupCommand, SlashCommandTypes(ApplicationCommandType.SlashCommand, ApplicationCommandType.UserContextMenu)]
         public ValueTask UserAsync(CommandContext context, DiscordUser? user = null, ImageFormat imageFormat = ImageFormat.Auto, ushort imageDimensions = 0)
         {
@@ -26,6 +39,11 @@ namespace OoLunar.Tomoe.Commands.Common
             return SendAvatarAsync(context, $"{pluralDisplayName} Avatar", avatarUrl, color);
         }
 
+        /// <summary>
+        /// Fetches the avatar of the user from a message.
+        /// </summary>
+        /// <param name="message">The message to fetch the avatar from. If no message is provided, the command will default to the message you replied to, if applicable.</param>
+        /// <inheritdoc cref="UserAsync(CommandContext, DiscordUser?, ImageFormat, ushort)"/>
         [Command("webhook"), TextAlias("wh")]
         public ValueTask WebhookAsync(CommandContext context, [TextMessageReply] DiscordMessage? message = null, ImageFormat imageFormat = ImageFormat.Auto, ushort imageDimensions = 0)
         {
@@ -46,6 +64,11 @@ namespace OoLunar.Tomoe.Commands.Common
             return UserAsync(context, message.Author, imageFormat, imageDimensions);
         }
 
+        /// <summary>
+        /// Fetches the server-specific avatar of the requested user.
+        /// </summary>
+        /// <param name="member">The member to fetch the avatar from. If no member is provided, the command will default to the author. The member must be in the server.</param>
+        /// <inheritdoc cref="UserAsync(CommandContext, DiscordUser?, ImageFormat, ushort)"/>
         [Command("guild"), TextAlias("member", "server"), RequireGuild]
         public async ValueTask GuildAsync(CommandContext context, DiscordMember? member = null, ImageFormat imageFormat = ImageFormat.Auto, ushort imageDimensions = 0)
         {
