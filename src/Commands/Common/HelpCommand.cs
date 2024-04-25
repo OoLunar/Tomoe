@@ -5,11 +5,11 @@ using System.Text;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Commands;
+using DSharpPlus.Commands.ArgumentModifiers;
 using DSharpPlus.Commands.ContextChecks;
 using DSharpPlus.Commands.Processors.TextCommands;
-using DSharpPlus.Commands.Processors.TextCommands.Attributes;
 using DSharpPlus.Commands.Trees;
-using DSharpPlus.Commands.Trees.Attributes;
+using DSharpPlus.Commands.Trees.Metadata;
 using DSharpPlus.Entities;
 using Humanizer;
 using OoLunar.Tomoe.Events.Handlers;
@@ -60,9 +60,9 @@ namespace OoLunar.Tomoe.Commands.Common
             {
                 if (command.Attributes.FirstOrDefault(x => x is RequirePermissionsAttribute) is RequirePermissionsAttribute permissions)
                 {
-                    Permissions commonPermissions = permissions.BotPermissions & permissions.UserPermissions;
-                    Permissions botUniquePermissions = permissions.BotPermissions ^ commonPermissions;
-                    Permissions userUniquePermissions = permissions.UserPermissions ^ commonPermissions;
+                    DiscordPermissions commonPermissions = permissions.BotPermissions & permissions.UserPermissions;
+                    DiscordPermissions botUniquePermissions = permissions.BotPermissions ^ commonPermissions;
+                    DiscordPermissions userUniquePermissions = permissions.UserPermissions ^ commonPermissions;
                     StringBuilder builder = new();
                     if (commonPermissions != default)
                     {

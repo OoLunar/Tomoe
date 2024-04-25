@@ -213,12 +213,12 @@ namespace OoLunar.Tomoe.Database.Models
             }
 
             // Double check if the bot has permissions to send messages in the channel.
-            Permissions channelPermissionsForBot = channel.PermissionsFor(guild.CurrentMember);
+            DiscordPermissions channelPermissionsForBot = channel.PermissionsFor(guild.CurrentMember);
 
             // If the channel is a normal text channel and we cannot send messages
             // or if the channel is a thread and we cannot send messages in threads.
-            if ((!channel.IsThread && !channelPermissionsForBot.HasPermission(Permissions.SendMessages))
-                || (channel.IsThread && !channelPermissionsForBot.HasPermission(Permissions.SendMessagesInThreads)))
+            if ((!channel.IsThread && !channelPermissionsForBot.HasPermission(DiscordPermissions.SendMessages))
+                || (channel.IsThread && !channelPermissionsForBot.HasPermission(DiscordPermissions.SendMessagesInThreads)))
             {
                 return await DmUserAsync(shardedClient, expirable);
             }

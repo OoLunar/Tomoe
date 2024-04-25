@@ -7,7 +7,6 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.Processors.TextCommands.ContextChecks;
-using DSharpPlus.Commands.Trees.Attributes;
 using DSharpPlus.Entities;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;

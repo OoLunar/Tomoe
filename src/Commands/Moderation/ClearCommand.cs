@@ -1,19 +1,17 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading.Tasks;
-using DSharpPlus;
 using DSharpPlus.Commands;
+using DSharpPlus.Commands.ArgumentModifiers;
 using DSharpPlus.Commands.ContextChecks;
-using DSharpPlus.Commands.Processors.TextCommands.Attributes;
 using DSharpPlus.Commands.Trees;
-using DSharpPlus.Commands.Trees.Attributes;
 using DSharpPlus.Entities;
 
 namespace OoLunar.Tomoe.Commands.Moderation
 {
     public static class ClearCommand
     {
-        [Command("clear"), Description("Clears messages from chat."), RequirePermissions(Permissions.ManageMessages)]
+        [Command("clear"), Description("Clears messages from chat."), RequirePermissions(DiscordPermissions.ManageMessages)]
         public static async ValueTask ExecuteAsync(CommandContext context, DiscordMessage firstMessage, DiscordMessage? lastMessage = null, [RemainingText] string? reason = null)
         {
             List<DiscordMessage> messages = [];

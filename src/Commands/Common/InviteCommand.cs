@@ -3,11 +3,10 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using DSharpPlus;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.ContextChecks;
 using DSharpPlus.Commands.Trees;
-using DSharpPlus.Commands.Trees.Attributes;
+using DSharpPlus.Entities;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
@@ -16,7 +15,7 @@ namespace OoLunar.Tomoe.Commands.Common
         [Command("invite"), Description("Sends the link to add Tomoe to a guild without an embed.")]
         public static ValueTask InviteAsync(CommandContext context)
         {
-            Permissions requiredPermissions = GetSubcommandsPermissions(context.Extension.Commands.Values);
+            DiscordPermissions requiredPermissions = GetSubcommandsPermissions(context.Extension.Commands.Values);
             StringBuilder stringBuilder = new();
             stringBuilder.Append("<https://discord.com/api/oauth2/authorize?client_id=");
             stringBuilder.Append(context.Client.CurrentUser.Id);
@@ -31,9 +30,9 @@ namespace OoLunar.Tomoe.Commands.Common
             return context.RespondAsync(stringBuilder.ToString());
         }
 
-        private static Permissions GetSubcommandsPermissions(IEnumerable<Command> subCommands)
+        private static DiscordPermissions GetSubcommandsPermissions(IEnumerable<Command> subCommands)
         {
-            Permissions permissions = 0;
+            DiscordPermissions permissions = 0;
             foreach (Command subCommand in subCommands)
             {
                 if (subCommand.Subcommands.Count != 0)

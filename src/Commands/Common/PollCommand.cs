@@ -7,7 +7,6 @@ using DSharpPlus;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.ContextChecks;
 using DSharpPlus.Commands.Trees;
-using DSharpPlus.Commands.Trees.Attributes;
 using DSharpPlus.Entities;
 using OoLunar.Tomoe.Database;
 using OoLunar.Tomoe.Database.Models;
@@ -68,7 +67,7 @@ namespace OoLunar.Tomoe.Commands.Common
             for (int i = 0; i < options.Length; i++)
             {
                 string option = options[i];
-                buttons.Add(new(ButtonStyle.Primary, $"poll:{pollId}:{i.ToString(CultureInfo.InvariantCulture)}", option));
+                buttons.Add(new(DiscordButtonStyle.Primary, $"poll:{pollId}:{i.ToString(CultureInfo.InvariantCulture)}", option));
                 if ((i + 1) % 5 == 0 && i != 0)
                 {
                     buttonRows.Add(new(buttons));
@@ -76,7 +75,7 @@ namespace OoLunar.Tomoe.Commands.Common
                 }
             }
 
-            buttons.Add(new(ButtonStyle.Danger, $"poll:{pollId}", "Remove my vote!"));
+            buttons.Add(new(DiscordButtonStyle.Danger, $"poll:{pollId}", "Remove my vote!"));
             buttonRows.Add(new(buttons));
             buttons.Clear();
             messageBuilder.AddComponents(buttonRows);

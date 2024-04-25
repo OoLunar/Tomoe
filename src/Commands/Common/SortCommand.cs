@@ -1,9 +1,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using DSharpPlus.Commands;
-using DSharpPlus.Commands.Processors.TextCommands.Attributes;
+using DSharpPlus.Commands.ArgumentModifiers;
 using DSharpPlus.Commands.Trees;
-using DSharpPlus.Commands.Trees.Attributes;
 
 namespace OoLunar.Tomoe.Commands.Common
 {

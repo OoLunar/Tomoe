@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using DSharpPlus;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.ContextChecks;
 using DSharpPlus.Commands.Trees;
-using DSharpPlus.Commands.Trees.Attributes;
 using DSharpPlus.Entities;
 using Humanizer;
 
@@ -23,10 +21,10 @@ namespace OoLunar.Tomoe.Commands.Common
         {
             StringBuilder stringBuilder = new();
             Dictionary<string, string> permissionsText = [];
-            Permissions botPermissions = context.Guild!.CurrentMember.Permissions;
+            DiscordPermissions botPermissions = context.Guild!.CurrentMember.Permissions;
             foreach (Command command in context.Extension.Commands.Values)
             {
-                Permissions permissions = GetCommandPermissions(command);
+                DiscordPermissions permissions = GetCommandPermissions(command);
                 if (permissions == default)
                 {
                     continue;
@@ -37,7 +35,7 @@ namespace OoLunar.Tomoe.Commands.Common
                 stringBuilder.AppendLine(": ");
                 for (ulong i = 0; i < (sizeof(ulong) * 8); i++)
                 {
-                    Permissions permission = (Permissions)Math.Pow(2, i);
+                    DiscordPermissions permission = (DiscordPermissions)Math.Pow(2, i);
                     if (!permissions.HasFlag(permission))
                     {
                         continue;
@@ -58,7 +56,7 @@ namespace OoLunar.Tomoe.Commands.Common
             }
 
             stringBuilder.Clear();
-            stringBuilder.AppendLine(context.Guild.CurrentMember.Permissions.HasFlag(Permissions.Administrator) ? AdministratorWarning : DiffExplanation);
+            stringBuilder.AppendLine(context.Guild.CurrentMember.Permissions.HasFlag(DiscordPermissions.Administrator) ? AdministratorWarning : DiffExplanation);
             stringBuilder.AppendLine("```diff");
             foreach ((string _, string commandPermissions) in permissionsText.OrderBy(x => x.Key))
             {
@@ -73,9 +71,9 @@ namespace OoLunar.Tomoe.Commands.Common
             });
         }
 
-        private static Permissions GetCommandPermissions(Command command)
+        private static DiscordPermissions GetCommandPermissions(Command command)
         {
-            Permissions permissions = Permissions.None;
+            DiscordPermissions permissions = DiscordPermissions.None;
             foreach (Command subcommand in command.Subcommands)
             {
                 permissions |= GetCommandPermissions(subcommand);

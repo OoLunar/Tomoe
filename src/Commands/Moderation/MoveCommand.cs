@@ -5,11 +5,9 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using DSharpPlus;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.ContextChecks;
 using DSharpPlus.Commands.Trees;
-using DSharpPlus.Commands.Trees.Attributes;
 using DSharpPlus.Entities;
 
 namespace OoLunar.Tomoe.Commands.Moderation
@@ -19,7 +17,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
         private readonly HttpClient httpClient;
         public MoveCommand(HttpClient httpClient) => this.httpClient = httpClient;
 
-        [Command("move"), Description("Moves a chunk of messages (inclusive) to a different channel."), RequirePermissions(Permissions.ManageMessages)]
+        [Command("move"), Description("Moves a chunk of messages (inclusive) to a different channel."), RequirePermissions(DiscordPermissions.ManageMessages)]
         public async ValueTask MoveAsync(CommandContext context, DiscordChannel channel, DiscordMessage firstMessage, DiscordMessage? lastMessage = null)
         {
             await context.DeleteResponseAsync();
@@ -42,7 +40,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
             };
 
             DiscordWebhook webhook;
-            if (channel.Type is ChannelType.NewsThread or ChannelType.PublicThread or ChannelType.PrivateThread)
+            if (channel.Type is DiscordChannelType.NewsThread or DiscordChannelType.PublicThread or DiscordChannelType.PrivateThread)
             {
                 webhook = await channel.Parent.CreateWebhookAsync("Message Mover", Optional.FromNoValue<Stream>(), "Requested by " + context.User.Username);
                 webhookBuilder.WithThreadId(channel.Id);
@@ -59,7 +57,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
                 DiscordMember member = (DiscordMember)message.Author!;
                 webhookBuilder.WithUsername(member.DisplayName);
                 webhookBuilder.WithAvatarUrl(member.GuildAvatarUrl ?? member.AvatarUrl);
-                if (channel.Type is ChannelType.NewsThread or ChannelType.PublicThread or ChannelType.PrivateThread)
+                if (channel.Type is DiscordChannelType.NewsThread or DiscordChannelType.PublicThread or DiscordChannelType.PrivateThread)
                 {
                     webhookBuilder.WithThreadId(channel.Id);
                 }

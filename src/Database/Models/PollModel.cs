@@ -206,13 +206,13 @@ namespace OoLunar.Tomoe.Database.Models
 
             // If the bot does not have permissions to send messages in the poll channel
             // DM the poll owner asking them to fix this.
-            Permissions channelPermissionsForBot = channel.PermissionsFor(guild.CurrentMember);
-            if ((!channel.IsThread && !channelPermissionsForBot.HasPermission(Permissions.SendMessages))
-                || (channel.IsThread && !channelPermissionsForBot.HasPermission(Permissions.SendMessagesInThreads)))
+            DiscordPermissions channelPermissionsForBot = channel.PermissionsFor(guild.CurrentMember);
+            if ((!channel.IsThread && !channelPermissionsForBot.HasPermission(DiscordPermissions.SendMessages))
+                || (channel.IsThread && !channelPermissionsForBot.HasPermission(DiscordPermissions.SendMessagesInThreads)))
             {
                 DiscordMember member = await guild.GetMemberAsync(client.CurrentUser.Id);
-                Permissions channelPermissionsForUser = channel.PermissionsFor(member);
-                await member.SendMessageAsync($"I don't have permission to send messages in {channel.Mention} in {guild.Name}. I'm trying to send the results to a poll but I can't! {(channelPermissionsForUser.HasPermission(Permissions.ManageChannels) || channelPermissionsForUser.HasPermission(Permissions.ManageRoles)
+                DiscordPermissions channelPermissionsForUser = channel.PermissionsFor(member);
+                await member.SendMessageAsync($"I don't have permission to send messages in {channel.Mention} in {guild.Name}. I'm trying to send the results to a poll but I can't! {(channelPermissionsForUser.HasPermission(DiscordPermissions.ManageChannels) || channelPermissionsForUser.HasPermission(DiscordPermissions.ManageRoles)
                     ? "Could you please fix this?"
                     : "Please let an administrator know so they can fix this.")}");
 
@@ -248,7 +248,7 @@ namespace OoLunar.Tomoe.Database.Models
             messageBuilder.WithReply(expirable.MessageId);
 
             // Ensure we only add the embed when we have permission to do so.
-            if (channelPermissionsForBot.HasPermission(Permissions.EmbedLinks))
+            if (channelPermissionsForBot.HasPermission(DiscordPermissions.EmbedLinks))
             {
                 DiscordEmbedBuilder embedBuilder = new()
                 {
@@ -285,7 +285,7 @@ namespace OoLunar.Tomoe.Database.Models
                         continue;
                     }
 
-                    if (button.Style == ButtonStyle.Danger)
+                    if (button.Style == DiscordButtonStyle.Danger)
                     {
                         actionRow = new DiscordActionRowComponent(actionRow.Components
                             // Take all the buttons before the delete button

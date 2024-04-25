@@ -1,12 +1,10 @@
 using System.Globalization;
 using System.Text;
 using System.Threading.Tasks;
-using DSharpPlus;
 using DSharpPlus.Commands;
+using DSharpPlus.Commands.ArgumentModifiers;
 using DSharpPlus.Commands.ContextChecks;
-using DSharpPlus.Commands.Processors.TextCommands.Attributes;
 using DSharpPlus.Commands.Trees;
-using DSharpPlus.Commands.Trees.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
 using OoLunar.Tomoe.Database.Models;
@@ -15,7 +13,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
 {
     public static class BanCommand
     {
-        [Command("ban"), RequirePermissions(Permissions.BanMembers), RequireGuild]
+        [Command("ban"), RequirePermissions(DiscordPermissions.BanMembers), RequireGuild]
         public static async ValueTask ExecuteAsync(CommandContext context, DiscordUser user, [RemainingText] string? reason = null)
         {
             if (await GuildMemberModel.IsUserBannedAsync(user.Id, context.Guild!.Id))

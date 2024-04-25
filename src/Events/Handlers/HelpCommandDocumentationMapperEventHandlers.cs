@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.Trees;
-using DSharpPlus.Commands.Trees.Attributes;
 using DSharpPlus.EventArgs;
 using OoLunar.XmlDocsNET;
 using OoLunar.XmlDocsNET.Members;

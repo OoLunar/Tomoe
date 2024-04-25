@@ -1,10 +1,8 @@
 using System.Threading.Tasks;
-using DSharpPlus;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.ContextChecks;
-using DSharpPlus.Commands.Processors.TextCommands.Attributes;
 using DSharpPlus.Commands.Trees;
-using DSharpPlus.Commands.Trees.Attributes;
+using DSharpPlus.Commands.Trees.Metadata;
 using DSharpPlus.Entities;
 
 namespace OoLunar.Tomoe.Commands.Common
@@ -14,7 +12,7 @@ namespace OoLunar.Tomoe.Commands.Common
         [Command("quote"), TextAlias("rat", "mock", "q"), RequireGuild]
         public static ValueTask ExecuteAsync(CommandContext context, DiscordMessage message)
         {
-            if (!message.Channel!.PermissionsFor(context.Member!).HasPermission(Permissions.AccessChannels))
+            if (!message.Channel!.PermissionsFor(context.Member!).HasPermission(DiscordPermissions.AccessChannels))
             {
                 return context.RespondAsync("You don't have access to that message!");
             }

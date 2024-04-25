@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.Trees;
-using DSharpPlus.Commands.Trees.Attributes;
 using DSharpPlus.Entities;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;

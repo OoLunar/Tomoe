@@ -2,11 +2,11 @@ using System;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Commands;
+using DSharpPlus.Commands.ArgumentModifiers;
 using DSharpPlus.Commands.Converters;
 using DSharpPlus.Commands.Processors.TextCommands;
-using DSharpPlus.Commands.Processors.TextCommands.Attributes;
 using DSharpPlus.Commands.Trees;
-using DSharpPlus.Commands.Trees.Attributes;
+using DSharpPlus.Commands.Trees.Metadata;
 using OoLunar.Tomoe.Database;
 using OoLunar.Tomoe.Database.Models;
 

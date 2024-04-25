@@ -3,12 +3,11 @@ using System.Text;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Commands;
-using DSharpPlus.Commands.Processors.SlashCommands.Attributes;
+using DSharpPlus.Commands.Processors.SlashCommands;
 using DSharpPlus.Commands.Processors.TextCommands;
-using DSharpPlus.Commands.Processors.TextCommands.Attributes;
 using DSharpPlus.Commands.Processors.TextCommands.ContextChecks;
 using DSharpPlus.Commands.Trees;
-using DSharpPlus.Commands.Trees.Attributes;
+using DSharpPlus.Commands.Trees.Metadata;
 using DSharpPlus.Entities;
 using DSharpPlus.Net.Serialization;
 
@@ -16,7 +15,7 @@ namespace OoLunar.Tomoe.Commands.Common
 {
     public static class RawCommand
     {
-        [Command("raw"), TextAlias("print"), SlashCommandTypes(ApplicationCommandType.SlashCommand, ApplicationCommandType.MessageContextMenu)]
+        [Command("raw"), TextAlias("print"), SlashCommandTypes(DiscordApplicationCommandType.SlashCommand, DiscordApplicationCommandType.MessageContextMenu)]
         public static ValueTask ExecuteAsync(CommandContext context, [TextMessageReply] DiscordMessage? message = null, bool jsonfied = false)
         {
             if (context is TextCommandContext textContext && message is null)
