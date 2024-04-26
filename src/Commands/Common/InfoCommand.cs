@@ -26,7 +26,7 @@ namespace OoLunar.Tomoe.Commands.Common
     /// <summary>
     /// I should split this into multiple partial files.
     /// </summary>
-    [Command("info")]
+    [Command("info"), RequirePermissions(DiscordPermissions.EmbedLinks, DiscordPermissions.None)]
     public sealed partial class InfoCommand
     {
         private static readonly string _operatingSystem = $"{Environment.OSVersion} {RuntimeInformation.OSArchitecture.ToString().ToLower(CultureInfo.InvariantCulture)}";

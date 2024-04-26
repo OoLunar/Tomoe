@@ -16,7 +16,7 @@ namespace OoLunar.Tomoe.Commands.Common
         /// Links a message from another channel.
         /// </summary>
         /// <param name="message">The message to repeat.</param>
-        [Command("quote"), TextAlias("rat", "mock", "q", "tattle-tale", "tattle"), RequireGuild]
+        [Command("quote"), TextAlias("rat", "mock", "q", "tattle-tale", "tattle"), RequireGuild, RequirePermissions(DiscordPermissions.EmbedLinks | DiscordPermissions.ReadMessageHistory, DiscordPermissions.None)]
         public static ValueTask ExecuteAsync(CommandContext context, DiscordMessage message)
         {
             if (!message.Channel!.PermissionsFor(context.Member!).HasPermission(DiscordPermissions.AccessChannels))

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using DSharpPlus.Commands;
+using DSharpPlus.Commands.ContextChecks;
 using DSharpPlus.Commands.Processors.TextCommands.ContextChecks;
 using DSharpPlus.Entities;
 using SixLabors.ImageSharp;
@@ -32,7 +33,7 @@ namespace OoLunar.Tomoe.Commands.Common
         /// </summary>
         /// <param name="attachment">The image to rotate.</param>
         /// <param name="degrees">The degrees to rotate the image by. Defaults to 90. Only supports increments of 90.</param>
-        [Command("rotate"), Description("Rotates the image by the specified degrees.")]
+        [Command("rotate"), Description("Rotates the image by the specified degrees."), RequirePermissions(DiscordPermissions.AttachFiles, DiscordPermissions.None)]
         public async ValueTask ExecuteAsync(CommandContext context, [TextMessageReply] DiscordAttachment attachment, float degrees = 90.0f)
         {
             // Download the image, rotate it, and send it back

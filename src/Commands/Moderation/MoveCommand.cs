@@ -31,7 +31,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
         /// <param name="channel">Which channel to send the messages to.</param>
         /// <param name="firstMessage">Where to start copying messages from.</param>
         /// <param name="lastMessage">Where to stop copying messages from. If not provided, will copy all messages after the first message.</param>
-        [Command("move"), Description("Moves a chunk of messages (inclusive) to a different channel."), RequirePermissions(DiscordPermissions.ManageMessages)]
+        [Command("move"), Description("Moves a chunk of messages (inclusive) to a different channel."), RequirePermissions(DiscordPermissions.ManageMessages | DiscordPermissions.ReadMessageHistory)]
         public async ValueTask MoveAsync(CommandContext context, DiscordChannel channel, DiscordMessage firstMessage, DiscordMessage? lastMessage = null)
         {
             await context.DeleteResponseAsync();

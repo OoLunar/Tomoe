@@ -1,8 +1,10 @@
 using System;
 using System.Threading.Tasks;
 using DSharpPlus.Commands;
+using DSharpPlus.Commands.ContextChecks;
 using DSharpPlus.Commands.Trees;
 using DSharpPlus.Commands.Trees.Metadata;
+using DSharpPlus.Entities;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
@@ -14,7 +16,7 @@ namespace OoLunar.Tomoe.Commands.Common
         /// <summary>
         /// Heads or tails?
         /// </summary>
-        [Command("flip"), TextAlias("random")]
+        [Command("flip"), TextAlias("random"), RequirePermissions(DiscordPermissions.EmbedLinks, DiscordPermissions.None)]
         public static async ValueTask ExecuteAsync(CommandContext context)
         {
             await context.DeferResponseAsync();

@@ -5,10 +5,12 @@ using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.ArgumentModifiers;
+using DSharpPlus.Commands.ContextChecks;
 using DSharpPlus.Commands.Converters;
 using DSharpPlus.Commands.Processors.TextCommands;
 using DSharpPlus.Commands.Trees;
 using DSharpPlus.Commands.Trees.Metadata;
+using DSharpPlus.Entities;
 using OoLunar.Tomoe.Database;
 using OoLunar.Tomoe.Database.Models;
 
@@ -36,7 +38,7 @@ namespace OoLunar.Tomoe.Commands.Common
         /// </summary>
         /// <param name="expiresAt">When you should be notified.</param>
         /// <param name="content">What you want to be reminded about.</param>
-        [Command("set"), DefaultGroupCommand]
+        [Command("set"), DefaultGroupCommand, RequirePermissions(DiscordPermissions.AttachFiles, DiscordPermissions.None)]
         public async ValueTask SetAsync(CommandContext context, string expiresAt, [RemainingText] string? content = null)
         {
             DateTimeOffset expires;

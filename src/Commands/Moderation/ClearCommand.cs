@@ -23,7 +23,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
         /// <param name="firstMessage">Removes any messages after this message.</param>
         /// <param name="lastMessage">Removes any messages before this message.</param>
         /// <param name="reason">Why the messages are being deleted.</param>
-        [Command("clear"), Description("Clears messages from chat."), RequirePermissions(DiscordPermissions.ManageMessages)]
+        [Command("clear"), Description("Clears messages from chat."), RequirePermissions(DiscordPermissions.ManageMessages | DiscordPermissions.ReadMessageHistory)]
         public static async ValueTask ExecuteAsync(CommandContext context, DiscordMessage firstMessage, DiscordMessage? lastMessage = null, [RemainingText] string? reason = null)
         {
             List<DiscordMessage> messages = [];

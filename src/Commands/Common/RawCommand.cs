@@ -3,6 +3,7 @@ using System.Text;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Commands;
+using DSharpPlus.Commands.ContextChecks;
 using DSharpPlus.Commands.Processors.SlashCommands;
 using DSharpPlus.Commands.Processors.TextCommands;
 using DSharpPlus.Commands.Processors.TextCommands.ContextChecks;
@@ -23,7 +24,7 @@ namespace OoLunar.Tomoe.Commands.Common
         /// </summary>
         /// <param name="message">The message to get the raw content of.</param>
         /// <param name="jsonfied">Whether to return the raw content as JSON.</param>
-        [Command("raw"), TextAlias("print"), SlashCommandTypes(DiscordApplicationCommandType.SlashCommand, DiscordApplicationCommandType.MessageContextMenu)]
+        [Command("raw"), TextAlias("print"), SlashCommandTypes(DiscordApplicationCommandType.SlashCommand, DiscordApplicationCommandType.MessageContextMenu), RequirePermissions(DiscordPermissions.ReadMessageHistory | DiscordPermissions.EmbedLinks, DiscordPermissions.None)]
         public static ValueTask ExecuteAsync(CommandContext context, [TextMessageReply] DiscordMessage? message = null, bool jsonfied = false)
         {
             if (context is TextCommandContext textContext && message is null)

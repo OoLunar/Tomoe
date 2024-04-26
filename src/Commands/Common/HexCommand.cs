@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Commands;
+using DSharpPlus.Commands.ContextChecks;
 using DSharpPlus.Commands.Trees;
 using DSharpPlus.Entities;
 using SixLabors.ImageSharp;
@@ -25,7 +26,7 @@ namespace OoLunar.Tomoe.Commands.Common
         /// Returns information about the provided hex color code.
         /// </summary>
         /// <param name="hexCode">Which HTML hex code to get information about.</param>
-        [Command("hex")]
+        [Command("hex"), RequirePermissions(DiscordPermissions.EmbedLinks | DiscordPermissions.AttachFiles, DiscordPermissions.None)]
         public static ValueTask ExecuteAsync(CommandContext context, string hexCode)
         {
             if (!IsValidHex(hexCode))
