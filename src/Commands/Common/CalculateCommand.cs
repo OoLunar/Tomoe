@@ -8,13 +8,15 @@ using DSharpPlus.Commands.Trees.Metadata;
 namespace OoLunar.Tomoe.Commands.Common
 {
     /// <summary>
-    /// Preforms basic arithmetic calculations.
+    /// 1 + 1 = 2, quick maths.
     /// </summary>
     public sealed class CalculateCommand
     {
         private static readonly DataTable _dataTable = new();
 
-        /// <inheritdoc cref="CalculateCommand"/>
+        /// <summary>
+        /// Preforms basic arithmetic calculations.
+        /// </summary>
         [Command("calculate"), TextAlias("calc")]
         public static ValueTask ExecuteAsync(CommandContext context, [RemainingText] string expression) => context.RespondAsync($"{_dataTable.Compute(expression, null):N0}");
     }

@@ -54,7 +54,7 @@ namespace OoLunar.Tomoe.Commands.Common
         private static DiscordMessageBuilder GetHelpMessage(CommandContext context, Command command)
         {
             DiscordEmbedBuilder embed = new();
-            embed.WithTitle($"Help Command: `{command.Name.Titleize()}`");
+            embed.WithTitle($"Help Command: `{command.FullName.Titleize()}`");
             embed.WithDescription(HelpCommandDocumentationMapperEventHandlers.CommandDocumentation.TryGetValue(command, out string? documentation) ? documentation : "No description provided.");
             if (command.Subcommands.Count > 0)
             {
@@ -106,32 +106,38 @@ namespace OoLunar.Tomoe.Commands.Common
 
         private static Command? GetCommand(IEnumerable<Command> commands, string name)
         {
-            int index = name.IndexOf(' ');
-            string commandName = index == -1 ? name : name[..index];
-            foreach (Command command in commands)
+            string commandName;
+            int spaceIndex = -1;
+            do
             {
-                if (command.Name.Equals(commandName, StringComparison.OrdinalIgnoreCase))
+                spaceIndex = name.IndexOf(' ', spaceIndex + 1);
+                commandName = spaceIndex == -1 ? name : name[..spaceIndex];
+                commandName = commandName.Underscore();
+                foreach (Command command in commands)
                 {
-                    return index == -1 ? command : GetCommand(command.Subcommands, name[(index + 1)..]);
-                }
-            }
-
-            // Search aliases
-            foreach (Command command in commands)
-            {
-                foreach (Attribute attribute in command.Attributes)
-                {
-                    if (attribute is not TextAliasAttribute aliasAttribute)
+                    if (command.Name.Equals(commandName, StringComparison.OrdinalIgnoreCase))
                     {
-                        continue;
-                    }
-
-                    if (aliasAttribute.Aliases.Any(alias => alias.Equals(commandName, StringComparison.OrdinalIgnoreCase)))
-                    {
-                        return index == -1 ? command : GetCommand(command.Subcommands, name[(index + 1)..]);
+                        return spaceIndex == -1 ? command : GetCommand(command.Subcommands, name[(spaceIndex + 1)..]);
                     }
                 }
-            }
+
+                // Search aliases
+                foreach (Command command in commands)
+                {
+                    foreach (Attribute attribute in command.Attributes)
+                    {
+                        if (attribute is not TextAliasAttribute aliasAttribute)
+                        {
+                            continue;
+                        }
+
+                        if (aliasAttribute.Aliases.Any(alias => alias.Equals(commandName, StringComparison.OrdinalIgnoreCase)))
+                        {
+                            return spaceIndex == -1 ? command : GetCommand(command.Subcommands, name[(spaceIndex + 1)..]);
+                        }
+                    }
+                }
+            } while (spaceIndex != -1);
 
             return null;
         }
