@@ -64,7 +64,9 @@ namespace OoLunar.Tomoe.Commands.Common
             }
             else if (string.IsNullOrWhiteSpace(content))
             {
-                content = "You wanted me to remind you about... Something. I don't know what though!";
+                content = context is TextCommandContext textCommandContext && textCommandContext.Message.ReferencedMessage is not null
+                    ? textCommandContext.Message.ReferencedMessage.Content
+                    : "You wanted me to remind you about... Something. I don't know what though!";
             }
 
             ulong messageId = 0;
