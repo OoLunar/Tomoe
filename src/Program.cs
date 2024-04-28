@@ -100,7 +100,7 @@ namespace OoLunar.Tomoe
             });
 
             // Explicit initialization of the allocation rate tracker to prevent incorrect values.
-            serviceCollection.AddSingleton(() => new AllocationRateTracker());
+            serviceCollection.AddSingleton(new AllocationRateTracker());
             serviceCollection.AddSingleton<ImageUtilities>();
             serviceCollection.AddSingleton(serviceProvider =>
             {

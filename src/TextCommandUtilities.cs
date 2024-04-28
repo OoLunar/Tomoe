@@ -47,8 +47,8 @@ namespace OoLunar.Tomoe
                 Splicer = context.Extension.GetProcessor<TextCommandProcessor>().Configuration.TextArgumentSplicer,
                 User = context.User
             };
-            converterContext.NextArgument();
 
+            converterContext.NextArgument();
             return converter.ConvertAsync(converterContext, CreateFakeMessageEventArgs(context, value));
         }
 
