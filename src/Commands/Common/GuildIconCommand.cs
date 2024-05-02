@@ -48,7 +48,7 @@ namespace OoLunar.Tomoe.Commands.Common
 
             if (context.Client.Guilds.TryGetValue(guildId, out DiscordGuild? guild))
             {
-                await context.RespondAsync(guild.GetIconUrl(imageFormat, imageDimensions));
+                await context.RespondAsync(guild.GetIconUrl(imageFormat, imageDimensions)!);
                 return;
             }
 

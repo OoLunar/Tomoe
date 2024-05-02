@@ -93,9 +93,9 @@ namespace OoLunar.Tomoe
                 MatchCollection roleMatches = _roleMentionRegex().Matches(content);
                 foreach (Match match in roleMatches.Cast<Match>())
                 {
-                    if (ulong.TryParse(match.Groups[1].Value, out ulong roleId))
+                    if (ulong.TryParse(match.Groups[1].Value, out ulong roleId) && context.Guild.GetRole(roleId) is DiscordRole role)
                     {
-                        roleMentions.Add(context.Guild.GetRole(roleId));
+                        roleMentions.Add(role);
                     }
                 }
 
