@@ -31,12 +31,27 @@ namespace OoLunar.Tomoe.Commands.Moderation
     /// </summary>
     public static class EvalCommand
     {
-        private sealed class EvalContext
+        /// <summary>
+        /// Allows the eval script to access contextual data.
+        /// </summary>
+        public sealed class EvalContext
         {
+            /// <inheritdoc cref="EvalContext" />
             public required CommandContext Context { get; init; }
+
+            /// <inheritdoc cref="EvalContext" />
             public required CommandContext context { get; init; }
+
+            /// <summary>
+            /// Whether the returned response was transformed into JSON data or not.
+            /// </summary>
             public bool IsJson { get; private set; }
 
+            /// <summary>
+            /// The data object to serialize into JSON data.
+            /// </summary>
+            /// <param name="obj">The object being read.</param>
+            /// <returns>The JSON data.</returns>
             [return: NotNullIfNotNull(nameof(obj))]
             public string? ToJson(object? obj)
             {
