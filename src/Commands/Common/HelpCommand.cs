@@ -97,7 +97,7 @@ namespace OoLunar.Tomoe.Commands.Common
                     embed.AddField($"{parameter.Name.Titleize()} - {context.Extension.GetProcessor<TextCommandProcessor>().Converters[GetConverterFriendlyBaseType(parameter.Type)].ReadableName}", HelpCommandDocumentationMapperEventHandlers.CommandParameterDocumentation.TryGetValue(parameter, out string? parameterDocumentation) ? parameterDocumentation : "No description provided.");
                 }
 
-                embed.WithImageUrl("https://files.forsaken-borders.net/transparent.png?cache-bust=1");
+                embed.WithImageUrl("https://files.forsaken-borders.net/transparent.png");
                 embed.WithFooter("<> = required, [] = optional");
             }
 
