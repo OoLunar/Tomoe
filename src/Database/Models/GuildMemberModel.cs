@@ -23,6 +23,7 @@ namespace OoLunar.Tomoe.Database.Models
         private static readonly NpgsqlCommand _bulkUpsert;
         private static readonly NpgsqlCommand _countGuilds;
         private static readonly NpgsqlCommand _countMembers;
+        private static readonly NpgsqlCommand _countMembersWithRole;
         private static readonly NpgsqlCommand _countMembersOfGuild;
         private static readonly NpgsqlCommand _findMutualGuild;
         private static readonly NpgsqlCommand _isUserBanned;
@@ -66,9 +67,6 @@ namespace OoLunar.Tomoe.Database.Models
             _deleteMember.Parameters.Add(new("@user_id", NpgsqlDbType.Bigint));
             _deleteMember.Parameters.Add(new("@guild_id", NpgsqlDbType.Bigint));
 
-            _countMembersOfGuild = new("SELECT COUNT(*) FROM guild_members WHERE guild_id = @guild_id;");
-            _countMembersOfGuild.Parameters.Add(new("@guild_id", NpgsqlDbType.Bigint));
-
             _getAllMembers = new("SELECT * FROM guild_members WHERE guild_id = @guild_id;");
             _getAllMembers.Parameters.Add(new("@guild_id", NpgsqlDbType.Bigint));
 
@@ -100,7 +98,14 @@ namespace OoLunar.Tomoe.Database.Models
             _bulkUpsert.Parameters.Add(new("@role_ids", NpgsqlDbType.Array | NpgsqlDbType.Bigint));
 
             _countGuilds = new("SELECT COUNT(DISTINCT guild_id) FROM guild_members;");
-            _countMembers = new("SELECT COUNT(*) FROM guild_members;");
+            _countMembers = new("SELECT COUNT(user_id) FROM guild_members;");
+
+            _countMembersWithRole = new("SELECT COUNT(user_id) FROM guild_members WHERE guild_id = @guild_id AND @role_id = ANY(role_ids);");
+            _countMembersWithRole.Parameters.Add(new("@guild_id", NpgsqlDbType.Bigint));
+            _countMembersWithRole.Parameters.Add(new("@role_id", NpgsqlDbType.Bigint));
+
+            _countMembersOfGuild = new("SELECT COUNT(guild_id) FROM guild_members WHERE guild_id = @guild_id;");
+            _countMembersOfGuild.Parameters.Add(new("@guild_id", NpgsqlDbType.Bigint));
 
             _findMutualGuild = new("SELECT guild_id FROM guild_members WHERE user_id = @user_id AND state | 1 = 1;");
             _findMutualGuild.Parameters.Add(new("@user_id", NpgsqlDbType.Bigint));
@@ -192,6 +197,25 @@ namespace OoLunar.Tomoe.Database.Models
                         RoleIds = new(Unsafe.As<long[], ulong[]>(ref roleIds))
                     };
                 }
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
+        }
+
+        public static async ValueTask<ulong> CountMembersWithRoleAsync(ulong guildId, ulong roleId)
+        {
+            await _semaphore.WaitAsync();
+            try
+            {
+                _countMembersWithRole.Parameters["guild_id"].Value = (long)guildId;
+                _countMembersWithRole.Parameters["role_id"].Value = (long)roleId;
+
+                using NpgsqlDataReader reader = await _countMembersWithRole.ExecuteReaderAsync();
+                await reader.ReadAsync();
+                long count = reader.GetInt64(0)!;
+                return Unsafe.As<long, ulong>(ref count);
             }
             finally
             {
@@ -396,6 +420,7 @@ namespace OoLunar.Tomoe.Database.Models
             _bulkUpsert.Connection = connection;
             _countGuilds.Connection = connection;
             _countMembers.Connection = connection;
+            _countMembersWithRole.Connection = connection;
             _countMembersOfGuild.Connection = connection;
             _findMutualGuild.Connection = connection;
             _isUserBanned.Connection = connection;
@@ -410,6 +435,7 @@ namespace OoLunar.Tomoe.Database.Models
             await _bulkUpsert.PrepareAsync();
             await _countGuilds.PrepareAsync();
             await _countMembers.PrepareAsync();
+            await _countMembersWithRole.PrepareAsync();
             await _countMembersOfGuild.PrepareAsync();
             await _findMutualGuild.PrepareAsync();
             await _isUserBanned.PrepareAsync();

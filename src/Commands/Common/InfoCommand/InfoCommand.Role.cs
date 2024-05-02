@@ -46,8 +46,8 @@ namespace OoLunar.Tomoe.Commands.Common
             await foreach (GuildMemberModel member in GuildMemberModel.GetMembersWithRoleAsync(context.Guild!.Id, role.Id))
             {
                 string mention = $"<@{member.UserId.ToString(CultureInfo.InvariantCulture)}>";
-                fieldCharCount += mention.Length;
-                if (fieldCharCount > 1024)
+                fieldCharCount += mention.Length + 2; // + 2 for the command and space
+                if (fieldCharCount >= 1024)
                 {
                     break;
                 }
@@ -56,8 +56,7 @@ namespace OoLunar.Tomoe.Commands.Common
             }
 
             memberMentions.Sort(string.CompareOrdinal);
-            embedBuilder.AddField("Member Count", memberMentions.Count.ToString("N0", CultureInfo.InvariantCulture), false);
-            embedBuilder.AddField("Members", string.Join(", ", memberMentions.DefaultIfEmpty("None")), true);
+            embedBuilder.AddField($"Members ({await GuildMemberModel.CountMembersWithRoleAsync(context.Guild.Id, role.Id):N0})", string.Join(", ", memberMentions.DefaultIfEmpty("None")), false);
             await context.RespondAsync(embedBuilder);
         }
     }
