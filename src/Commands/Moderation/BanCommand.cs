@@ -1,3 +1,4 @@
+using System;
 using System.Globalization;
 using System.Text;
 using System.Threading.Tasks;
@@ -56,7 +57,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
             }
 
             // Actually ban the user.
-            await context.Guild!.BanMemberAsync(user.Id, 0, reason ?? "No reason provided.");
+            await context.Guild!.BanMemberAsync(user.Id, TimeSpan.Zero, reason ?? "No reason provided.");
 
             // Use a string builder since we don't want multiple inline ternaries.
             StringBuilder stringBuilder = new();
