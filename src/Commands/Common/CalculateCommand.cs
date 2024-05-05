@@ -1,3 +1,4 @@
+using System;
 using System.Data;
 using System.Threading.Tasks;
 using DSharpPlus.Commands;
@@ -18,6 +19,13 @@ namespace OoLunar.Tomoe.Commands.Common
         /// Preforms basic arithmetic calculations.
         /// </summary>
         [Command("calculate"), TextAlias("calc")]
-        public static ValueTask ExecuteAsync(CommandContext context, [RemainingText] string expression) => context.RespondAsync($"{_dataTable.Compute(expression, null):N0}");
+        public static ValueTask ExecuteAsync(CommandContext context, [RemainingText] string expression)
+        {
+            object? value = _dataTable.Compute(expression, null);
+            return context.RespondAsync(value is decimal decimalValue
+                ? $"{decimalValue:N2}"
+                : $"{value:N0}"
+            );
+        }
     }
 }
