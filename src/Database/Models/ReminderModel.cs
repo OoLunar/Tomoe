@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using DSharpPlus;
@@ -15,6 +18,45 @@ namespace OoLunar.Tomoe.Database.Models
     [DatabaseModel]
     public sealed record ReminderModel : IExpirableModel<ReminderModel, Ulid>
     {
+        private static readonly FrozenSet<string> _discordHosts = new List<string>()
+        {
+            "airhorn.solutions",
+            "airhornbot.com",
+            "bigbeans.solutions",
+            "cdn.discordapp.com",
+            "dis.gd",
+            "discord-activities.com",
+            "discord.co",
+            "discord.com",
+            "discord.design",
+            "discord.dev",
+            "discord.gg",
+            "discord.gift",
+            "discord.media",
+            "discord.new",
+            "discord.store",
+            "discord.tools",
+            "discordapp.com",
+            "discordapp.io",
+            "discordapp.net",
+            "discordcdn.com",
+            "discordmerch.com",
+            "discordpartygames.com",
+            "discordsays.com",
+            "discordstatus.com",
+            "watchanimeattheoffice.com"
+        }.ToFrozenSet();
+
+        private static readonly FrozenSet<string> _imageExtensions = new List<string>()
+        {
+            ".apng",
+            ".gif",
+            ".jpeg",
+            ".jpg",
+            ".png",
+            ".webp"
+        }.ToFrozenSet();
+
         public static string TableName => "reminders";
         private static readonly SemaphoreSlim _semaphore = new(1, 1);
         private static readonly NpgsqlCommand _createTable;
@@ -27,6 +69,7 @@ namespace OoLunar.Tomoe.Database.Models
         public required ulong UserId { get; init; }
         public required ulong GuildId { get; init; }
         public required ulong ChannelId { get; init; }
+        public required ulong ThreadId { get; init; }
         public required ulong MessageId { get; init; }
         public required DateTimeOffset ExpiresAt { get; init; }
         public required ReminderType Type { get; init; }
@@ -40,6 +83,7 @@ namespace OoLunar.Tomoe.Database.Models
                 user_id BIGINT NOT NULL,
                 guild_id BIGINT NOT NULL,
                 channel_id BIGINT NOT NULL,
+                thread_id BIGINT NOT NULL,
                 message_id BIGINT NOT NULL,
                 expires_at TIMESTAMPTZ NOT NULL,
                 type SMALLINT NOT NULL,
@@ -47,11 +91,12 @@ namespace OoLunar.Tomoe.Database.Models
                 content TEXT NOT NULL
             );");
 
-            _createReminder = new NpgsqlCommand(@"INSERT INTO reminders (id, user_id, guild_id, channel_id, message_id, expires_at, type, interval, content) VALUES (@id, @user_id, @guild_id, @channel_id, @message_id, @expires_at, @type, @interval, @content);");
+            _createReminder = new NpgsqlCommand(@"INSERT INTO reminders (id, user_id, guild_id, channel_id, thread_id, message_id, expires_at, type, interval, content) VALUES (@id, @user_id, @guild_id, @channel_id, @thread_id, @message_id, @expires_at, @type, @interval, @content);");
             _createReminder.Parameters.Add(new NpgsqlParameter("id", NpgsqlTypes.NpgsqlDbType.Text));
             _createReminder.Parameters.Add(new NpgsqlParameter("user_id", NpgsqlTypes.NpgsqlDbType.Bigint));
             _createReminder.Parameters.Add(new NpgsqlParameter("guild_id", NpgsqlTypes.NpgsqlDbType.Bigint));
             _createReminder.Parameters.Add(new NpgsqlParameter("channel_id", NpgsqlTypes.NpgsqlDbType.Bigint));
+            _createReminder.Parameters.Add(new NpgsqlParameter("thread_id", NpgsqlTypes.NpgsqlDbType.Bigint));
             _createReminder.Parameters.Add(new NpgsqlParameter("message_id", NpgsqlTypes.NpgsqlDbType.Bigint));
             _createReminder.Parameters.Add(new NpgsqlParameter("expires_at", NpgsqlTypes.NpgsqlDbType.TimestampTz));
             _createReminder.Parameters.Add(new NpgsqlParameter("type", NpgsqlTypes.NpgsqlDbType.Smallint));
@@ -69,7 +114,7 @@ namespace OoLunar.Tomoe.Database.Models
             _listReminders.Parameters.Add(new NpgsqlParameter("offset", NpgsqlTypes.NpgsqlDbType.Bigint));
         }
 
-        public static async ValueTask<ReminderModel> CreateAsync(Ulid id, ulong userId, ulong guildId, ulong channelId, ulong messageId, DateTimeOffset expiresAt, ReminderType type, TimeSpan interval, string content)
+        public static async ValueTask<ReminderModel> CreateAsync(Ulid id, ulong userId, ulong guildId, ulong channelId, ulong threadId, ulong messageId, DateTimeOffset expiresAt, ReminderType type, TimeSpan interval, string content)
         {
             await _semaphore.WaitAsync();
             try
@@ -78,6 +123,7 @@ namespace OoLunar.Tomoe.Database.Models
                 _createReminder.Parameters["user_id"].Value = (long)userId;
                 _createReminder.Parameters["guild_id"].Value = (long)guildId;
                 _createReminder.Parameters["channel_id"].Value = (long)channelId;
+                _createReminder.Parameters["thread_id"].Value = (long)threadId;
                 _createReminder.Parameters["message_id"].Value = (long)messageId;
                 _createReminder.Parameters["expires_at"].Value = expiresAt;
                 _createReminder.Parameters["type"].Value = (short)type;
@@ -90,6 +136,7 @@ namespace OoLunar.Tomoe.Database.Models
                     UserId = userId,
                     GuildId = guildId,
                     ChannelId = channelId,
+                    ThreadId = threadId,
                     MessageId = messageId,
                     ExpiresAt = expiresAt,
                     Type = type,
@@ -184,7 +231,8 @@ namespace OoLunar.Tomoe.Database.Models
             ExpiresAt = (DateTimeOffset)reader.GetDateTime(5),
             Type = (ReminderType)reader.GetByte(6),
             Interval = reader.GetTimeSpan(7),
-            Content = reader.GetString(8)
+            Content = reader.GetString(8),
+            ThreadId = (ulong)reader.GetInt64(9),
         }) is not null;
 
         public static async ValueTask<bool> ExpireAsync(ReminderModel expirable, IServiceProvider serviceProvider)
@@ -207,7 +255,7 @@ namespace OoLunar.Tomoe.Database.Models
 
             // Make sure the user is still in the guild.
             GuildMemberModel? memberModel = await GuildMemberModel.FindMemberAsync(expirable.UserId, guild.Id);
-            if (memberModel is null || memberModel.State.HasFlag(GuildMemberState.Absent) || !guild.Channels.TryGetValue(expirable.ChannelId, out DiscordChannel? channel))
+            if (memberModel is null || memberModel.State.HasFlag(GuildMemberState.Absent) || !guild.Channels.TryGetValue(expirable.ThreadId, out DiscordChannel? channel))
             {
                 return await DmUserAsync(shardedClient, expirable);
             }
@@ -276,26 +324,103 @@ namespace OoLunar.Tomoe.Database.Models
 
         private static DiscordMessageBuilder CreateReminderMessage(ReminderModel reminderModel, ulong guildId)
         {
+            DiscordMessageBuilder builder = new();
+            builder.WithAllowedMention(new UserMention(reminderModel.UserId));
+            builder.WithContent($"Hey <@{reminderModel.UserId}>, don't forget about this!");
+
             DiscordEmbedBuilder embedBuilder = new();
             embedBuilder.WithTitle($"A reminder from {Formatter.Timestamp(reminderModel.Id.Time)}!");
-            embedBuilder.WithDescription(reminderModel.Content);
             embedBuilder.AddField("Created At", Formatter.Timestamp(reminderModel.Id.Time, TimestampFormat.LongDateTime), true);
             embedBuilder.AddField("Expires At", Formatter.Timestamp(reminderModel.ExpiresAt, TimestampFormat.LongDateTime), true);
             embedBuilder.AddField("Duration", (reminderModel.ExpiresAt - reminderModel.Id.Time).Humanize(2), true);
 
-            DiscordMessageBuilder builder = new();
-            builder.WithAllowedMention(new UserMention(reminderModel.UserId));
-            builder.WithContent($"Hey <@{reminderModel.UserId}>, don't forget about this!");
+            StringBuilder contentBuilder = new();
+            List<string> attachments = new(4);
+            List<DiscordLinkButtonComponent> jumplinks = new(5);
+            foreach (string word in reminderModel.Content.Split(' ', '\n'))
+            {
+                // If we found a URL, check if it's a Discord URL.
+                // If it's not, just append it to the content.
+                if (Uri.TryCreate(word, UriKind.Absolute, out Uri? uri) && _discordHosts.Contains(uri.Host.ToLowerInvariant()))
+                {
+                    // Check to see if the URL is a jumplink
+                    if (jumplinks.Count != 5 && uri.Segments[1] == "channels/")
+                    {
+                        // Dedupe jumplinks
+                        if (!jumplinks.Any(linkButton => linkButton.Url == uri.ToString()))
+                        {
+                            jumplinks.Add(new DiscordLinkButtonComponent(uri.ToString(), $"Referenced Message {jumplinks.Count + 1}"));
+                        }
+
+                        continue;
+                    }
+
+                    // Check to see if it's an attachment
+                    int indexOfLastPeriod = uri.AbsolutePath.LastIndexOf('.');
+                    if (attachments.Count != 4 && indexOfLastPeriod != -1 && _imageExtensions.Contains(uri.AbsolutePath[indexOfLastPeriod..].ToLowerInvariant()))
+                    {
+                        attachments.Add(uri.GetLeftPart(UriPartial.Path));
+                        continue;
+                    }
+                }
+
+                // If it's not a recognized URL, just append it to the content.
+                contentBuilder.Append(word);
+                contentBuilder.Append(' ');
+                continue;
+            }
+
+            embedBuilder.WithDescription(contentBuilder.ToString().Trim());
+
+            StringBuilder jumplinkBuilder = new();
+            jumplinkBuilder.Append("https://discord.com/channels/");
+            jumplinkBuilder.Append(reminderModel.GuildId);
+            jumplinkBuilder.Append('/');
+            jumplinkBuilder.Append(reminderModel.ThreadId != 0 ? reminderModel.ThreadId : reminderModel.ChannelId);
+            jumplinkBuilder.Append('/');
+            jumplinkBuilder.Append(reminderModel.MessageId);
+            embedBuilder.WithUrl(jumplinkBuilder.ToString());
+
             if (reminderModel.GuildId != 0 && reminderModel.GuildId != guildId)
             {
                 embedBuilder.WithFooter("I tried to reach out to you in the server you set the reminder in, but I couldn't. I hope you don't mind if I DM you instead!");
+                DiscordLinkButtonComponent jumplink = new(jumplinkBuilder.ToString(), "Jump to Reminder");
+                if (jumplinks.Count < 4)
+                {
+                    jumplinks = [jumplink, .. jumplinks];
+                }
+                else
+                {
+                    builder.AddComponents(jumplinks);
+                    jumplinks = [jumplink];
+                }
             }
             else if (reminderModel.MessageId != 0)
             {
                 builder.WithReply(reminderModel.MessageId);
             }
 
-            builder.AddEmbed(embedBuilder);
+            if (jumplinks.Count != 0)
+            {
+                builder.AddComponents(jumplinks);
+            }
+
+            if (attachments.Count == 0)
+            {
+                builder.AddEmbed(embedBuilder);
+                return builder;
+            }
+
+            // In order for multiple attachments to be displayed within a single embed,
+            // we must send multiple embeds differing only in the image URL
+            // AND they must share the same link property.
+            foreach (string attachment in attachments)
+            {
+                DiscordEmbedBuilder attachmentEmbed = new(embedBuilder);
+                attachmentEmbed.WithImageUrl(attachment);
+                builder.AddEmbed(attachmentEmbed);
+            }
+
             return builder;
         }
     }

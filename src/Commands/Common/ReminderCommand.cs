@@ -62,20 +62,25 @@ namespace OoLunar.Tomoe.Commands.Common
                 await context.RespondAsync("I'm sorry, I can't go back in the past to remind you.");
                 return;
             }
-            else if (string.IsNullOrWhiteSpace(content))
+
+            ulong messageId = 0;
+            if (context is TextCommandContext textContext)
+            {
+                messageId = textContext.Message.Id;
+                content = FormatReminder(textContext.Message, content);
+            }
+
+            if (string.IsNullOrWhiteSpace(content))
             {
                 content = context is TextCommandContext textCommandContext && textCommandContext.Message.ReferencedMessage is not null
                     ? textCommandContext.Message.ReferencedMessage.Content
                     : "You wanted me to remind you about... Something. I don't know what though!";
             }
 
-            ulong messageId = 0;
-            if (context is TextCommandContext textContext)
-            {
-                messageId = textContext.Message.Id;
-            }
+            ReminderModel reminderModel = context.Channel is DiscordThreadChannel threadChannel
+                ? await ReminderModel.CreateAsync(Ulid.NewUlid(now), context.User.Id, context.Guild?.Id ?? 0, threadChannel.ParentId.GetValueOrDefault(), threadChannel.Id, messageId, expires, ReminderType.OneTime, TimeSpan.Zero, content)
+                : await ReminderModel.CreateAsync(Ulid.NewUlid(now), context.User.Id, context.Guild?.Id ?? 0, context.Channel.Id, 0, messageId, expires, ReminderType.OneTime, TimeSpan.Zero, content);
 
-            ReminderModel reminderModel = await ReminderModel.CreateAsync(Ulid.NewUlid(), context.User.Id, context.Guild?.Id ?? 0, context.Channel.Id, messageId, expires, ReminderType.OneTime, TimeSpan.Zero, content);
             _reminderManager.AddToCache(reminderModel.Id, reminderModel.ExpiresAt);
             await context.RespondAsync($"Reminder set! I'll ping you {Formatter.Timestamp(expires - now)}.");
         }
@@ -105,6 +110,41 @@ namespace OoLunar.Tomoe.Commands.Common
                     return;
                 }
             }
+        }
+
+        private static string FormatReminder(DiscordMessage message, string? content = null)
+        {
+            StringBuilder stringBuilder = new();
+
+            content ??= message.Content;
+            if (!string.IsNullOrWhiteSpace(content))
+            {
+                stringBuilder.AppendLine(content);
+            }
+
+            foreach (DiscordAttachment attachment in message.Attachments)
+            {
+                stringBuilder.AppendLine(attachment.Url);
+            }
+
+            if (message.Poll is not null)
+            {
+                stringBuilder.Append("Poll: ");
+                stringBuilder.AppendLine(message.Poll.Question.Text);
+            }
+
+            if (message.ReferencedMessage is not null)
+            {
+                // We haven't gotten text content, an attachment or a poll... How did this message even send?
+                if (stringBuilder.Length == 0)
+                {
+                    return FormatReminder(message.ReferencedMessage);
+                }
+
+                stringBuilder.AppendLine(message.ReferencedMessage.JumpLink.ToString());
+            }
+
+            return stringBuilder.ToString();
         }
     }
 }
