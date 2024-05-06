@@ -29,9 +29,9 @@ namespace OoLunar.Tomoe
         [UnsafeAccessor(UnsafeAccessorKind.Method, Name = "set_Content")] private static extern void _messageContentSetter(DiscordMessage message, string content);
         [UnsafeAccessor(UnsafeAccessorKind.Method, Name = "set_ChannelId")] private static extern void _messageChannelIdSetter(DiscordMessage message, ulong channelId);
         [UnsafeAccessor(UnsafeAccessorKind.Method, Name = "set_Author")] private static extern void _messageAuthorSetter(DiscordMessage message, DiscordUser author);
-        [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "_mentionedUsers")] private static extern ref List<DiscordUser> _messageMentionedUsersSetter(DiscordMessage message);
-        [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "_mentionedRoles")] private static extern ref List<DiscordRole> _messageMentionedRolesSetter(DiscordMessage message);
-        [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "_mentionedChannels")] private static extern ref List<DiscordChannel> _messageMentionedChannelsSetter(DiscordMessage message);
+        [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "mentionedUsers")] private static extern ref List<DiscordUser> _messageMentionedUsersSetter(DiscordMessage message);
+        [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "mentionedRoles")] private static extern ref List<DiscordRole> _messageMentionedRolesSetter(DiscordMessage message);
+        [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "mentionedChannels")] private static extern ref List<DiscordChannel> _messageMentionedChannelsSetter(DiscordMessage message);
 
         public static Task<Optional<T>> ExecuteAsync<T>(this ITextArgumentConverter<T> converter, CommandContext context, string value)
         {
