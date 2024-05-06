@@ -35,7 +35,7 @@ namespace OoLunar.Tomoe.Commands.Common
             embedBuilder.AddField("User Mention", user.Mention, true);
 
             List<string> userFlags = [];
-            if (!user.Flags.HasValue)
+            if (!user.Flags.HasValue || user.Flags.Value == DiscordUserFlags.None)
             {
                 userFlags.Add("None");
             }
@@ -69,7 +69,7 @@ namespace OoLunar.Tomoe.Commands.Common
                 }
             }
 
-            embedBuilder.AddField("User Flags", userFlags.DefaultIfEmpty($"Unknown flags: {user.Flags}").Humanize(), true);
+            embedBuilder.AddField("User Flags", $"{userFlags.DefaultIfEmpty($"Unknown flags: {user.Flags}").Humanize()}.", false);
             embedBuilder.AddField("Joined Discord", Formatter.Timestamp(user.CreationTimestamp, TimestampFormat.RelativeTime), true);
 
             // This means they're not in the server and they've never joined previously.
