@@ -255,9 +255,28 @@ namespace OoLunar.Tomoe.Database.Models
 
             // Make sure the user is still in the guild.
             GuildMemberModel? memberModel = await GuildMemberModel.FindMemberAsync(expirable.UserId, guild.Id);
-            if (memberModel is null || memberModel.State.HasFlag(GuildMemberState.Absent) || !guild.Channels.TryGetValue(expirable.ThreadId, out DiscordChannel? channel))
+            if (memberModel is null || memberModel.State.HasFlag(GuildMemberState.Absent) || !guild.Channels.TryGetValue(expirable.ChannelId, out DiscordChannel? channel))
             {
                 return await DmUserAsync(shardedClient, expirable);
+            }
+
+            // If the reminder was sent in a thread, try to send the reminder in the thread.
+            if (expirable.ThreadId != 0)
+            {
+                try
+                {
+                    // Ensure the thread wasn't deleted or locked.
+                    // Even if we have perms to unlock it, we should just DM the user instead
+                    // and respect the current state of the thread.
+                    if (await client.GetChannelAsync(expirable.ThreadId) is not DiscordThreadChannel threadChannel
+                        || threadChannel.ThreadMetadata.IsLocked.GetValueOrDefault())
+                    {
+                        return await DmUserAsync(shardedClient, expirable);
+                    }
+
+                    channel = threadChannel;
+                }
+                catch (DiscordException) { }
             }
 
             // Double check if the bot has permissions to send messages in the channel.
