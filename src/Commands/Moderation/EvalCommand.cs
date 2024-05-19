@@ -99,7 +99,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
                     "DSharpPlus.Entities"
                 ]);
 
-            _discordJson = (JsonSerializer)typeof(DiscordJson).GetField("_serializer", BindingFlags.NonPublic | BindingFlags.Static)!.GetValue(null)!;
+            _discordJson = (JsonSerializer)typeof(DiscordJson).GetField("serializer", BindingFlags.NonPublic | BindingFlags.Static)!.GetValue(null)!;
         }
 
         /// <summary>
