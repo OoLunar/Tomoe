@@ -11,7 +11,7 @@ namespace OoLunar.Tomoe.Events.Handlers
     public sealed class PollSubmittedEventHandlers
     {
         [DiscordEvent]
-        public static async Task OnPollSubmittedAsync(DiscordClient client, InteractionCreateEventArgs eventArgs)
+        public static async Task OnPollSubmittedAsync(DiscordClient client, InteractionCreatedEventArgs eventArgs)
         {
             if (eventArgs.Interaction.Type != DiscordInteractionType.Component)
             {

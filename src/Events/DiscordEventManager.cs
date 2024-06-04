@@ -3,13 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using DSharpPlus;
+using DSharpPlus.Commands.Processors.SlashCommands;
+using DSharpPlus.Commands.Processors.TextCommands;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace OoLunar.Tomoe.Events
 {
     public sealed class DiscordEventManager
     {
-        public DiscordIntents Intents { get; private set; }
+        public DiscordIntents Intents { get; private set; } = TextCommandProcessor.RequiredIntents | SlashCommandProcessor.RequiredIntents | DiscordIntents.MessageContents;
         private readonly IServiceProvider _serviceProvider;
         private readonly List<MethodInfo> _eventHandlers = [];
 
@@ -29,6 +31,29 @@ namespace OoLunar.Tomoe.Events
                     }
                 }
             }
+        }
+
+        public void RegisterEventHandlers(DiscordClientBuilder clientBuilder)
+        {
+            ArgumentNullException.ThrowIfNull(clientBuilder, nameof(clientBuilder));
+            clientBuilder.ConfigureEventHandlers(eventHandlingBuilder =>
+            {
+                foreach (MethodInfo methodInfo in typeof(EventHandlingBuilder).GetMethods(BindingFlags.Public | BindingFlags.Instance))
+                {
+                    if (!methodInfo.Name.StartsWith("Handle", StringComparison.Ordinal))
+                    {
+                        continue;
+                    }
+
+                    foreach (MethodInfo eventHandler in _eventHandlers)
+                    {
+                        if (methodInfo.GetParameters().Select(parameter => parameter.ParameterType).SequenceEqual(eventHandler.GetParameters().Select(parameter => parameter.ParameterType)))
+                        {
+                            eventHandlingBuilder = (EventHandlingBuilder)methodInfo.Invoke(eventHandlingBuilder, [eventHandler])!;
+                        }
+                    }
+                }
+            });
         }
 
         public void RegisterEventHandlers(object obj)

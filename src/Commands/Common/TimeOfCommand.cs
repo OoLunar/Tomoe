@@ -46,7 +46,7 @@ namespace OoLunar.Tomoe.Commands.Common
             foreach (string message in messages)
             {
                 converterContext.NextArgument();
-                MessageCreateEventArgs messageCreateEventArgs = TextCommandUtilities.CreateFakeMessageEventArgs(context, message);
+                MessageCreatedEventArgs messageCreateEventArgs = TextCommandUtilities.CreateFakeMessageEventArgs(context, message);
                 Optional<ulong> parsedMessageId = await _uint64Converter.ConvertAsync(converterContext, messageCreateEventArgs);
                 if (parsedMessageId.HasValue)
                 {

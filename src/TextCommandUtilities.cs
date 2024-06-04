@@ -19,11 +19,11 @@ namespace OoLunar.Tomoe
         [GeneratedRegex(@"<@!?(\d+)>", RegexOptions.Compiled)] private static partial Regex _userMentionRegex();
         [GeneratedRegex(@"<#(\d+)>", RegexOptions.Compiled)] private static partial Regex _channelMentionRegex();
 
-        [UnsafeAccessor(UnsafeAccessorKind.Constructor)] private static extern MessageCreateEventArgs _messageCreateEventArgsConstructor();
-        [UnsafeAccessor(UnsafeAccessorKind.Method, Name = "set_Message")] private static extern void _messageCreateEventArgsMessageSetter(MessageCreateEventArgs messageCreateEventArgs, DiscordMessage message);
-        [UnsafeAccessor(UnsafeAccessorKind.Method, Name = "set_MentionedUsers")] private static extern void _messageCreateEventArgsMentionedUsersSetter(MessageCreateEventArgs messageCreateEventArgs, IReadOnlyList<DiscordUser> mentionedUsers);
-        [UnsafeAccessor(UnsafeAccessorKind.Method, Name = "set_MentionedRoles")] private static extern void _messageCreateEventArgsMentionedRolesSetter(MessageCreateEventArgs messageCreateEventArgs, IReadOnlyList<DiscordRole> mentionedRoles);
-        [UnsafeAccessor(UnsafeAccessorKind.Method, Name = "set_MentionedChannels")] private static extern void _messageCreateEventArgsMentionedChannelsSetter(MessageCreateEventArgs messageCreateEventArgs, IReadOnlyList<DiscordChannel> mentionedChannels);
+        [UnsafeAccessor(UnsafeAccessorKind.Constructor)] private static extern MessageCreatedEventArgs _messageCreateEventArgsConstructor();
+        [UnsafeAccessor(UnsafeAccessorKind.Method, Name = "set_Message")] private static extern void _messageCreateEventArgsMessageSetter(MessageCreatedEventArgs messageCreateEventArgs, DiscordMessage message);
+        [UnsafeAccessor(UnsafeAccessorKind.Method, Name = "set_MentionedUsers")] private static extern void _messageCreateEventArgsMentionedUsersSetter(MessageCreatedEventArgs messageCreateEventArgs, IReadOnlyList<DiscordUser> mentionedUsers);
+        [UnsafeAccessor(UnsafeAccessorKind.Method, Name = "set_MentionedRoles")] private static extern void _messageCreateEventArgsMentionedRolesSetter(MessageCreatedEventArgs messageCreateEventArgs, IReadOnlyList<DiscordRole> mentionedRoles);
+        [UnsafeAccessor(UnsafeAccessorKind.Method, Name = "set_MentionedChannels")] private static extern void _messageCreateEventArgsMentionedChannelsSetter(MessageCreatedEventArgs messageCreateEventArgs, IReadOnlyList<DiscordChannel> mentionedChannels);
 
         [UnsafeAccessor(UnsafeAccessorKind.Constructor)] private static extern DiscordMessage _messageConstructor();
         [UnsafeAccessor(UnsafeAccessorKind.Method, Name = "set_Content")] private static extern void _messageContentSetter(DiscordMessage message, string content);
@@ -52,11 +52,11 @@ namespace OoLunar.Tomoe
             return converter.ConvertAsync(converterContext, CreateFakeMessageEventArgs(context, value));
         }
 
-        public static MessageCreateEventArgs CreateFakeMessageEventArgs(TextCommandContext context)
+        public static MessageCreatedEventArgs CreateFakeMessageEventArgs(TextCommandContext context)
         {
             ArgumentNullException.ThrowIfNull(context, nameof(context));
 
-            MessageCreateEventArgs messageCreateEventArgs = _messageCreateEventArgsConstructor();
+            MessageCreatedEventArgs messageCreateEventArgs = _messageCreateEventArgsConstructor();
             _messageCreateEventArgsMessageSetter(messageCreateEventArgs, context.Message);
             _messageCreateEventArgsMentionedUsersSetter(messageCreateEventArgs, context.Message.MentionedUsers);
             _messageCreateEventArgsMentionedRolesSetter(messageCreateEventArgs, context.Message.MentionedRoles);
@@ -65,13 +65,13 @@ namespace OoLunar.Tomoe
             return messageCreateEventArgs;
         }
 
-        public static MessageCreateEventArgs CreateFakeMessageEventArgs(CommandContext context, string content)
+        public static MessageCreatedEventArgs CreateFakeMessageEventArgs(CommandContext context, string content)
         {
             ArgumentNullException.ThrowIfNull(context, nameof(context));
             ArgumentException.ThrowIfNullOrWhiteSpace(content, nameof(content));
 
             DiscordMessage message = CreateFakeMessage(context, content);
-            MessageCreateEventArgs messageCreateEventArgs = _messageCreateEventArgsConstructor();
+            MessageCreatedEventArgs messageCreateEventArgs = _messageCreateEventArgsConstructor();
             _messageCreateEventArgsMessageSetter(messageCreateEventArgs, message);
             _messageCreateEventArgsMentionedUsersSetter(messageCreateEventArgs, message.MentionedUsers);
             _messageCreateEventArgsMentionedRolesSetter(messageCreateEventArgs, message.MentionedRoles);

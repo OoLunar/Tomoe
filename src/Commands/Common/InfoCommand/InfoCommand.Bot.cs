@@ -57,9 +57,16 @@ namespace OoLunar.Tomoe.Commands.Common
 
             StringBuilder stringBuilder = new();
             stringBuilder.Append(context.Client.CurrentUser.Mention);
-            stringBuilder.Append(", `");
-            stringBuilder.Append(((DefaultPrefixResolver)context.Extension.GetProcessor<TextCommandProcessor>().Configuration.PrefixResolver.Target!).Prefix);
-            stringBuilder.Append("`, `/`");
+            stringBuilder.Append(", ");
+            foreach (string prefix in ((DefaultPrefixResolver)context.Extension.GetProcessor<TextCommandProcessor>().Configuration.PrefixResolver.Target!).Prefixes)
+            {
+                stringBuilder.Append('`');
+                stringBuilder.Append(prefix);
+                stringBuilder.Append('`');
+                stringBuilder.Append(", ");
+            }
+
+            stringBuilder.Append(", `/`");
             embedBuilder.AddField("Prefixes", stringBuilder.ToString(), true);
             embedBuilder.AddField("Bot Version", _botVersion, true);
             embedBuilder.AddField("DSharpPlus Library Version", _dSharpPlusVersion, true);

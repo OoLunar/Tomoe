@@ -12,6 +12,7 @@ using DSharpPlus.Commands.Processors.SlashCommands;
 using DSharpPlus.Commands.Processors.TextCommands;
 using DSharpPlus.Commands.Processors.TextCommands.Parsing;
 using DSharpPlus.Commands.Processors.UserCommands;
+using DSharpPlus.Interactivity.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -22,7 +23,6 @@ using OoLunar.Tomoe.Events;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.SystemConsole.Themes;
-using DSharpPlusDiscordConfiguration = DSharpPlus.DiscordConfiguration;
 using SerilogLoggerConfiguration = Serilog.LoggerConfiguration;
 
 namespace OoLunar.Tomoe
@@ -119,23 +119,21 @@ namespace OoLunar.Tomoe
                 }
 
                 DiscordEventManager eventManager = serviceProvider.GetRequiredService<DiscordEventManager>();
-                DiscordShardedClient discordClient = new(new DSharpPlusDiscordConfiguration
-                {
-                    Token = tomoeConfiguration.Discord.Token,
-                    Intents = eventManager.Intents | TextCommandProcessor.RequiredIntents | SlashCommandProcessor.RequiredIntents | DiscordIntents.MessageContents,
-                    LoggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>(),
-                });
-
-                return discordClient;
+                DiscordClientBuilder clientBuilder = DiscordClientBuilder.CreateDefault(tomoeConfiguration.Discord.Token, eventManager.Intents, serviceCollection);
+                //clientBuilder.ConfigureLogging(logger => logger.AddSerilo)
+                eventManager.RegisterEventHandlers(clientBuilder);
+                return clientBuilder.Build();
             });
 
             // Almost start the program
             IServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
             DatabaseHandler databaseHandler = serviceProvider.GetRequiredService<DatabaseHandler>();
             TomoeConfiguration tomoeConfiguration = serviceProvider.GetRequiredService<TomoeConfiguration>();
-            DiscordShardedClient discordClient = serviceProvider.GetRequiredService<DiscordShardedClient>();
+            DiscordClient discordClient = serviceProvider.GetRequiredService<DiscordClient>();
             DiscordEventManager eventManager = serviceProvider.GetRequiredService<DiscordEventManager>();
             Assembly currentAssembly = typeof(Program).Assembly;
+
+            discordClient.UseInteractivity();
 
             // Connect to the database
             try
@@ -148,59 +146,54 @@ namespace OoLunar.Tomoe
             }
 
             // Register extensions here since these involve asynchronous operations
-            IReadOnlyDictionary<int, CommandsExtension> commandsExtensions = await discordClient.UseCommandsAsync(new CommandsConfiguration()
+            CommandsExtension commandsExtension = discordClient.UseCommands(new CommandsConfiguration()
             {
-                ServiceProvider = serviceProvider,
                 DebugGuildId = tomoeConfiguration.Discord.GuildId,
                 UseDefaultCommandErrorHandler = false,
                 RegisterDefaultCommandProcessors = false
             });
 
-            // Iterate through each Discord shard
-            foreach (CommandsExtension commandsExtension in commandsExtensions.Values)
+            // Add all commands by scanning the current assembly
+            commandsExtension.AddCommands(currentAssembly);
+
+            // Enable each command type specified by the user
+            List<ICommandProcessor> processors = [];
+            foreach (string processor in tomoeConfiguration.Discord.Processors)
             {
-                // Add all commands by scanning the current assembly
-                commandsExtension.AddCommands(currentAssembly);
-
-                // Enable each command type specified by the user
-                List<ICommandProcessor> processors = [];
-                foreach (string processor in tomoeConfiguration.Discord.Processors)
+                if (processor.Equals("text", StringComparison.OrdinalIgnoreCase))
                 {
-                    if (processor.Equals("text", StringComparison.OrdinalIgnoreCase))
+                    TextCommandProcessor textCommandProcessor = new(new()
                     {
-                        TextCommandProcessor textCommandProcessor = new(new()
-                        {
-                            PrefixResolver = new DefaultPrefixResolver(tomoeConfiguration.Discord.Prefix ?? throw new InvalidOperationException("Missing Discord prefix.")).ResolvePrefixAsync
-                        });
+                        PrefixResolver = new DefaultPrefixResolver(true, tomoeConfiguration.Discord.Prefix ?? throw new InvalidOperationException("Missing Discord prefix.")).ResolvePrefixAsync
+                    });
 
-                        textCommandProcessor.AddConverters(currentAssembly);
-                        processors.Add(textCommandProcessor);
-                    }
-                    else if (processor.Equals("slash", StringComparison.OrdinalIgnoreCase))
-                    {
-                        SlashCommandProcessor slashCommandProcessor = new();
-                        slashCommandProcessor.AddConverters(currentAssembly);
-                        processors.Add(slashCommandProcessor);
-                    }
-                    else if (processor.Equals("user", StringComparison.OrdinalIgnoreCase))
-                    {
-                        processors.Add(new UserCommandProcessor());
-                    }
-                    else if (processor.Equals("message", StringComparison.OrdinalIgnoreCase))
-                    {
-                        processors.Add(new MessageCommandProcessor());
-                    }
+                    textCommandProcessor.AddConverters(currentAssembly);
+                    processors.Add(textCommandProcessor);
                 }
-
-                await commandsExtension.AddProcessorsAsync(processors);
-                eventManager.RegisterEventHandlers(commandsExtension);
+                else if (processor.Equals("slash", StringComparison.OrdinalIgnoreCase))
+                {
+                    SlashCommandProcessor slashCommandProcessor = new();
+                    slashCommandProcessor.AddConverters(currentAssembly);
+                    processors.Add(slashCommandProcessor);
+                }
+                else if (processor.Equals("user", StringComparison.OrdinalIgnoreCase))
+                {
+                    processors.Add(new UserCommandProcessor());
+                }
+                else if (processor.Equals("message", StringComparison.OrdinalIgnoreCase))
+                {
+                    processors.Add(new MessageCommandProcessor());
+                }
             }
+
+            await commandsExtension.AddProcessorsAsync(processors);
+            eventManager.RegisterEventHandlers(commandsExtension);
 
             // Register event handlers for the Discord Client itself
             eventManager.RegisterEventHandlers(discordClient);
 
             // Connect the bot to the Discord gateway.
-            await discordClient.StartAsync();
+            await discordClient.ConnectAsync();
 
             // Wait indefinitely
             await Task.Delay(-1);
