@@ -120,7 +120,7 @@ namespace OoLunar.Tomoe
 
                 DiscordEventManager eventManager = serviceProvider.GetRequiredService<DiscordEventManager>();
                 DiscordClientBuilder clientBuilder = DiscordClientBuilder.CreateDefault(tomoeConfiguration.Discord.Token, eventManager.Intents, serviceCollection);
-                //clientBuilder.ConfigureLogging(logger => logger.AddSerilo)
+                clientBuilder.DisableDefaultLogging();
                 eventManager.RegisterEventHandlers(clientBuilder);
                 return clientBuilder.Build();
             });

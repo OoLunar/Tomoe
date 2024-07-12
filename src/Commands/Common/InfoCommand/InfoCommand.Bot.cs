@@ -51,7 +51,7 @@ namespace OoLunar.Tomoe.Commands.Common
             embedBuilder.AddField("Operating System", _operatingSystem, true);
             embedBuilder.AddField("Uptime", _getLastCommaRegex().Replace((Process.GetCurrentProcess().StartTime - DateTime.Now).Humanize(3), " and "), true);
 
-            embedBuilder.AddField("Discord Latency", _getLastCommaRegex().Replace(context.Client.Ping.Milliseconds().Humanize(3), " and "), true);
+            embedBuilder.AddField("Discord Latency", _getLastCommaRegex().Replace(context.Client.GetConnectionLatency(context.Guild?.Id ?? 0).Humanize(3), " and "), true);
             embedBuilder.AddField("Guild Count", (await GuildMemberModel.CountGuildsAsync()).ToString("N0", CultureInfo.InvariantCulture), true);
             embedBuilder.AddField("User Count", (await GuildMemberModel.CountMembersAsync()).ToString("N0", CultureInfo.InvariantCulture), true);
 

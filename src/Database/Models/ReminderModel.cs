@@ -237,27 +237,25 @@ namespace OoLunar.Tomoe.Database.Models
 
         public static async ValueTask<bool> ExpireAsync(ReminderModel expirable, IServiceProvider serviceProvider)
         {
-            DiscordShardedClient? shardedClient = serviceProvider.GetRequiredService<DiscordShardedClient>();
-            if (shardedClient is null)
+            DiscordClient? client = serviceProvider.GetRequiredService<DiscordClient>();
+            if (client is null)
             {
                 // If this happens we'll have much bigger problems but
                 // Don't remove the reminder from the database.
                 return false;
             }
 
-            // Since we're not manually sharding, client should never be null as the shard is calculated from the guild id.
-            DiscordClient? client = shardedClient.GetShard(expirable.GuildId);
-            if (client is null || expirable.GuildId == 0 || !client.Guilds.TryGetValue(expirable.GuildId, out DiscordGuild? guild) || guild.IsUnavailable)
+            if (expirable.GuildId == 0 || !client.Guilds.TryGetValue(expirable.GuildId, out DiscordGuild? guild) || guild.IsUnavailable)
             {
                 // If it does though, try finding the user through a separate guild and DM'ing them.
-                return await DmUserAsync(shardedClient, expirable);
+                return await DmUserAsync(client, expirable);
             }
 
             // Make sure the user is still in the guild.
             GuildMemberModel? memberModel = await GuildMemberModel.FindMemberAsync(expirable.UserId, guild.Id);
             if (memberModel is null || memberModel.State.HasFlag(GuildMemberState.Absent) || !guild.Channels.TryGetValue(expirable.ChannelId, out DiscordChannel? channel))
             {
-                return await DmUserAsync(shardedClient, expirable);
+                return await DmUserAsync(client, expirable);
             }
 
             // If the reminder was sent in a thread, try to send the reminder in the thread.
@@ -271,7 +269,7 @@ namespace OoLunar.Tomoe.Database.Models
                     if (await client.GetChannelAsync(expirable.ThreadId) is not DiscordThreadChannel threadChannel
                         || threadChannel.ThreadMetadata.IsLocked.GetValueOrDefault())
                     {
-                        return await DmUserAsync(shardedClient, expirable);
+                        return await DmUserAsync(client, expirable);
                     }
 
                     channel = threadChannel;
@@ -287,14 +285,14 @@ namespace OoLunar.Tomoe.Database.Models
             if ((!channel.IsThread && !channelPermissionsForBot.HasPermission(DiscordPermissions.SendMessages))
                 || (channel.IsThread && !channelPermissionsForBot.HasPermission(DiscordPermissions.SendMessagesInThreads)))
             {
-                return await DmUserAsync(shardedClient, expirable);
+                return await DmUserAsync(client, expirable);
             }
 
             await channel.SendMessageAsync(CreateReminderMessage(expirable, expirable.GuildId));
             return true;
         }
 
-        private static async ValueTask<bool> DmUserAsync(DiscordShardedClient shardedClient, ReminderModel reminderModel)
+        private static async ValueTask<bool> DmUserAsync(DiscordClient client, ReminderModel reminderModel)
         {
             IReadOnlyList<ulong> guildIds = await GuildMemberModel.FindMutualGuildsAsync(reminderModel.UserId);
             if (guildIds.Count == 0)
@@ -307,8 +305,7 @@ namespace OoLunar.Tomoe.Database.Models
             bool guildUnavailable = false;
             foreach (ulong guildId in guildIds)
             {
-                DiscordClient? client = shardedClient.GetShard(guildId);
-                if (client is null || !client.Guilds.TryGetValue(guildId, out DiscordGuild? guild))
+                if (!client.Guilds.TryGetValue(guildId, out DiscordGuild? guild))
                 {
                     continue;
                 }
