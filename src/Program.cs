@@ -12,7 +12,6 @@ using DSharpPlus.Commands.Processors.SlashCommands;
 using DSharpPlus.Commands.Processors.TextCommands;
 using DSharpPlus.Commands.Processors.TextCommands.Parsing;
 using DSharpPlus.Commands.Processors.UserCommands;
-using DSharpPlus.Interactivity.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -104,7 +103,7 @@ namespace OoLunar.Tomoe
             serviceCollection.AddSingleton<ImageUtilities>();
             serviceCollection.AddSingleton(serviceProvider =>
             {
-                DiscordEventManager eventManager = new(serviceProvider);
+                DiscordEventManager eventManager = new(serviceProvider, serviceProvider.GetRequiredService<ILogger<DiscordEventManager>>());
                 eventManager.GatherEventHandlers(typeof(Program).Assembly);
                 return eventManager;
             });
@@ -118,10 +117,8 @@ namespace OoLunar.Tomoe
                     Environment.Exit(1);
                 }
 
-                DiscordEventManager eventManager = serviceProvider.GetRequiredService<DiscordEventManager>();
-                DiscordClientBuilder clientBuilder = DiscordClientBuilder.CreateDefault(tomoeConfiguration.Discord.Token, eventManager.Intents, serviceCollection);
+                DiscordClientBuilder clientBuilder = DiscordClientBuilder.CreateDefault(tomoeConfiguration.Discord.Token, DiscordIntents.All, serviceCollection);
                 clientBuilder.DisableDefaultLogging();
-                eventManager.RegisterEventHandlers(clientBuilder);
                 return clientBuilder.Build();
             });
 
@@ -132,8 +129,6 @@ namespace OoLunar.Tomoe
             DiscordClient discordClient = serviceProvider.GetRequiredService<DiscordClient>();
             DiscordEventManager eventManager = serviceProvider.GetRequiredService<DiscordEventManager>();
             Assembly currentAssembly = typeof(Program).Assembly;
-
-            discordClient.UseInteractivity();
 
             // Connect to the database
             try

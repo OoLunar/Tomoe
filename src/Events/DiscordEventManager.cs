@@ -6,6 +6,7 @@ using DSharpPlus;
 using DSharpPlus.Commands.Processors.SlashCommands;
 using DSharpPlus.Commands.Processors.TextCommands;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace OoLunar.Tomoe.Events
 {
@@ -14,8 +15,13 @@ namespace OoLunar.Tomoe.Events
         public DiscordIntents Intents { get; private set; } = TextCommandProcessor.RequiredIntents | SlashCommandProcessor.RequiredIntents | DiscordIntents.MessageContents;
         private readonly IServiceProvider _serviceProvider;
         private readonly List<MethodInfo> _eventHandlers = [];
+        private readonly ILogger<DiscordEventManager> _logger;
 
-        public DiscordEventManager(IServiceProvider serviceProvider) => _serviceProvider = serviceProvider;
+        public DiscordEventManager(IServiceProvider serviceProvider, ILogger<DiscordEventManager> logger)
+        {
+            _serviceProvider = serviceProvider;
+            _logger = logger;
+        }
 
         public void GatherEventHandlers(Assembly assembly)
         {
@@ -33,29 +39,6 @@ namespace OoLunar.Tomoe.Events
             }
         }
 
-        public void RegisterEventHandlers(DiscordClientBuilder clientBuilder)
-        {
-            ArgumentNullException.ThrowIfNull(clientBuilder, nameof(clientBuilder));
-            clientBuilder.ConfigureEventHandlers(eventHandlingBuilder =>
-            {
-                foreach (MethodInfo methodInfo in typeof(EventHandlingBuilder).GetMethods(BindingFlags.Public | BindingFlags.Instance))
-                {
-                    if (!methodInfo.Name.StartsWith("Handle", StringComparison.Ordinal))
-                    {
-                        continue;
-                    }
-
-                    foreach (MethodInfo eventHandler in _eventHandlers)
-                    {
-                        if (methodInfo.GetParameters().Select(parameter => parameter.ParameterType).SequenceEqual(eventHandler.GetParameters().Select(parameter => parameter.ParameterType)))
-                        {
-                            eventHandlingBuilder = (EventHandlingBuilder)methodInfo.Invoke(eventHandlingBuilder, [eventHandler])!;
-                        }
-                    }
-                }
-            });
-        }
-
         public void RegisterEventHandlers(object obj)
         {
             ArgumentNullException.ThrowIfNull(obj, nameof(obj));
@@ -70,6 +53,7 @@ namespace OoLunar.Tomoe.Events
                             : Delegate.CreateDelegate(eventInfo.EventHandlerType, ActivatorUtilities.CreateInstance(_serviceProvider, methodInfo.DeclaringType!), methodInfo);
 
                         eventInfo.AddEventHandler(obj, handler);
+                        _logger.LogInformation("Registered event handler {EventHandler} for {Event}", methodInfo.Name, eventInfo.Name);
                     }
                 }
             }

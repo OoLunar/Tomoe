@@ -13,27 +13,46 @@ namespace OoLunar.Tomoe.Events.Handlers
 {
     public sealed class GuildMemberEventHandlers
     {
-        private readonly ILogger<GuildMemberEventHandlers> logger;
-        public GuildMemberEventHandlers(ILogger<GuildMemberEventHandlers> logger) => this.logger = logger ?? NullLogger<GuildMemberEventHandlers>.Instance;
+        private readonly ILogger<GuildMemberEventHandlers> _logger;
+        public GuildMemberEventHandlers(ILogger<GuildMemberEventHandlers> logger) => _logger = logger ?? NullLogger<GuildMemberEventHandlers>.Instance;
+
+        [DiscordEvent(DiscordIntents.Guilds | DiscordIntents.GuildPresences)]
+        public Task OnGuildAvailableAsync(DiscordClient _, GuildAvailableEventArgs eventArgs) => OnGuildCreateAsync(_, eventArgs);
 
         [DiscordEvent(DiscordIntents.Guilds | DiscordIntents.GuildPresences)]
         public async Task OnGuildCreateAsync(DiscordClient _, GuildCreatedEventArgs eventArgs)
         {
-            List<GuildMemberModel> guildMemberModels = [];
+            //List<GuildMemberModel> guildMemberModels = [];
+            //foreach (DiscordMember member in eventArgs.Guild.Members.Values)
+            //{
+            //    guildMemberModels.Add(new()
+            //    {
+            //        GuildId = eventArgs.Guild.Id,
+            //        UserId = member.Id,
+            //        FirstJoined = member.JoinedAt,
+            //        State = GuildMemberState.None,
+            //        RoleIds = member.Roles.Select(x => x.Id).ToList()
+            //    });
+            //}
+            //
+            //await GuildMemberModel.BulkUpsertAsync(guildMemberModels);
             foreach (DiscordMember member in eventArgs.Guild.Members.Values)
             {
-                guildMemberModels.Add(new()
+                GuildMemberModel? guildMemberModel = await GuildMemberModel.FindMemberAsync(member.Id, eventArgs.Guild.Id);
+                if (guildMemberModel is null)
                 {
-                    GuildId = eventArgs.Guild.Id,
-                    UserId = member.Id,
-                    FirstJoined = member.JoinedAt,
-                    State = GuildMemberState.None,
-                    RoleIds = member.Roles.Select(x => x.Id).ToList()
-                });
+                    // If the member doesn't exist, create them with the none state.
+                    await GuildMemberModel.CreateAsync(member.Id, eventArgs.Guild.Id, member.JoinedAt, GuildMemberState.None, member.Roles.Select(x => x.Id));
+                    continue;
+                }
+
+                // If the member previously existed, update their state.
+                guildMemberModel.State = GuildMemberState.None;
+                guildMemberModel.RoleIds = member.Roles.Select(x => x.Id).ToList();
+                await guildMemberModel.UpdateAsync();
             }
 
-            await GuildMemberModel.BulkUpsertAsync(guildMemberModels);
-            logger.LogInformation("Guild {GuildId} is now available with {MemberCount:N0} Members", eventArgs.Guild.Id, eventArgs.Guild.MemberCount);
+            _logger.LogInformation("Guild {GuildId} is now available with {MemberCount:N0} Members", eventArgs.Guild.Id, eventArgs.Guild.MemberCount);
         }
 
         [DiscordEvent(DiscordIntents.GuildMembers)]
@@ -68,7 +87,7 @@ namespace OoLunar.Tomoe.Events.Handlers
             }
             catch (Exception error)
             {
-                logger.LogError(error, "Failed to assign roles to {Member} in {Guild}", eventArgs.Member, eventArgs.Guild);
+                _logger.LogError(error, "Failed to assign roles to {Member} in {Guild}", eventArgs.Member, eventArgs.Guild);
             }
 
             guildMemberModel.State = GuildMemberState.None;
