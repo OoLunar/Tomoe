@@ -27,6 +27,7 @@ namespace OoLunar.Tomoe.Database.Models
         private static readonly NpgsqlCommand _countMembersOfGuild;
         private static readonly NpgsqlCommand _findMutualGuild;
         private static readonly NpgsqlCommand _isUserBanned;
+        private static readonly NpgsqlCommand _isUserAbsent;
 
         public required ulong UserId { get; init; }
         public required ulong GuildId { get; init; }
@@ -113,6 +114,10 @@ namespace OoLunar.Tomoe.Database.Models
             _isUserBanned = new("SELECT EXISTS(SELECT 1 FROM guild_members WHERE user_id = @user_id AND guild_id = @guild_id AND state & 3 = 1);");
             _isUserBanned.Parameters.Add(new("@user_id", NpgsqlDbType.Bigint));
             _isUserBanned.Parameters.Add(new("@guild_id", NpgsqlDbType.Bigint));
+
+            _isUserAbsent = new("SELECT EXISTS(SELECT 1 FROM guild_members WHERE user_id = @user_id AND guild_id = @guild_id AND state & 1 = 0);");
+            _isUserAbsent.Parameters.Add(new("@user_id", NpgsqlDbType.Bigint));
+            _isUserAbsent.Parameters.Add(new("@guild_id", NpgsqlDbType.Bigint));
         }
 
         public static async ValueTask<GuildMemberModel> CreateAsync(ulong userId, ulong guildId, DateTimeOffset firstJoined, GuildMemberState state, IEnumerable<ulong> roleIds)
@@ -408,6 +413,22 @@ namespace OoLunar.Tomoe.Database.Models
             }
         }
 
+        public static async ValueTask<bool> IsUserAbsentAsync(ulong userId, ulong guildId)
+        {
+            await _semaphore.WaitAsync();
+            try
+            {
+                _isUserAbsent.Parameters["user_id"].Value = (long)userId;
+                _isUserAbsent.Parameters["guild_id"].Value = (long)guildId;
+
+                return !(bool)(await _isUserAbsent.ExecuteScalarAsync())!;
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
+        }
+
         public static async ValueTask PrepareAsync(NpgsqlConnection connection)
         {
             _createTable.Connection = connection;
@@ -424,6 +445,7 @@ namespace OoLunar.Tomoe.Database.Models
             _countMembersOfGuild.Connection = connection;
             _findMutualGuild.Connection = connection;
             _isUserBanned.Connection = connection;
+            _isUserAbsent.Connection = connection;
 
             await _createTable.ExecuteNonQueryAsync();
             await _createMember.PrepareAsync();
@@ -439,6 +461,7 @@ namespace OoLunar.Tomoe.Database.Models
             await _countMembersOfGuild.PrepareAsync();
             await _findMutualGuild.PrepareAsync();
             await _isUserBanned.PrepareAsync();
+            await _isUserAbsent.PrepareAsync();
         }
     }
 }

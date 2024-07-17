@@ -1,4 +1,3 @@
-using System;
 using System.Globalization;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,24 +12,21 @@ using OoLunar.Tomoe.Database.Models;
 namespace OoLunar.Tomoe.Commands.Moderation
 {
     /// <summary>
-    /// I'm sorry, but you've been banned from reading this command.
+    /// I kicked your shin.
     /// </summary>
-    public static class BanCommand
+    public static class KickCommand
     {
         /// <summary>
-        /// Bans a user from the server. Will NOT remove their messages. Attempts to DM the user with the reason for the ban.
+        /// Kicks a user from the server. Will NOT remove their messages. Attempts to DM the user with the reason for the kick.
         /// </summary>
-        /// <remarks>
-        /// TODO: Add a unban requests system.
-        /// </remarks>
-        /// <param name="user">Who to ban.</param>
-        /// <param name="reason">Why they're being banned.</param>
-        [Command("ban"), RequirePermissions(DiscordPermissions.BanMembers), RequireGuild]
+        /// <param name="user">Who to kick.</param>
+        /// <param name="reason">Why they're being removed.</param>
+        [Command("kick"), RequirePermissions(DiscordPermissions.KickMembers), RequireGuild]
         public static async ValueTask ExecuteAsync(CommandContext context, DiscordUser user, [RemainingText] string? reason = null)
         {
-            if (await GuildMemberModel.IsUserBannedAsync(user.Id, context.Guild!.Id))
+            if (await GuildMemberModel.IsUserAbsentAsync(user.Id, context.Guild!.Id))
             {
-                await context.RespondAsync("This user is already banned.");
+                await context.RespondAsync("This user isn't in the guild.");
                 return;
             }
 
@@ -47,9 +43,9 @@ namespace OoLunar.Tomoe.Commands.Moderation
                     DiscordMember member = await context.Guild!.GetMemberAsync(user.Id);
 
                     DiscordEmbedBuilder embedBuilder = new();
-                    embedBuilder.WithTitle($"You've been banned from {context.Guild!.Name}.");
-                    embedBuilder.WithDescription(string.IsNullOrWhiteSpace(reason) ? "No reason was provided for the ban." : $"Reason: {reason}");
-                    embedBuilder.AddField("Banned by", $"{context.User.Mention} (`{context.User.Id}`)");
+                    embedBuilder.WithTitle($"You've been kicked from {context.Guild!.Name}.");
+                    embedBuilder.WithDescription(string.IsNullOrWhiteSpace(reason) ? "No reason was provided for the kick." : $"Reason: {reason}");
+                    embedBuilder.AddField("Kicked by", $"{context.User.Mention} (`{context.User.Id}`)");
 
                     await member.SendMessageAsync(embedBuilder);
                 }
@@ -59,12 +55,12 @@ namespace OoLunar.Tomoe.Commands.Moderation
                 didDm = false;
             }
 
-            // Actually ban the user.
-            await context.Guild!.BanMemberAsync(user.Id, TimeSpan.Zero, reason ?? "No reason provided.");
+            // Actually kick the user.
+            await context.Guild!.RemoveMemberAsync(user.Id, reason ?? "No reason provided.");
 
             // Use a string builder since we don't want multiple inline ternaries.
             StringBuilder stringBuilder = new();
-            stringBuilder.Append(CultureInfo.InvariantCulture, $"Banned {user.Mention}");
+            stringBuilder.Append(CultureInfo.InvariantCulture, $"Kicked {user.Mention}");
             if (!didDm)
             {
                 stringBuilder.Append(" (DM failed)");
