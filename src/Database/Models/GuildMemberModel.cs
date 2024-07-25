@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Npgsql;
@@ -83,11 +84,9 @@ namespace OoLunar.Tomoe.Database.Models
                  UNNEST(@guild_ids) AS guild_id,
                  UNNEST(@first_joined_dates) first_joined,
                  UNNEST(@states) AS state,
-                 -- https://stackoverflow.com/a/61679054 (ab)use`jsonb` to de-nest the arrays
                  -- https://stackoverflow.com/a/37686469 Turn `[]` (jsonb) into `{}` postgres array
-                 TRANSLATE(jsonb_array_elements(to_jsonb(@role_ids::bigint[][]))::text, '[]', '{}')::bigint[] AS role_ids
-         ) AS _
-    WHERE user_id IS NOT NULL -- Filter out null values caused by multi-dimensional arrays
+                 TRANSLATE(jsonb_array_elements(@role_ids)::text, '[]', '{}')::bigint[] AS role_ids
+            ) AS _
     ON CONFLICT (user_id, guild_id) DO UPDATE
     SET
         state = EXCLUDED.state,
@@ -96,7 +95,7 @@ namespace OoLunar.Tomoe.Database.Models
             _bulkUpsert.Parameters.Add(new("@guild_ids", NpgsqlDbType.Array | NpgsqlDbType.Bigint));
             _bulkUpsert.Parameters.Add(new("@first_joined_dates", NpgsqlDbType.Array | NpgsqlDbType.TimestampTz));
             _bulkUpsert.Parameters.Add(new("@states", NpgsqlDbType.Array | NpgsqlDbType.Smallint));
-            _bulkUpsert.Parameters.Add(new("@role_ids", NpgsqlDbType.Array | NpgsqlDbType.Bigint));
+            _bulkUpsert.Parameters.Add(new("@role_ids", NpgsqlDbType.Jsonb));
 
             _countGuilds = new("SELECT COUNT(DISTINCT guild_id) FROM guild_members;");
             _countMembers = new("SELECT COUNT(user_id) FROM guild_members;");
@@ -268,24 +267,21 @@ namespace OoLunar.Tomoe.Database.Models
                 List<long> guildIds = [];
                 List<DateTimeOffset> firstJoined = [];
                 List<byte> states = [];
-                long[,] roleIds = new long[members.Count(), members.Max(member => member.RoleIds.Count)];
+                List<List<long>> roleIds = [];
                 foreach (GuildMemberModel member in members)
                 {
                     userIds.Add((long)member.UserId);
                     guildIds.Add((long)member.GuildId);
                     firstJoined.Add(member.FirstJoined.UtcDateTime);
                     states.Add((byte)member.State);
-                    for (int i = 0; i < member.RoleIds.Count; i++)
-                    {
-                        roleIds[userIds.Count - 1, i] = (long)member.RoleIds[i];
-                    }
+                    roleIds.Add(new List<long>(member.RoleIds.Select(value => (long)value)));
                 }
 
                 _bulkUpsert.Parameters["user_ids"].Value = userIds.ToArray();
                 _bulkUpsert.Parameters["guild_ids"].Value = guildIds.ToArray();
                 _bulkUpsert.Parameters["first_joined_dates"].Value = firstJoined.ToArray();
                 _bulkUpsert.Parameters["states"].Value = states.ToArray();
-                _bulkUpsert.Parameters["role_ids"].Value = roleIds;
+                _bulkUpsert.Parameters["role_ids"].Value = JsonSerializer.Serialize(roleIds);
 
                 await _bulkUpsert.ExecuteNonQueryAsync();
             }

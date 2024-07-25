@@ -22,36 +22,20 @@ namespace OoLunar.Tomoe.Events.Handlers
         [DiscordEvent(DiscordIntents.Guilds | DiscordIntents.GuildPresences)]
         public async Task OnGuildCreateAsync(DiscordClient _, GuildCreatedEventArgs eventArgs)
         {
-            //List<GuildMemberModel> guildMemberModels = [];
-            //foreach (DiscordMember member in eventArgs.Guild.Members.Values)
-            //{
-            //    guildMemberModels.Add(new()
-            //    {
-            //        GuildId = eventArgs.Guild.Id,
-            //        UserId = member.Id,
-            //        FirstJoined = member.JoinedAt,
-            //        State = GuildMemberState.None,
-            //        RoleIds = member.Roles.Select(x => x.Id).ToList()
-            //    });
-            //}
-            //
-            //await GuildMemberModel.BulkUpsertAsync(guildMemberModels);
+            List<GuildMemberModel> guildMemberModels = [];
             foreach (DiscordMember member in eventArgs.Guild.Members.Values)
             {
-                GuildMemberModel? guildMemberModel = await GuildMemberModel.FindMemberAsync(member.Id, eventArgs.Guild.Id);
-                if (guildMemberModel is null)
+                guildMemberModels.Add(new()
                 {
-                    // If the member doesn't exist, create them with the none state.
-                    await GuildMemberModel.CreateAsync(member.Id, eventArgs.Guild.Id, member.JoinedAt, GuildMemberState.None, member.Roles.Select(x => x.Id));
-                    continue;
-                }
-
-                // If the member previously existed, update their state.
-                guildMemberModel.State = GuildMemberState.None;
-                guildMemberModel.RoleIds = member.Roles.Select(x => x.Id).ToList();
-                await guildMemberModel.UpdateAsync();
+                    GuildId = eventArgs.Guild.Id,
+                    UserId = member.Id,
+                    FirstJoined = member.JoinedAt,
+                    State = GuildMemberState.None,
+                    RoleIds = member.Roles.Select(x => x.Id).ToList()
+                });
             }
 
+            await GuildMemberModel.BulkUpsertAsync(guildMemberModels);
             _logger.LogInformation("Guild {GuildId} is now available with {MemberCount:N0} Members", eventArgs.Guild.Id, eventArgs.Guild.MemberCount);
         }
 
@@ -69,7 +53,7 @@ namespace OoLunar.Tomoe.Events.Handlers
             foreach (ulong roleId in guildMemberModel.RoleIds)
             {
                 DiscordRole? role = eventArgs.Guild.GetRole(roleId);
-                if (role is null || role.Position >= eventArgs.Guild.CurrentMember.Hierarchy || assignedRoles.Contains(role))
+                if (role is null || role.Position >= eventArgs.Guild.CurrentMember.Hierarchy || role.IsManaged || assignedRoles.Contains(role))
                 {
                     // If the role wasn't found or the bot cannot assign it, skip it.
                     continue;
