@@ -22,8 +22,7 @@ namespace OoLunar.Tomoe.Commands.Common
         public static async Task UserInfoAsync(CommandContext context, DiscordUser? user = null)
         {
             user ??= context.User;
-
-            GuildMemberModel? memberModel = await GuildMemberModel.FindMemberAsync(context.User.Id, context.Guild!.Id);
+            GuildMemberModel? memberModel = await GuildMemberModel.FindMemberAsync(user.Id, context.Guild!.Id);
             DiscordEmbedBuilder embedBuilder = new()
             {
                 Title = $"Info about {user.GetDisplayName()}",
@@ -94,17 +93,6 @@ namespace OoLunar.Tomoe.Commands.Common
                     await context.RespondAsync(embedBuilder);
                     return;
                 }
-            }
-
-            // Check to see if the first join date is older than the current join date.
-            if (memberModel.FirstJoined > member.JoinedAt)
-            {
-                memberModel = memberModel with
-                {
-                    FirstJoined = member.JoinedAt.UtcDateTime
-                };
-
-                await memberModel.UpdateAsync();
             }
 
             // The user is in the guild.
