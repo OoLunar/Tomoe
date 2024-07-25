@@ -58,6 +58,12 @@ namespace OoLunar.Tomoe.Commands.Common
             embed.WithDescription(HelpCommandDocumentationMapperEventHandlers.CommandDocumentation.TryGetValue(command, out string? documentation) ? documentation : "No description provided.");
             if (command.Subcommands.Count > 0)
             {
+                Command? groupCommand = command.Subcommands.FirstOrDefault(x => x.Attributes.Any(x => x is DefaultGroupCommandAttribute));
+                if (groupCommand is not null)
+                {
+                    embed.AddField("Usage", groupCommand.GetUsage(context.Arguments.Values.First()!.ToString()!.ToLowerInvariant()));
+                }
+
                 foreach (Command subcommand in command.Subcommands.OrderBy(x => x.Name))
                 {
                     embed.AddField(subcommand.Name.Titleize(), HelpCommandDocumentationMapperEventHandlers.CommandDocumentation.TryGetValue(subcommand, out string? subcommandDocumentation) ? subcommandDocumentation : "No description provided.");
@@ -91,7 +97,7 @@ namespace OoLunar.Tomoe.Commands.Common
                     embed.AddField("Required Permissions", builder.ToString());
                 }
 
-                embed.AddField("Usage", command.GetUsage());
+                embed.AddField("Usage", command.GetUsage(context.Arguments.Values.First()!.ToString()!.ToLowerInvariant()));
                 foreach (CommandParameter parameter in command.Parameters)
                 {
                     embed.AddField($"{parameter.Name.Titleize()} - {context.Extension.GetProcessor<TextCommandProcessor>().Converters[GetConverterFriendlyBaseType(parameter.Type)].ReadableName}", HelpCommandDocumentationMapperEventHandlers.CommandParameterDocumentation.TryGetValue(parameter, out string? parameterDocumentation) ? parameterDocumentation : "No description provided.");
@@ -142,24 +148,24 @@ namespace OoLunar.Tomoe.Commands.Common
             return null;
         }
 
-        private static string GetUsage(this Command command)
+        private static string GetUsage(this Command command, string alias)
         {
             StringBuilder builder = new();
             builder.AppendLine("```ansi");
             builder.Append('/');
-            builder.Append(Formatter.Colorize(command.FullName, AnsiColor.Cyan));
+            builder.Append(Formatter.Colorize(alias, AnsiColor.Cyan));
             foreach (CommandParameter parameter in command.Parameters)
             {
                 if (!parameter.DefaultValue.HasValue)
                 {
                     builder.Append(Formatter.Colorize(" <", AnsiColor.LightGray));
-                    builder.Append(Formatter.Colorize(parameter.Name.Titleize(), AnsiColor.Magenta));
+                    builder.Append(Formatter.Colorize(parameter.Name.Underscore(), AnsiColor.Magenta));
                     builder.Append(Formatter.Colorize(">", AnsiColor.LightGray));
                 }
                 else if (parameter.DefaultValue.Value != (parameter.Type.IsValueType ? Activator.CreateInstance(parameter.Type) : null))
                 {
                     builder.Append(Formatter.Colorize(" [", AnsiColor.Yellow));
-                    builder.Append(Formatter.Colorize(parameter.Name.Titleize(), AnsiColor.Magenta));
+                    builder.Append(Formatter.Colorize(parameter.Name.Underscore(), AnsiColor.Magenta));
                     builder.Append(Formatter.Colorize($" = ", AnsiColor.LightGray));
                     builder.Append(Formatter.Colorize($"\"{parameter.DefaultValue.Value}\"", AnsiColor.Cyan));
                     builder.Append(Formatter.Colorize("]", AnsiColor.Yellow));
@@ -167,7 +173,7 @@ namespace OoLunar.Tomoe.Commands.Common
                 else
                 {
                     builder.Append(Formatter.Colorize(" [", AnsiColor.Yellow));
-                    builder.Append(Formatter.Colorize(parameter.Name.Titleize(), AnsiColor.Magenta));
+                    builder.Append(Formatter.Colorize(parameter.Name.Underscore(), AnsiColor.Magenta));
                     builder.Append(Formatter.Colorize("]", AnsiColor.Yellow));
                 }
             }
