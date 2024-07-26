@@ -17,4 +17,4 @@ RUN apk upgrade --update-cache --available \
     && apk del git \
     && rm -rf /var/cache/apk/*
 
-ENTRYPOINT /src/Tomoe
+ENTRYPOINT ["/src/Tomoe"]
