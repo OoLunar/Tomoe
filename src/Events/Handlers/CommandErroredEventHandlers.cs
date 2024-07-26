@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Commands;
+using DSharpPlus.Commands.ContextChecks;
 using DSharpPlus.Commands.EventArgs;
 using DSharpPlus.Commands.Exceptions;
 using DSharpPlus.Entities;
@@ -34,6 +35,20 @@ namespace OoLunar.Tomoe.Events.Handlers
                 case DiscordException discordError:
                     embedBuilder.AddField("HTTP Code", discordError.Response?.StatusCode.ToString() ?? "Not provided.", true);
                     embedBuilder.AddField("Error Message", discordError.JsonMessage ?? "Not provided.", true);
+                    await eventArgs.Context.RespondAsync(new DiscordMessageBuilder().AddEmbed(embedBuilder));
+                    break;
+                case ChecksFailedException when eventArgs.Context.Command.Name == "sudo":
+                    embedBuilder.AddField("Error Message", $"'{eventArgs.Context.User.Username.ToLowerInvariant()}' is not in the sudoers file. This incident will be reported.", true);
+                    embedBuilder.WithFooter("Nothing will actually be reported, it's just a programming joke. It's not that serious, I promise.");
+                    await eventArgs.Context.RespondAsync(new DiscordMessageBuilder().AddEmbed(embedBuilder));
+                    break;
+                case ChecksFailedException checksFailedException:
+                    embedBuilder.AddField("Error Message", checksFailedException.Message ?? "No message provided.", true);
+                    foreach (ContextCheckFailedData check in checksFailedException.Errors)
+                    {
+                        embedBuilder.AddField(check.ContextCheckAttribute.GetType().Name.Humanize(LetterCasing.Title).Replace(" Attribute", null), check.ErrorMessage ?? "No message provided.", true);
+                    }
+
                     await eventArgs.Context.RespondAsync(new DiscordMessageBuilder().AddEmbed(embedBuilder));
                     break;
                 default:
