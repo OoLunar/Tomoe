@@ -22,7 +22,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
 using Newtonsoft.Json;
-using OoLunar.Tomoe.Events.Handlers;
 
 namespace OoLunar.Tomoe.Commands.Moderation
 {
@@ -117,7 +116,6 @@ namespace OoLunar.Tomoe.Commands.Moderation
             await context.DeferResponseAsync();
             Script<object> script = CSharpScript.Create(code, _evalOptions, typeof(EvalContext));
             ImmutableArray<Diagnostic> errors = script.Compile();
-
             if (errors.Length == 1)
             {
                 string errorString = errors[0].ToString();
@@ -126,6 +124,8 @@ namespace OoLunar.Tomoe.Commands.Moderation
                     < 1992 => new DiscordMessageBuilder().WithContent(Formatter.BlockCode(errorString)),
                     _ => new DiscordMessageBuilder().AddFile("errors.log", new MemoryStream(Encoding.UTF8.GetBytes(errorString)))
                 });
+
+                return;
             }
             else if (errors.Length > 1)
             {
@@ -163,20 +163,17 @@ namespace OoLunar.Tomoe.Commands.Moderation
                     await context.Context.EditResponseAsync("Eval was successful with nothing returned.");
                     break;
                 case TargetInvocationException error when error.InnerException is not null:
-                    await CommandErroredEventHandlers.OnErroredAsync(context.Context.Extension, new()
-                    {
-                        CommandObject = null,
-                        Context = context.Context,
-                        Exception = ExceptionDispatchInfo.Capture(error.InnerException).SourceException
-                    });
+                    await FinishedAsync(context, ExceptionDispatchInfo.Capture(error.InnerException).SourceException); // go to Exception error case
                     break;
                 case Exception error:
-                    await CommandErroredEventHandlers.OnErroredAsync(context.Context.Extension, new()
+                    string errorString = error.ToString();
+                    int indexOfSubmissionCutoff = errorString.IndexOf("--- End of stack trace from previous location ---\n   at Microsoft.CodeAnalysis.Scripting.ScriptExecutionState", StringComparison.Ordinal);
+                    if (indexOfSubmissionCutoff != -1)
                     {
-                        CommandObject = null,
-                        Context = context.Context,
-                        Exception = error
-                    });
+                        errorString = errorString[..indexOfSubmissionCutoff].Replace("<<Initialize>>d__0.MoveNext", "MainAsync");
+                    }
+
+                    await context.Context.EditResponseAsync(new DiscordMessageBuilder().WithContent(Formatter.BlockCode(errorString, "cs")));
                     break;
                 case string outputString when context.IsJson && outputString.Length < 1988:
                     await context.Context.EditResponseAsync(Formatter.BlockCode(outputString, "json"));
