@@ -9,7 +9,6 @@ using DSharpPlus.Commands.Processors.TextCommands;
 using DSharpPlus.Commands.Trees;
 using DSharpPlus.Commands.Trees.Metadata;
 using DSharpPlus.Entities;
-using DSharpPlus.EventArgs;
 using Humanizer;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -46,15 +45,14 @@ namespace OoLunar.Tomoe.Commands.Common
             foreach (string message in messages)
             {
                 converterContext.NextArgument();
-                MessageCreatedEventArgs messageCreateEventArgs = TextCommandUtilities.CreateFakeMessageEventArgs(context, message);
-                Optional<ulong> parsedMessageId = await _uint64Converter.ConvertAsync(converterContext, messageCreateEventArgs);
+                Optional<ulong> parsedMessageId = await _uint64Converter.ExecuteAsync(context, message);
                 if (parsedMessageId.HasValue)
                 {
                     messageIds.Add(parsedMessageId.Value);
                     continue;
                 }
 
-                Optional<DiscordMessage> parsedMessage = await _discordMessageConverter.ConvertAsync(converterContext, messageCreateEventArgs);
+                Optional<DiscordMessage> parsedMessage = await _discordMessageConverter.ExecuteAsync(context, message);
                 if (parsedMessage.HasValue)
                 {
                     messageIds.Add(parsedMessage.Value.Id);

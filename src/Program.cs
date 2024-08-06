@@ -159,7 +159,8 @@ namespace OoLunar.Tomoe
                 {
                     TextCommandProcessor textCommandProcessor = new(new()
                     {
-                        PrefixResolver = new DefaultPrefixResolver(true, tomoeConfiguration.Discord.Prefix ?? throw new InvalidOperationException("Missing Discord prefix.")).ResolvePrefixAsync
+                        PrefixResolver = new DefaultPrefixResolver(true, tomoeConfiguration.Discord.Prefix ?? throw new InvalidOperationException("Missing Discord prefix.")).ResolvePrefixAsync,
+                        EnableCommandNotFoundException = true
                     });
 
                     textCommandProcessor.AddConverters(currentAssembly);
@@ -181,7 +182,7 @@ namespace OoLunar.Tomoe
                 }
             }
 
-            await commandsExtension.AddProcessorsAsync(processors);
+            commandsExtension.AddProcessors(processors);
             eventManager.RegisterEventHandlers(commandsExtension);
 
             // Register event handlers for the Discord Client itself

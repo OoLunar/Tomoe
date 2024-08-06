@@ -1,9 +1,8 @@
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
-using DSharpPlus;
 using DSharpPlus.Commands;
+using DSharpPlus.Commands.ArgumentModifiers;
 using DSharpPlus.Commands.Trees;
 using Humanizer;
 
@@ -20,29 +19,17 @@ namespace OoLunar.Tomoe.Commands.Common
         /// <param name="caseType">The case to modify the text to.</param>
         /// <param name="content">The text that will be modified.</param>
         [Command("case")]
-        public static ValueTask ExecuteAsync(CommandContext context, CaseType caseType, params string[] content)
+        public static async ValueTask ExecuteAsync(CommandContext context, CaseType caseType, [RemainingText] string content) => await context.RespondAsync(caseType switch
         {
-            List<string> output = [];
-            foreach (string line in content)
-            {
-                output.Add(caseType switch
-                {
-                    CaseType.Upper => line.Trim().ToUpper(CultureInfo.InvariantCulture),
-                    CaseType.Lower => line.Trim().ToLower(CultureInfo.InvariantCulture),
-                    CaseType.Title => line.Trim().Titleize(),
-                    CaseType.Snake => line.Trim().Underscore(),
-                    CaseType.Pascal => line.Trim().Pascalize(),
-                    CaseType.Camel => line.Trim().Camelize(),
-                    CaseType.Kebab => line.Trim().Kebaberize(),
-                    _ => throw new ArgumentOutOfRangeException(nameof(caseType), caseType, null)
-                });
-            }
-
-            return context.RespondAsync(content.Length == 1
-                ? Formatter.InlineCode(output[0])
-                : Formatter.BlockCode(string.Join('\n', output))
-            );
-        }
+            CaseType.Upper => content.Trim().ToUpper(CultureInfo.InvariantCulture),
+            CaseType.Lower => content.Trim().ToLower(CultureInfo.InvariantCulture),
+            CaseType.Title => content.Trim().Titleize(),
+            CaseType.Snake => content.Trim().Underscore(),
+            CaseType.Pascal => content.Trim().Pascalize(),
+            CaseType.Camel => content.Trim().Camelize(),
+            CaseType.Kebab => content.Trim().Kebaberize(),
+            _ => throw new ArgumentOutOfRangeException(nameof(caseType), caseType, null)
+        });
     }
 
     /// <summary>

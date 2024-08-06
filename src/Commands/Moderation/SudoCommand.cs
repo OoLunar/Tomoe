@@ -32,7 +32,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
                 User = member
             };
 
-            MessageCreatedEventArgs eventArgs = TextCommandProcessor.CreateFakeMessageEventArgs(textCommandContext, textCommandContext.Message, $"{context.Client.CurrentUser.Mention} {command}");
+            MessageCreatedEventArgs eventArgs = await TextCommandUtilities.CreateFakeMessageEventArgsAsync(textCommandContext, textCommandContext.Message, $"{context.Client.CurrentUser.Mention} {command}");
             await context.Extension.GetProcessor<TextCommandProcessor>().ExecuteTextCommandAsync(context.Client, eventArgs);
         }
     }

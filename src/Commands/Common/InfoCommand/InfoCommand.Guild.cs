@@ -91,7 +91,7 @@ namespace OoLunar.Tomoe.Commands.Common
 
             string features = string.Join(", ", guild.Features.Select(feature => feature.ToLowerInvariant().Titleize()));
             embedBuilder.AddField("Server Description", string.IsNullOrWhiteSpace(guild.Description) ? "No description." : guild.Description, false);
-            embedBuilder.AddField("Owner", guild.Owner.Mention, true);
+            embedBuilder.AddField("Owner", $"<@{guild.OwnerId}>", true);
             embedBuilder.AddField("Created At", Formatter.Timestamp(guild.CreationTimestamp.UtcDateTime, TimestampFormat.RelativeTime), true);
             embedBuilder.AddField("Server Id", Formatter.InlineCode(guild.Id.ToString(CultureInfo.InvariantCulture)), true);
             embedBuilder.AddField("Emoji Count", guild.Emojis.Count.ToString("N0", CultureInfo.InvariantCulture), true);
