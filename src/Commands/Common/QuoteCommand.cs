@@ -24,20 +24,22 @@ namespace OoLunar.Tomoe.Commands.Common
                 return context.RespondAsync("You don't have access to that message!");
             }
 
+            string content = $"{message.Author!.Mention}: {message.Content}";
+            if (message.ReferencedMessage is not null)
+            {
+                content = $"> {message.ReferencedMessage.Author!.Mention}: {message.ReferencedMessage.Content}\n{content}";
+            }
+
             DiscordMessageBuilder messageBuilder = new();
             messageBuilder.AddEmbed(new DiscordEmbedBuilder()
             {
-                Author = new DiscordEmbedBuilder.EmbedAuthor
-                {
-                    Name = message.Author!.Username,
-                    IconUrl = message.Author.AvatarUrl
-                },
                 Color = ((DiscordMember)message.Author).Color,
-                Description = message.Content,
+                Description = content,
+                Timestamp = message.CreationTimestamp,
                 Footer = new DiscordEmbedBuilder.EmbedFooter
                 {
                     // We can't mention the channel or use timestamps here since the footer doesn't format anything.
-                    Text = $"#{message.Channel.Name} | {message.Timestamp.UtcDateTime:yyyy-MM-dd HH:mm:ss} UTC"
+                    Text = $"#{message.Channel.Name}"
                 }
             });
 
