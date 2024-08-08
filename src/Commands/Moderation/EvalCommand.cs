@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
 using System.Text;
@@ -17,6 +19,7 @@ using DSharpPlus.Commands.ContextChecks;
 using DSharpPlus.Commands.Trees;
 using DSharpPlus.Entities;
 using DSharpPlus.Net.Serialization;
+using Humanizer;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
@@ -39,7 +42,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
             public required CommandContext Context { get; init; }
 
             /// <inheritdoc cref="EvalContext" />
-            public required CommandContext context { get; init; }
+            public CommandContext context => Context;
 
             /// <summary>
             /// Whether the returned response was transformed into JSON data or not.
@@ -101,6 +104,54 @@ namespace OoLunar.Tomoe.Commands.Moderation
             _discordJson = (JsonSerializer)typeof(DiscordJson).GetField("serializer", BindingFlags.NonPublic | BindingFlags.Static)!.GetValue(null)!;
         }
 
+        [Command("compile")]
+        public static async ValueTask CompileAsync(CommandContext context, [FromCode] string code)
+        {
+            await context.DeferResponseAsync();
+            Script<object> script = CSharpScript.Create(code, _evalOptions, typeof(EvalContext));
+            ImmutableArray<Diagnostic> errors = script.Compile();
+            if (errors.Length == 1)
+            {
+                string errorString = errors[0].ToString();
+                await context.EditResponseAsync(errorString.Length switch
+                {
+                    < 1992 => new DiscordMessageBuilder().WithContent(Formatter.BlockCode(errorString)),
+                    _ => new DiscordMessageBuilder().AddFile("errors.log", new MemoryStream(Encoding.UTF8.GetBytes(errorString)))
+                });
+
+                return;
+            }
+            else if (errors.Length > 1)
+            {
+                await context.EditResponseAsync(new DiscordMessageBuilder().AddFile("errors.log", new MemoryStream(Encoding.UTF8.GetBytes(string.Join("\n", errors.Select(x => x.ToString()))))));
+                return;
+            }
+
+            ScriptRunner<object> method = script.CreateDelegate();
+            MethodBody? methodBody = method.Method.GetMethodBody();
+            if (methodBody is null)
+            {
+                await context.EditResponseAsync("Failed to get method body.");
+                return;
+            }
+
+            byte[]? methodIL = method.Method.GetMethodBody()?.GetILAsByteArray();
+            if (methodIL is null)
+            {
+                await context.EditResponseAsync("Failed to get method IL.");
+                return;
+            }
+
+            // Generate a new method with the same body without generating a new assembly.
+            DynamicMethod dynamicMethod = new("DynamicMethod", typeof(object), [typeof(EvalContext)], typeof(EvalContext).Module, true);
+            DynamicILInfo dynamicILInfo = dynamicMethod.GetDynamicILInfo();
+            dynamicILInfo.SetCode(methodIL, methodBody.MaxStackSize);
+            dynamicILInfo.SetLocalSignature(BitConverter.GetBytes(methodBody.LocalSignatureMetadataToken));
+            dynamicILInfo.SetExceptions(methodBody.ExceptionHandlingClauses);
+
+            await context.EditResponseAsync($"Compiled. Method took {stopwatch.Elapsed.Humanize(3)} to run.");
+        }
+
         /// <summary>
         /// Runs C# code and returns the output.
         /// </summary>
@@ -133,12 +184,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
                 return;
             }
 
-            EvalContext evalContext = new()
-            {
-                Context = context,
-                context = context
-            };
-
+            EvalContext evalContext = new() { Context = context };
             object output = null!;
             try
             {
