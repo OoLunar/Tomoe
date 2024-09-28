@@ -50,6 +50,12 @@ namespace OoLunar.Tomoe.Database
                 NpgsqlConnection connection = _connectionManager.GetConnection();
                 _tableTypes.Add(connection, (semaphore, prepareAsyncDelegate));
                 connection.StateChange += StateChangedEventHandlerAsync;
+#if DEBUG
+                // Sometimes I forget I need to connect to my VPN in order to connect to the database.
+                // By logging this during dev, I'll notice it and remember to connect to my VPN before
+                // waiting out the 30 second timeout.
+                _logger.LogInformation("Connecting to table {TableName}...", type.Name);
+#endif
                 await connection.OpenAsync(cancellationToken);
             }
         }
