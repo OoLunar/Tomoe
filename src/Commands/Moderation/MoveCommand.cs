@@ -34,11 +34,17 @@ namespace OoLunar.Tomoe.Commands.Moderation
         [Command("move"), Description("Moves a chunk of messages (inclusive) to a different channel."), RequirePermissions(DiscordPermissions.ManageMessages | DiscordPermissions.ReadMessageHistory)]
         public async ValueTask MoveAsync(CommandContext context, DiscordChannel channel, DiscordMessage firstMessage, DiscordMessage? lastMessage = null)
         {
-            await context.DeleteResponseAsync();
+            await context.DeferResponseAsync();
 
+            List<DiscordUser> users = [];
             List<DiscordMessage> messages = [];
             await foreach (DiscordMessage message in firstMessage.Channel!.GetMessagesAfterAsync(firstMessage.Id))
             {
+                if (!users.Contains(message.Author!))
+                {
+                    users.Add(message.Author!);
+                }
+
                 messages.Add(message);
                 if (message.Id == lastMessage?.Id)
                 {
@@ -50,7 +56,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
             {
                 Username = $"{context.Guild!.CurrentMember.Username} (Message Mover)",
                 AvatarUrl = context.Guild.CurrentMember.AvatarUrl,
-                Content = $"Started moving messages. This may take awhile.\nFirst message: {firstMessage.JumpLink}\nLast message: {(lastMessage is null ? "Latest message." : lastMessage.JumpLink)}"
+                Content = $"I've started moving messages. This may take a moment.\nFirst message: {firstMessage.JumpLink}\nLast message: {(lastMessage is null ? "Latest message." : lastMessage.JumpLink)}"
             };
 
             DiscordWebhook webhook;
@@ -107,7 +113,8 @@ namespace OoLunar.Tomoe.Commands.Moderation
 
                 await webhook.ExecuteAsync(webhookBuilder);
             }
-            await webhook.ExecuteAsync(new DiscordWebhookBuilder().WithUsername(context.Guild.CurrentMember.Username + " (Message Mover)").WithAvatarUrl(context.Guild.CurrentMember.AvatarUrl).WithContent($"Messages have been moved."));
+
+            await webhook.ExecuteAsync(new DiscordWebhookBuilder().WithUsername(context.Guild.CurrentMember.Username + " (Message Mover)").WithAvatarUrl(context.Guild.CurrentMember.AvatarUrl).WithContent($"I've finished moving messages. {messages.Count:N0} messages have been moved.\n-# Cc {string.Join(", ", users.OrderBy(user => user.Id).Select(x => x.Mention))}"));
             await webhook.DeleteAsync();
             await context.RespondAsync($"{messages.Count:N0} messages have been moved.");
         }
