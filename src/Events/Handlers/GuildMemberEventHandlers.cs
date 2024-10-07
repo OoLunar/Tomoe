@@ -6,21 +6,29 @@ using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using OoLunar.Tomoe.Database.Models;
 
 namespace OoLunar.Tomoe.Events.Handlers
 {
-    public sealed class GuildMemberEventHandlers
+    public sealed class GuildMemberEventHandlers :
+        IEventHandler<GuildMemberAddedEventArgs>,
+        IEventHandler<GuildAvailableEventArgs>,
+        IEventHandler<GuildCreatedEventArgs>,
+        IEventHandler<GuildMemberRemovedEventArgs>,
+        IEventHandler<GuildMemberUpdatedEventArgs>,
+        IEventHandler<GuildMembersChunkedEventArgs>,
+        IEventHandler<GuildBanAddedEventArgs>,
+        IEventHandler<GuildBanRemovedEventArgs>
     {
         private readonly ILogger<GuildMemberEventHandlers> _logger;
-        public GuildMemberEventHandlers(ILogger<GuildMemberEventHandlers> logger) => _logger = logger ?? NullLogger<GuildMemberEventHandlers>.Instance;
+
+        public GuildMemberEventHandlers(ILogger<GuildMemberEventHandlers> logger) => _logger = logger;
 
         [DiscordEvent(DiscordIntents.Guilds | DiscordIntents.GuildPresences)]
-        public Task OnGuildAvailableAsync(DiscordClient _, GuildAvailableEventArgs eventArgs) => OnGuildCreateAsync(_, eventArgs);
+        public Task HandleEventAsync(DiscordClient sender, GuildAvailableEventArgs eventArgs) => HandleEventAsync(sender, (GuildCreatedEventArgs)eventArgs);
 
         [DiscordEvent(DiscordIntents.Guilds | DiscordIntents.GuildPresences)]
-        public async Task OnGuildCreateAsync(DiscordClient _, GuildCreatedEventArgs eventArgs)
+        public async Task HandleEventAsync(DiscordClient sender, GuildCreatedEventArgs eventArgs)
         {
             List<GuildMemberModel> guildMemberModels = [];
             foreach (DiscordMember member in eventArgs.Guild.Members.Values)
@@ -40,7 +48,7 @@ namespace OoLunar.Tomoe.Events.Handlers
         }
 
         [DiscordEvent(DiscordIntents.GuildMembers)]
-        public async Task OnGuildMemberAddAsync(DiscordClient _, GuildMemberAddedEventArgs eventArgs)
+        public async Task HandleEventAsync(DiscordClient sender, GuildMemberAddedEventArgs eventArgs)
         {
             GuildMemberModel? guildMemberModel = await GuildMemberModel.FindMemberAsync(eventArgs.Member.Id, eventArgs.Guild.Id);
             if (guildMemberModel is null)
@@ -52,7 +60,7 @@ namespace OoLunar.Tomoe.Events.Handlers
             List<DiscordRole> assignedRoles = new(eventArgs.Member.Roles);
             foreach (ulong roleId in guildMemberModel.RoleIds)
             {
-                DiscordRole? role = eventArgs.Guild.GetRole(roleId);
+                DiscordRole? role = eventArgs.Guild.Roles.GetValueOrDefault(roleId);
                 if (role is null || role.Position >= eventArgs.Guild.CurrentMember.Hierarchy || role.IsManaged || assignedRoles.Contains(role))
                 {
                     // If the role wasn't found or the bot cannot assign it, skip it.
@@ -79,7 +87,7 @@ namespace OoLunar.Tomoe.Events.Handlers
         }
 
         [DiscordEvent(DiscordIntents.GuildMembers)]
-        public static async Task OnGuildMemberRemoveAsync(DiscordClient _, GuildMemberRemovedEventArgs eventArgs)
+        public async Task HandleEventAsync(DiscordClient sender, GuildMemberRemovedEventArgs eventArgs)
         {
             GuildMemberModel? guildMemberModel = await GuildMemberModel.FindMemberAsync(eventArgs.Member.Id, eventArgs.Guild.Id);
             if (guildMemberModel is null)
@@ -96,7 +104,7 @@ namespace OoLunar.Tomoe.Events.Handlers
         }
 
         [DiscordEvent(DiscordIntents.GuildMembers)]
-        public static async Task OnGuildMemberUpdateAsync(DiscordClient _, GuildMemberUpdatedEventArgs eventArgs)
+        public async Task HandleEventAsync(DiscordClient sender, GuildMemberUpdatedEventArgs eventArgs)
         {
             GuildMemberModel? guildMemberModel = await GuildMemberModel.FindMemberAsync(eventArgs.Member.Id, eventArgs.Guild.Id);
             if (guildMemberModel is null)
@@ -113,7 +121,7 @@ namespace OoLunar.Tomoe.Events.Handlers
         }
 
         [DiscordEvent(DiscordIntents.GuildMembers)]
-        public static async Task OnGuildMemberChunkAsync(DiscordClient _, GuildMembersChunkedEventArgs eventArgs)
+        public async Task HandleEventAsync(DiscordClient sender, GuildMembersChunkedEventArgs eventArgs)
         {
             foreach (DiscordMember member in eventArgs.Members)
             {
@@ -133,7 +141,7 @@ namespace OoLunar.Tomoe.Events.Handlers
         }
 
         [DiscordEvent(DiscordIntents.GuildModeration)]
-        public static async Task OnGuildMemberAddBanAsync(DiscordClient _, GuildBanAddedEventArgs eventArgs)
+        public async Task HandleEventAsync(DiscordClient sender, GuildBanAddedEventArgs eventArgs)
         {
             GuildMemberModel? guildMemberModel = await GuildMemberModel.FindMemberAsync(eventArgs.Member.Id, eventArgs.Guild.Id);
             if (guildMemberModel is null)
@@ -150,7 +158,7 @@ namespace OoLunar.Tomoe.Events.Handlers
         }
 
         [DiscordEvent(DiscordIntents.GuildModeration)]
-        public static async Task OnGuildMemberRemoveBanAsync(DiscordClient _, GuildBanRemovedEventArgs eventArgs)
+        public async Task HandleEventAsync(DiscordClient sender, GuildBanRemovedEventArgs eventArgs)
         {
             GuildMemberModel? guildMemberModel = await GuildMemberModel.FindMemberAsync(eventArgs.Member.Id, eventArgs.Guild.Id);
             if (guildMemberModel is null)

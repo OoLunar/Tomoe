@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Commands;
@@ -16,12 +15,12 @@ namespace OoLunar.Tomoe.Commands.Common
         [Command("rename")]
         public static async ValueTask RenameTagAsync(CommandContext context, string currentName, string newName)
         {
-            if (!TryVerifyTagName(ref currentName, out string? error))
+            if (!TryVerifyTagName(await context.GetCultureAsync(), ref currentName, out string? error))
             {
                 await context.RespondAsync(error);
                 return;
             }
-            else if (!TryVerifyTagName(ref newName, out error))
+            else if (!TryVerifyTagName(await context.GetCultureAsync(), ref newName, out error))
             {
                 await context.RespondAsync(error);
                 return;
@@ -30,17 +29,17 @@ namespace OoLunar.Tomoe.Commands.Common
             TagModel? tag = await TagModel.FindAsync(currentName, context.Guild!.Id);
             if (tag is null)
             {
-                await context.RespondAsync(string.Format(CultureInfo.InvariantCulture, TAG_NOT_FOUND, Formatter.Sanitize(currentName)));
+                await context.RespondAsync(string.Format(await context.GetCultureAsync(), TAG_NOT_FOUND, Formatter.Sanitize(currentName)));
                 return;
             }
-            else if (!TryVerifyTagOwnership(context, tag, out error))
+            else if (!TryVerifyTagOwnership(context, await context.GetCultureAsync(), tag, out error))
             {
                 await context.RespondAsync(error);
                 return;
             }
             else if (await TagModel.ExistsAsync(newName, context.Guild!.Id))
             {
-                await context.RespondAsync(string.Format(CultureInfo.InvariantCulture, TAG_EXISTS, Formatter.Sanitize(newName)));
+                await context.RespondAsync(string.Format(await context.GetCultureAsync(), TAG_EXISTS, Formatter.Sanitize(newName)));
                 return;
             }
 

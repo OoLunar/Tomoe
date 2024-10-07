@@ -31,19 +31,19 @@ namespace OoLunar.Tomoe.Commands.Common
         [Command("get"), DefaultGroupCommand]
         public static async ValueTask GetTagAsync(CommandContext context, [RemainingText] string name)
         {
-            if (!TryVerifyTagName(ref name, out string? errorMessage))
+            if (!TryVerifyTagName(await context.GetCultureAsync(), ref name, out string? errorMessage))
             {
                 await context.RespondAsync(errorMessage);
                 return;
             }
 
             string? tag = await TagModel.GetContentAsync(name, context.Guild!.Id);
-            await context.RespondAsync(tag ?? string.Format(CultureInfo.InvariantCulture, TAG_NOT_FOUND, Formatter.Sanitize(name)));
+            await context.RespondAsync(tag ?? string.Format(await context.GetCultureAsync(), TAG_NOT_FOUND, Formatter.Sanitize(name)));
         }
 
-        private static bool TryVerifyTagName(ref string name, [NotNullWhen(false)] out string? errorMessage)
+        private static bool TryVerifyTagName(CultureInfo cultureInfo, ref string name, [NotNullWhen(false)] out string? errorMessage)
         {
-            name = name.Trim().ToLowerInvariant();
+            name = name.Trim().ToLower(cultureInfo);
             if (string.IsNullOrWhiteSpace(name))
             {
                 errorMessage = TAG_NAME_EMPTY;
@@ -67,11 +67,11 @@ namespace OoLunar.Tomoe.Commands.Common
             return true;
         }
 
-        private static bool TryVerifyTagOwnership(CommandContext context, TagModel tag, [NotNullWhen(false)] out string? errorMessage)
+        private static bool TryVerifyTagOwnership(CommandContext context, CultureInfo cultureInfo, TagModel tag, [NotNullWhen(false)] out string? errorMessage)
         {
             if (tag.OwnerId != context.User.Id && !context.Member!.Permissions.HasPermission(DiscordPermissions.ManageMessages))
             {
-                errorMessage = string.Format(CultureInfo.InvariantCulture, TAG_MODIFY_PERMISSIONS, Formatter.Sanitize(tag.Name), tag.OwnerId);
+                errorMessage = string.Format(cultureInfo, TAG_MODIFY_PERMISSIONS, Formatter.Sanitize(tag.Name), tag.OwnerId);
                 return false;
             }
 

@@ -9,20 +9,21 @@ using DSharpPlus;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.Trees;
 using DSharpPlus.EventArgs;
+using Microsoft.Extensions.DependencyInjection;
 using OoLunar.XmlDocsNET;
 using OoLunar.XmlDocsNET.Members;
 using OoLunar.XmlDocsNET.Tags;
 
 namespace OoLunar.Tomoe.Events.Handlers
 {
-    public sealed class HelpCommandDocumentationMapperEventHandlers
+    public sealed class HelpCommandDocumentationMapperEventHandler : IEventHandler<GuildDownloadCompletedEventArgs>
     {
         public static FrozenDictionary<Command, string> CommandDocumentation { get; private set; } = FrozenDictionary<Command, string>.Empty;
         public static FrozenDictionary<CommandParameter, string> CommandParameterDocumentation { get; private set; } = FrozenDictionary<CommandParameter, string>.Empty;
         private static readonly FrozenDictionary<ICustomAttributeProvider, string> _xmlDocumentation;
         private static readonly FrozenDictionary<string, string> _commandParameterDocumentation;
 
-        static HelpCommandDocumentationMapperEventHandlers()
+        static HelpCommandDocumentationMapperEventHandler()
         {
             IReadOnlyDictionary<string, IDocumentationMember> documentationMembers = XmlApiDocumentation.Resolve(typeof(Program).Assembly);
             Dictionary<ICustomAttributeProvider, string> xmlDocumentation = [];
@@ -79,12 +80,25 @@ namespace OoLunar.Tomoe.Events.Handlers
             }
         }
 
+        private static IEnumerable<Command> GetAllCommands(Command command)
+        {
+            if (command.Subcommands.Count != 0)
+            {
+                foreach (Command subcommand in command.Subcommands.SelectMany(GetAllCommands))
+                {
+                    yield return subcommand;
+                }
+            }
+
+            yield return command;
+        }
+
         [DiscordEvent(DiscordIntents.Guilds)]
-        public static Task OnGuildDownloadCompleted(DiscordClient client, GuildDownloadCompletedEventArgs _)
+        public Task HandleEventAsync(DiscordClient sender, GuildDownloadCompletedEventArgs eventArgs)
         {
             Dictionary<Command, string> commandDocumentation = [];
             Dictionary<CommandParameter, string> commandParameterDocumentation = [];
-            foreach (Command command in client.GetExtension<CommandsExtension>().Commands.Values.SelectMany(GetAllCommands))
+            foreach (Command command in sender.ServiceProvider.GetRequiredService<CommandsExtension>().Commands.Values.SelectMany(GetAllCommands))
             {
                 ICustomAttributeProvider? memberInfo = command.Method;
                 if (memberInfo is not null)
@@ -122,19 +136,6 @@ namespace OoLunar.Tomoe.Events.Handlers
             CommandDocumentation = commandDocumentation.ToFrozenDictionary();
             CommandParameterDocumentation = commandParameterDocumentation.ToFrozenDictionary();
             return Task.CompletedTask;
-        }
-
-        private static IEnumerable<Command> GetAllCommands(Command command)
-        {
-            if (command.Subcommands.Count != 0)
-            {
-                foreach (Command subcommand in command.Subcommands.SelectMany(GetAllCommands))
-                {
-                    yield return subcommand;
-                }
-            }
-
-            yield return command;
         }
     }
 }

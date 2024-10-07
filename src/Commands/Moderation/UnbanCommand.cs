@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Text;
 using System.Threading.Tasks;
 using DSharpPlus.Commands;
@@ -24,7 +23,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
         /// </remarks>
         /// <param name="user">Who is being unbanned.</param>
         /// <param name="reason">Why they're being unbanned.</param>
-        [Command("unban"), RequirePermissions(DiscordPermissions.BanMembers), RequireGuild]
+        [Command("unban"), RequirePermissions(DiscordPermissions.BanMembers)]
         public static async ValueTask ExecuteAsync(CommandContext context, DiscordUser user, [RemainingText] string? reason = null)
         {
             // TODO: When the bot starts up, grab the most recent ban from the database
@@ -74,7 +73,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
 
             // Use a string builder since we don't want multiple inline ternaries.
             StringBuilder stringBuilder = new();
-            stringBuilder.Append(CultureInfo.InvariantCulture, $"Unbanned {user.Mention}");
+            stringBuilder.Append(await context.GetCultureAsync(), $"Unbanned {user.Mention}");
             if (!didDm)
             {
                 stringBuilder.Append(" (DM failed)");

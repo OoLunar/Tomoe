@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Text;
 using System.Threading.Tasks;
 using DSharpPlus.Commands;
@@ -21,7 +20,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
         /// </summary>
         /// <param name="user">Who to kick.</param>
         /// <param name="reason">Why they're being removed.</param>
-        [Command("kick"), RequirePermissions(DiscordPermissions.KickMembers), RequireGuild]
+        [Command("kick"), RequirePermissions(DiscordPermissions.KickMembers)]
         public static async ValueTask ExecuteAsync(CommandContext context, DiscordUser user, [RemainingText] string? reason = null)
         {
             if (await GuildMemberModel.IsUserAbsentAsync(user.Id, context.Guild!.Id))
@@ -60,7 +59,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
 
             // Use a string builder since we don't want multiple inline ternaries.
             StringBuilder stringBuilder = new();
-            stringBuilder.Append(CultureInfo.InvariantCulture, $"Kicked {user.Mention}");
+            stringBuilder.Append(await context.GetCultureAsync(), $"Kicked {user.Mention}");
             if (!didDm)
             {
                 stringBuilder.Append(" (DM failed)");

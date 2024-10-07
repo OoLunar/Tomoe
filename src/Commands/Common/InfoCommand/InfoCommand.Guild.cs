@@ -57,20 +57,20 @@ namespace OoLunar.Tomoe.Commands.Common
                     embedBuilder.AddField("Server Description", string.IsNullOrWhiteSpace(guildPreview.Description) ? "No description." : guildPreview.Description, false);
                     embedBuilder.AddField("Server Id", Formatter.InlineCode(guildPreview.Id.ToString(CultureInfo.InvariantCulture)), true);
                     embedBuilder.AddField("Created At", Formatter.Timestamp(guildPreview.CreationTimestamp.UtcDateTime, TimestampFormat.RelativeTime), true);
-                    embedBuilder.AddField("Emoji Count", guildPreview.Emojis.Count.ToString("N0", CultureInfo.InvariantCulture), true);
-                    embedBuilder.AddField("Approximate Member Count", guildPreview.ApproximateMemberCount.ToString("N0", CultureInfo.InvariantCulture), true);
+                    embedBuilder.AddField("Emoji Count", guildPreview.Emojis.Count.ToString("N0", await context.GetCultureAsync()), true);
+                    embedBuilder.AddField("Approximate Member Count", guildPreview.ApproximateMemberCount.ToString("N0", await context.GetCultureAsync()), true);
                     embedBuilder.AddField("Features", string.IsNullOrWhiteSpace(features) ? "None" : features, false);
                 }
                 // The bot is in the guild, so return the guild info.
                 else
                 {
-                    await ProvideGuildInfoAsync(embedBuilder, guild);
+                    await ProvideGuildInfoAsync(await context.GetCultureAsync(), embedBuilder, guild);
                 }
             }
             // The guild id was not specified, so return the guild info for the guild the command was executed in.
             else if (context.Guild is not null)
             {
-                await ProvideGuildInfoAsync(embedBuilder, context.Guild);
+                await ProvideGuildInfoAsync(await context.GetCultureAsync(), embedBuilder, context.Guild);
             }
             // The command was executed in a DM without a guild id, so return an error.
             else
@@ -82,7 +82,7 @@ namespace OoLunar.Tomoe.Commands.Common
             await context.RespondAsync(embedBuilder);
         }
 
-        private async Task ProvideGuildInfoAsync(DiscordEmbedBuilder embedBuilder, DiscordGuild guild)
+        private async Task ProvideGuildInfoAsync(CultureInfo cultureInfo, DiscordEmbedBuilder embedBuilder, DiscordGuild guild)
         {
             if (guild.IconUrl is not null)
             {
@@ -94,10 +94,10 @@ namespace OoLunar.Tomoe.Commands.Common
             embedBuilder.AddField("Owner", $"<@{guild.OwnerId}>", true);
             embedBuilder.AddField("Created At", Formatter.Timestamp(guild.CreationTimestamp.UtcDateTime, TimestampFormat.RelativeTime), true);
             embedBuilder.AddField("Server Id", Formatter.InlineCode(guild.Id.ToString(CultureInfo.InvariantCulture)), true);
-            embedBuilder.AddField("Emoji Count", guild.Emojis.Count.ToString("N0", CultureInfo.InvariantCulture), true);
-            embedBuilder.AddField("Role Count", guild.Roles.Count.ToString("N0", CultureInfo.InvariantCulture), true);
-            embedBuilder.AddField("Sticker Count", guild.Stickers.Count.ToString("N0", CultureInfo.InvariantCulture), true);
-            embedBuilder.AddField("Member Count", guild.MemberCount.ToString("N0", CultureInfo.InvariantCulture), true);
+            embedBuilder.AddField("Emoji Count", guild.Emojis.Count.ToString("N0", cultureInfo), true);
+            embedBuilder.AddField("Role Count", guild.Roles.Count.ToString("N0", cultureInfo), true);
+            embedBuilder.AddField("Sticker Count", guild.Stickers.Count.ToString("N0", cultureInfo), true);
+            embedBuilder.AddField("Member Count", guild.MemberCount.ToString("N0", cultureInfo), true);
             embedBuilder.AddField("Currently Scheduled Events", (guild.ScheduledEvents.Count == 0 ? (await guild.GetEventsAsync(false)).Count : guild.ScheduledEvents.Count).ToString("N0", CultureInfo.InvariantCulture), true);
             embedBuilder.AddField("Features", string.IsNullOrWhiteSpace(features) ? "None" : features, false);
         }

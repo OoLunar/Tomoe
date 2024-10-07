@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -65,12 +64,11 @@ namespace OoLunar.Tomoe.Commands.Moderation
             }
 
             await webhook.ExecuteAsync(webhookBuilder);
-            foreach (DiscordMessage message in messages.OrderBy(x => x.CreationTimestamp))
+            foreach (DiscordMessage message in messages.OrderBy(x => x.Id))
             {
                 webhookBuilder = new DiscordWebhookBuilder(new DiscordMessageBuilder(message));
-                DiscordMember member = (DiscordMember)message.Author!;
-                webhookBuilder.WithUsername(member.DisplayName);
-                webhookBuilder.WithAvatarUrl(member.GuildAvatarUrl ?? member.AvatarUrl);
+                webhookBuilder.WithUsername(message.Author!.GetDisplayName());
+                webhookBuilder.WithAvatarUrl(message.Author is DiscordMember member ? member.GuildAvatarUrl : message.Author!.AvatarUrl);
                 if (channel.Type is DiscordChannelType.NewsThread or DiscordChannelType.PublicThread or DiscordChannelType.PrivateThread)
                 {
                     webhookBuilder.WithThreadId(channel.Id);
@@ -89,7 +87,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
                         DiscordAttachment attachment = message.Attachments[i];
                         if (attachments.Contains(attachment.FileName!))
                         {
-                            webhookBuilder.AddFile(attachment.FileName + i.ToString(CultureInfo.InvariantCulture), await httpClient.GetStreamAsync(attachment.Url), false);
+                            webhookBuilder.AddFile(attachment.FileName + i.ToString(await context.GetCultureAsync()), await httpClient.GetStreamAsync(attachment.Url), false);
                         }
                         else
                         {
@@ -107,6 +105,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
 
                 await webhook.ExecuteAsync(webhookBuilder);
             }
+
             await webhook.ExecuteAsync(new DiscordWebhookBuilder().WithUsername(context.Guild.CurrentMember.Username + " (Message Mover)").WithAvatarUrl(context.Guild.CurrentMember.AvatarUrl).WithContent($"Messages have been moved."));
             await webhook.DeleteAsync();
             await context.RespondAsync($"{messages.Count:N0} messages have been moved.");

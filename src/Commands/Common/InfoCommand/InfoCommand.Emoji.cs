@@ -82,7 +82,7 @@ namespace OoLunar.Tomoe.Commands.Common
                 // ZWS field
                 embedBuilder.AddField("\u200B", "\u200B", true);
                 embedBuilder.AddField("Format", image.Format, true);
-                embedBuilder.AddField("Frame Count", image.FrameCount.ToString(CultureInfo.InvariantCulture), true);
+                embedBuilder.AddField("Frame Count", image.FrameCount.ToString(await context.GetCultureAsync()), true);
                 // ZWS field
                 embedBuilder.AddField("\u200B", "\u200B", true);
             }

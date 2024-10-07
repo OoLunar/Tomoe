@@ -18,7 +18,7 @@ namespace OoLunar.Tomoe.Commands.Common
         [Command("create")]
         public static async ValueTask CreateTagAsync(CommandContext context, string name, [RemainingText] string content)
         {
-            if (!TryVerifyTagName(ref name, out string? error))
+            if (!TryVerifyTagName(await context.GetCultureAsync(), ref name, out string? error))
             {
                 await context.RespondAsync(error);
                 return;
@@ -30,7 +30,7 @@ namespace OoLunar.Tomoe.Commands.Common
             }
             else if (await TagModel.ExistsAsync(name, context.Guild!.Id))
             {
-                await context.RespondAsync(string.Format(CultureInfo.InvariantCulture, TAG_EXISTS, Formatter.Sanitize(name)));
+                await context.RespondAsync(string.Format(await context.GetCultureAsync(), TAG_EXISTS, Formatter.Sanitize(name)));
                 return;
             }
 

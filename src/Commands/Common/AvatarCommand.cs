@@ -1,11 +1,9 @@
-using System.Globalization;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.ContextChecks;
 using DSharpPlus.Commands.Processors.SlashCommands;
 using DSharpPlus.Commands.Processors.TextCommands;
-using DSharpPlus.Commands.Processors.TextCommands.ContextChecks;
 using DSharpPlus.Commands.Trees;
 using DSharpPlus.Commands.Trees.Metadata;
 using DSharpPlus.Entities;
@@ -49,7 +47,7 @@ namespace OoLunar.Tomoe.Commands.Common
         /// <param name="message">The message to fetch the avatar from. If no message is provided, the command will default to the message you replied to, if applicable.</param>
         /// <inheritdoc cref="UserAsync(CommandContext, DiscordUser?, ImageFormat, ushort)"/>
         [Command("webhook"), TextAlias("wh")]
-        public ValueTask WebhookAsync(CommandContext context, [TextMessageReply] DiscordMessage? message = null, ImageFormat imageFormat = ImageFormat.Auto, ushort imageDimensions = 0)
+        public ValueTask WebhookAsync(CommandContext context, DiscordMessage? message = null, ImageFormat imageFormat = ImageFormat.Auto, ushort imageDimensions = 0)
         {
             if (message is null)
             {
@@ -73,7 +71,7 @@ namespace OoLunar.Tomoe.Commands.Common
         /// </summary>
         /// <param name="member">The member to fetch the avatar from. If no member is provided, the command will default to the author. The member must be in the server.</param>
         /// <inheritdoc cref="UserAsync(CommandContext, DiscordUser?, ImageFormat, ushort)"/>
-        [Command("guild"), TextAlias("member", "server"), RequireGuild]
+        [Command("guild"), TextAlias("member", "server")]
         public async ValueTask GuildAsync(CommandContext context, DiscordMember? member = null, ImageFormat imageFormat = ImageFormat.Auto, ushort imageDimensions = 0)
         {
             member ??= context.Member!;
@@ -106,7 +104,7 @@ namespace OoLunar.Tomoe.Commands.Common
             embedBuilder.AddField("Image Format", imageData.Format, true);
             if (url.Contains("a_"))
             {
-                embedBuilder.AddField("Frame Count", imageData.FrameCount.ToString("N0", CultureInfo.InvariantCulture), true);
+                embedBuilder.AddField("Frame Count", imageData.FrameCount.ToString("N0", await context.GetCultureAsync()), true);
             }
 
             embedBuilder.AddField("File Size", imageData.FileSize, true);

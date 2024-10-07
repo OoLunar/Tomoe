@@ -25,7 +25,7 @@ namespace OoLunar.Tomoe.Commands.Common
         /// <summary>
         /// Helps diagnose permission issues with the bot.
         /// </summary>
-        [Command("doctor"), RequireGuild, RequirePermissions(DiscordPermissions.AccessChannels | DiscordPermissions.SendMessages | DiscordPermissions.SendMessagesInThreads | DiscordPermissions.EmbedLinks, DiscordPermissions.None)]
+        [Command("doctor"), RequirePermissions(DiscordPermissions.AccessChannels | DiscordPermissions.SendMessages | DiscordPermissions.SendMessagesInThreads | DiscordPermissions.EmbedLinks, DiscordPermissions.None)]
         public static async ValueTask ExecuteAsync(CommandContext context)
         {
             DiscordEmbedBuilder embedBuilder = new()
@@ -47,7 +47,7 @@ namespace OoLunar.Tomoe.Commands.Common
                 }
 
                 StringBuilder stringBuilder = new();
-                stringBuilder.AppendLine(HelpCommandDocumentationMapperEventHandlers.CommandDocumentation.TryGetValue(command, out string? documentation) ? documentation : "No description provided.");
+                stringBuilder.AppendLine(HelpCommandDocumentationMapperEventHandler.CommandDocumentation.TryGetValue(command, out string? documentation) ? documentation : "No description provided.");
                 stringBuilder.AppendLine("```diff");
                 for (ulong i = 0; i < (sizeof(ulong) * 8); i++)
                 {

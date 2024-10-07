@@ -1,6 +1,5 @@
 using System;
 using System.Diagnostics;
-using System.Globalization;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -19,7 +18,7 @@ namespace OoLunar.Tomoe.Commands.Common
 {
     public sealed partial class InfoCommand
     {
-        private static readonly string _operatingSystem = $"{Environment.OSVersion} {RuntimeInformation.OSArchitecture.ToString().ToLower(CultureInfo.InvariantCulture)}";
+        private static readonly string _operatingSystem = $"{Environment.OSVersion} {RuntimeInformation.OSArchitecture.ToString().ToLowerInvariant()}";
         private static readonly string _botVersion = typeof(Program).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion;
         private static readonly string _dSharpPlusVersion = typeof(DiscordClient).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion;
 
@@ -43,17 +42,17 @@ namespace OoLunar.Tomoe.Commands.Common
             Process currentProcess = Process.GetCurrentProcess();
             currentProcess.Refresh();
 
-            embedBuilder.AddField("Heap Memory", GC.GetTotalMemory(false).Bytes().ToString(CultureInfo.InvariantCulture), true);
-            embedBuilder.AddField("Process Memory", currentProcess.WorkingSet64.Bytes().ToString(CultureInfo.InvariantCulture), true);
-            embedBuilder.AddField("Allocation Rate", $"{_allocationRateTracker.AllocationRate.Bytes().ToString(CultureInfo.InvariantCulture)}/s", true);
+            embedBuilder.AddField("Heap Memory", GC.GetTotalMemory(false).Bytes().ToString(await context.GetCultureAsync()), true);
+            embedBuilder.AddField("Process Memory", currentProcess.WorkingSet64.Bytes().ToString(await context.GetCultureAsync()), true);
+            embedBuilder.AddField("Allocation Rate", $"{_allocationRateTracker.AllocationRate.Bytes().ToString(await context.GetCultureAsync())}/s", true);
 
             embedBuilder.AddField("Runtime Version", RuntimeInformation.FrameworkDescription, true);
             embedBuilder.AddField("Operating System", _operatingSystem, true);
-            embedBuilder.AddField("Uptime", _getLastCommaRegex().Replace((Process.GetCurrentProcess().StartTime - DateTime.Now).Humanize(3), " and "), true);
+            embedBuilder.AddField("Uptime", _getLastCommaRegex().Replace((Process.GetCurrentProcess().StartTime - DateTime.Now).Humanize(3, await context.GetCultureAsync()), " and "), true);
 
-            embedBuilder.AddField("Discord Latency", _getLastCommaRegex().Replace(context.Client.GetConnectionLatency(context.Guild?.Id ?? 0).Humanize(3), " and "), true);
-            embedBuilder.AddField("Guild Count", (await GuildMemberModel.CountGuildsAsync()).ToString("N0", CultureInfo.InvariantCulture), true);
-            embedBuilder.AddField("User Count", (await GuildMemberModel.CountMembersAsync()).ToString("N0", CultureInfo.InvariantCulture), true);
+            embedBuilder.AddField("Discord Latency", _getLastCommaRegex().Replace(context.Client.GetConnectionLatency(context.Guild?.Id ?? 0).Humanize(3, await context.GetCultureAsync()), " and "), true);
+            embedBuilder.AddField("Guild Count", (await GuildMemberModel.CountGuildsAsync()).ToString("N0", await context.GetCultureAsync()), true);
+            embedBuilder.AddField("User Count", (await GuildMemberModel.CountMembersAsync()).ToString("N0", await context.GetCultureAsync()), true);
 
             StringBuilder stringBuilder = new();
             stringBuilder.Append(context.Client.CurrentUser.Mention);

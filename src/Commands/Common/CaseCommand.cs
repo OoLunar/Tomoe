@@ -1,5 +1,4 @@
 using System;
-using System.Globalization;
 using System.Threading.Tasks;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.ArgumentModifiers;
@@ -21,8 +20,8 @@ namespace OoLunar.Tomoe.Commands.Common
         [Command("case")]
         public static async ValueTask ExecuteAsync(CommandContext context, CaseType caseType, [RemainingText] string content) => await context.RespondAsync(caseType switch
         {
-            CaseType.Upper => content.Trim().ToUpper(CultureInfo.InvariantCulture),
-            CaseType.Lower => content.Trim().ToLower(CultureInfo.InvariantCulture),
+            CaseType.Upper => content.Trim().ToUpper(await context.GetCultureAsync()),
+            CaseType.Lower => content.Trim().ToLower(await context.GetCultureAsync()),
             CaseType.Title => content.Trim().Titleize(),
             CaseType.Snake => content.Trim().Underscore(),
             CaseType.Pascal => content.Trim().Pascalize(),

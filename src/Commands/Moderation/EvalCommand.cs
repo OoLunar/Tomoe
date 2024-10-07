@@ -2,7 +2,6 @@ using System;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -217,7 +216,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
                 case int:
                 case ushort:
                 case short:
-                    await context.Context.EditResponseAsync((string)output.GetType().GetMethod("ToString", [typeof(string), typeof(IFormatProvider)])!.Invoke(output, ["N0", CultureInfo.InvariantCulture])!);
+                    await context.Context.EditResponseAsync((string)output.GetType().GetMethod("ToString", [typeof(string), typeof(IFormatProvider)])!.Invoke(output, ["N0", await context.Context.GetCultureAsync()])!);
                     break;
                 case object when output is not SnowflakeObject:
                     // Check if the ToString method is overridden

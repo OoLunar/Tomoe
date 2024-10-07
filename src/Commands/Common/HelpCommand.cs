@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -26,18 +27,20 @@ namespace OoLunar.Tomoe.Commands.Common
         /// </summary>
         /// <param name="command">Which specific command to get information about. Leave empty to few all commands.</param>
         [Command("help")]
-        public static ValueTask ExecuteAsync(CommandContext context, [RemainingText] string? command = null)
+        public static async ValueTask ExecuteAsync(CommandContext context, [RemainingText] string? command = null)
         {
             if (string.IsNullOrWhiteSpace(command))
             {
-                return context.RespondAsync(GetHelpMessage(context));
+                await context.RespondAsync(GetHelpMessage(context));
+                return;
             }
             else if (GetCommand(context.Extension.Commands.Values, command) is Command foundCommand)
             {
-                return context.RespondAsync(GetHelpMessage(context, foundCommand));
+                await context.RespondAsync(GetHelpMessage(context, await context.GetCultureAsync(), foundCommand));
+                return;
             }
 
-            return context.RespondAsync($"Command {command} not found.");
+            await context.RespondAsync($"Command {command} not found.");
         }
 
         private static DiscordMessageBuilder GetHelpMessage(CommandContext context)
@@ -45,28 +48,28 @@ namespace OoLunar.Tomoe.Commands.Common
             StringBuilder stringBuilder = new();
             foreach (Command command in context.Extension.Commands.Values.OrderBy(x => x.Name))
             {
-                stringBuilder.AppendLine($"`{command.Name.Titleize()}`: {(HelpCommandDocumentationMapperEventHandlers.CommandDocumentation.TryGetValue(command, out string? documentation) ? documentation.Replace('\n', ' ').Replace("  ", " ") : "No description provided.")}");
+                stringBuilder.AppendLine($"`{command.Name.Titleize()}`: {(HelpCommandDocumentationMapperEventHandler.CommandDocumentation.TryGetValue(command, out string? documentation) ? documentation.Replace('\n', ' ').Replace("  ", " ") : "No description provided.")}");
             }
 
             return new DiscordMessageBuilder().WithContent($"A total of {context.Extension.Commands.Values.Select(CountCommands).Sum():N0} commands were found. Use `help <command>` for more information on any of them.").AddEmbed(new DiscordEmbedBuilder().WithTitle("Commands").WithDescription(stringBuilder.ToString()));
         }
 
-        private static DiscordMessageBuilder GetHelpMessage(CommandContext context, Command command)
+        private static DiscordMessageBuilder GetHelpMessage(CommandContext context, CultureInfo cultureInfo, Command command)
         {
             DiscordEmbedBuilder embed = new();
             embed.WithTitle($"Help Command: `{command.FullName.Titleize()}`");
-            embed.WithDescription(HelpCommandDocumentationMapperEventHandlers.CommandDocumentation.TryGetValue(command, out string? documentation) ? documentation : "No description provided.");
+            embed.WithDescription(HelpCommandDocumentationMapperEventHandler.CommandDocumentation.TryGetValue(command, out string? documentation) ? documentation : "No description provided.");
             if (command.Subcommands.Count > 0)
             {
                 Command? groupCommand = command.Subcommands.FirstOrDefault(x => x.Attributes.Any(x => x is DefaultGroupCommandAttribute));
                 if (groupCommand is not null)
                 {
-                    embed.AddField("Usage", groupCommand.GetUsage(context.Arguments.Values.First()!.ToString()!.ToLowerInvariant()));
+                    embed.AddField("Usage", groupCommand.GetUsage(context.Arguments.Values.First()!.ToString()!.ToLower(cultureInfo)));
                 }
 
                 foreach (Command subcommand in command.Subcommands.OrderBy(x => x.Name))
                 {
-                    embed.AddField(subcommand.Name.Titleize(), HelpCommandDocumentationMapperEventHandlers.CommandDocumentation.TryGetValue(subcommand, out string? subcommandDocumentation) ? subcommandDocumentation : "No description provided.");
+                    embed.AddField(subcommand.Name.Titleize(), HelpCommandDocumentationMapperEventHandler.CommandDocumentation.TryGetValue(subcommand, out string? subcommandDocumentation) ? subcommandDocumentation : "No description provided.");
                 }
             }
             else
@@ -100,7 +103,7 @@ namespace OoLunar.Tomoe.Commands.Common
                 embed.AddField("Usage", command.GetUsage(context.Arguments.Values.First()!.ToString()!.ToLowerInvariant()));
                 foreach (CommandParameter parameter in command.Parameters)
                 {
-                    embed.AddField($"{parameter.Name.Titleize()} - {context.Extension.GetProcessor<TextCommandProcessor>().Converters[GetConverterFriendlyBaseType(parameter.Type)].ReadableName}", HelpCommandDocumentationMapperEventHandlers.CommandParameterDocumentation.TryGetValue(parameter, out string? parameterDocumentation) ? parameterDocumentation : "No description provided.");
+                    embed.AddField($"{parameter.Name.Titleize()} - {context.Extension.GetProcessor<TextCommandProcessor>().Converters[GetConverterFriendlyBaseType(parameter.Type)].ReadableName}", HelpCommandDocumentationMapperEventHandler.CommandParameterDocumentation.TryGetValue(parameter, out string? parameterDocumentation) ? parameterDocumentation : "No description provided.");
                 }
 
                 embed.WithImageUrl("https://files.forsaken-borders.net/transparent.png");

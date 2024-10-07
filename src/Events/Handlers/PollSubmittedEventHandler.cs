@@ -8,10 +8,9 @@ using OoLunar.Tomoe.Database.Models;
 
 namespace OoLunar.Tomoe.Events.Handlers
 {
-    public sealed class PollSubmittedEventHandlers
+    public sealed class PollSubmittedEventHandler : IEventHandler<InteractionCreatedEventArgs>
     {
-        [DiscordEvent]
-        public static async Task OnPollSubmittedAsync(DiscordClient client, InteractionCreatedEventArgs eventArgs)
+        public async Task HandleEventAsync(DiscordClient sender, InteractionCreatedEventArgs eventArgs)
         {
             if (eventArgs.Interaction.Type != DiscordInteractionType.Component)
             {

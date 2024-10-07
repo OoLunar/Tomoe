@@ -1,5 +1,4 @@
 using System;
-using System.Globalization;
 using System.Threading.Tasks;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.ArgumentModifiers;
@@ -22,7 +21,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
         /// <param name="member">Who lost talking privileges?</param>
         /// <param name="timeSpan">How long are they muted for?</param>
         /// <param name="reason">Why are they being muted?</param>
-        [Command("mute"), RequirePermissions(DiscordPermissions.ModerateMembers), RequireGuild]
+        [Command("mute"), RequirePermissions(DiscordPermissions.ModerateMembers)]
         public static async ValueTask MuteAsync(CommandContext context, DiscordMember? member = null, TimeSpan? timeSpan = null, [RemainingText] string? reason = null) => await ExecuteAsync(context, "Muted {0} for {1}. Reason: {2}", member, timeSpan, reason);
 
         /// <summary>
@@ -30,7 +29,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
         /// </summary>
         /// <param name="member">Who's gonna go to bed?</param>
         /// <param name="timeSpan">How long are they sleeping for?</param>
-        [Command("sleep"), RequirePermissions(DiscordPermissions.ModerateMembers), RequireGuild]
+        [Command("sleep"), RequirePermissions(DiscordPermissions.ModerateMembers)]
         public static async ValueTask SleepAsync(CommandContext context, DiscordMember? member = null, TimeSpan? timeSpan = null) => await ExecuteAsync(context, "Go sleep {0}. I'll see you in {1}.", member, timeSpan, null);
 
         private static async ValueTask ExecuteAsync(CommandContext context, string muteText, DiscordMember? member = null, TimeSpan? timeSpan = null, [RemainingText] string? reason = null)
@@ -49,7 +48,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
             reason ??= "None provided.";
             timeSpan ??= TimeSpan.FromMinutes(5);
             await member.TimeoutAsync(DateTimeOffset.UtcNow.Add(timeSpan.Value), reason);
-            await context.RespondAsync(string.Format(CultureInfo.InvariantCulture, muteText, member.Mention, timeSpan.Value.Humanize(), reason));
+            await context.RespondAsync(string.Format(await context.GetCultureAsync(), muteText, member.Mention, timeSpan.Value.Humanize(1, await context.GetCultureAsync()), reason));
         }
     }
 }

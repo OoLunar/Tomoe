@@ -4,7 +4,9 @@ using DSharpPlus;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.ArgumentModifiers;
 using DSharpPlus.Commands.Converters;
+using DSharpPlus.Commands.Processors.TextCommands;
 using DSharpPlus.Commands.Trees;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
@@ -24,15 +26,30 @@ namespace OoLunar.Tomoe.Commands.Common
         [Command("timestamp")]
         public static async ValueTask ExecuteAsync(CommandContext context, TimestampFormat format = TimestampFormat.LongDateTime, [RemainingText] string? when = null)
         {
-            if (when is null)
+            if (string.IsNullOrWhiteSpace(when))
             {
                 await context.RespondAsync($"Timestamp: {Formatter.Timestamp(DateTime.UtcNow, format)}");
+                return;
             }
-            else if ((await _timeSpanArgumentConverter.ExecuteAsync(context, when.Trim())).IsDefined(out TimeSpan timeSpan) && timeSpan != default)
+
+            when = when.Trim();
+            TextConverterContext converterContext = new()
+            {
+                Channel = context.Channel,
+                Command = context.Command,
+                Extension = context.Extension,
+                RawArguments = when,
+                Message = null!,
+                ServiceScope = context.ServiceProvider.CreateAsyncScope(),
+                Splicer = context.Extension.GetProcessor<TextCommandProcessor>().Configuration.TextArgumentSplicer,
+                User = context.User
+            };
+
+            if ((await _timeSpanArgumentConverter.ConvertAsync(converterContext)).IsDefined(out TimeSpan timeSpan) && timeSpan != default)
             {
                 await context.RespondAsync($"Timestamp: {Formatter.Timestamp(DateTime.UtcNow + timeSpan, format)}");
             }
-            else if ((await _dateTimeArgumentConverter.ExecuteAsync(context, when.Trim())).IsDefined(out DateTimeOffset dateTime) && dateTime != default)
+            else if ((await _dateTimeArgumentConverter.ConvertAsync(converterContext)).IsDefined(out DateTimeOffset dateTime) && dateTime != default)
             {
                 await context.RespondAsync($"Timestamp: {Formatter.Timestamp(dateTime, format)}");
             }

@@ -50,7 +50,7 @@ namespace OoLunar.Tomoe.Commands.Common
 
                     // If the flag isn't documented, Humanize will return an empty string.
                     // When that happens, we'll use the flag bit instead.
-                    string displayFlag = flag.Humanize().ToLowerInvariant();
+                    string displayFlag = flag.Humanize().ToLower(await context.GetCultureAsync());
                     if (string.IsNullOrWhiteSpace(displayFlag))
                     {
                         // For whatever reason, the spammer flag is intentionally
@@ -61,7 +61,7 @@ namespace OoLunar.Tomoe.Commands.Common
                     // Capitalize the first letter of the first flag.
                     if (userFlags.Count == 0)
                     {
-                        displayFlag = char.ToUpper(displayFlag[0], CultureInfo.InvariantCulture) + displayFlag[1..];
+                        displayFlag = char.ToUpper(displayFlag[0], await context.GetCultureAsync()) + displayFlag[1..];
                     }
 
                     userFlags.Add(displayFlag);

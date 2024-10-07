@@ -2,6 +2,7 @@ using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -125,7 +126,7 @@ namespace OoLunar.Tomoe.Database.Models
                 _createReminder.Parameters["channel_id"].Value = (long)channelId;
                 _createReminder.Parameters["thread_id"].Value = (long)threadId;
                 _createReminder.Parameters["message_id"].Value = (long)messageId;
-                _createReminder.Parameters["expires_at"].Value = expiresAt;
+                _createReminder.Parameters["expires_at"].Value = expiresAt.UtcDateTime;
                 _createReminder.Parameters["type"].Value = (short)type;
                 _createReminder.Parameters["interval"].Value = interval;
                 _createReminder.Parameters["content"].Value = content;
@@ -288,7 +289,7 @@ namespace OoLunar.Tomoe.Database.Models
                 return await DmUserAsync(client, expirable);
             }
 
-            await channel.SendMessageAsync(CreateReminderMessage(expirable, expirable.GuildId));
+            await channel.SendMessageAsync(CreateReminderMessage(expirable, expirable.GuildId, await UserSettingsModel.GetUserCultureAsync(expirable.UserId) ?? CultureInfo.InvariantCulture));
             return true;
         }
 
@@ -302,6 +303,7 @@ namespace OoLunar.Tomoe.Database.Models
             }
 
             // If the user is in a guild the bot is in, try to DM them.
+            CultureInfo? userCulture = await UserSettingsModel.GetUserCultureAsync(reminderModel.UserId) ?? CultureInfo.InvariantCulture;
             bool guildUnavailable = false;
             foreach (ulong guildId in guildIds)
             {
@@ -322,7 +324,7 @@ namespace OoLunar.Tomoe.Database.Models
                     // We're pretty confident that the user is in the guild since event handlers should
                     // always keep our database up-to-date, but surround it with a try-catch for when a race condition occurs.
                     DiscordMember member = await guild.GetMemberAsync(reminderModel.UserId);
-                    await member.SendMessageAsync(CreateReminderMessage(reminderModel, guildId));
+                    await member.SendMessageAsync(CreateReminderMessage(reminderModel, guildId, userCulture));
                 }
                 catch (DiscordException)
                 {
@@ -338,7 +340,7 @@ namespace OoLunar.Tomoe.Database.Models
             return !guildUnavailable;
         }
 
-        private static DiscordMessageBuilder CreateReminderMessage(ReminderModel reminderModel, ulong guildId)
+        private static DiscordMessageBuilder CreateReminderMessage(ReminderModel reminderModel, ulong guildId, CultureInfo cultureInfo)
         {
             DiscordMessageBuilder builder = new();
             builder.WithAllowedMention(new UserMention(reminderModel.UserId));
@@ -348,7 +350,7 @@ namespace OoLunar.Tomoe.Database.Models
             embedBuilder.WithTitle($"A reminder from {Formatter.Timestamp(reminderModel.Id.Time)}!");
             embedBuilder.AddField("Created At", Formatter.Timestamp(reminderModel.Id.Time, TimestampFormat.LongDateTime), true);
             embedBuilder.AddField("Expires At", Formatter.Timestamp(reminderModel.ExpiresAt, TimestampFormat.LongDateTime), true);
-            embedBuilder.AddField("Duration", (reminderModel.ExpiresAt - reminderModel.Id.Time).Humanize(2), true);
+            embedBuilder.AddField("Duration", (reminderModel.ExpiresAt - reminderModel.Id.Time).Humanize(2, cultureInfo), true);
 
             StringBuilder contentBuilder = new();
             List<string> attachments = new(4);

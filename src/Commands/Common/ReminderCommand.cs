@@ -11,6 +11,7 @@ using DSharpPlus.Commands.Processors.TextCommands;
 using DSharpPlus.Commands.Trees;
 using DSharpPlus.Commands.Trees.Metadata;
 using DSharpPlus.Entities;
+using Microsoft.Extensions.DependencyInjection;
 using OoLunar.Tomoe.Database;
 using OoLunar.Tomoe.Database.Models;
 
@@ -41,15 +42,30 @@ namespace OoLunar.Tomoe.Commands.Common
         [Command("set"), DefaultGroupCommand, RequirePermissions(DiscordPermissions.AttachFiles, DiscordPermissions.None)]
         public async ValueTask SetAsync(CommandContext context, string expiresAt, [RemainingText] string? content = null)
         {
-            DateTimeOffset expires;
             DateTimeOffset now = DateTimeOffset.UtcNow;
-            if ((await _timeSpanArgumentConverter.ExecuteAsync(context, expiresAt)).IsDefined(out TimeSpan timeSpan) && timeSpan != default)
+            TextConverterContext converterContext = new()
+            {
+                Channel = context.Channel,
+                Command = context.Command,
+                Extension = context.Extension,
+                RawArguments = expiresAt,
+                Message = null!,
+                ServiceScope = context.ServiceProvider.CreateAsyncScope(),
+                Splicer = context.Extension.GetProcessor<TextCommandProcessor>().Configuration.TextArgumentSplicer,
+                User = context.User
+            };
+
+            converterContext.NextArgument();
+
+            DateTimeOffset expires;
+            if ((await _timeSpanArgumentConverter.ConvertAsync(converterContext)).IsDefined(out TimeSpan timeSpan) && timeSpan != default)
             {
                 expires = now + timeSpan;
             }
-            else if ((await _dateTimeArgumentConverter.ExecuteAsync(context, expiresAt)).IsDefined(out DateTimeOffset dateTime) && dateTime != default)
+            else if ((await _dateTimeArgumentConverter.ConvertAsync(converterContext)).IsDefined(out DateTimeOffset dateTimeOffset) && dateTimeOffset != default)
             {
-                expires = dateTime;
+                TimeSpan offset = (await context.GetTimeZoneAsync()).BaseUtcOffset;
+                expires = dateTimeOffset.ToOffset(offset).Subtract(offset);
             }
             else
             {

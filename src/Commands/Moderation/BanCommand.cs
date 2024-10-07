@@ -1,5 +1,5 @@
 using System;
-using System.Globalization;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DSharpPlus.Commands;
@@ -25,7 +25,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
         /// </remarks>
         /// <param name="user">Who to ban.</param>
         /// <param name="reason">Why they're being banned.</param>
-        [Command("ban"), RequirePermissions(DiscordPermissions.BanMembers), RequireGuild]
+        [Command("ban"), RequirePermissions(DiscordPermissions.BanMembers)]
         public static async ValueTask ExecuteAsync(CommandContext context, DiscordUser user, [RemainingText] string? reason = null)
         {
             if (await GuildMemberModel.IsUserBannedAsync(user.Id, context.Guild!.Id))
@@ -64,7 +64,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
 
             // Use a string builder since we don't want multiple inline ternaries.
             StringBuilder stringBuilder = new();
-            stringBuilder.Append(CultureInfo.InvariantCulture, $"Banned {user.Mention}");
+            stringBuilder.Append(await context.GetCultureAsync(), $"Banned {user.Mention}");
             if (!didDm)
             {
                 stringBuilder.Append(" (DM failed)");

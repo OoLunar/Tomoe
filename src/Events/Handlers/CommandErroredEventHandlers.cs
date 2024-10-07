@@ -14,7 +14,6 @@ namespace OoLunar.Tomoe.Events.Handlers
 {
     public sealed class CommandErroredEventHandlers
     {
-        [DiscordEvent]
         public static async Task OnErroredAsync(CommandsExtension _, CommandErroredEventArgs eventArgs)
         {
             if (eventArgs.Exception is CommandNotFoundException commandNotFoundException)

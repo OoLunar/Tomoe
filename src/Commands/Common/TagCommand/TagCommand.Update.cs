@@ -16,7 +16,7 @@ namespace OoLunar.Tomoe.Commands.Common
         [Command("update")]
         public static async ValueTask UpdateTagAsync(CommandContext context, string name, [RemainingText] string content)
         {
-            if (!TryVerifyTagName(ref name, out string? error))
+            if (!TryVerifyTagName(await context.GetCultureAsync(), ref name, out string? error))
             {
                 await context.RespondAsync(error);
                 return;
@@ -30,10 +30,10 @@ namespace OoLunar.Tomoe.Commands.Common
             TagModel? tag = await TagModel.FindAsync(name, context.Guild!.Id);
             if (tag is null)
             {
-                await context.RespondAsync(string.Format(System.Globalization.CultureInfo.InvariantCulture, TAG_NOT_FOUND, Formatter.Sanitize(name)));
+                await context.RespondAsync(string.Format(await context.GetCultureAsync(), TAG_NOT_FOUND, Formatter.Sanitize(name)));
                 return;
             }
-            else if (!TryVerifyTagOwnership(context, tag, out error))
+            else if (!TryVerifyTagOwnership(context, await context.GetCultureAsync(), tag, out error))
             {
                 await context.RespondAsync(error);
                 return;

@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Commands;
@@ -17,7 +16,7 @@ namespace OoLunar.Tomoe.Commands.Common
         [Command("info")]
         public static async ValueTask InfoTagAsync(CommandContext context, [RemainingText] string name)
         {
-            if (!TryVerifyTagName(ref name, out string? error))
+            if (!TryVerifyTagName(await context.GetCultureAsync(), ref name, out string? error))
             {
                 await context.RespondAsync(error);
                 return;
@@ -26,7 +25,7 @@ namespace OoLunar.Tomoe.Commands.Common
             TagModel? tag = await TagModel.FindAsync(name, context.Guild!.Id);
             if (tag is null)
             {
-                await context.RespondAsync(string.Format(CultureInfo.InvariantCulture, TAG_NOT_FOUND, Formatter.Sanitize(name)));
+                await context.RespondAsync(string.Format(await context.GetCultureAsync(), TAG_NOT_FOUND, Formatter.Sanitize(name)));
                 return;
             }
 
@@ -41,7 +40,7 @@ namespace OoLunar.Tomoe.Commands.Common
             embedBuilder.AddField("Created At", Formatter.Timestamp(tag.Id.Time, TimestampFormat.LongDateTime), true);
             embedBuilder.AddField("Last Updated", Formatter.Timestamp(tag.LastUpdatedAt), true);
             embedBuilder.AddField("Total Edit Count", $"{await TagHistoryModel.CountRevisionsAsync(tag.Id):N0}", true);
-            embedBuilder.AddField("Total Times Used", tag.Uses.ToString("N0", CultureInfo.InvariantCulture), true);
+            embedBuilder.AddField("Total Times Used", tag.Uses.ToString("N0", await context.GetCultureAsync()), true);
             await context.RespondAsync(embedBuilder);
         }
     }

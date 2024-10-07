@@ -9,13 +9,13 @@ using OoLunar.Tomoe.Database;
 
 namespace OoLunar.Tomoe.Events.Handlers
 {
-    public sealed class DatabaseExpirableEventHandlers
+    public sealed class DatabaseExpirableEventHandler : IEventHandler<GuildDownloadCompletedEventArgs>
     {
         private readonly IServiceProvider _serviceProvider;
-        public DatabaseExpirableEventHandlers(IServiceProvider serviceProvider) => _serviceProvider = serviceProvider;
+        public DatabaseExpirableEventHandler(IServiceProvider serviceProvider) => _serviceProvider = serviceProvider;
 
         [DiscordEvent(DiscordIntents.Guilds)]
-        public Task OnGuildDownloadCompletedAsync(DiscordClient client, GuildDownloadCompletedEventArgs eventArgs)
+        public Task HandleEventAsync(DiscordClient sender, GuildDownloadCompletedEventArgs eventArgs)
         {
             // Start all database expirable services
             foreach (FieldInfo field in typeof(Program).Assembly.GetTypes()
