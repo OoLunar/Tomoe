@@ -108,7 +108,6 @@ namespace OoLunar.Tomoe.Commands.Moderation
         /// </remarks>
         /// <param name="context"></param>
         /// <param name="code"></param>
-        /// <returns></returns>
         [Command("eval"), Description("Not for you."), RequireApplicationOwner]
         public static async ValueTask ExecuteAsync(CommandContext context, [FromCode] string code)
         {

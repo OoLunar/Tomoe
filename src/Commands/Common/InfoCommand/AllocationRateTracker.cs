@@ -17,7 +17,6 @@ namespace OoLunar.Tomoe
         /// <summary>
         /// Creates a new instance of the <see cref="AllocationRateTracker"/>, starting the allocation rate tracking in the background.
         /// </summary>
-        /// <returns></returns>
         public AllocationRateTracker() => _ = TrackAllocationRateAsync();
 
         private async Task TrackAllocationRateAsync()
