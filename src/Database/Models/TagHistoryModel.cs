@@ -65,6 +65,7 @@ namespace OoLunar.Tomoe.Database.Models
                 _newRevision.Parameters["@owner_id"].Value = (long)tag.OwnerId;
                 _newRevision.Parameters["@guild_id"].Value = (long)tag.GuildId;
                 _newRevision.Parameters["@last_updated_at"].Value = DateTime.UtcNow;
+                _newRevision.Parameters["@uses"].Value = (long)tag.Uses;
 
                 await _newRevision.ExecuteNonQueryAsync();
             }

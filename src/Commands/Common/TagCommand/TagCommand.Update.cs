@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.ArgumentModifiers;
+using DSharpPlus.Commands.Trees.Metadata;
 using OoLunar.Tomoe.Database.Models;
 
 namespace OoLunar.Tomoe.Commands.Common
@@ -13,7 +14,7 @@ namespace OoLunar.Tomoe.Commands.Common
         /// </summary>
         /// <param name="name">The name of the tag to update.</param>
         /// <param name="content">The new content that the text wall should contain.</param>
-        [Command("update")]
+        [Command("update"), TextAlias("edit")]
         public static async ValueTask UpdateTagAsync(CommandContext context, string name, [RemainingText] string content)
         {
             if (!TryVerifyTagName(await context.GetCultureAsync(), ref name, out string? error))
