@@ -3,7 +3,7 @@ ARG VERSION=6.0.0
 WORKDIR /src
 
 COPY ./ /src
-RUN apk add git openssl icu-data-full tzdata \
+RUN apk add git openssl icu-libs icu-data-full tzdata \
     && git submodule update --init --recursive \
     && sed -i "s/<Version>.*<\/Version>/<Version>${VERSION}<\/Version>/" src/Tomoe.csproj \
     && dotnet publish -c Release -r linux-musl-x64
@@ -13,7 +13,7 @@ WORKDIR /src
 
 COPY --from=build /src/src/bin/Release/net8.0/linux-musl-x64/publish /src
 RUN apk upgrade --update-cache --available \
-    && apk add openssl icu-data-full tzdata \
+    && apk add openssl icu-libs icu-data-full tzdata \
     && apk del git \
     && rm -rf /var/cache/apk/*
 
