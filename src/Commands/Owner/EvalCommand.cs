@@ -22,7 +22,7 @@ using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
 using Newtonsoft.Json;
 
-namespace OoLunar.Tomoe.Commands.Moderation
+namespace OoLunar.Tomoe.Commands.Owner
 {
     /// <summary>
     /// "dont eval shit" - Jake from Discord

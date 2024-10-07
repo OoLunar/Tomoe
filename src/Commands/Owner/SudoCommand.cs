@@ -7,7 +7,7 @@ using DSharpPlus.Commands.Trees;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 
-namespace OoLunar.Tomoe.Commands.Moderation
+namespace OoLunar.Tomoe.Commands.Owner
 {
     /// <summary>
     /// 'tomoe' is not in the sudoers file. This incident will be reported.
