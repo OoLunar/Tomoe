@@ -9,9 +9,9 @@ namespace OoLunar.Tomoe.Converters
 {
     public sealed class TimeZoneInfoConverter : ISlashArgumentConverter<TimeZoneInfo>, ITextArgumentConverter<TimeZoneInfo>
     {
-        public bool RequiresText => true;
-        public string ReadableName => "Timezone";
         public DiscordApplicationCommandOptionType ParameterType => DiscordApplicationCommandOptionType.String;
+        public ConverterInputType RequiresText => ConverterInputType.Always;
+        public string ReadableName => "Timezone";
 
         public Task<Optional<TimeZoneInfo>> ConvertAsync(ConverterContext context)
         {

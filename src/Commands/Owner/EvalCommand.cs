@@ -69,8 +69,8 @@ namespace OoLunar.Tomoe.Commands.Owner
             }
         }
 
-        private static readonly ScriptOptions _evalOptions;
-        private static readonly JsonSerializer _discordJson;
+        internal static readonly ScriptOptions _evalOptions;
+        internal static readonly JsonSerializer _discordJson;
 
         static EvalCommand()
         {
@@ -82,6 +82,7 @@ namespace OoLunar.Tomoe.Commands.Owner
                 .AddReferences(assemblies)
                 .AddImports(
                 [
+                    "BenchmarkDotNet.Attributes",
                     "System",
                     "System.Threading.Tasks",
                     "System.Text",

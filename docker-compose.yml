@@ -1,8 +1,7 @@
-version: "3"
-
 services:
   tomoe:
     build: .
+    env_file: .env
     volumes:
       - ./res:/src/res
     restart: unless-stopped

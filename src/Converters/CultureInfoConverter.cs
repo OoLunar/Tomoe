@@ -9,9 +9,9 @@ namespace OoLunar.Tomoe.Converters
 {
     public sealed class CultureInfoConverter : ISlashArgumentConverter<CultureInfo>, ITextArgumentConverter<CultureInfo>
     {
-        public bool RequiresText => true;
-        public string ReadableName => "Culture Info";
         public DiscordApplicationCommandOptionType ParameterType => DiscordApplicationCommandOptionType.String;
+        public ConverterInputType RequiresText => ConverterInputType.Always;
+        public string ReadableName => "Culture Info";
 
         public Task<Optional<CultureInfo>> ConvertAsync(ConverterContext context)
         {
