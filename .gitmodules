@@ -1,7 +1,6 @@
 [submodule "libs/DSharpPlus"]
 	path = libs/DSharpPlus
 	url = https://github.com/DSharpPlus/DSharpPlus.git
-    branch = oolunar/commands/requires-text-when
 [submodule "libs/XMLDocs.NET"]
 	path = libs/XMLDocs.NET
 	url = https://github.com/OoLunar/XMLDocs.NET.git
