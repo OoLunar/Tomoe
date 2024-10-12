@@ -16,7 +16,7 @@ namespace OoLunar.Tomoe.Commands.Common
         /// </summary>
         /// <param name="text">The text to sort.</param>
         [Command("sort")]
-        public static ValueTask ExecuteAsync(CommandContext context, [RemainingText] string text)
+        public static ValueTask ExecuteAsync(CommandContext context, [FromCode] string text)
         {
             char splitChar = !text.Contains('\n') ? ' ' : '\n';
             List<string> words = new(text.Split(splitChar));
