@@ -17,10 +17,10 @@ namespace OoLunar.Tomoe.Commands.Owner
     /// </summary>
     public static class BenchmarkCommand
     {
-        private static readonly string _csprojTemplate;
-        private static readonly string _benchmarkTemplate;
-        private static readonly string _benchmarkTracker;
-        private static readonly string _programTemplate;
+        private static readonly string _csprojTemplate = null!;
+        private static readonly string _benchmarkTemplate = null!;
+        private static readonly string _benchmarkTracker = null!;
+        private static readonly string _programTemplate = null!;
 
         static BenchmarkCommand()
         {
