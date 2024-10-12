@@ -70,7 +70,7 @@ namespace OoLunar.Tomoe
 
                 serilogLoggerConfiguration.WriteTo.File(
                     formatProvider: CultureInfo.InvariantCulture,
-                    path: $"{tomoeConfiguration.Logger.Path}/{tomoeConfiguration.Logger.FileName}.log",
+                    path: $"{tomoeConfiguration.Logger.Path}/{DateTime.Now.ToUniversalTime().ToString(tomoeConfiguration.Logger.FileName, CultureInfo.InvariantCulture)}-.log",
                     rollingInterval: tomoeConfiguration.Logger.RollingInterval,
                     outputTemplate: tomoeConfiguration.Logger.Format
                 );
