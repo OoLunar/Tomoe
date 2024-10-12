@@ -112,23 +112,13 @@ namespace OoLunar.Tomoe.Commands.Owner
         [Command("eval"), Description("Not for you."), RequireApplicationOwner]
         public static async ValueTask ExecuteAsync(CommandContext context, [FromCode] string code)
         {
+            // Yeah we're gonna be here for a bit.
             await context.DeferResponseAsync();
-            Script<object> script = CSharpScript.Create(code, _evalOptions, typeof(EvalContext));
-            ImmutableArray<Diagnostic> errors = script.Compile();
-            if (errors.Length == 1)
-            {
-                string errorString = errors[0].ToString();
-                await context.EditResponseAsync(errorString.Length switch
-                {
-                    < 1992 => new DiscordMessageBuilder().WithContent(Formatter.BlockCode(errorString)),
-                    _ => new DiscordMessageBuilder().AddFile("errors.log", new MemoryStream(Encoding.UTF8.GetBytes(errorString)))
-                });
 
-                return;
-            }
-            else if (errors.Length > 1)
+            // Verify the code compiles
+            if (VerifyCode(code, out Script<object>? script) is DiscordMessageBuilder errorMessage)
             {
-                await context.EditResponseAsync(new DiscordMessageBuilder().AddFile("errors.log", new MemoryStream(Encoding.UTF8.GetBytes(string.Join("\n", errors.Select(x => x.ToString()))))));
+                await context.EditResponseAsync(errorMessage);
                 return;
             }
 
@@ -145,6 +135,27 @@ namespace OoLunar.Tomoe.Commands.Owner
             }
 
             await FinishedAsync(evalContext, output);
+        }
+
+        internal static DiscordMessageBuilder? VerifyCode(string code, out Script<object> script)
+        {
+            script = CSharpScript.Create(code, _evalOptions, typeof(EvalContext));
+            ImmutableArray<Diagnostic> errors = script.Compile();
+            if (errors.Length == 1)
+            {
+                string errorString = errors[0].ToString();
+                return errorString.Length switch
+                {
+                    < 1992 => new DiscordMessageBuilder().WithContent(Formatter.BlockCode(errorString)),
+                    _ => new DiscordMessageBuilder().AddFile("errors.log", new MemoryStream(Encoding.UTF8.GetBytes(errorString)))
+                };
+            }
+            else if (errors.Length > 1)
+            {
+                return new DiscordMessageBuilder().AddFile("errors.log", new MemoryStream(Encoding.UTF8.GetBytes(string.Join("\n", errors.Select(x => x.ToString())))));
+            }
+
+            return null;
         }
 
         private static async ValueTask FinishedAsync(EvalContext context, object? output)

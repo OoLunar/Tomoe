@@ -19,6 +19,7 @@ namespace OoLunar.Tomoe.Commands.Owner
     {
         private static readonly string _csprojTemplate;
         private static readonly string _benchmarkTemplate;
+        private static readonly string _benchmarkTracker;
         private static readonly string _programTemplate;
 
         static BenchmarkCommand()
@@ -35,6 +36,10 @@ namespace OoLunar.Tomoe.Commands.Owner
                 else if (resourceFile == "Tomoe.Benchmarks.BenchmarkTemplate.template")
                 {
                     _benchmarkTemplate = streamReader.ReadToEnd();
+                }
+                else if (resourceFile == "Tomoe.Benchmarks.BenchmarkTracker.template")
+                {
+                    _benchmarkTracker = streamReader.ReadToEnd();
                 }
                 else if (resourceFile == "Tomoe.Benchmarks.Program.template")
                 {
@@ -87,6 +92,14 @@ namespace OoLunar.Tomoe.Commands.Owner
             // Yeah we're gonna be here for a bit.
             await context.DeferResponseAsync();
 
+            // Verify the code compiles
+            code = _benchmarkTemplate + code;
+            if (EvalCommand.VerifyCode(code, out _) is DiscordMessageBuilder errorMessage)
+            {
+                await context.EditResponseAsync(errorMessage);
+                return;
+            }
+
             // Create the assembly name
             Ulid id = Ulid.NewUlid();
 
@@ -98,8 +111,10 @@ namespace OoLunar.Tomoe.Commands.Owner
             await File.WriteAllTextAsync(Path.Combine(basePath, $"{id}.csproj"), _csprojTemplate);
 
             // Create the code file
-            code = _benchmarkTemplate + code;
             await File.WriteAllTextAsync(Path.Combine(basePath, $"{id}.cs"), code);
+
+            // Create the BenchmarkTracker file
+            await File.WriteAllTextAsync(Path.Combine(basePath, "BenchmarkTracker.cs"), _benchmarkTracker);
 
             // Create the Program file
             await File.WriteAllTextAsync(Path.Combine(basePath, "Program.cs"), _programTemplate);
@@ -110,35 +125,45 @@ namespace OoLunar.Tomoe.Commands.Owner
                 FileName = "dotnet",
                 Arguments = $"run --project {id}.csproj -c Release",
                 WorkingDirectory = basePath,
-                UseShellExecute = true,
-                CreateNoWindow = false,
-                WindowStyle = ProcessWindowStyle.Normal
+                RedirectStandardError = true,
+                RedirectStandardOutput = true
             };
 
-            Process? process = Process.Start(startInfo);
+            using Process? process = Process.Start(startInfo);
             if (process is null)
             {
                 await context.RespondAsync("Failed to start the benchmark process.");
                 return;
             }
 
-            // Periodically update Discord with the program title
+            // Start redirecting the output
+            StringBuilder output = new();
+            process.OutputDataReceived += (_, eventArgs) => output.AppendLine(eventArgs.Data);
+            process.ErrorDataReceived += (_, eventArgs) => output.AppendLine(eventArgs.Data);
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+
+            // Periodically update Discord with the progress
             CancellationTokenSource cancellationTokenSource = new();
-            Task task = Task.Run(async () =>
+            Task progressTask = Task.Run(async () =>
             {
-                await context.EditResponseAsync("Running benchmarks...");
+                // Create the status.log file if it doesn't exist
+                string statusPath = Path.Combine(basePath, "status.log");
+                if (!File.Exists(statusPath))
+                {
+                    await File.WriteAllTextAsync(statusPath, null);
+                }
+
+                await context.RespondAsync("Running benchmarks...");
 
                 string? title = null;
-                PeriodicTimer timer = new(TimeSpan.FromSeconds(5));
+                PeriodicTimer timer = new(TimeSpan.FromMilliseconds(500));
                 while (await timer.WaitForNextTickAsync() && !cancellationTokenSource.Token.IsCancellationRequested)
                 {
-                    if (string.IsNullOrWhiteSpace(process.MainWindowTitle))
+                    string progress = await File.ReadAllTextAsync(statusPath);
+                    if (!string.IsNullOrWhiteSpace(progress) && title != progress)
                     {
-                        continue;
-                    }
-                    else if (title != process.MainWindowTitle)
-                    {
-                        title = process.MainWindowTitle;
+                        title = progress;
                         await context.EditResponseAsync(title);
                     }
                 }
@@ -146,35 +171,18 @@ namespace OoLunar.Tomoe.Commands.Owner
 
             await process.WaitForExitAsync();
             await cancellationTokenSource.CancelAsync();
-            await task;
+            await progressTask;
 
             // Send the output
             if (process.ExitCode != 0)
             {
-                StringBuilder output = new();
-                output.Append(await process.StandardOutput.ReadToEndAsync());
-                output.Append(await process.StandardError.ReadToEndAsync());
-                DiscordMessageBuilder messageBuilder = new();
-                if (output.Length > 1956)
-                {
-                    messageBuilder.WithContent($"BenchmarkDotNet failed with exit code {process.ExitCode}.");
-                    messageBuilder.AddFile("output.log", new MemoryStream(Encoding.UTF8.GetBytes(output.ToString())));
-                }
-                else
-                {
-                    messageBuilder.WithContent($"Benchmark failed with exit code {process.ExitCode}.\n```{output}```");
-                }
-
-                await context.RespondAsync(messageBuilder);
+                await context.EditResponseAsync(FormatOutput(process, output.ToString()));
                 return;
             }
 
-            // Dispose of the process as we don't need it anymore
-            process.Dispose();
-
             // Read the header
             string resultsPath = Path.Combine(basePath, "BenchmarkDotNet.Artifacts/results");
-            await context.RespondAsync(await File.ReadAllTextAsync(Path.Combine(basePath, "header.md")));
+            await context.EditResponseAsync(await File.ReadAllTextAsync(Path.Combine(basePath, "header.md")));
 
             // Send the results
             foreach (string file in Directory.EnumerateFiles(resultsPath))
@@ -182,13 +190,36 @@ namespace OoLunar.Tomoe.Commands.Owner
                 string content = (await File.ReadAllTextAsync(file)).Split("```")[2];
                 if (content.Length > 1992)
                 {
-                    await context.RespondAsync(new DiscordMessageBuilder().AddFile(Path.GetFileName(file), new MemoryStream(Encoding.UTF8.GetBytes(content))));
+                    await context.FollowupAsync(new DiscordMessageBuilder().AddFile(Path.GetFileName(file), new MemoryStream(Encoding.UTF8.GetBytes(content))));
                 }
                 else
                 {
-                    await context.RespondAsync($"```\n{content}\n```");
+                    await context.FollowupAsync($"```\n{content}\n```");
                 }
             }
+
+            // Send the console output
+            await context.FollowupAsync(FormatOutput(process, output.ToString()));
+        }
+
+        private static DiscordMessageBuilder FormatOutput(Process process, string output)
+        {
+            DiscordMessageBuilder messageBuilder = new();
+            if (output.Length == 0)
+            {
+                messageBuilder.WithContent($"BenchmarkDotNet exited with code {process.ExitCode}.");
+            }
+            else if (output.Length > 1956)
+            {
+                messageBuilder.WithContent($"BenchmarkDotNet exited with code {process.ExitCode}.");
+                messageBuilder.AddFile("output.log", new MemoryStream(Encoding.UTF8.GetBytes(output.ToString())));
+            }
+            else
+            {
+                messageBuilder.WithContent($"BenchmarkDotNet exited with code {process.ExitCode}.\n```{output}```");
+            }
+
+            return messageBuilder;
         }
     }
 }
