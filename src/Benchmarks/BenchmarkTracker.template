@@ -1,0 +1,77 @@
+using System;
+using System.Globalization;
+using System.IO;
+using System.Text;
+using BenchmarkDotNet.Loggers;
+using DSharpPlus;
+
+namespace OoLunar.Tomoe.Benchmarks
+{
+    public sealed class BenchmarkTracker : ILogger
+    {
+        /// <inheritdoc />
+        public string Id => "OoLunar.Tomoe.Benchmarks.BenchmarkTracker";
+
+        /// <inheritdoc />
+        public int Priority => 0;
+
+        private readonly FileStream _fileStream = File.Open("status.log", FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite);
+        private int _totalBenchmarkCount;
+
+        /// <inheritdoc />
+        public void Flush() => _fileStream.Flush(true);
+
+        /// <inheritdoc />
+        public void Write(LogKind logKind, string text)
+        {
+            foreach (string line in text.Split('\n'))
+            {
+                // ***** Found 4 benchmark(s) in total *****
+                if (line.StartsWith("// ***** Found ") && line.EndsWith(" benchmark(s) in total *****"))
+                {
+                    if (!int.TryParse(line[15..^28], NumberStyles.Integer, CultureInfo.InvariantCulture, out int totalBenchmarkCount))
+                    {
+                        Console.WriteLine($"Failed to parse total benchmark count: {line[15..^28]}");
+                        continue;
+                    }
+
+                    _totalBenchmarkCount = totalBenchmarkCount;
+                    _fileStream.SetLength(0);
+                    _fileStream.Write(Encoding.UTF8.GetBytes($"Running {_totalBenchmarkCount:N0} benchmarks..."));
+                    Flush();
+                }
+                // ** Remained 3 (75.0%) benchmark(s) to run. Estimated finish 2024-10-08 11:10 (0h 0m from now) **
+                else if (line.StartsWith("// ** Remained ") && line.Contains(" benchmark(s) to run. Estimated finish "))
+                {
+                    DateTime estimatedFinish;
+                    string[] parts = line.Split(' ');
+                    if (!int.TryParse(parts[3], NumberStyles.Integer, CultureInfo.InvariantCulture, out int number) ||
+                        !DateTime.TryParse(parts[10] + " " + parts[11], CultureInfo.InvariantCulture, DateTimeStyles.None, out estimatedFinish))
+                    {
+                        Console.WriteLine($"Failed to parse benchmark details: {line}");
+                        continue;
+                    }
+
+                    if (estimatedFinish < DateTime.Now)
+                    {
+                        estimatedFinish = estimatedFinish.AddMinutes(1);
+                    }
+
+                    _fileStream.SetLength(0);
+                    _fileStream.Write(Encoding.UTF8.GetBytes($"Running {_totalBenchmarkCount:N0} benchmarks, {number:N0}/{_totalBenchmarkCount:N0} remain. Estimated finish: {Formatter.Timestamp(estimatedFinish)}"));
+                    Flush();
+                }
+            }
+        }
+
+        /// <inheritdoc />
+        public void WriteLine() => _fileStream.WriteByte((byte)'\n');
+
+        /// <inheritdoc />
+        public void WriteLine(LogKind logKind, string text)
+        {
+            Write(logKind, text);
+            WriteLine();
+        }
+    }
+}
