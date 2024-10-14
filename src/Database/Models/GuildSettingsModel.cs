@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Npgsql;
@@ -85,9 +86,9 @@ namespace OoLunar.Tomoe.Database.Models
             {
                 _updateSettings.Parameters["@guild_id"].Value = (long)settings.GuildId;
                 _updateSettings.Parameters["@auto_dehoist"].Value = settings.AutoDehoist;
-                _updateSettings.Parameters["@auto_dehoist_format"].Value = settings.AutoDehoistFormat;
+                _updateSettings.Parameters["@auto_dehoist_format"].Value = ((object?)settings.AutoDehoistFormat) ?? DBNull.Value;
                 _updateSettings.Parameters["@restore_roles"].Value = settings.RestoreRoles;
-                _updateSettings.Parameters["@text_prefix"].Value = settings.TextPrefix;
+                _updateSettings.Parameters["@text_prefix"].Value = ((object?)settings.TextPrefix) ?? DBNull.Value;
 
                 await _updateSettings.ExecuteNonQueryAsync();
             }
@@ -103,7 +104,7 @@ namespace OoLunar.Tomoe.Database.Models
             try
             {
                 _getAutoDehoist.Parameters["@guild_id"].Value = (long)guildId;
-                return (bool)(await _getAutoDehoist.ExecuteScalarAsync())!;
+                return await _getAutoDehoist.ExecuteScalarAsync() as bool? ?? false;
             }
             finally
             {
@@ -131,7 +132,7 @@ namespace OoLunar.Tomoe.Database.Models
             try
             {
                 _getRestoreRoles.Parameters["@guild_id"].Value = (long)guildId;
-                return (bool)(await _getRestoreRoles.ExecuteScalarAsync())!;
+                return await _getRestoreRoles.ExecuteScalarAsync() as bool? ?? false;
             }
             finally
             {

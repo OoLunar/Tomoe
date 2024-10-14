@@ -2,39 +2,105 @@ using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
+using DSharpPlus.Exceptions;
+using Microsoft.Extensions.Logging;
 using OoLunar.Tomoe.Commands.Moderation;
 using OoLunar.Tomoe.Database.Models;
 
 namespace OoLunar.Tomoe.Events.Handlers
 {
-    public sealed class GuildMemberNicknameDehoisterEventHandler : IEventHandler<GuildMemberUpdatedEventArgs>
+    public sealed class GuildMemberNicknameDehoisterEventHandler : IEventHandler<GuildMemberUpdatedEventArgs>, IEventHandler<GuildMemberAddedEventArgs>, IEventHandler<GuildAvailableEventArgs>, IEventHandler<GuildCreatedEventArgs>
     {
+        private readonly ILogger<GuildMemberNicknameDehoisterEventHandler> _logger;
+
+        public GuildMemberNicknameDehoisterEventHandler(ILogger<GuildMemberNicknameDehoisterEventHandler> logger) => _logger = logger;
+
         [DiscordEvent(DiscordIntents.Guilds | DiscordIntents.GuildMembers)]
         public async Task HandleEventAsync(DiscordClient sender, GuildMemberUpdatedEventArgs eventArgs)
         {
             // Check to see if we can rename users
-            if (eventArgs.Guild.CurrentMember.Permissions.HasPermission(DiscordPermissions.ManageNicknames)
-                // Check to see if we can rename the user
-                || eventArgs.Member.Hierarchy >= eventArgs.Guild.CurrentMember.Hierarchy
-                // Check to see if the user's nickname needs to be dehoisted
-                // By default, Discord sorts by ASCII characters. If the first character is not a letter or number, it is considered a dehoist
-                || !DehoistCommand.ShouldDehoist(eventArgs.Member)
+            if (!eventArgs.Guild.CurrentMember.Permissions.HasPermission(DiscordPermissions.ManageNicknames)
                 // Check to see if the guild has auto-dehoist enabled
                 || !await GuildSettingsModel.GetAutoDehoistAsync(eventArgs.Guild.Id))
             {
                 return;
             }
 
-            // Read the format
+            await HandleGuildMemberAsync(eventArgs.Member, await GuildSettingsModel.GetAutoDehoistFormatAsync(eventArgs.Guild.Id) ?? "Dehoisted");
+        }
+
+        [DiscordEvent(DiscordIntents.Guilds | DiscordIntents.GuildMembers)]
+        public async Task HandleEventAsync(DiscordClient sender, GuildMemberAddedEventArgs eventArgs)
+        {
+            // Check to see if we can rename users
+            if (!eventArgs.Guild.CurrentMember.Permissions.HasPermission(DiscordPermissions.ManageNicknames)
+                // Check to see if the guild has auto-dehoist enabled
+                || !await GuildSettingsModel.GetAutoDehoistAsync(eventArgs.Guild.Id))
+            {
+                return;
+            }
+
+            await HandleGuildMemberAsync(eventArgs.Member, await GuildSettingsModel.GetAutoDehoistFormatAsync(eventArgs.Guild.Id) ?? "Dehoisted");
+        }
+
+        [DiscordEvent(DiscordIntents.Guilds)]
+        public async Task HandleEventAsync(DiscordClient sender, GuildAvailableEventArgs eventArgs)
+        {
+            // Check to see if we can rename users
+            if (!eventArgs.Guild.CurrentMember.Permissions.HasPermission(DiscordPermissions.ManageNicknames)
+                // Check to see if the guild has auto-dehoist enabled
+                || !await GuildSettingsModel.GetAutoDehoistAsync(eventArgs.Guild.Id))
+            {
+                return;
+            }
+
             string format = await GuildSettingsModel.GetAutoDehoistFormatAsync(eventArgs.Guild.Id) ?? "Dehoisted";
+            foreach (DiscordMember member in eventArgs.Guild.Members.Values)
+            {
+                await HandleGuildMemberAsync(member, format);
+            }
+        }
+
+        [DiscordEvent(DiscordIntents.Guilds)]
+        public async Task HandleEventAsync(DiscordClient sender, GuildCreatedEventArgs eventArgs)
+        {
+            // Check to see if we can rename users
+            if (!eventArgs.Guild.CurrentMember.Permissions.HasPermission(DiscordPermissions.ManageNicknames)
+                // Check to see if the guild has auto-dehoist enabled
+                || !await GuildSettingsModel.GetAutoDehoistAsync(eventArgs.Guild.Id))
+            {
+                return;
+            }
+
+            string format = await GuildSettingsModel.GetAutoDehoistFormatAsync(eventArgs.Guild.Id) ?? "Dehoisted";
+            foreach (DiscordMember member in eventArgs.Guild.Members.Values)
+            {
+                await HandleGuildMemberAsync(member, format);
+            }
+        }
+
+        private async ValueTask HandleGuildMemberAsync(DiscordMember member, string format)
+        {
+            // Check to see if we can and should rename the user
+            if (member.Hierarchy >= member.Guild.CurrentMember.Hierarchy || !DehoistCommand.ShouldDehoist(member))
+            {
+                return;
+            }
 
             // Replace the variables within the format
             format = format
-                .Replace("{display_name}", eventArgs.Member.DisplayName)
-                .Replace("{user_name}", eventArgs.Member.Username);
+                .Replace("{display_name}", member.DisplayName)
+                .Replace("{user_name}", member.Username);
 
             // Rename the user
-            await eventArgs.Member.ModifyAsync(memberEditModel => memberEditModel.Nickname = format);
+            try
+            {
+                await member.ModifyAsync(memberEditModel => memberEditModel.Nickname = format);
+            }
+            catch (DiscordException error)
+            {
+                _logger.LogError(error, "Failed to dehoist {UserId} in {GuildId}", member.Id, member.Guild.Id);
+            }
         }
     }
 }
