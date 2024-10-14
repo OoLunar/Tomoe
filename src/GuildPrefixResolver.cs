@@ -47,7 +47,7 @@ namespace OoLunar.Tomoe
             return message.Content.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) ? prefix.Length : -1;
         }
 
-        public void ChangePrefix(ulong guildId, string prefix) => _prefixGuildCache.Set(guildId, prefix, new MemoryCacheEntryOptions()
+        public void ChangePrefix(ulong guildId, string? prefix) => _prefixGuildCache.Set(guildId, prefix, new MemoryCacheEntryOptions()
         {
             SlidingExpiration = _configuration.Discord.CachePrefixSlidingExpiration
         });

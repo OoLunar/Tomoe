@@ -32,7 +32,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
         /// <param name="prefix">The new text prefix.</param>
         [Command("text_prefix")]
         [RequirePermissions(DiscordPermissions.None, DiscordPermissions.ManageGuild)]
-        public async ValueTask TextPrefixAsync(CommandContext context, string prefix)
+        public async ValueTask TextPrefixAsync(CommandContext context, string? prefix = null)
         {
             GuildSettingsModel? settings = await GuildSettingsModel.GetSettingsAsync(context.Guild!.Id);
             if (settings is null)
@@ -41,14 +41,17 @@ namespace OoLunar.Tomoe.Commands.Moderation
                 return;
             }
 
-            prefix = prefix.Trim();
+            prefix = prefix?.Trim();
             await GuildSettingsModel.UpdateSettingsAsync(settings with
             {
                 TextPrefix = prefix
             });
 
             _guildPrefixResolver.ChangePrefix(context.Guild!.Id, prefix);
-            await context.RespondAsync($"The text prefix has been set to `{prefix}`.");
+            await context.RespondAsync(string.IsNullOrWhiteSpace(prefix)
+                ? "The text prefix has been reset to use the global prefix."
+                : $"The text prefix has been set to `{prefix}`."
+            );
         }
     }
 }
