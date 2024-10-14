@@ -1,11 +1,12 @@
 using DSharpPlus.Commands;
+using DSharpPlus.Commands.Trees.Metadata;
 
 namespace OoLunar.Tomoe.Commands.Moderation
 {
     /// <summary>
     /// Manages the guild settings.
     /// </summary>
-    [Command("guild_settings")]
+    [Command("guild_settings"), TextAlias("guild_config")]
     public sealed partial class GuildSettingsCommand
     {
         private const string NOT_SETUP_TEXT = "The guild settings have not been setup yet. Please run `/guild_settings setup` to configure the guild settings.";
