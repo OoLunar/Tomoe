@@ -73,7 +73,6 @@ namespace OoLunar.Tomoe.Database.Models
         public required ulong ThreadId { get; init; }
         public required ulong MessageId { get; init; }
         public required DateTimeOffset ExpiresAt { get; init; }
-        public required ReminderType Type { get; init; }
         public required TimeSpan Interval { get; init; }
         public required string Content { get; init; }
 
@@ -87,12 +86,11 @@ namespace OoLunar.Tomoe.Database.Models
                 thread_id BIGINT NOT NULL,
                 message_id BIGINT NOT NULL,
                 expires_at TIMESTAMPTZ NOT NULL,
-                type SMALLINT NOT NULL,
                 interval INTERVAL NOT NULL,
                 content TEXT NOT NULL
             );");
 
-            _createReminder = new NpgsqlCommand(@"INSERT INTO reminders (id, user_id, guild_id, channel_id, thread_id, message_id, expires_at, type, interval, content) VALUES (@id, @user_id, @guild_id, @channel_id, @thread_id, @message_id, @expires_at, @type, @interval, @content);");
+            _createReminder = new NpgsqlCommand(@"INSERT INTO reminders (id, user_id, guild_id, channel_id, thread_id, message_id, expires_at, interval, content) VALUES (@id, @user_id, @guild_id, @channel_id, @thread_id, @message_id, @expires_at, @interval, @content);");
             _createReminder.Parameters.Add(new NpgsqlParameter("id", NpgsqlTypes.NpgsqlDbType.Text));
             _createReminder.Parameters.Add(new NpgsqlParameter("user_id", NpgsqlTypes.NpgsqlDbType.Bigint));
             _createReminder.Parameters.Add(new NpgsqlParameter("guild_id", NpgsqlTypes.NpgsqlDbType.Bigint));
@@ -100,7 +98,6 @@ namespace OoLunar.Tomoe.Database.Models
             _createReminder.Parameters.Add(new NpgsqlParameter("thread_id", NpgsqlTypes.NpgsqlDbType.Bigint));
             _createReminder.Parameters.Add(new NpgsqlParameter("message_id", NpgsqlTypes.NpgsqlDbType.Bigint));
             _createReminder.Parameters.Add(new NpgsqlParameter("expires_at", NpgsqlTypes.NpgsqlDbType.TimestampTz));
-            _createReminder.Parameters.Add(new NpgsqlParameter("type", NpgsqlTypes.NpgsqlDbType.Smallint));
             _createReminder.Parameters.Add(new NpgsqlParameter("interval", NpgsqlTypes.NpgsqlDbType.Interval));
             _createReminder.Parameters.Add(new NpgsqlParameter("content", NpgsqlTypes.NpgsqlDbType.Text));
 
@@ -115,7 +112,7 @@ namespace OoLunar.Tomoe.Database.Models
             _listReminders.Parameters.Add(new NpgsqlParameter("offset", NpgsqlTypes.NpgsqlDbType.Bigint));
         }
 
-        public static async ValueTask<ReminderModel> CreateAsync(Ulid id, ulong userId, ulong guildId, ulong channelId, ulong threadId, ulong messageId, DateTimeOffset expiresAt, ReminderType type, TimeSpan interval, string content)
+        public static async ValueTask<ReminderModel> CreateAsync(Ulid id, ulong userId, ulong guildId, ulong channelId, ulong threadId, ulong messageId, DateTimeOffset expiresAt, TimeSpan interval, string content)
         {
             await _semaphore.WaitAsync();
             try
@@ -127,7 +124,6 @@ namespace OoLunar.Tomoe.Database.Models
                 _createReminder.Parameters["thread_id"].Value = (long)threadId;
                 _createReminder.Parameters["message_id"].Value = (long)messageId;
                 _createReminder.Parameters["expires_at"].Value = expiresAt.UtcDateTime;
-                _createReminder.Parameters["type"].Value = (short)type;
                 _createReminder.Parameters["interval"].Value = interval;
                 _createReminder.Parameters["content"].Value = content;
                 await _createReminder.ExecuteNonQueryAsync();
@@ -140,7 +136,6 @@ namespace OoLunar.Tomoe.Database.Models
                     ThreadId = threadId,
                     MessageId = messageId,
                     ExpiresAt = expiresAt,
-                    Type = type,
                     Interval = interval,
                     Content = content
                 };
@@ -230,10 +225,9 @@ namespace OoLunar.Tomoe.Database.Models
             ChannelId = (ulong)reader.GetInt64(3),
             MessageId = (ulong)reader.GetInt64(4),
             ExpiresAt = (DateTimeOffset)reader.GetDateTime(5),
-            Type = (ReminderType)reader.GetByte(6),
-            Interval = reader.GetTimeSpan(7),
-            Content = reader.GetString(8),
-            ThreadId = (ulong)reader.GetInt64(9),
+            Interval = reader.GetTimeSpan(6),
+            Content = reader.GetString(7),
+            ThreadId = (ulong)reader.GetInt64(8),
         }) is not null;
 
         public static async ValueTask<bool> ExpireAsync(ReminderModel expirable, IServiceProvider serviceProvider)

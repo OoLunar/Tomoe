@@ -94,8 +94,8 @@ namespace OoLunar.Tomoe.Commands.Common
             }
 
             ReminderModel reminderModel = context.Channel is DiscordThreadChannel threadChannel
-                ? await ReminderModel.CreateAsync(Ulid.NewUlid(now), context.User.Id, context.Guild?.Id ?? 0, threadChannel.ParentId.GetValueOrDefault(), threadChannel.Id, messageId, expires, ReminderType.OneTime, TimeSpan.Zero, content)
-                : await ReminderModel.CreateAsync(Ulid.NewUlid(now), context.User.Id, context.Guild?.Id ?? 0, context.Channel.Id, 0, messageId, expires, ReminderType.OneTime, TimeSpan.Zero, content);
+                ? await ReminderModel.CreateAsync(Ulid.NewUlid(now), context.User.Id, context.Guild?.Id ?? 0, threadChannel.ParentId.GetValueOrDefault(), threadChannel.Id, messageId, expires, TimeSpan.Zero, content)
+                : await ReminderModel.CreateAsync(Ulid.NewUlid(now), context.User.Id, context.Guild?.Id ?? 0, context.Channel.Id, 0, messageId, expires, TimeSpan.Zero, content);
 
             _reminderManager.AddToCache(reminderModel.Id, reminderModel.ExpiresAt);
             await context.RespondAsync($"Reminder set! I'll ping you {Formatter.Timestamp(expires - now)}.");
