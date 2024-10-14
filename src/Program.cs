@@ -90,6 +90,7 @@ namespace OoLunar.Tomoe
 
             serviceCollection.AddSingleton<DatabaseConnectionManager>();
             serviceCollection.AddSingleton<DatabaseHandler>();
+            serviceCollection.AddSingleton<IPrefixResolver, GuildPrefixResolver>();
             serviceCollection.AddSingleton(typeof(DatabaseExpirableManager<,>), typeof(DatabaseExpirableManager<,>));
             serviceCollection.AddSingleton(services =>
             {
@@ -155,7 +156,7 @@ namespace OoLunar.Tomoe
                     {
                         TextCommandProcessor textCommandProcessor = new(new()
                         {
-                            PrefixResolver = new DefaultPrefixResolver(true, tomoeConfiguration.Discord.Prefix ?? throw new InvalidOperationException("Missing Discord prefix.")).ResolvePrefixAsync,
+                            IgnoreBots = false,
                             EnableCommandNotFoundException = true
                         });
 

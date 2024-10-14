@@ -7,8 +7,6 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Commands;
-using DSharpPlus.Commands.Processors.TextCommands;
-using DSharpPlus.Commands.Processors.TextCommands.Parsing;
 using DSharpPlus.Commands.Trees.Metadata;
 using DSharpPlus.Entities;
 using Humanizer;
@@ -24,8 +22,6 @@ namespace OoLunar.Tomoe.Commands.Common
 
         [GeneratedRegex(", (?=[^,]*$)", RegexOptions.Compiled)]
         private static partial Regex _getLastCommaRegex();
-
-        private readonly AllocationRateTracker _allocationRateTracker = new();
 
         /// <summary>
         /// Sends bot statistics.
@@ -56,16 +52,10 @@ namespace OoLunar.Tomoe.Commands.Common
 
             StringBuilder stringBuilder = new();
             stringBuilder.Append(context.Client.CurrentUser.Mention);
-            stringBuilder.Append(", ");
-            foreach (string prefix in ((DefaultPrefixResolver)context.Extension.GetProcessor<TextCommandProcessor>().Configuration.PrefixResolver.Target!).Prefixes)
-            {
-                stringBuilder.Append('`');
-                stringBuilder.Append(prefix);
-                stringBuilder.Append('`');
-                stringBuilder.Append(", ");
-            }
+            stringBuilder.Append(", `");
+            stringBuilder.Append(await GuildSettingsModel.GetTextPrefixAsync(context.Guild?.Id ?? 0) ?? _configuration.Discord.Prefix);
+            stringBuilder.Append("`, `/`");
 
-            stringBuilder.Append(", `/`");
             embedBuilder.AddField("Prefixes", stringBuilder.ToString(), true);
             embedBuilder.AddField("Bot Version", _botVersion, true);
             embedBuilder.AddField("DSharpPlus Library Version", _dSharpPlusVersion, true);

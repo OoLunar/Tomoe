@@ -12,7 +12,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
         /// Shows the current guild settings.
         /// </summary>
         [Command("show")]
-        [RequirePermissions(DiscordPermissions.ManageGuild, DiscordPermissions.None)]
+        [RequirePermissions(DiscordPermissions.None, DiscordPermissions.ManageChannels)]
         public static async ValueTask ShowAsync(CommandContext context)
         {
             GuildSettingsModel? settings = await GuildSettingsModel.GetSettingsAsync(context.Guild!.Id);

@@ -19,8 +19,6 @@ namespace OoLunar.Tomoe.Commands.Common
         [UnsafeAccessor(UnsafeAccessorKind.StaticMethod, Name = "get_UnicodeEmojis")]
         private static extern Dictionary<string, string> _unicodeEmojis(DiscordEmoji emoji);
 
-        private readonly ImageUtilities _imageUtilitiesService;
-
         /// <summary>
         /// Sends information about the provided emoji.
         /// </summary>

@@ -1,3 +1,5 @@
+using System;
+
 namespace OoLunar.Tomoe.Configuration
 {
     public sealed record DiscordConfiguration
@@ -7,5 +9,6 @@ namespace OoLunar.Tomoe.Configuration
         public ulong GuildId { get; init; }
         public string SupportInvite { get; init; } = "https://discord.gg/YCSTr2KGq6";
         public string[] Processors { get; init; } = [];
+        public TimeSpan CachePrefixSlidingExpiration { get; init; } = TimeSpan.FromMinutes(5);
     }
 }
