@@ -48,7 +48,7 @@ namespace OoLunar.Tomoe.Commands.Common
             StringBuilder stringBuilder = new();
             foreach (Command command in context.Extension.Commands.Values.OrderBy(x => x.Name))
             {
-                stringBuilder.AppendLine($"`{command.Name.Titleize()}`: {(HelpCommandDocumentationMapperEventHandler.CommandDocumentation.TryGetValue(command, out string? documentation) ? documentation.Replace('\n', ' ').Replace("  ", " ") : "No description provided.")}");
+                stringBuilder.AppendLine($"`{command.Name}`: {(HelpCommandDocumentationMapperEventHandler.CommandDocumentation.TryGetValue(command, out string? documentation) ? documentation.Replace('\n', ' ').Replace("  ", " ") : "No description provided.")}");
             }
 
             return new DiscordMessageBuilder().WithContent($"A total of {context.Extension.Commands.Values.Select(CountCommands).Sum():N0} commands were found. Use `help <command>` for more information on any of them.").AddEmbed(new DiscordEmbedBuilder().WithTitle("Commands").WithDescription(stringBuilder.ToString()));
