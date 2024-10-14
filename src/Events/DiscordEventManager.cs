@@ -19,15 +19,22 @@ namespace OoLunar.Tomoe.Events
             ArgumentNullException.ThrowIfNull(assembly, nameof(assembly));
             foreach (Type type in assembly.GetExportedTypes())
             {
+                DiscordIntents intents = DiscordIntents.None;
                 foreach (MethodInfo methodInfo in type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static))
                 {
                     if (methodInfo.GetCustomAttribute<DiscordEventAttribute>() is DiscordEventAttribute eventAttribute)
                     {
-                        Intents |= eventAttribute.Intents;
-                        _logger.LogInformation("Event Handler {EventHandler} requests {Intents}", methodInfo.Name, eventAttribute.Intents);
+                        Intents |= intents |= eventAttribute.Intents;
                     }
                 }
+
+                if (intents != DiscordIntents.None)
+                {
+                    _logger.LogDebug("{Type} requested the following intents: {Intents}", type.Name, intents);
+                }
             }
+
+            _logger.LogInformation("Requested intents: {Intents}", Intents);
         }
     }
 }
