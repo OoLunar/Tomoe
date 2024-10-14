@@ -104,7 +104,7 @@ namespace OoLunar.Tomoe.Database.Models
             _countMembersWithRole.Parameters.Add(new("@guild_id", NpgsqlDbType.Bigint));
             _countMembersWithRole.Parameters.Add(new("@role_id", NpgsqlDbType.Bigint));
 
-            _countMembersOfGuild = new("SELECT COUNT(guild_id) FROM guild_members WHERE guild_id = @guild_id;");
+            _countMembersOfGuild = new("SELECT COUNT(guild_id) FROM guild_members WHERE guild_id = @guild_id AND state & 1 = 0;");
             _countMembersOfGuild.Parameters.Add(new("@guild_id", NpgsqlDbType.Bigint));
 
             _findMutualGuild = new("SELECT guild_id FROM guild_members WHERE user_id = @user_id AND state | 1 = 1;");

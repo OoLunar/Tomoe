@@ -72,9 +72,12 @@ namespace OoLunar.Tomoe.Events.Handlers
 
             try
             {
-                // Assign roles all at once instead of one at a time for ratelimiting purposes.
-                // TODO: Configuration setting
-                await eventArgs.Member.ReplaceRolesAsync(assignedRoles);
+                if (await GuildSettingsModel.GetRestoreRolesAsync(eventArgs.Guild.Id))
+                {
+                    // Assign roles all at once instead of one at a time for ratelimiting purposes.
+                    await eventArgs.Member.ReplaceRolesAsync(assignedRoles);
+                }
+
                 guildMemberModel.RoleIds = assignedRoles.Select(x => x.Id).ToList();
             }
             catch (Exception error)
