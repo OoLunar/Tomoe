@@ -35,9 +35,13 @@ namespace OoLunar.Tomoe.Commands.Moderation
 
                 try
                 {
-                    await member.ModifyAsync(memberEditModel => memberEditModel.Nickname = format
-                        .Replace("{display_name}", member.DisplayName)
-                        .Replace("{user_name}", member.Username));
+                    await member.ModifyAsync(memberEditModel =>
+                    {
+                        memberEditModel.AuditLogReason = $"Requested by {context.Member!.GetDisplayName()} ({context.Member!.Id}): Dehoisted.";
+                        memberEditModel.Nickname = format
+                            .Replace("{display_name}", member.DisplayName)
+                            .Replace("{user_name}", member.Username);
+                    });
 
                     dehoistedMemberCount++;
                 }

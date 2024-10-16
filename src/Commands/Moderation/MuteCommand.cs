@@ -45,9 +45,9 @@ namespace OoLunar.Tomoe.Commands.Moderation
                 member = await context.Guild!.GetMemberAsync(textCommandContext.Message.ReferencedMessage.Author!.Id);
             }
 
-            reason ??= "None provided.";
+            reason ??= "No reason provided.";
             timeSpan ??= TimeSpan.FromMinutes(5);
-            await member.TimeoutAsync(DateTimeOffset.UtcNow.Add(timeSpan.Value), reason);
+            await member.TimeoutAsync(DateTimeOffset.UtcNow.Add(timeSpan.Value), $"Requested by {context.Member!.GetDisplayName()} ({context.Member!.Id}): {reason}");
             await context.RespondAsync(string.Format(await context.GetCultureAsync(), muteText, member.Mention, timeSpan.Value.Humanize(1, await context.GetCultureAsync()), reason));
         }
     }

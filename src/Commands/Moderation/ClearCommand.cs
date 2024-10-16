@@ -36,7 +36,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
                 }
             }
 
-            await firstMessage.Channel.DeleteMessagesAsync(messages, reason ?? "No reason provided.");
+            await firstMessage.Channel.DeleteMessagesAsync(messages, $"Requested by {context.Member!.GetDisplayName()} ({context.Member!.Id}): {reason ?? "No reason provided."}");
             await context.RespondAsync($"{messages.Count:N0} messages deleted.");
         }
 

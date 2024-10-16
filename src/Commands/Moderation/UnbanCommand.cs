@@ -69,7 +69,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
             }
 
             // Actually ban the user.
-            await context.Guild!.UnbanMemberAsync(user.Id, reason ?? "No reason provided.");
+            await context.Guild!.UnbanMemberAsync(user.Id, $"Requested by {context.Member!.GetDisplayName()} ({context.Member!.Id}): {reason ?? "No reason provided."}");
 
             // Use a string builder since we don't want multiple inline ternaries.
             StringBuilder stringBuilder = new();
