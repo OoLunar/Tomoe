@@ -14,7 +14,7 @@ namespace OoLunar.Tomoe.Commands.Common
     public sealed partial class InfoCommand
     {
         [GeneratedRegex("<a?:(\\w+):(\\d+)>", RegexOptions.Compiled)]
-        private static partial Regex _getEmojiRegex();
+        public static partial Regex GetEmojiRegex();
 
         [UnsafeAccessor(UnsafeAccessorKind.StaticMethod, Name = "get_UnicodeEmojis")]
         private static extern Dictionary<string, string> _unicodeEmojis(DiscordEmoji emoji);
@@ -46,7 +46,7 @@ namespace OoLunar.Tomoe.Commands.Common
             }
             else
             {
-                Match match = _getEmojiRegex().Match(emoji);
+                Match match = GetEmojiRegex().Match(emoji);
                 if (!match.Success)
                 {
                     await context.RespondAsync("Invalid emoji.");
