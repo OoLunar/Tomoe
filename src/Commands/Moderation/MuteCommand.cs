@@ -11,7 +11,7 @@ using Humanizer;
 namespace OoLunar.Tomoe.Commands.Moderation
 {
     /// <summary>
-    /// Sometimes I wish I was mute.
+    /// Sometimes I wish I was non-verbal.
     /// </summary>
     public static class MuteCommand
     {
