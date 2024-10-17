@@ -87,19 +87,29 @@ namespace OoLunar.Tomoe.Events.Handlers
                 return;
             }
 
-            // Replace the variables within the format
-            format = format
-                .Replace("{display_name}", member.DisplayName)
-                .Replace("{user_name}", member.Username);
-
             // Rename the user
             try
             {
-                await member.ModifyAsync(memberEditModel => memberEditModel.Nickname = format);
+                await member.ModifyAsync(memberEditModel =>
+                {
+                    memberEditModel.AuditLogReason = "Auto-dehoisted.";
+                    memberEditModel.Nickname = DehoistCommand.GetNewDisplayName(member, format);
+                });
             }
-            catch (DiscordException error)
+            catch (DiscordException)
             {
-                _logger.LogError(error, "Failed to dehoist {UserId} in {GuildId}", member.Id, member.Guild.Id);
+                try
+                {
+                    await member.ModifyAsync(memberEditModel =>
+                    {
+                        memberEditModel.AuditLogReason = "Auto-dehoisted.";
+                        memberEditModel.Nickname = DehoistCommand.GetNewDisplayName(member, format, true);
+                    });
+                }
+                catch (DiscordException error)
+                {
+                    _logger.LogError(error, "Failed to dehoist {UserId} in {GuildId}", member.Id, member.Guild.Id);
+                }
             }
         }
     }

@@ -38,16 +38,27 @@ namespace OoLunar.Tomoe.Commands.Moderation
                     await member.ModifyAsync(memberEditModel =>
                     {
                         memberEditModel.AuditLogReason = $"Requested by {context.Member!.GetDisplayName()} ({context.Member!.Id}): Dehoisted.";
-                        memberEditModel.Nickname = format
-                            .Replace("{display_name}", member.DisplayName)
-                            .Replace("{user_name}", member.Username);
+                        memberEditModel.Nickname = GetNewDisplayName(member, format);
                     });
 
                     dehoistedMemberCount++;
                 }
                 catch (DiscordException)
                 {
-                    failedMembers.Add(member);
+                    try
+                    {
+                        await member.ModifyAsync(memberEditModel =>
+                        {
+                            memberEditModel.AuditLogReason = $"Requested by {context.Member!.GetDisplayName()} ({context.Member!.Id}): Dehoisted.";
+                            memberEditModel.Nickname = GetNewDisplayName(member, format, true);
+                        });
+
+                        dehoistedMemberCount++;
+                    }
+                    catch (DiscordException)
+                    {
+                        failedMembers.Add(member);
+                    }
                 }
             }
 
@@ -67,5 +78,32 @@ namespace OoLunar.Tomoe.Commands.Moderation
 
         internal static bool ShouldDehoist(DiscordMember member) => !string.IsNullOrWhiteSpace(member.DisplayName)
             && member.DisplayName[0] < 'A' && !char.IsBetween(member.DisplayName[0], '0', '9');
+
+        internal static string GetNewDisplayName(DiscordMember member, string format, bool returnFormatDirectly = false)
+        {
+            string newDisplayName = "";
+            for (int i = 0; i < member.DisplayName.Length; i++)
+            {
+                char character = member.DisplayName[i];
+                if (character < 'A' && !char.IsBetween(character, '0', '9'))
+                {
+                    continue;
+                }
+
+                newDisplayName = member.DisplayName[i..].Trim();
+                break;
+            }
+
+            return !returnFormatDirectly
+                && !string.IsNullOrWhiteSpace(newDisplayName)
+                && newDisplayName.Length > 0
+                && newDisplayName.Length <= 32
+                && newDisplayName != "everyone"
+                && newDisplayName != "here"
+                    ? newDisplayName
+                    : format
+                        .Replace("{display_name}", newDisplayName.ToString())
+                        .Replace("{user_name}", member.Username);
+        }
     }
 }
