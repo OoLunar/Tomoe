@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.ArgumentModifiers;
 using DSharpPlus.Commands.ContextChecks;
+using DSharpPlus.Commands.Trees.Metadata;
 using DSharpPlus.Entities;
 using OoLunar.Tomoe.Database.Models;
 
@@ -112,7 +113,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
         /// Lists all logging settings for the guild. If a channel is provided, only the logging settings for that channel will be displayed.
         /// </summary>
         /// <param name="channel"></param>
-        [Command("list")]
+        [Command("list"), TextAlias("show"), DefaultGroupCommand]
         public static async ValueTask ListAsync(CommandContext context, DiscordChannel? channel = null)
         {
             Dictionary<GuildLoggingType, GuildLoggingModel?> loggings = [];
