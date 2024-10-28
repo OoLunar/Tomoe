@@ -3,7 +3,6 @@ using System.Globalization;
 
 namespace OoLunar.Tomoe
 {
-    // TODO: Write a validation test.
     /// <summary>
     /// Implements https://discord.com/developers/docs/reference#snowflakes.
     /// </summary>
@@ -22,35 +21,28 @@ namespace OoLunar.Tomoe
         /// <summary>
         /// Milliseconds since Discord Epoch, the first second of 2015 or 1420070400000.
         /// </summary>
-        public DateTimeOffset Timestamp { get; init; }
+        public DateTimeOffset Timestamp => DiscordEpoch.AddMilliseconds(Value >> 22);
 
         /// <summary>
         /// The internal worker's ID that was used to generate the snowflake.
         /// </summary>
-        public byte InternalWorkerId { get; init; }
+        public byte InternalWorkerId => (byte)((Value & 0x3E0000) >> 17);
 
         /// <summary>
         /// The internal process' ID that was used to generate the snowflake.
         /// </summary>
-        public byte InternalProcessId { get; init; }
+        public byte InternalProcessId => (byte)((Value & 0x1F000) >> 12);
 
         /// <summary>
         /// A number incremented by 1 every time the snowflake is generated.
         /// </summary>
-        public ushort InternalIncrement { get; init; }
+        public ushort InternalIncrement => (ushort)(Value & 0xFFF);
 
         /// <summary>
         /// Creates a new snowflake from a numerical representation.
         /// </summary>
         /// <param name="value">The numerical representation to translate from.</param>
-        public DiscordSnowflake(ulong value)
-        {
-            Value = value;
-            Timestamp = DiscordEpoch.AddMilliseconds(value >> 22);
-            InternalWorkerId = (byte)((value & 0x3E0000) >> 17);
-            InternalProcessId = (byte)((value & 0x1F000) >> 12);
-            InternalIncrement = (ushort)(value & 0xFFF);
-        }
+        public DiscordSnowflake(ulong value) => Value = value;
 
         /// <summary>
         /// Creates a fake snowflake from scratch. If no parameters are provided, returns a randomly generated snowflake.
@@ -62,14 +54,9 @@ namespace OoLunar.Tomoe
         public DiscordSnowflake(DateTimeOffset? timestamp, byte? workerId, byte? processId, ushort? increment)
         {
             timestamp ??= DateTimeOffset.UtcNow;
-            workerId ??= (byte)Random.Shared.Next(1, 32);
-            processId ??= (byte)Random.Shared.Next(1, 32);
-            increment ??= (ushort)Random.Shared.Next(1, 4095);
-
-            Timestamp = timestamp.Value;
-            InternalWorkerId = workerId.Value;
-            InternalProcessId = processId.Value;
-            InternalIncrement = increment.Value;
+            workerId ??= (byte)Random.Shared.Next(1, byte.MaxValue);
+            processId ??= (byte)Random.Shared.Next(1, byte.MaxValue);
+            increment ??= (ushort)Random.Shared.Next(1, ushort.MaxValue);
 
             Value = (((uint)timestamp.Value.Subtract(DiscordEpoch).TotalMilliseconds) << 22)
                 | ((ulong)workerId.Value << 17)
@@ -78,7 +65,7 @@ namespace OoLunar.Tomoe
         }
 
         public override string ToString() => Value.ToString(CultureInfo.InvariantCulture);
-        public override int GetHashCode() => HashCode.Combine(Value, Timestamp, InternalWorkerId, InternalProcessId, InternalIncrement);
+        public override int GetHashCode() => Value.GetHashCode();
         public static implicit operator ulong(DiscordSnowflake snowflake) => snowflake.Value;
         public static implicit operator DiscordSnowflake(ulong value) => new(value);
     }
