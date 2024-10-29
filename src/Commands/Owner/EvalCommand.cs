@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
@@ -74,29 +75,35 @@ namespace OoLunar.Tomoe.Commands.Owner
 
         static EvalCommand()
         {
+            List<string> imports = [
+                "System",
+                "System.Collections.Generic",
+                "System.Globalization",
+                "System.Linq",
+                "System.Reflection",
+                "System.Runtime.CompilerServices",
+                "System.Text",
+                "System.Threading.Tasks",
+                "BenchmarkDotNet.Attributes",
+                "DSharpPlus",
+                "DSharpPlus.Commands",
+                "DSharpPlus.Entities",
+                "DSharpPlus.Exceptions",
+                "DSharpPlus.Net.Serialization",
+                "Humanizer"
+            ];
+
+            // Find all namespaces that start with `DSharpPlus.Commands`
+            imports.AddRange(typeof(CommandContext).Assembly.GetTypes().Where(type => type.Namespace?.StartsWith("DSharpPlus.Commands", StringComparison.Ordinal) is true).Select(type => type.Namespace!).Distinct());
+            imports.Sort();
+
             string[] assemblies = Directory.GetFiles(Path.GetDirectoryName(typeof(EvalCommand).Assembly.Location)!, "*.dll");
             _evalOptions = ScriptOptions.Default
                 .WithAllowUnsafe(true)
                 .WithEmitDebugInformation(true)
                 .WithLanguageVersion(LanguageVersion.Preview)
                 .AddReferences(assemblies)
-                .AddImports(
-                [
-                    "BenchmarkDotNet.Attributes",
-                    "System",
-                    "System.Threading.Tasks",
-                    "System.Text",
-                    "System.Reflection",
-                    "System.Linq",
-                    "System.Globalization",
-                    "System.Collections.Generic",
-                    "Humanizer",
-                    "DSharpPlus",
-                    "DSharpPlus.Commands",
-                    "DSharpPlus.Net.Serialization",
-                    "DSharpPlus.Exceptions",
-                    "DSharpPlus.Entities"
-                ]);
+                .AddImports(imports);
 
             _discordJson = (JsonSerializer)typeof(DiscordJson).GetField("serializer", BindingFlags.NonPublic | BindingFlags.Static)!.GetValue(null)!;
         }
@@ -160,8 +167,9 @@ namespace OoLunar.Tomoe.Commands.Owner
 
         private static async ValueTask FinishedAsync(EvalContext context, object? output)
         {
-            string filename = "output.json";
-            byte[] utf8Bytes = null!;
+            const int MaxDiscordMessageLength = 2000;
+            const int MaxDiscordMessageLengthWithCodeBlock = MaxDiscordMessageLength - 8;
+            const int MaxDiscordMessageLengthWithJsonCodeBlock = MaxDiscordMessageLength - 12;
             switch (output)
             {
                 case null:
@@ -178,24 +186,25 @@ namespace OoLunar.Tomoe.Commands.Owner
                         errorString = errorString[..indexOfSubmissionCutoff].Replace("<<Initialize>>d__0.MoveNext", "MainAsync");
                     }
 
-                    await context.Context.EditResponseAsync(new DiscordMessageBuilder().WithContent(Formatter.BlockCode(errorString, "cs")));
-                    break;
-                case string outputString when context.IsJson && outputString.Length < 1988:
-                    await context.Context.EditResponseAsync(Formatter.BlockCode(outputString, "json"));
+                    // Go to the default case if the error string is too long
+                    await FinishedAsync(context, Formatter.BlockCode(errorString, "cs"));
                     break;
                 case string outputString when context.IsJson:
-                    utf8Bytes = Encoding.UTF8.GetBytes(outputString);
-                    goto default;
-                // < 1992 since Formatter.BlockCode adds a minimum of 8 characters.
-                case string outputString when outputString.Contains('\n') && outputString.Length < 1992:
-                    await context.Context.EditResponseAsync(Formatter.BlockCode(outputString, "cs"));
+                    await context.Context.EditResponseAsync(outputString.Length switch
+                    {
+                        // If the text is in JSON, then it should always be in a code block or json file.
+                        < MaxDiscordMessageLengthWithJsonCodeBlock => new DiscordMessageBuilder().WithContent(Formatter.BlockCode(outputString, "json")),
+                        < MaxDiscordMessageLengthWithCodeBlock => new DiscordMessageBuilder().WithContent(Formatter.BlockCode(outputString)),
+                        _ => new DiscordMessageBuilder().AddFile("output.json", new MemoryStream(Encoding.UTF8.GetBytes(outputString)))
+                    });
                     break;
-                case string outputString when outputString.Length >= 1992:
-                    filename = "output.txt";
-                    utf8Bytes = Encoding.UTF8.GetBytes(outputString);
-                    goto default;
                 case string outputString:
-                    await context.Context.EditResponseAsync(outputString);
+                    await context.Context.EditResponseAsync(outputString.Length switch
+                    {
+                        // If the text is greater than the max length, then it should be in a file.
+                        > MaxDiscordMessageLength => new DiscordMessageBuilder().AddFile("output.txt", new MemoryStream(Encoding.UTF8.GetBytes(outputString))),
+                        _ => new DiscordMessageBuilder().WithContent(outputString)
+                    });
                     break;
                 case DiscordMessage message:
                     await context.Context.EditResponseAsync(new DiscordMessageBuilder(message));
@@ -236,14 +245,13 @@ namespace OoLunar.Tomoe.Commands.Owner
                      && !(outputType.IsValueType && outputType.GetInterfaces().Any(@interface => @interface.IsGenericType && @interface.GetGenericTypeDefinition() == typeof(IEquatable<>)) && outputType.GetMethods().FirstOrDefault(method => method.Name == "op_Equality") is MethodInfo equalityOperator && equalityOperator.GetCustomAttribute<CompilerGeneratedAttribute>() is not null)
                        && outputType.GetMethods(BindingFlags.Public | BindingFlags.Instance).Where(method => method.Name == "ToString").Any(method => method.DeclaringType != typeof(object)))
                     {
-                        await context.Context.EditResponseAsync(output.ToString()!);
+                        await FinishedAsync(context, output.ToString());
                         break;
                     }
 
                     goto default;
                 default:
-                    utf8Bytes ??= Encoding.UTF8.GetBytes(context.ToJson(output));
-                    await context.Context.EditResponseAsync(new DiscordMessageBuilder().AddFile(filename, new MemoryStream(utf8Bytes)));
+                    await FinishedAsync(context, context.ToJson(output));
                     break;
             }
         }
