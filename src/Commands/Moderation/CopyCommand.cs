@@ -1,24 +1,39 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.ContextChecks;
 using DSharpPlus.Commands.Trees;
+using DSharpPlus.Commands.Trees.Metadata;
 using DSharpPlus.Entities;
 
 namespace OoLunar.Tomoe.Commands.Moderation
 {
     /// <summary>
-    /// Moved my heart.
+    /// A copy pasta.
     /// </summary>
-    public sealed class ForwardCommand
+    public sealed class CopyCommand
     {
+        [UnsafeAccessor(UnsafeAccessorKind.Method, Name = "set_Flags")]
+        private static extern void _webhookBuilderFlagsSetter(BaseDiscordMessageBuilder<DiscordWebhookBuilder> message, DiscordMessageFlags flags);
+
+        /// <summary>
+        /// Cached <see cref="TimeSpan"/> of 10 seconds.
+        /// </summary>
         private static readonly TimeSpan _tenSeconds = TimeSpan.FromSeconds(10);
+
+        /// <summary>
+        /// Used to fetch attachments from Discord.
+        /// </summary>
+        private readonly HttpClient _httpClient;
 
         /// <summary>
         /// We're using a ULID's timestamp to store when the last message was sent (to detect ratelimits)
@@ -27,13 +42,32 @@ namespace OoLunar.Tomoe.Commands.Moderation
         private Ulid _completionPercent;
 
         /// <summary>
+        /// Creates a new instance of <see cref="CopyCommand"/>.
+        /// </summary>
+        /// <param name="httpClient">The HTTP client to use for fetching attachments.</param>
+        public CopyCommand(HttpClient httpClient) => _httpClient = httpClient;
+
+        /// <summary>
         /// Copies a chunk of messages to a different channel.
         /// </summary>
         /// <param name="channel">Which channel to send the messages to.</param>
         /// <param name="firstMessage">Where to start copying messages from. This message will be moved too.</param>
         /// <param name="lastMessage">Where to stop copying messages from. If not provided, will copy all messages after the first message.</param>
-        [Command("move"), Description("Moves a chunk of messages (inclusive) to a different channel."), RequirePermissions(DiscordPermissions.ManageMessages | DiscordPermissions.ReadMessageHistory)]
-        public async ValueTask MoveAsync(CommandContext context, DiscordChannel channel, DiscordMessage firstMessage, DiscordMessage? lastMessage = null)
+        [Command("copy"), TextAlias("move"), Description("Copies a chunk of messages (inclusive) to a different channel."), RequirePermissions(DiscordPermissions.ManageMessages | DiscordPermissions.ReadMessageHistory)]
+        public async ValueTask CopyAsync(CommandContext context, DiscordChannel channel, DiscordMessage firstMessage, DiscordMessage? lastMessage = null)
+            => await ExecuteAsync(true, context, channel, firstMessage, lastMessage);
+
+        /// <summary>
+        /// Forwards a chunk of messages to a different channel.
+        /// </summary>
+        /// <param name="channel">Which channel to send the messages to.</param>
+        /// <param name="firstMessage">Where to start copying messages from. This message will be moved too.</param>
+        /// <param name="lastMessage">Where to stop copying messages from. If not provided, will copy all messages after the first message.</param>
+        [Command("forward"), Description("Forwards a chunk of messages (inclusive) to a different channel."), RequirePermissions(DiscordPermissions.ManageMessages | DiscordPermissions.ReadMessageHistory)]
+        public async ValueTask ForwardAsync(CommandContext context, DiscordChannel channel, DiscordMessage firstMessage, DiscordMessage? lastMessage = null)
+            => await ExecuteAsync(false, context, channel, firstMessage, lastMessage);
+
+        private async ValueTask ExecuteAsync(bool copy, CommandContext context, DiscordChannel channel, DiscordMessage firstMessage, DiscordMessage? lastMessage = null)
         {
             await context.RespondAsync("Moving messages...");
 
@@ -65,7 +99,15 @@ namespace OoLunar.Tomoe.Commands.Moderation
             List<DiscordUser> users = [];
             List<DiscordMessage> messages = [];
             await GatherMessagesAsync(messages, users, firstMessage, lastMessage);
-            await ForwardMessagesAsync(webhook, channel, messages);
+
+            if (copy)
+            {
+                await CopyMessagesAsync(await context.GetCultureAsync(), webhook, channel, messages);
+            }
+            else
+            {
+                await ForwardMessagesAsync(webhook, channel, messages);
+            }
 
             await webhook.ExecuteAsync(new DiscordWebhookBuilder()
             {
@@ -173,7 +215,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
             messages.Sort((x, y) => x.Id.CompareTo(y.Id));
         }
 
-        private async ValueTask ForwardMessagesAsync(DiscordWebhook webhook, DiscordChannel channel, IReadOnlyList<DiscordMessage> messages)
+        private async ValueTask ForwardMessagesAsync(DiscordWebhook webhook, DiscordChannel channel, List<DiscordMessage> messages)
         {
             DiscordWebhookBuilder webhookBuilder = new();
             if (channel.Type is DiscordChannelType.NewsThread or DiscordChannelType.PublicThread or DiscordChannelType.PrivateThread)
@@ -195,6 +237,57 @@ namespace OoLunar.Tomoe.Commands.Moderation
                 // Forward the message
                 await message.ForwardAsync(channel);
                 _completionPercent = Ulid.NewUlid(DateTimeOffset.UtcNow, [(byte)Math.Clamp((int)(i / (double)messages.Count * 100), 0, 100), 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+            }
+        }
+
+        private async ValueTask CopyMessagesAsync(CultureInfo cultureInfo, DiscordWebhook webhook, DiscordChannel channel, List<DiscordMessage> messages)
+        {
+            for (int messageIndex = 0; messageIndex < messages.Count; messageIndex++)
+            {
+                DiscordMessage message = messages[messageIndex];
+                DiscordWebhookBuilder webhookBuilder = new(new DiscordMessageBuilder(message))
+                {
+                    Username = message.Author!.GetDisplayName(),
+                    AvatarUrl = message.Author is DiscordMember member && !string.IsNullOrWhiteSpace(member.GuildAvatarUrl) ? member.GuildAvatarUrl : message.Author!.AvatarUrl
+                };
+
+                if (channel.Type is DiscordChannelType.NewsThread or DiscordChannelType.PublicThread or DiscordChannelType.PrivateThread)
+                {
+                    webhookBuilder.WithThreadId(channel.Id);
+                }
+
+                if (!string.IsNullOrWhiteSpace(message.ReferencedMessage?.Content) && message.ReferencedMessage.Content.Length + webhookBuilder.Content?.Length + 3 < 2000)
+                {
+                    webhookBuilder.WithContent($"> {message.ReferencedMessage.Content}\n{webhookBuilder.Content}");
+                }
+
+                if (message.Attachments.Count != 0)
+                {
+                    List<string> attachments = [];
+                    for (int attachmentIndex = 0; attachmentIndex < message.Attachments.Count; attachmentIndex++)
+                    {
+                        DiscordAttachment attachment = message.Attachments[attachmentIndex];
+                        if (attachments.Contains(attachment.FileName!))
+                        {
+                            webhookBuilder.AddFile(attachment.FileName + attachmentIndex.ToString(cultureInfo), await _httpClient.GetStreamAsync(attachment.Url), false);
+                        }
+                        else
+                        {
+                            webhookBuilder.AddFile(attachment.FileName!, await _httpClient.GetStreamAsync(attachment.Url), false);
+                        }
+
+                        attachments.Add(attachment.FileName!);
+                    }
+                }
+
+                if (message.Components?.Count is not null and not 0)
+                {
+                    webhookBuilder.AddComponents(message.Components);
+                }
+
+                _webhookBuilderFlagsSetter(webhookBuilder, message.Flags ?? 0);
+                await webhook.ExecuteAsync(webhookBuilder);
+                _completionPercent = Ulid.NewUlid(DateTimeOffset.UtcNow, [(byte)Math.Clamp((int)(messageIndex / (double)messages.Count * 100), 0, 100), 0, 0, 0, 0, 0, 0, 0, 0, 0]);
             }
         }
     }
