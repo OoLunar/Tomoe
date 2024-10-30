@@ -11,6 +11,7 @@
   </PropertyGroup>
   <ItemGroup>
     <None Include="$(ProjectRoot)/res/config.json" CopyToOutputDirectory="PreserveNewest" />
+    <EmbeddedResource Include="$(ProjectRoot)/src/**/*.cs" FileExtension=".cs" Condition="$(Configuration) == 'Release'" />
     <EmbeddedResource Include="$(ProjectRoot)/src/*.csproj" FileExtension=".csproj" />
     <EmbeddedResource Include="$(ProjectRoot)/src/Benchmarks/*.template" FileExtension=".template" />
     <PackageReference Include="BenchmarkDotNet" Version="0.14.0" />
