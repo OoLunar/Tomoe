@@ -159,7 +159,6 @@ namespace OoLunar.Tomoe.Commands.Moderation
             newOverwrites.Add(new DiscordOverwriteBuilder()
             {
                 Target = channel.Guild.CurrentMember,
-                Type = DiscordOverwriteType.Member,
                 Allowed = channel.IsThread ? DiscordPermissions.SendMessagesInThreads : DiscordPermissions.SendMessages
             });
 
