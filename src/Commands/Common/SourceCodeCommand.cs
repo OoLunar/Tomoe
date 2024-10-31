@@ -66,7 +66,7 @@ namespace OoLunar.Tomoe.Commands.Common
                 SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(SourceText.From(manifestStream), CSharpParseOptions.Default);
 
                 // Get all the classes in the file
-                foreach (ClassDeclarationSyntax classDeclaration in GetClasses(syntaxTree.GetRoot().DescendantNodes()).Distinct())
+                foreach (ClassDeclarationSyntax classDeclaration in syntaxTree.GetRoot().DescendantNodes().GetNodes<ClassDeclarationSyntax>().Distinct())
                 {
                     // Get the FQN of the class
                     string className = $"{GetNamespace(classDeclaration)}.{classDeclaration.Identifier}";
@@ -145,7 +145,23 @@ namespace OoLunar.Tomoe.Commands.Common
                             }
 
                             // Find the beginning and ending lines of the method, starting as early as the XML docs and ending at the closing brace
-                            int start = methodDeclaration.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+                            int start = -1;
+                            foreach (SyntaxTrivia syntaxTrivia in methodDeclaration.GetLeadingTrivia())
+                            {
+                                if (syntaxTrivia.GetStructure() is not DocumentationCommentTriviaSyntax documentationCommentTriviaSyntax)
+                                {
+                                    continue;
+                                }
+
+                                start = documentationCommentTriviaSyntax.Content[0].GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+                                break;
+                            }
+
+                            if (start == -1)
+                            {
+                                start = methodDeclaration.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+                            }
+
                             int end = methodDeclaration.GetLocation().GetLineSpan().EndLinePosition.Line + 1;
 
                             StringBuilder commandNameBuilder = new();
@@ -179,18 +195,18 @@ namespace OoLunar.Tomoe.Commands.Common
             _commandLinks = commandLinks.ToFrozenDictionary();
         }
 
-        private static IEnumerable<ClassDeclarationSyntax> GetClasses(IEnumerable<SyntaxNode> nodes)
+        private static IEnumerable<T> GetNodes<T>(this IEnumerable<SyntaxNode> nodes) where T : SyntaxNode
         {
             foreach (SyntaxNode node in nodes)
             {
-                if (node is ClassDeclarationSyntax classDeclaration)
+                if (node is T desiredNode)
                 {
-                    yield return classDeclaration;
+                    yield return desiredNode;
                 }
 
-                foreach (ClassDeclarationSyntax classDeclarationSyntax in GetClasses(node.ChildNodes()))
+                foreach (T matchingNode in GetNodes<T>(node.ChildNodes()))
                 {
-                    yield return classDeclarationSyntax;
+                    yield return matchingNode;
                 }
             }
         }
