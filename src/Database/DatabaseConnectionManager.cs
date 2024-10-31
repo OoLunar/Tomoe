@@ -26,7 +26,7 @@ namespace OoLunar.Tomoe.Database
             }.ConnectionString;
         }
 
-        public NpgsqlConnection GetConnection()
+        public NpgsqlConnection CreateConnection()
         {
             NpgsqlConnection connection = new(_connectionString);
             _connections.Add(connection);

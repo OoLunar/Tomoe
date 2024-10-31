@@ -47,7 +47,7 @@ namespace OoLunar.Tomoe.Database
                     continue;
                 }
 
-                NpgsqlConnection connection = _connectionManager.GetConnection();
+                NpgsqlConnection connection = _connectionManager.CreateConnection();
                 _tableTypes.Add(connection, (semaphore, prepareAsyncDelegate));
                 connection.StateChange += StateChangedEventHandlerAsync;
 #if DEBUG

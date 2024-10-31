@@ -35,7 +35,7 @@ namespace OoLunar.Tomoe.Database
             _expireTimer = new(TimeSpan.FromSeconds(tomoeConfiguration.Database.ExpireInterval));
             _logger = logger ?? NullLogger<DatabaseExpirableManager<TSelf, TId>>.Instance;
 
-            NpgsqlConnection connection = connectionManager.GetConnection();
+            NpgsqlConnection connection = connectionManager.CreateConnection();
             connection.Open();
 
             _findExpirableCommand = new($"SELECT id, expires_at FROM {TSelf.TableName}", connection);
