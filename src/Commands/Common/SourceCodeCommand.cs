@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.ArgumentModifiers;
+using DSharpPlus.Commands.Processors.SlashCommands.ArgumentModifiers;
 using DSharpPlus.Commands.Processors.TextCommands;
 using DSharpPlus.Commands.Trees;
 using DSharpPlus.Commands.Trees.Metadata;
@@ -15,6 +16,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using OoLunar.Tomoe.AutocompleteProviders;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
@@ -222,7 +224,7 @@ namespace OoLunar.Tomoe.Commands.Common
         /// Sends a link to the repository which contains the code for the bot.
         /// </summary>
         [Command("source_code"), TextAlias("repository", "source", "code", "repo")]
-        public static async ValueTask ExecuteAsync(CommandContext context, [RemainingText] string? commandName = null)
+        public static async ValueTask ExecuteAsync(CommandContext context, [RemainingText, SlashAutoCompleteProvider<CommandAutocompleteProvider>] string? commandName = null)
         {
             if (string.IsNullOrWhiteSpace(commandName))
             {
