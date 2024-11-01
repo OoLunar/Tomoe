@@ -6,7 +6,7 @@ using DSharpPlus.Commands.Processors.SlashCommands;
 using DSharpPlus.Commands.Processors.SlashCommands.ArgumentModifiers;
 using DSharpPlus.Entities;
 
-namespace OoLunar.Tomoe.AutocompleteProviders
+namespace OoLunar.Tomoe.AutoCompleteProviders
 {
     public sealed class TimeZoneInfoAutoCompleteProvider : IAutoCompleteProvider
     {

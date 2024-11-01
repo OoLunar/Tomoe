@@ -16,10 +16,10 @@ namespace OoLunar.Tomoe.AutoCompleteProviders
         {
             if (string.IsNullOrWhiteSpace(context.UserInput))
             {
-                return ValueTask.FromResult<IEnumerable<DiscordAutoCompleteChoice>>(context.Extension.Commands.Values
+                return ValueTask.FromResult(context.Extension.Commands.Values
+                    .OrderBy(command => command.FullName)
                     .Take(25)
-                    .Select(command => new DiscordAutoCompleteChoice(command.FullName.Humanize(LetterCasing.Title), command.FullName))
-                    .OrderBy(command => command.Name));
+                    .Select(command => new DiscordAutoCompleteChoice(command.FullName.Humanize(LetterCasing.Title), command.FullName)));
             }
 
             List<DiscordAutoCompleteChoice> choices = [];
@@ -28,12 +28,20 @@ namespace OoLunar.Tomoe.AutoCompleteProviders
                 if (command.FullName.Contains(context.UserInput, StringComparison.OrdinalIgnoreCase))
                 {
                     choices.Add(new DiscordAutoCompleteChoice(command.FullName.Humanize(LetterCasing.Title), command.FullName));
+                    if (choices.Count >= 25)
+                    {
+                        break;
+                    }
                 }
             }
 
-            return ValueTask.FromResult<IEnumerable<DiscordAutoCompleteChoice>>(choices
-                .OrderBy(x => x.Name.StartsWith(context.UserInput, StringComparison.OrdinalIgnoreCase) ? 0 : 1)
-                .ThenBy(x => x.Name));
+            // Sort by if the name starts with the user input, then alphabetically.
+            choices.Sort((a, b) =>
+                a.Name.StartsWith(context.UserInput, StringComparison.OrdinalIgnoreCase) == b.Name.StartsWith(context.UserInput, StringComparison.OrdinalIgnoreCase)
+                    ? string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase)
+                    : a.Name.StartsWith(context.UserInput, StringComparison.OrdinalIgnoreCase) ? -1 : 1);
+
+            return ValueTask.FromResult<IEnumerable<DiscordAutoCompleteChoice>>(choices);
         }
     }
 }

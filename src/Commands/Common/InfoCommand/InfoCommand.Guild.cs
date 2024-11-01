@@ -3,10 +3,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Commands;
+using DSharpPlus.Commands.Processors.SlashCommands.ArgumentModifiers;
 using DSharpPlus.Commands.Trees.Metadata;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
 using Humanizer;
+using OoLunar.Tomoe.AutoCompleteProviders;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
@@ -17,7 +19,7 @@ namespace OoLunar.Tomoe.Commands.Common
         /// </summary>
         /// <param name="guildId">The id of the guild to get information about. Leave empty to get information about the current server.</param>
         [Command("guild"), TextAlias("server")]
-        public async Task GuildInfoAsync(CommandContext context, ulong? guildId = null)
+        public async Task GuildInfoAsync(CommandContext context, [SlashAutoCompleteProvider<SharedGuildsAutoCompleteProvider>] ulong? guildId = null)
         {
             DiscordEmbedBuilder embedBuilder = new()
             {
