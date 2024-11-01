@@ -49,6 +49,9 @@ namespace OoLunar.Tomoe.Events.Handlers
             // Ensure all audit logs are the latest
             DateTimeOffset timestamp = DateTimeOffset.UtcNow.AddSeconds(-3);
 
+            // Wait 1 second so the audit logs can catch up
+            await Task.Delay(1000);
+
             // Figure out who unbanned the user
             await foreach (DiscordAuditLogEntry entry in member.Guild.GetAuditLogsAsync(100, null, DiscordAuditLogActionType.Ban))
             {
