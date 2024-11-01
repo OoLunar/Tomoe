@@ -8,13 +8,13 @@ using DSharpPlus.Entities;
 
 namespace OoLunar.Tomoe.AutocompleteProviders
 {
-    public sealed class TimeZoneInfoAutocompleteProvider : IAutoCompleteProvider
+    public sealed class TimeZoneInfoAutoCompleteProvider : IAutoCompleteProvider
     {
         private static readonly TimeZoneInfo[] _timezones;
         private static readonly FrozenSet<DiscordAutoCompleteChoice> _defaultTimezoneList;
         private static readonly FrozenDictionary<TimeZoneInfo, string> _timezoneDisplayNames;
 
-        static TimeZoneInfoAutocompleteProvider()
+        static TimeZoneInfoAutoCompleteProvider()
         {
             _timezones = [.. TimeZoneInfo.GetSystemTimeZones()];
             Array.Sort(_timezones, (x, y) => string.Compare(x.DisplayName, y.DisplayName, StringComparison.Ordinal));

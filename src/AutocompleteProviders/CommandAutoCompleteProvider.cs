@@ -8,9 +8,9 @@ using DSharpPlus.Commands.Trees;
 using DSharpPlus.Entities;
 using Humanizer;
 
-namespace OoLunar.Tomoe.AutocompleteProviders
+namespace OoLunar.Tomoe.AutoCompleteProviders
 {
-    public sealed class CommandAutocompleteProvider : IAutoCompleteProvider
+    public sealed class CommandAutoCompleteProvider : IAutoCompleteProvider
     {
         public ValueTask<IEnumerable<DiscordAutoCompleteChoice>> AutoCompleteAsync(AutoCompleteContext context)
         {

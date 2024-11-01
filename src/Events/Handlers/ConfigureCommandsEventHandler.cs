@@ -10,7 +10,7 @@ using DSharpPlus.Commands.Processors.SlashCommands.ArgumentModifiers;
 using DSharpPlus.Commands.Processors.TextCommands.ContextChecks;
 using DSharpPlus.Commands.Trees;
 using DSharpPlus.Entities;
-using OoLunar.Tomoe.AutocompleteProviders;
+using OoLunar.Tomoe.AutoCompleteProviders;
 
 namespace OoLunar.Tomoe.Events.Handlers
 {
@@ -40,11 +40,11 @@ namespace OoLunar.Tomoe.Events.Handlers
                     }
                     else if (baseParameterType == typeof(CultureInfo))
                     {
-                        parameter.Attributes.Add(new SlashAutoCompleteProviderAttribute<CultureInfoAutocompleteProvider>());
+                        parameter.Attributes.Add(new SlashAutoCompleteProviderAttribute<CultureInfoAutoCompleteProvider>());
                     }
                     else if (baseParameterType == typeof(TimeZoneInfo))
                     {
-                        parameter.Attributes.Add(new SlashAutoCompleteProviderAttribute<TimeZoneInfoAutocompleteProvider>());
+                        parameter.Attributes.Add(new SlashAutoCompleteProviderAttribute<TimeZoneInfoAutoCompleteProvider>());
                     }
                 }
             }

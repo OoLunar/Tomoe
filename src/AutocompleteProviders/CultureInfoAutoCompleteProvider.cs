@@ -7,15 +7,15 @@ using DSharpPlus.Commands.Processors.SlashCommands;
 using DSharpPlus.Commands.Processors.SlashCommands.ArgumentModifiers;
 using DSharpPlus.Entities;
 
-namespace OoLunar.Tomoe.AutocompleteProviders
+namespace OoLunar.Tomoe.AutoCompleteProviders
 {
-    public sealed class CultureInfoAutocompleteProvider : IAutoCompleteProvider
+    public sealed class CultureInfoAutoCompleteProvider : IAutoCompleteProvider
     {
         private static readonly CultureInfo[] _cultures;
         private static readonly FrozenSet<DiscordAutoCompleteChoice> _defaultCultureList;
         private static readonly FrozenDictionary<CultureInfo, string> _cultureInfoDisplayNames;
 
-        static CultureInfoAutocompleteProvider()
+        static CultureInfoAutoCompleteProvider()
         {
             _cultures = CultureInfo.GetCultures(CultureTypes.AllCultures);
             Array.Sort(_cultures, (x, y) => string.Compare(x.DisplayName, y.DisplayName, StringComparison.Ordinal));
