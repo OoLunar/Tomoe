@@ -163,7 +163,7 @@ namespace OoLunar.Tomoe.Commands.Owner
                     string progress = await File.ReadAllTextAsync(statusPath);
                     if (!string.IsNullOrWhiteSpace(progress) && title != progress)
                     {
-                        title = progress;
+                        title = progress.Trim();
                         await context.EditResponseAsync(title);
                     }
                 }
