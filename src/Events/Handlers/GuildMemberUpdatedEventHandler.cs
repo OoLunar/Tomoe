@@ -54,12 +54,12 @@ namespace OoLunar.Tomoe.Events.Handlers
                 args["{user_before_display_name}"] = eventArgs.MemberBefore.GetDisplayName();
                 args["{user_before_global_name}"] = eventArgs.MemberBefore.GlobalName!;
                 args["{user_before_name}"] = eventArgs.MemberBefore.Username + (eventArgs.MemberBefore.Discriminator == "0" ? "" : $"#{eventArgs.MemberBefore.Discriminator}");
-                args["{user_before_guild_avatar_url}"] = eventArgs.MemberBefore.GuildAvatarUrl;
+                args["{user_before_guild_avatar_url}"] = eventArgs.MemberBefore.DisplayAvatarUrl;
                 args["{user_before_avatar_url}"] = eventArgs.MemberBefore.AvatarUrl;
                 args["{user_before_role_count}"] = eventArgs.MemberBefore.Roles.Count().ToString("N0", CultureInfo.InvariantCulture);
                 args["{user_before_role_list}"] = string.Join(", ", eventArgs.MemberBefore.Roles.Select(x => x.Mention));
 
-                args["{user_guild_avatar_url}"] = eventArgs.MemberAfter.GuildAvatarUrl;
+                args["{user_guild_avatar_url}"] = eventArgs.MemberAfter.DisplayAvatarUrl;
                 args["{user_avatar_url}"] = eventArgs.MemberAfter.AvatarUrl;
                 args["{user_role_count}"] = eventArgs.MemberAfter.Roles.Count().ToString("N0", CultureInfo.InvariantCulture);
                 args["{user_role_list}"] = string.Join(", ", eventArgs.MemberAfter.Roles.Select(x => x.Mention));

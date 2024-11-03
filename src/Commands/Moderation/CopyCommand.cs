@@ -135,12 +135,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
         private async Task IdleAsync(CommandContext context, DiscordChannel channel, CancellationToken cancellationToken = default)
         {
             // Lock the channel to prevent other messages from being sent
-            List<DiscordOverwriteBuilder> overwrites = [];
-            foreach (DiscordOverwrite overwrite in channel.PermissionOverwrites)
-            {
-                overwrites.Add(await DiscordOverwriteBuilder.FromAsync(overwrite));
-            }
-
+            List<DiscordOverwriteBuilder> overwrites = [.. channel.PermissionOverwrites.Select(DiscordOverwriteBuilder.From)];
             List<DiscordOverwriteBuilder> newOverwrites = [];
             foreach (DiscordOverwriteBuilder overwrite in overwrites)
             {
@@ -156,9 +151,8 @@ namespace OoLunar.Tomoe.Commands.Moderation
             }
 
             // Add an overwrite that'll allow the bot to send messages
-            newOverwrites.Add(new DiscordOverwriteBuilder()
+            newOverwrites.Add(new DiscordOverwriteBuilder(channel.Guild.CurrentMember)
             {
-                Target = channel.Guild.CurrentMember,
                 Allowed = channel.IsThread ? DiscordPermissions.SendMessagesInThreads : DiscordPermissions.SendMessages
             });
 
