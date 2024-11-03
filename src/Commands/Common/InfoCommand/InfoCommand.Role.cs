@@ -27,7 +27,7 @@ namespace OoLunar.Tomoe.Commands.Common
                     IconUrl = context.User.AvatarUrl,
                     Url = context.User.AvatarUrl
                 },
-                Color = role.Color.Value == 0x000000 ? null : role.Color
+                Color = role.Color.Value == default ? null : role.Color
             };
 
             embedBuilder.AddField("Color", role.Color.ToString(), true);

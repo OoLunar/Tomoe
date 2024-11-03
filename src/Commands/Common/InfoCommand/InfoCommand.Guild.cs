@@ -44,12 +44,16 @@ namespace OoLunar.Tomoe.Commands.Common
                     }
                     catch (DiscordException)
                     {
-                        await context.RespondAsync($"That guild is a private server. Since I am not in the guild, I cannot return any information about it.");
+                        await context.RespondAsync($"Either that server doesn't exist or it's a private server. Regardless, I cannot find any information about it.");
                         return;
                     }
 
                     embedBuilder.Title = guildPreview.Name;
-                    embedBuilder.Footer = new() { IconUrl = $"https://cdn.discordapp.com/splashes/{guildId}/{guildPreview.Splash}.png" };
+                    embedBuilder.Footer = new()
+                    {
+                        IconUrl = $"https://cdn.discordapp.com/splashes/{guildId}/{guildPreview.Splash}.png"
+                    };
+
                     if (guildPreview.Icon is not null)
                     {
                         embedBuilder.Thumbnail = new() { Url = $"https://cdn.discordapp.com/icons/{guildId}/{guildPreview.Icon}.{(guildPreview.Icon.StartsWith("a_") ? "gif" : "png")}" };
@@ -88,7 +92,10 @@ namespace OoLunar.Tomoe.Commands.Common
         {
             if (guild.IconUrl is not null)
             {
-                embedBuilder.Thumbnail = new() { Url = guild.GetIconUrl(ImageFormat.Auto, 4096) };
+                embedBuilder.Thumbnail = new()
+                {
+                    Url = guild.GetIconUrl(ImageFormat.Auto, 4096)
+                };
             }
 
             string features = string.Join(", ", guild.Features.Select(feature => feature.ToLowerInvariant().Titleize()));

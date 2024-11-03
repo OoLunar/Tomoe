@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Commands;
+using DSharpPlus.Commands.Processors.SlashCommands;
 using DSharpPlus.Commands.Trees.Metadata;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
@@ -18,16 +19,19 @@ namespace OoLunar.Tomoe.Commands.Common
         /// Sends information about the provided user.
         /// </summary>
         /// <param name="user">Which user to get information about. Leave empty to get information about yourself.</param>
-        [Command("user"), TextAlias("member")]
+        [Command("user"), TextAlias("member"), SlashCommandTypes(DiscordApplicationCommandType.SlashCommand, DiscordApplicationCommandType.UserContextMenu)]
         public static async Task UserInfoAsync(CommandContext context, DiscordUser? user = null)
         {
             user ??= context.User;
             GuildMemberModel? memberModel = await GuildMemberModel.FindMemberAsync(user.Id, context.Guild!.Id);
             DiscordEmbedBuilder embedBuilder = new()
             {
+                Color = new DiscordColor("#6b73db"),
                 Title = $"Info about {user.GetDisplayName()}",
-                Thumbnail = new() { Url = user.AvatarUrl },
-                Color = new DiscordColor("#6b73db")
+                Thumbnail = new()
+                {
+                    Url = user.AvatarUrl
+                }
             };
 
             embedBuilder.AddField("User Id", Formatter.InlineCode(user.Id.ToString(CultureInfo.InvariantCulture)), true);
