@@ -127,7 +127,7 @@ namespace OoLunar.Tomoe
                 clientBuilder.ConfigureEventHandlers(eventBuilder =>
                 {
                     Assembly currentAssembly = typeof(Program).Assembly;
-                    MethodInfo addEventHandlersMethod = eventBuilder.GetType().GetMethod(nameof(EventHandlingBuilder.AddEventHandlers)) ?? throw new InvalidOperationException("Failed to find AddEventHandlers method.");
+                    MethodInfo addEventHandlersMethod = eventBuilder.GetType().GetMethod(nameof(EventHandlingBuilder.AddEventHandlers), 1, [typeof(ServiceLifetime)]) ?? throw new InvalidOperationException("Failed to find AddEventHandlers method.");
                     foreach (Type type in currentAssembly.GetExportedTypes())
                     {
                         if (type.IsAssignableTo(typeof(IEventHandler)))
