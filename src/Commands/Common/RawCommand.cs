@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -23,7 +24,7 @@ namespace OoLunar.Tomoe.Commands.Common
         /// </summary>
         /// <param name="message">The message to get the raw content of.</param>
         /// <param name="jsonfied">Whether to return the raw content as JSON.</param>
-        [Command("raw"), TextAlias("print"), SlashCommandTypes(DiscordApplicationCommandType.SlashCommand, DiscordApplicationCommandType.MessageContextMenu), RequirePermissions(DiscordPermissions.ReadMessageHistory | DiscordPermissions.EmbedLinks, DiscordPermissions.None)]
+        [Command("raw"), TextAlias("print"), DisplayName("Raw"), SlashCommandTypes(DiscordApplicationCommandType.SlashCommand, DiscordApplicationCommandType.MessageContextMenu), RequirePermissions(DiscordPermissions.ReadMessageHistory | DiscordPermissions.EmbedLinks, DiscordPermissions.None)]
         public static ValueTask ExecuteAsync(CommandContext context, DiscordMessage? message = null, bool jsonfied = false)
         {
             if (context is TextCommandContext textContext && message is null)

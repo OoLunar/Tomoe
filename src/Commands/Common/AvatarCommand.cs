@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Commands;
@@ -31,7 +32,7 @@ namespace OoLunar.Tomoe.Commands.Common
         /// <param name="imageFormat">The format of the image to fetch. Valid options include: png, gif, jpeg, webp, or auto. Auto will display the gif when available and fallback to png when it's not.</param>
         /// <param name="imageDimensions">A number between 16 and 4096 that represents the dimensions of the image to fetch. If no dimensions are provided, the command will default to 1024. The dimensions must be a power of two.</param>
         /// <returns>Nothing</returns>
-        [Command("user"), DefaultGroupCommand, SlashCommandTypes(DiscordApplicationCommandType.SlashCommand, DiscordApplicationCommandType.UserContextMenu)]
+        [Command("user"), DisplayName("Avatar"), DefaultGroupCommand, SlashCommandTypes(DiscordApplicationCommandType.SlashCommand, DiscordApplicationCommandType.UserContextMenu)]
         public ValueTask UserAsync(CommandContext context, DiscordUser? user = null, ImageFormat imageFormat = ImageFormat.Auto, ushort imageDimensions = 0)
         {
             user ??= context.User;

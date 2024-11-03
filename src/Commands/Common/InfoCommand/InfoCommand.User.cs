@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
@@ -19,7 +20,7 @@ namespace OoLunar.Tomoe.Commands.Common
         /// Sends information about the provided user.
         /// </summary>
         /// <param name="user">Which user to get information about. Leave empty to get information about yourself.</param>
-        [Command("user"), TextAlias("member"), SlashCommandTypes(DiscordApplicationCommandType.SlashCommand, DiscordApplicationCommandType.UserContextMenu)]
+        [Command("user"), TextAlias("member"), DisplayName("Info User"), SlashCommandTypes(DiscordApplicationCommandType.SlashCommand, DiscordApplicationCommandType.UserContextMenu)]
         public static async Task UserInfoAsync(CommandContext context, DiscordUser? user = null)
         {
             user ??= context.User;

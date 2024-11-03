@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using DSharpPlus.Commands;
@@ -23,7 +24,7 @@ namespace OoLunar.Tomoe.Commands.Common
         /// </remarks>
         /// <param name="message">The message to re-run.</param>
         /// <param name="asWho">Who to run the command as.</param>
-        [Command("retry"), TextAlias("rerun"), SlashCommandTypes(DiscordApplicationCommandType.SlashCommand, DiscordApplicationCommandType.MessageContextMenu)]
+        [Command("retry"), TextAlias("rerun"), DisplayName("Retry"), SlashCommandTypes(DiscordApplicationCommandType.SlashCommand, DiscordApplicationCommandType.MessageContextMenu)]
         public static async ValueTask RetryAsync(CommandContext context, DiscordMessage message, DiscordUser? asWho = null)
         {
             if (context is SlashCommandContext slashCommandContext)
