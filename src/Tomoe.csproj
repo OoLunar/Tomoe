@@ -12,6 +12,7 @@
   <ItemGroup>
     <None Include="$(ProjectRoot)/res/config.json" CopyToOutputDirectory="PreserveNewest" />
     <EmbeddedResource Include="$(ProjectRoot)/src/**/*.cs" LogicalName="%(EmbeddedResource.RecursiveDir)%(EmbeddedResource.Filename).cs" FileExtension=".cs" Condition="$(Configuration) == 'Release'" />
+    <EmbeddedResource Include="$(ProjectRoot)/src/Tomoe.csproj" FileExtension=".csproj" />
     <EmbeddedResource Include="$(ProjectRoot)/src/Benchmarks/*.template" FileExtension=".template" />
     <PackageReference Include="BenchmarkDotNet" Version="0.14.0" />
     <PackageReference Include="Humanizer" Version="2.14.1" />
