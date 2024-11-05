@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.Trees;
@@ -11,7 +13,7 @@ namespace OoLunar.Tomoe.Commands.Common
         [Command("confirm")]
         public async ValueTask ExecuteAsync(CommandContext context)
         {
-            bool? result = await context.ConfirmAsync("Are you sure you want to confirm?");
+            bool? result = await context.ConfirmAsync("Are you sure you want to confirm?", null, new CancellationTokenSource(TimeSpan.FromSeconds(3)).Token);
             if (result is null)
             {
                 await context.RespondAsync("Timed out!");

@@ -9,6 +9,25 @@ namespace OoLunar.Tomoe.Interactivity.ComponentHandlers
 {
     public sealed class DefaultComponentHandler : IComponentHandler
     {
+        public bool AllowAnyone { get; init; }
+
+        public DefaultComponentHandler(bool allowAnyone = false) => AllowAnyone = allowAnyone;
+
+        public async Task<bool> HandleAnyAsync(Procrastinator procrastinator, DiscordInteraction interaction, IdleData data)
+        {
+            if (AllowAnyone || data.AuthorId == interaction.User.Id)
+            {
+                return true;
+            }
+
+            await interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
+                .WithContent("This message wasn't meant for you.")
+                .AsEphemeral(true)
+            );
+
+            return false;
+        }
+
         public async Task HandlePromptAsync(Procrastinator procrastinator, DiscordInteraction interaction, PromptData data)
         {
             // If this is a modal submit
@@ -178,19 +197,19 @@ namespace OoLunar.Tomoe.Interactivity.ComponentHandlers
         {
             if (data is PromptData promptData)
             {
-                promptData.TaskCompletionSource.SetResult(null);
+                promptData.TaskCompletionSource.TrySetResult(null);
             }
             else if (data is ChooseData chooseData)
             {
-                chooseData.TaskCompletionSource.SetResult(null);
+                chooseData.TaskCompletionSource.TrySetResult(null);
             }
             else if (data is ChooseMultipleData chooseMultipleData)
             {
-                chooseMultipleData.TaskCompletionSource.SetResult([]);
+                chooseMultipleData.TaskCompletionSource.TrySetResult([]);
             }
             else if (data is ConfirmData confirmData)
             {
-                confirmData.TaskCompletionSource.SetResult(null);
+                confirmData.TaskCompletionSource.TrySetResult(null);
             }
 
             // If there's a message attached, disable all components related to the data

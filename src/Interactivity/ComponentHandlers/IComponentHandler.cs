@@ -6,6 +6,8 @@ namespace OoLunar.Tomoe.Interactivity.ComponentHandlers
 {
     public interface IComponentHandler
     {
+        public Task<bool> HandleAnyAsync(Procrastinator procrastinator, DiscordInteraction interaction, IdleData data) => Task.FromResult(true);
+
         public Task HandlePromptAsync(Procrastinator procrastinator, DiscordInteraction interaction, PromptData data);
 
         public Task HandleConfirmAsync(Procrastinator procrastinator, DiscordInteraction interaction, ConfirmData data);

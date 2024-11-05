@@ -6,48 +6,44 @@ using DSharpPlus.Commands;
 using DSharpPlus.Commands.Processors.SlashCommands;
 using DSharpPlus.Commands.Processors.TextCommands;
 using DSharpPlus.Entities;
+using OoLunar.Tomoe.Interactivity.ComponentCreators;
 using OoLunar.Tomoe.Interactivity.Data;
 
 namespace OoLunar.Tomoe.Interactivity
 {
-    public sealed partial class Procrastinator : IDisposable
+    public sealed partial class Procrastinator
     {
         public ProcrastinatorConfiguration Configuration { get; init; }
         public IReadOnlyDictionary<Ulid, IdleData> Data => _data;
 
         private readonly Dictionary<Ulid, IdleData> _data = [];
-        private readonly CancellationTokenSource _cancellationTokenSource = new();
 
-        public Procrastinator(ProcrastinatorConfiguration? configuration = null)
-        {
-            Configuration = configuration ?? new();
-
-            PeriodicTimer timer = new(Configuration.TimeoutCheckInterval);
-            _cancellationTokenSource.Token.Register(timer.Dispose);
-            _ = TimeoutTimerAsync(timer);
-        }
+        public Procrastinator(ProcrastinatorConfiguration? configuration = null) => Configuration = configuration ?? new();
 
         public bool TryAddData(Ulid id, IdleData data) => _data.TryAdd(id, data);
 
-        public async ValueTask<string?> PromptAsync(CommandContext context, string question)
+        public async ValueTask<string?> PromptAsync(CommandContext context, string question, IComponentCreator? componentCreator = null, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(context, nameof(context));
             ArgumentNullException.ThrowIfNull(question, nameof(question));
+            componentCreator ??= Configuration.ComponentController;
 
+            Ulid id = Ulid.NewUlid();
             PromptData data = new()
             {
-                Id = Ulid.NewUlid(),
-                Timeout = Configuration.DefaultTimeout,
+                Id = id,
+                AuthorId = context.User.Id,
+                CancellationToken = CreateCancellationToken(id, cancellationToken),
                 Question = question
             };
 
-            _data.Add(data.Id, data);
+            _data.Add(id, data);
             if (context is TextCommandContext textContext)
             {
-                DiscordButtonComponent button = Configuration.ComponentController.CreateTextPromptButton(question, data.Id);
-                if (!button.CustomId.StartsWith(data.Id.ToString(), StringComparison.Ordinal))
+                DiscordButtonComponent button = componentCreator.CreateTextPromptButton(question, id);
+                if (!button.CustomId.StartsWith(id.ToString(), StringComparison.Ordinal))
                 {
-                    _data.Remove(data.Id);
+                    _data.Remove(id);
                     throw new InvalidOperationException("The custom id of the button must start with the id of the data.");
                 }
 
@@ -63,13 +59,13 @@ namespace OoLunar.Tomoe.Interactivity
             {
                 await slashContext.RespondWithModalAsync(new DiscordInteractionResponseBuilder()
                     .WithTitle(question)
-                    .WithCustomId(data.Id.ToString())
-                    .AddComponents(Configuration.ComponentController.CreateModalPromptButton(question, data.Id))
+                    .WithCustomId(id.ToString())
+                    .AddComponents(componentCreator.CreateModalPromptButton(question, id))
                 );
             }
             else
             {
-                _data.Remove(data.Id);
+                _data.Remove(id);
                 throw new InvalidOperationException($"Unsupported context type: {context.GetType().Name}");
             }
 
@@ -77,27 +73,30 @@ namespace OoLunar.Tomoe.Interactivity
             return data.TaskCompletionSource.Task.Result;
         }
 
-        public async ValueTask<string?> ChooseAsync(CommandContext context, string question, IReadOnlyList<string> options)
+        public async ValueTask<string?> ChooseAsync(CommandContext context, string question, IReadOnlyList<string> options, IComponentCreator? componentCreator = null, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(context, nameof(context));
             ArgumentNullException.ThrowIfNull(question, nameof(question));
             ArgumentNullException.ThrowIfNull(options, nameof(options));
+            componentCreator ??= Configuration.ComponentController;
 
+            Ulid id = Ulid.NewUlid();
             ChooseData data = new()
             {
-                Id = Ulid.NewUlid(),
-                Timeout = Configuration.DefaultTimeout,
+                Id = id,
+                AuthorId = context.User.Id,
+                CancellationToken = CreateCancellationToken(id, cancellationToken),
                 Question = question,
                 Options = options
             };
 
-            DiscordSelectComponent dropDown = Configuration.ComponentController.CreateChooseDropdown(question, options, data.Id);
-            if (!dropDown.CustomId.StartsWith(data.Id.ToString(), StringComparison.Ordinal))
+            DiscordSelectComponent dropDown = componentCreator.CreateChooseDropdown(question, options, id);
+            if (!dropDown.CustomId.StartsWith(id.ToString(), StringComparison.Ordinal))
             {
                 throw new InvalidOperationException("The custom id of the select menu must start with the id of the data.");
             }
 
-            _data.Add(data.Id, data);
+            _data.Add(id, data);
             await context.RespondAsync(new DiscordMessageBuilder()
                 .WithAllowedMentions(Mentions.None)
                 .WithContent(question)
@@ -109,27 +108,30 @@ namespace OoLunar.Tomoe.Interactivity
             return data.TaskCompletionSource.Task.Result;
         }
 
-        public async ValueTask<IReadOnlyList<string>> ChooseMultipleAsync(CommandContext context, string question, IReadOnlyList<string> options)
+        public async ValueTask<IReadOnlyList<string>> ChooseMultipleAsync(CommandContext context, string question, IReadOnlyList<string> options, IComponentCreator? componentCreator = null, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(context, nameof(context));
             ArgumentNullException.ThrowIfNull(question, nameof(question));
             ArgumentNullException.ThrowIfNull(options, nameof(options));
+            componentCreator ??= Configuration.ComponentController;
 
+            Ulid id = Ulid.NewUlid();
             ChooseMultipleData data = new()
             {
-                Id = Ulid.NewUlid(),
-                Timeout = Configuration.DefaultTimeout,
+                Id = id,
+                AuthorId = context.User.Id,
+                CancellationToken = CreateCancellationToken(id, cancellationToken),
                 Question = question,
                 Options = options
             };
 
-            DiscordSelectComponent dropDown = Configuration.ComponentController.CreateChooseMultipleDropdown(question, options, data.Id);
-            if (!dropDown.CustomId.StartsWith(data.Id.ToString(), StringComparison.Ordinal))
+            DiscordSelectComponent dropDown = componentCreator.CreateChooseMultipleDropdown(question, options, id);
+            if (!dropDown.CustomId.StartsWith(id.ToString(), StringComparison.Ordinal))
             {
                 throw new InvalidOperationException("The custom id of the select menu must start with the id of the data.");
             }
 
-            _data.Add(data.Id, data);
+            _data.Add(id, data);
             await context.RespondAsync(new DiscordMessageBuilder()
                 .WithAllowedMentions(Mentions.None)
                 .WithContent(question)
@@ -141,29 +143,32 @@ namespace OoLunar.Tomoe.Interactivity
             return data.TaskCompletionSource.Task.Result;
         }
 
-        public async ValueTask<bool?> ConfirmAsync(CommandContext context, string question)
+        public async ValueTask<bool?> ConfirmAsync(CommandContext context, string question, IComponentCreator? componentCreator = null, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(context, nameof(context));
             ArgumentNullException.ThrowIfNull(question, nameof(question));
+            componentCreator ??= Configuration.ComponentController;
 
+            Ulid id = Ulid.NewUlid();
             ConfirmData data = new()
             {
-                Id = Ulid.NewUlid(),
-                Timeout = Configuration.DefaultTimeout,
+                Id = id,
+                AuthorId = context.User.Id,
+                CancellationToken = CreateCancellationToken(id, cancellationToken),
                 Question = question
             };
 
-            List<DiscordButtonComponent> buttons = [Configuration.ComponentController.CreateConfirmButton(question, data.Id, true), Configuration.ComponentController.CreateConfirmButton(question, data.Id, false)];
+            List<DiscordButtonComponent> buttons = [componentCreator.CreateConfirmButton(question, id, true), componentCreator.CreateConfirmButton(question, id, false)];
             for (int i = 0; i < buttons.Count; i++)
             {
                 DiscordButtonComponent button = buttons[i];
-                if (!button.CustomId.StartsWith(data.Id.ToString(), StringComparison.Ordinal))
+                if (!button.CustomId.StartsWith(id.ToString(), StringComparison.Ordinal))
                 {
                     throw new InvalidOperationException($"The custom id of the button must start with the id of the data. Index: {i}");
                 }
             }
 
-            _data.Add(data.Id, data);
+            _data.Add(id, data);
             await context.RespondAsync(new DiscordMessageBuilder()
                 .WithAllowedMentions(Mentions.None)
                 .WithContent(question)
@@ -175,11 +180,22 @@ namespace OoLunar.Tomoe.Interactivity
             return data.TaskCompletionSource.Task.Result;
         }
 
-        public void Dispose()
+        private CancellationToken CreateCancellationToken(Ulid id, CancellationToken cancellationToken = default)
         {
-            _cancellationTokenSource.Cancel();
-            _cancellationTokenSource.Dispose();
-            _data.Clear();
+            if (cancellationToken == default)
+            {
+                cancellationToken = new CancellationTokenSource(Configuration.DefaultTimeout).Token;
+            }
+
+            cancellationToken.Register(static async (object? obj) =>
+            {
+                if (obj is (Procrastinator procrastinator, Ulid id) && procrastinator._data.Remove(id, out IdleData? data))
+                {
+                    await procrastinator.Configuration.ComponentHandler.HandleTimedOutAsync(data);
+                }
+            }, (this, id));
+
+            return cancellationToken;
         }
     }
 }

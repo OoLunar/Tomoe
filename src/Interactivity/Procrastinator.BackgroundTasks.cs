@@ -1,5 +1,4 @@
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.EventArgs;
@@ -15,15 +14,12 @@ namespace OoLunar.Tomoe.Interactivity
         {
             if (eventArgs.Interaction.Data.CustomId.Length < 25
                 || !Ulid.TryParse(eventArgs.Interaction.Data.CustomId[..26], out Ulid id)
-                || !_data.TryGetValue(id, out IdleData? data))
+                || !_data.TryGetValue(id, out IdleData? data)
+                || data.CancellationToken.IsCancellationRequested
+                || !await Configuration.ComponentHandler.HandleAnyAsync(this, eventArgs.Interaction, data)
+                || !_data.Remove(id)
+            )
             {
-                return;
-            }
-
-            _data.Remove(id);
-            if (data.IsTimedOut)
-            {
-                await Configuration.ComponentHandler.HandleTimedOutAsync(data);
                 return;
             }
 
@@ -37,21 +33,6 @@ namespace OoLunar.Tomoe.Interactivity
             });
 
             return;
-        }
-
-        private async Task TimeoutTimerAsync(PeriodicTimer timer)
-        {
-            while (await timer.WaitForNextTickAsync())
-            {
-                foreach (IdleData data in _data.Values)
-                {
-                    if (data.IsTimedOut)
-                    {
-                        _data.Remove(data.Id);
-                        _ = Configuration.ComponentHandler.HandleTimedOutAsync(data);
-                    }
-                }
-            }
         }
     }
 }
