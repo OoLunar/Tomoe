@@ -1,50 +1,63 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
-using DSharpPlus;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.Processors.SlashCommands;
 using DSharpPlus.Commands.Processors.TextCommands;
 using DSharpPlus.Entities;
-using DSharpPlus.EventArgs;
-using OoLunar.Tomoe.Events;
 using OoLunar.Tomoe.Interactivity.Data;
 
 namespace OoLunar.Tomoe.Interactivity
 {
-    public sealed class Procrastinator : IEventHandler<InteractionCreatedEventArgs>
+    public sealed partial class Procrastinator : IDisposable
     {
         public ProcrastinatorConfiguration Configuration { get; init; }
         public IReadOnlyDictionary<Ulid, IdleData> Data => _data;
 
         private readonly Dictionary<Ulid, IdleData> _data = [];
+        private readonly CancellationTokenSource _cancellationTokenSource = new();
 
-        public Procrastinator(ProcrastinatorConfiguration? configuration = null) => Configuration = configuration ?? new();
+        public Procrastinator(ProcrastinatorConfiguration? configuration = null)
+        {
+            Configuration = configuration ?? new();
 
-        public async ValueTask PromptAsync(CommandContext context, string question, Func<PromptData, ValueTask> callback)
+            PeriodicTimer timer = new(Configuration.TimeoutCheckInterval);
+            _cancellationTokenSource.Token.Register(timer.Dispose);
+            _ = TimeoutTimerAsync(timer);
+        }
+
+        public bool TryAddData(Ulid id, IdleData data) => _data.TryAdd(id, data);
+
+        public async ValueTask<string?> PromptAsync(CommandContext context, string question)
         {
             ArgumentNullException.ThrowIfNull(context, nameof(context));
             ArgumentNullException.ThrowIfNull(question, nameof(question));
-            ArgumentNullException.ThrowIfNull(callback, nameof(callback));
 
             PromptData data = new()
             {
                 Id = Ulid.NewUlid(),
                 Timeout = Configuration.DefaultTimeout,
-                Question = question,
-                Callback = callback
+                Question = question
             };
 
             _data.Add(data.Id, data);
             if (context is TextCommandContext textContext)
             {
+                DiscordButtonComponent button = Configuration.ComponentController.CreateTextPromptButton(question, data.Id);
+                if (!button.CustomId.StartsWith(data.Id.ToString(), StringComparison.Ordinal))
+                {
+                    _data.Remove(data.Id);
+                    throw new InvalidOperationException("The custom id of the button must start with the id of the data.");
+                }
+
                 DiscordMessageBuilder builder = new DiscordMessageBuilder()
                     .WithAllowedMentions(Mentions.None)
                     .WithContent(question)
-                    .AddComponents(Configuration.ComponentController.CreateTextPromptButton(question, data.Id));
+                    .AddComponents(button);
 
                 await textContext.RespondAsync(builder);
+                data.Message = textContext.Response;
             }
             else if (context is SlashCommandContext slashContext)
             {
@@ -59,158 +72,114 @@ namespace OoLunar.Tomoe.Interactivity
                 _data.Remove(data.Id);
                 throw new InvalidOperationException($"Unsupported context type: {context.GetType().Name}");
             }
+
+            await data.TaskCompletionSource.Task;
+            return data.TaskCompletionSource.Task.Result;
         }
 
-        public async ValueTask ChooseAsync(CommandContext context, string question, IReadOnlyList<string> options, Func<ChooseData, ValueTask> callback)
+        public async ValueTask<string?> ChooseAsync(CommandContext context, string question, IReadOnlyList<string> options)
         {
             ArgumentNullException.ThrowIfNull(context, nameof(context));
             ArgumentNullException.ThrowIfNull(question, nameof(question));
             ArgumentNullException.ThrowIfNull(options, nameof(options));
-            ArgumentNullException.ThrowIfNull(callback, nameof(callback));
 
             ChooseData data = new()
             {
                 Id = Ulid.NewUlid(),
                 Timeout = Configuration.DefaultTimeout,
                 Question = question,
-                Options = options,
-                Callback = callback
+                Options = options
             };
+
+            DiscordSelectComponent dropDown = Configuration.ComponentController.CreateChooseDropdown(question, options, data.Id);
+            if (!dropDown.CustomId.StartsWith(data.Id.ToString(), StringComparison.Ordinal))
+            {
+                throw new InvalidOperationException("The custom id of the select menu must start with the id of the data.");
+            }
 
             _data.Add(data.Id, data);
             await context.RespondAsync(new DiscordMessageBuilder()
                 .WithAllowedMentions(Mentions.None)
                 .WithContent(question)
-                .AddComponents(Configuration.ComponentController.CreateChooseDropdown(question, options, data.Id))
+                .AddComponents(dropDown)
             );
+
+            data.Message = await context.GetResponseAsync();
+            await data.TaskCompletionSource.Task;
+            return data.TaskCompletionSource.Task.Result;
         }
 
-        public async ValueTask ChooseMultipleAsync(CommandContext context, string question, IReadOnlyList<string> options, Func<ChooseMultipleData, ValueTask> callback)
+        public async ValueTask<IReadOnlyList<string>> ChooseMultipleAsync(CommandContext context, string question, IReadOnlyList<string> options)
         {
             ArgumentNullException.ThrowIfNull(context, nameof(context));
             ArgumentNullException.ThrowIfNull(question, nameof(question));
             ArgumentNullException.ThrowIfNull(options, nameof(options));
-            ArgumentNullException.ThrowIfNull(callback, nameof(callback));
 
             ChooseMultipleData data = new()
             {
                 Id = Ulid.NewUlid(),
                 Timeout = Configuration.DefaultTimeout,
                 Question = question,
-                Options = options,
-                Callback = callback
+                Options = options
             };
+
+            DiscordSelectComponent dropDown = Configuration.ComponentController.CreateChooseMultipleDropdown(question, options, data.Id);
+            if (!dropDown.CustomId.StartsWith(data.Id.ToString(), StringComparison.Ordinal))
+            {
+                throw new InvalidOperationException("The custom id of the select menu must start with the id of the data.");
+            }
 
             _data.Add(data.Id, data);
             await context.RespondAsync(new DiscordMessageBuilder()
                 .WithAllowedMentions(Mentions.None)
                 .WithContent(question)
-                .AddComponents(Configuration.ComponentController.CreateChooseMultipleDropdown(question, options, data.Id))
+                .AddComponents(dropDown)
             );
+
+            data.Message = await context.GetResponseAsync();
+            await data.TaskCompletionSource.Task;
+            return data.TaskCompletionSource.Task.Result;
         }
 
-        [DiscordEvent(DiscordIntents.None)]
-        public async Task HandleEventAsync(DiscordClient sender, InteractionCreatedEventArgs eventArgs)
+        public async ValueTask<bool?> ConfirmAsync(CommandContext context, string question)
         {
-            if (!Ulid.TryParse(eventArgs.Interaction.Data.CustomId, out Ulid id) || !_data.TryGetValue(id, out IdleData? data))
-            {
-                return;
-            }
+            ArgumentNullException.ThrowIfNull(context, nameof(context));
+            ArgumentNullException.ThrowIfNull(question, nameof(question));
 
-            _data.Remove(id);
-            await eventArgs.Interaction.CreateResponseAsync(DiscordInteractionResponseType.DeferredMessageUpdate);
-            await (data switch
+            ConfirmData data = new()
             {
-                _ when data.IsTimedOut => HandleTimeoutAsync(eventArgs, data),
-                PromptData promptData => HandlePromptAsync(eventArgs, promptData),
-                ChooseData chooseData => HandleChooseAsync(eventArgs, chooseData),
-                ChooseMultipleData chooseMultipleData => HandleChooseMultipleAsync(eventArgs, chooseMultipleData),
-                _ => HandleUnknownAsync(eventArgs, data)
-            });
+                Id = Ulid.NewUlid(),
+                Timeout = Configuration.DefaultTimeout,
+                Question = question
+            };
 
-            return;
-        }
-
-        public async ValueTask HandlePromptAsync(InteractionCreatedEventArgs eventArgs, PromptData data)
-        {
-            // If this is a modal submit
-            if (eventArgs.Interaction.Type == DiscordInteractionType.ModalSubmit)
+            List<DiscordButtonComponent> buttons = [Configuration.ComponentController.CreateConfirmButton(question, data.Id, true), Configuration.ComponentController.CreateConfirmButton(question, data.Id, false)];
+            for (int i = 0; i < buttons.Count; i++)
             {
-                data.Response = eventArgs.Interaction.Data.Values[0];
-                await data.Callback(data);
-                return;
-            }
-            // Test to see if this is a text command turning into a button press
-            else if (eventArgs.Interaction.Message?.ComponentActionRows is not null && eventArgs.Interaction.Message.ComponentActionRows.Count != 0)
-            {
-                foreach (DiscordComponent component in eventArgs.Interaction.Message.ComponentActionRows.SelectMany(row => row.Components))
+                DiscordButtonComponent button = buttons[i];
+                if (!button.CustomId.StartsWith(data.Id.ToString(), StringComparison.Ordinal))
                 {
-                    if (component is not DiscordButtonComponent button
-                        || button.CustomId != eventArgs.Interaction.Data.CustomId
-                        || button != Configuration.ComponentController.CreateTextPromptButton(data.Question, data.Id))
-                    {
-                        continue;
-                    }
-
-                    // Respond with the modal
-                    await eventArgs.Interaction.CreateResponseAsync(DiscordInteractionResponseType.Modal, new DiscordInteractionResponseBuilder()
-                        .WithTitle(data.Question)
-                        .WithCustomId(data.Id.ToString())
-                        .AddComponents(Configuration.ComponentController.CreateModalPromptButton(data.Question, data.Id))
-                    );
-
-                    return;
+                    throw new InvalidOperationException($"The custom id of the button must start with the id of the data. Index: {i}");
                 }
             }
 
-            // If neither of the above is true but the id still matches, this must be undefined behavior caused by an older or newer version of the lib
-            // Just say that we don't know how to respond
-            await eventArgs.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
-                .WithContent("I don't know how to respond to this interaction.")
-                .AsEphemeral(true)
+            _data.Add(data.Id, data);
+            await context.RespondAsync(new DiscordMessageBuilder()
+                .WithAllowedMentions(Mentions.None)
+                .WithContent(question)
+                .AddComponents(buttons)
             );
+
+            data.Message = await context.GetResponseAsync();
+            await data.TaskCompletionSource.Task;
+            return data.TaskCompletionSource.Task.Result;
         }
 
-        public async ValueTask HandleChooseAsync(InteractionCreatedEventArgs eventArgs, ChooseData data)
+        public void Dispose()
         {
-            if (eventArgs.Interaction.Type == DiscordInteractionType.Component)
-            {
-                data.Response = eventArgs.Interaction.Data.Values[0];
-                await data.Callback(data);
-            }
-            else
-            {
-                await eventArgs.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
-                    .WithContent("I don't know how to respond to this interaction.")
-                    .AsEphemeral(true)
-                );
-            }
+            _cancellationTokenSource.Cancel();
+            _cancellationTokenSource.Dispose();
+            _data.Clear();
         }
-
-        public async ValueTask HandleChooseMultipleAsync(InteractionCreatedEventArgs eventArgs, ChooseMultipleData data)
-        {
-            if (eventArgs.Interaction.Type == DiscordInteractionType.Component)
-            {
-                data.Responses = eventArgs.Interaction.Data.Values;
-                await data.Callback(data);
-            }
-            else
-            {
-                await eventArgs.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
-                    .WithContent("I don't know how to respond to this interaction.")
-                    .AsEphemeral(true)
-                );
-            }
-        }
-
-        public async ValueTask HandleTimeoutAsync(InteractionCreatedEventArgs eventArgs, IdleData data) => await eventArgs.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
-            .WithContent("The interaction has timed out.")
-            .AsEphemeral(true)
-        );
-
-        public async ValueTask HandleUnknownAsync(InteractionCreatedEventArgs eventArgs, IdleData data) => await eventArgs.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
-            .WithContent("I don't know how to respond to this interaction.")
-            .AsEphemeral(true)
-        );
     }
 }
