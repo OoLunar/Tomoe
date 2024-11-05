@@ -6,19 +6,12 @@ using OoLunar.Tomoe.Interactivity;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
-    /// <summary>
-    /// Ping! Pong!
-    /// </summary>
-    public class ConfirmCommand
+    public class InteractivityCommands
     {
-        private readonly Procrastinator _procrastinator;
-
-        public ConfirmCommand(Procrastinator procrastinator) => _procrastinator = procrastinator;
-
         [Command("confirm")]
         public async ValueTask ExecuteAsync(CommandContext context)
         {
-            bool? result = await _procrastinator.ConfirmAsync(context, "Are you sure you want to confirm?");
+            bool? result = await context.ConfirmAsync("Are you sure you want to confirm?");
             if (result is null)
             {
                 await context.RespondAsync("Timed out!");
@@ -36,7 +29,7 @@ namespace OoLunar.Tomoe.Commands.Common
         [Command("prompt")]
         public async ValueTask PromptAsync(CommandContext context)
         {
-            string? result = await _procrastinator.PromptAsync(context, "What is your favorite color?");
+            string? result = await context.PromptAsync("What is your favorite color?");
             if (result is null)
             {
                 await context.RespondAsync("Timed out!");
@@ -50,7 +43,7 @@ namespace OoLunar.Tomoe.Commands.Common
         [Command("pick")]
         public async ValueTask ChooseAsync(CommandContext context)
         {
-            string? result = await _procrastinator.ChooseAsync(context, "Choose your favorite color", ["Red", "Green", "Blue"]);
+            string? result = await context.ChooseAsync("Choose your favorite color", ["Red", "Green", "Blue"]);
             if (result is null)
             {
                 await context.RespondAsync("Timed out!");
@@ -64,8 +57,8 @@ namespace OoLunar.Tomoe.Commands.Common
         [Command("multipick")]
         public async ValueTask ChooseMultipleAsync(CommandContext context)
         {
-            IReadOnlyList<string>? result = await _procrastinator.ChooseMultipleAsync(context, "Choose your favorite colors", ["Red", "Green", "Blue"]);
-            if (result is null)
+            IReadOnlyList<string> result = await context.ChooseMultipleAsync("Choose your favorite colors", ["Red", "Green", "Blue"]);
+            if (result.Count == 0)
             {
                 await context.RespondAsync("Timed out!");
             }
