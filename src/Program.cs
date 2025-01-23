@@ -21,7 +21,6 @@ using OoLunar.Tomoe.Database;
 using OoLunar.Tomoe.Database.Models;
 using OoLunar.Tomoe.Events;
 using OoLunar.Tomoe.Events.Handlers;
-using OoLunar.Tomoe.Interactivity;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.SystemConsole.Themes;
@@ -112,7 +111,6 @@ namespace OoLunar.Tomoe
                 return intentManager;
             });
 
-            serviceCollection.AddSingleton<Procrastinator>();
             serviceCollection.AddScoped<UserSettingsCache>();
             serviceCollection.AddSingleton(serviceProvider =>
             {
