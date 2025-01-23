@@ -7,10 +7,10 @@ namespace OoLunar.Tomoe.Interactivity.ComponentCreators
 {
     public sealed class DefaultComponentCreator : IComponentCreator
     {
-        public DiscordSelectComponent CreateChooseDropdown(string question, IReadOnlyList<string> options, Ulid id)
+        public DiscordSelectComponent CreatePickDropdown(string question, IReadOnlyList<string> options, Ulid id)
             => new(id.ToString(), "Answer here!", options.Select(option => new DiscordSelectComponentOption(option, option)));
 
-        public DiscordSelectComponent CreateChooseMultipleDropdown(string question, IReadOnlyList<string> options, Ulid id)
+        public DiscordSelectComponent CreateChooseDropdown(string question, IReadOnlyList<string> options, Ulid id)
             => new(id.ToString(), "Answer here!", options.Select(option => new DiscordSelectComponentOption(option, option)), false, 1, options.Count);
 
         public DiscordTextInputComponent CreateModalPromptButton(string question, Ulid id)

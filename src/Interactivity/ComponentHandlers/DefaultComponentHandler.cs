@@ -86,7 +86,7 @@ namespace OoLunar.Tomoe.Interactivity.ComponentHandlers
             }
         }
 
-        public async Task HandleChooseAsync(Procrastinator procrastinator, DiscordInteraction interaction, ChooseData data)
+        public async Task HandlePickAsync(Procrastinator procrastinator, DiscordInteraction interaction, PickData data)
         {
             if (interaction.Type != DiscordInteractionType.Component
                 || interaction.Message?.Components is null
@@ -123,7 +123,7 @@ namespace OoLunar.Tomoe.Interactivity.ComponentHandlers
             await interaction.CreateResponseAsync(DiscordInteractionResponseType.UpdateMessage, responseBuilder);
         }
 
-        public async Task HandleChooseMultipleAsync(Procrastinator procrastinator, DiscordInteraction interaction, ChooseMultipleData data)
+        public async Task HandleChooseAsync(Procrastinator procrastinator, DiscordInteraction interaction, ChooseData data)
         {
             if (interaction.Type != DiscordInteractionType.Component
                 || interaction.Message?.Components is null
@@ -199,13 +199,13 @@ namespace OoLunar.Tomoe.Interactivity.ComponentHandlers
             {
                 promptData.TaskCompletionSource.TrySetResult(null);
             }
+            else if (data is PickData pickData)
+            {
+                pickData.TaskCompletionSource.TrySetResult(null);
+            }
             else if (data is ChooseData chooseData)
             {
-                chooseData.TaskCompletionSource.TrySetResult(null);
-            }
-            else if (data is ChooseMultipleData chooseMultipleData)
-            {
-                chooseMultipleData.TaskCompletionSource.TrySetResult([]);
+                chooseData.TaskCompletionSource.TrySetResult([]);
             }
             else if (data is ConfirmData confirmData)
             {

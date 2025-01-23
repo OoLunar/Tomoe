@@ -7,6 +7,6 @@ namespace OoLunar.Tomoe.Interactivity.Data
     {
         public required string Question { get; init; }
         public required IReadOnlyList<string> Options { get; init; }
-        public TaskCompletionSource<string?> TaskCompletionSource { get; init; } = new();
+        public TaskCompletionSource<IReadOnlyList<string>> TaskCompletionSource { get; init; } = new();
     }
 }

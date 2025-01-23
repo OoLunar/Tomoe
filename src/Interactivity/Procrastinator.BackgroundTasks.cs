@@ -26,8 +26,8 @@ namespace OoLunar.Tomoe.Interactivity
             await (data switch
             {
                 PromptData promptData => Configuration.ComponentHandler.HandlePromptAsync(this, eventArgs.Interaction, promptData),
+                PickData pickData => Configuration.ComponentHandler.HandlePickAsync(this, eventArgs.Interaction, pickData),
                 ChooseData chooseData => Configuration.ComponentHandler.HandleChooseAsync(this, eventArgs.Interaction, chooseData),
-                ChooseMultipleData chooseMultipleData => Configuration.ComponentHandler.HandleChooseMultipleAsync(this, eventArgs.Interaction, chooseMultipleData),
                 ConfirmData confirmData => Configuration.ComponentHandler.HandleConfirmAsync(this, eventArgs.Interaction, confirmData),
                 _ => Configuration.ComponentHandler.HandleUnknownAsync(this, eventArgs.Interaction, data)
             });

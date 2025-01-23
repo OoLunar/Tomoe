@@ -73,7 +73,7 @@ namespace OoLunar.Tomoe.Interactivity
             return data.TaskCompletionSource.Task.Result;
         }
 
-        public async ValueTask<string?> ChooseAsync(CommandContext context, string question, IReadOnlyList<string> options, IComponentCreator? componentCreator = null, CancellationToken cancellationToken = default)
+        public async ValueTask<string?> PickAsync(CommandContext context, string question, IReadOnlyList<string> options, IComponentCreator? componentCreator = null, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(context, nameof(context));
             ArgumentNullException.ThrowIfNull(question, nameof(question));
@@ -81,7 +81,7 @@ namespace OoLunar.Tomoe.Interactivity
             componentCreator ??= Configuration.ComponentController;
 
             Ulid id = Ulid.NewUlid();
-            ChooseData data = new()
+            PickData data = new()
             {
                 Id = id,
                 AuthorId = context.User.Id,
@@ -90,7 +90,7 @@ namespace OoLunar.Tomoe.Interactivity
                 Options = options
             };
 
-            DiscordSelectComponent dropDown = componentCreator.CreateChooseDropdown(question, options, id);
+            DiscordSelectComponent dropDown = componentCreator.CreatePickDropdown(question, options, id);
             if (!dropDown.CustomId.StartsWith(id.ToString(), StringComparison.Ordinal))
             {
                 throw new InvalidOperationException("The custom id of the select menu must start with the id of the data.");
@@ -108,7 +108,7 @@ namespace OoLunar.Tomoe.Interactivity
             return data.TaskCompletionSource.Task.Result;
         }
 
-        public async ValueTask<IReadOnlyList<string>> ChooseMultipleAsync(CommandContext context, string question, IReadOnlyList<string> options, IComponentCreator? componentCreator = null, CancellationToken cancellationToken = default)
+        public async ValueTask<IReadOnlyList<string>> ChooseAsync(CommandContext context, string question, IReadOnlyList<string> options, IComponentCreator? componentCreator = null, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(context, nameof(context));
             ArgumentNullException.ThrowIfNull(question, nameof(question));
@@ -116,7 +116,7 @@ namespace OoLunar.Tomoe.Interactivity
             componentCreator ??= Configuration.ComponentController;
 
             Ulid id = Ulid.NewUlid();
-            ChooseMultipleData data = new()
+            ChooseData data = new()
             {
                 Id = id,
                 AuthorId = context.User.Id,
@@ -125,7 +125,7 @@ namespace OoLunar.Tomoe.Interactivity
                 Options = options
             };
 
-            DiscordSelectComponent dropDown = componentCreator.CreateChooseMultipleDropdown(question, options, id);
+            DiscordSelectComponent dropDown = componentCreator.CreateChooseDropdown(question, options, id);
             if (!dropDown.CustomId.StartsWith(id.ToString(), StringComparison.Ordinal))
             {
                 throw new InvalidOperationException("The custom id of the select menu must start with the id of the data.");

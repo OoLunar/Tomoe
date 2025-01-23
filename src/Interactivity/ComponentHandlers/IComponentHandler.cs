@@ -12,9 +12,9 @@ namespace OoLunar.Tomoe.Interactivity.ComponentHandlers
 
         public Task HandleConfirmAsync(Procrastinator procrastinator, DiscordInteraction interaction, ConfirmData data);
 
-        public Task HandleChooseAsync(Procrastinator procrastinator, DiscordInteraction interaction, ChooseData data);
+        public Task HandlePickAsync(Procrastinator procrastinator, DiscordInteraction interaction, PickData data);
 
-        public Task HandleChooseMultipleAsync(Procrastinator procrastinator, DiscordInteraction interaction, ChooseMultipleData data);
+        public Task HandleChooseAsync(Procrastinator procrastinator, DiscordInteraction interaction, ChooseData data);
 
         public Task HandleUnknownAsync(Procrastinator procrastinator, DiscordInteraction interaction, IdleData data);
 

@@ -8,7 +8,7 @@ namespace OoLunar.Tomoe.Interactivity.Data
     {
         public required Ulid Id { get; init; }
         public required ulong AuthorId { get; init; }
-        public required CancellationToken CancellationToken { get; init; }
+        public required CancellationToken CancellationToken { get; set; }
         public DiscordMessage? Message { get; set; }
     }
 }

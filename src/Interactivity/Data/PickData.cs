@@ -3,10 +3,10 @@ using System.Threading.Tasks;
 
 namespace OoLunar.Tomoe.Interactivity.Data
 {
-    public record ChooseMultipleData : IdleData
+    public record PickData : IdleData
     {
         public required string Question { get; init; }
         public required IReadOnlyList<string> Options { get; init; }
-        public TaskCompletionSource<IReadOnlyList<string>> TaskCompletionSource { get; init; } = new();
+        public TaskCompletionSource<string?> TaskCompletionSource { get; init; } = new();
     }
 }
