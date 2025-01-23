@@ -9,4 +9,4 @@ RUN apk add git openssl icu-libs icu-data-full tzdata \
     && dotnet publish -c Release -r linux-musl-x64 \
     && rm -rf /var/cache/apk/*
 
-ENTRYPOINT ["/src/src/bin/Release/net8.0/linux-musl-x64/publish/Tomoe"]
+ENTRYPOINT ["/src/src/bin/Release/net9.0/linux-musl-x64/publish/Tomoe"]
