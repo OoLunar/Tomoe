@@ -6,7 +6,7 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/src/bin/Debug/net8.0/Tomoe.dll",
+            "program": "${workspaceFolder}/src/bin/Debug/net9.0/Tomoe.dll",
             "args": [],
             "cwd": "${workspaceFolder}",
             "console": "internalConsole",

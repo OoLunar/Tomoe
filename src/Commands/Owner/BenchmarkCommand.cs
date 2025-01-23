@@ -151,7 +151,7 @@ namespace OoLunar.Tomoe.Commands.Owner
                 string statusPath = Path.Combine(basePath, "status.log");
                 if (!File.Exists(statusPath))
                 {
-                    await File.WriteAllTextAsync(statusPath, null);
+                    await File.WriteAllTextAsync(statusPath, "");
                 }
 
                 await context.RespondAsync("Running benchmarks...");
