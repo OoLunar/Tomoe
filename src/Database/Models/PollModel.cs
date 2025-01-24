@@ -207,12 +207,12 @@ namespace OoLunar.Tomoe.Database.Models
             // If the bot does not have permissions to send messages in the poll channel
             // DM the poll owner asking them to fix this.
             DiscordPermissions channelPermissionsForBot = channel.PermissionsFor(guild.CurrentMember);
-            if ((!channel.IsThread && !channelPermissionsForBot.HasPermission(DiscordPermissions.SendMessages))
-                || (channel.IsThread && !channelPermissionsForBot.HasPermission(DiscordPermissions.SendMessagesInThreads)))
+            if ((!channel.IsThread && !channelPermissionsForBot.HasPermission(DiscordPermission.SendMessages))
+                || (channel.IsThread && !channelPermissionsForBot.HasPermission(DiscordPermission.SendThreadMessages)))
             {
                 DiscordMember member = await guild.GetMemberAsync(client.CurrentUser.Id);
                 DiscordPermissions channelPermissionsForUser = channel.PermissionsFor(member);
-                await member.SendMessageAsync($"I don't have permission to send messages in {channel.Mention} in {guild.Name}. I'm trying to send the results to a poll but I can't! {(channelPermissionsForUser.HasPermission(DiscordPermissions.ManageChannels) || channelPermissionsForUser.HasPermission(DiscordPermissions.ManageRoles)
+                await member.SendMessageAsync($"I don't have permission to send messages in {channel.Mention} in {guild.Name}. I'm trying to send the results to a poll but I can't! {(channelPermissionsForUser.HasPermission(DiscordPermission.ManageChannels) || channelPermissionsForUser.HasPermission(DiscordPermission.ManageRoles)
                     ? "Could you please fix this?"
                     : "Please let an administrator know so they can fix this.")}");
 
@@ -248,7 +248,7 @@ namespace OoLunar.Tomoe.Database.Models
             messageBuilder.WithReply(expirable.MessageId);
 
             // Ensure we only add the embed when we have permission to do so.
-            if (channelPermissionsForBot.HasPermission(DiscordPermissions.EmbedLinks))
+            if (channelPermissionsForBot.HasPermission(DiscordPermission.EmbedLinks))
             {
                 DiscordEmbedBuilder embedBuilder = new()
                 {

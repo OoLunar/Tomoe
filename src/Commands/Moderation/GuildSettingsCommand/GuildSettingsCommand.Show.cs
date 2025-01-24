@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
 using DSharpPlus.Commands;
-using DSharpPlus.Commands.ContextChecks;
 using DSharpPlus.Entities;
 using OoLunar.Tomoe.Database.Models;
 
@@ -12,7 +11,6 @@ namespace OoLunar.Tomoe.Commands.Moderation
         /// Shows the current guild settings.
         /// </summary>
         [Command("show")]
-        [RequirePermissions(DiscordPermissions.None, DiscordPermissions.ManageChannels)]
         public static async ValueTask ShowAsync(CommandContext context)
         {
             GuildSettingsModel? settings = await GuildSettingsModel.GetSettingsAsync(context.Guild!.Id);

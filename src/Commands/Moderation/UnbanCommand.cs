@@ -23,7 +23,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
         /// </remarks>
         /// <param name="user">Who is being unbanned.</param>
         /// <param name="reason">Why they're being unbanned.</param>
-        [Command("unban"), RequirePermissions(DiscordPermissions.BanMembers)]
+        [Command("unban"), RequirePermissions(DiscordPermission.BanMembers)]
         public static async ValueTask ExecuteAsync(CommandContext context, DiscordUser user, [RemainingText] string? reason = null)
         {
             // TODO: When the bot starts up, grab the most recent ban from the database

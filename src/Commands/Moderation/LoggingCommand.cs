@@ -15,7 +15,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
     /// Manages logging settings for the guild.
     /// </summary>
     [Command("logging")]
-    [RequirePermissions(DiscordPermissions.SendMessages, DiscordPermissions.ManageGuild)]
+    [RequirePermissions([DiscordPermission.SendMessages], [DiscordPermission.ManageGuild])]
     public sealed class LoggingCommand
     {
         /// <summary>

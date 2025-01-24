@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,14 +17,14 @@ namespace OoLunar.Tomoe.Commands.Common
     /// </summary>
     public static class DoctorCommand
     {
-        private const string AdministratorWarning = "⚠️ I have the `Administrator` permission; I can execute all of my commands without issue. It is advised you re-invite me with the proper permissions - for a boost in security. The `invite` command will give you the link with the correct permissions. ⚠️";
+        private const string AdministratorWarning = "⚠️ I have the `Administrator` permission; I can execute all of my commands without issue. It is advised you re-invite me with the proper permissions for a boost in security. The `invite` command will give you the link with the correct permissions. ⚠️";
         private const string MissingRequiredPermissionsWarning = "❌ The following permissions are required for all commands to work properly: `Send Messages`, `Send Messages in Threads`, and `Access Channels`. Please re-invite me with the proper permissions. The `invite` command will give you the link with the correct permissions. ❌";
         private const string DiffExplanation = "The red permissions are the permissions that I do not have. The green permissions are the ones I do have. If a command has a red permission, that means I cannot execute it.";
 
         /// <summary>
         /// Helps diagnose permission issues with the bot.
         /// </summary>
-        [Command("doctor"), RequirePermissions(DiscordPermissions.AccessChannels | DiscordPermissions.SendMessages | DiscordPermissions.SendMessagesInThreads | DiscordPermissions.EmbedLinks, DiscordPermissions.None)]
+        [Command("doctor"), RequirePermissions([DiscordPermission.ViewChannel, DiscordPermission.SendMessages, DiscordPermission.SendThreadMessages, DiscordPermission.EmbedLinks], [])]
         public static async ValueTask ExecuteAsync(CommandContext context)
         {
             DiscordEmbedBuilder embedBuilder = new()
@@ -41,7 +40,7 @@ namespace OoLunar.Tomoe.Commands.Common
             foreach (Command command in context.Extension.Commands.Values.OrderBy(x => x.Name))
             {
                 DiscordPermissions permissions = GetCommandPermissions(command);
-                if (permissions == default)
+                if (permissions == DiscordPermissions.None)
                 {
                     continue;
                 }
@@ -49,9 +48,8 @@ namespace OoLunar.Tomoe.Commands.Common
                 StringBuilder stringBuilder = new();
                 stringBuilder.AppendLine(HelpCommandDocumentationMapperEventHandler.CommandDocumentation.TryGetValue(command, out string? documentation) ? documentation : "No description provided.");
                 stringBuilder.AppendLine("```diff");
-                for (ulong i = 0; i < (sizeof(ulong) * 8); i++)
+                foreach (DiscordPermission permission in DiscordPermissions.All.EnumeratePermissions())
                 {
-                    DiscordPermissions permission = (DiscordPermissions)Math.Pow(2, i);
                     if (!permissions.HasFlag(permission))
                     {
                         continue;
@@ -65,18 +63,18 @@ namespace OoLunar.Tomoe.Commands.Common
                         stringBuilder.Append("- ");
                     }
 
-                    stringBuilder.AppendLine(permission.Humanize(LetterCasing.Title));
+                    stringBuilder.AppendLine(permission.ToStringFast());
                 }
 
                 stringBuilder.AppendLine("```");
                 embedBuilder.AddField(command.Name.Titleize(), stringBuilder.ToString());
             }
 
-            if (context.Guild.CurrentMember.Permissions.HasFlag(DiscordPermissions.Administrator))
+            if (context.Guild.CurrentMember.Permissions.HasFlag(DiscordPermission.Administrator))
             {
                 embedBuilder.WithDescription(AdministratorWarning);
             }
-            else if (!botPermissions.HasFlag(DiscordPermissions.SendMessages) || !botPermissions.HasFlag(DiscordPermissions.SendMessagesInThreads) || !botPermissions.HasFlag(DiscordPermissions.AccessChannels))
+            else if (!botPermissions.HasAllPermissions(DiscordPermission.SendMessages, DiscordPermission.SendThreadMessages, DiscordPermission.ViewChannel))
             {
                 embedBuilder.WithDescription(MissingRequiredPermissionsWarning);
             }
@@ -84,7 +82,7 @@ namespace OoLunar.Tomoe.Commands.Common
             DiscordPermissions channelPermissions = context.Channel.PermissionsFor(context.Guild.CurrentMember);
             if (context is TextCommandContext textCommandContext)
             {
-                if (!channelPermissions.HasFlag(DiscordPermissions.SendMessages))
+                if (!channelPermissions.HasFlag(DiscordPermission.SendMessages))
                 {
                     try
                     {
@@ -94,7 +92,7 @@ namespace OoLunar.Tomoe.Commands.Common
                     catch (DiscordException)
                     {
                         // Try to react to the message
-                        if (channelPermissions.HasFlag(DiscordPermissions.AddReactions))
+                        if (channelPermissions.HasFlag(DiscordPermission.AddReactions))
                         {
                             try
                             {
@@ -106,7 +104,7 @@ namespace OoLunar.Tomoe.Commands.Common
 
                     return;
                 }
-                else if (!channelPermissions.HasFlag(DiscordPermissions.EmbedLinks))
+                else if (!channelPermissions.HasFlag(DiscordPermission.EmbedLinks))
                 {
                     embedBuilder.WithDescription("❌ This command requires the `Embed Links` permission to function. ❌");
                     await context.RespondAsync(embedBuilder);

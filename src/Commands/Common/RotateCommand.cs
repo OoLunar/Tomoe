@@ -32,7 +32,7 @@ namespace OoLunar.Tomoe.Commands.Common
         /// </summary>
         /// <param name="attachment">The image to rotate.</param>
         /// <param name="degrees">The degrees to rotate the image by. Defaults to 90. Only supports increments of 90.</param>
-        [Command("rotate"), Description("Rotates the image by the specified degrees."), RequirePermissions(DiscordPermissions.AttachFiles, DiscordPermissions.None)]
+        [Command("rotate"), Description("Rotates the image by the specified degrees."), RequirePermissions([DiscordPermission.AttachFiles], [])]
         public async ValueTask ExecuteAsync(CommandContext context, DiscordAttachment attachment, float degrees = 90.0f)
         {
             // Download the image, rotate it, and send it back

@@ -32,7 +32,7 @@ namespace OoLunar.Tomoe.Commands.Common
         /// <param name="question">What question to ask everyone.</param>
         /// <param name="expiresAt">When the poll should end.</param>
         /// <param name="options">The choices to choose from.</param>
-        [Command("poll"), Description("Create a poll."), RequirePermissions(DiscordPermissions.EmbedLinks, DiscordPermissions.None)]
+        [Command("poll"), Description("Create a poll."), RequirePermissions([DiscordPermission.EmbedLinks], [])]
         public async ValueTask ExecuteAsync(CommandContext context, string question, TimeSpan expiresAt, params string[] options)
         {
             DateTimeOffset now = DateTimeOffset.UtcNow;

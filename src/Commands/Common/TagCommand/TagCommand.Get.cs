@@ -69,7 +69,7 @@ namespace OoLunar.Tomoe.Commands.Common
 
         private static bool TryVerifyTagOwnership(CommandContext context, CultureInfo cultureInfo, TagModel tag, [NotNullWhen(false)] out string? errorMessage)
         {
-            if (tag.OwnerId != context.User.Id && !context.Member!.Permissions.HasPermission(DiscordPermissions.ManageMessages))
+            if (tag.OwnerId != context.User.Id && !context.Member!.Permissions.HasPermission(DiscordPermission.ManageMessages))
             {
                 errorMessage = string.Format(cultureInfo, TAG_MODIFY_PERMISSIONS, Formatter.Sanitize(tag.Name), tag.OwnerId);
                 return false;

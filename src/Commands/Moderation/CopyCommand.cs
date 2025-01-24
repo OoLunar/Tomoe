@@ -53,7 +53,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
         /// <param name="channel">Which channel to send the messages to.</param>
         /// <param name="firstMessage">Where to start copying messages from. This message will be moved too.</param>
         /// <param name="lastMessage">Where to stop copying messages from. If not provided, will copy all messages after the first message.</param>
-        [Command("copy"), TextAlias("move"), Description("Copies a chunk of messages (inclusive) to a different channel."), RequirePermissions(DiscordPermissions.ManageMessages | DiscordPermissions.ReadMessageHistory)]
+        [Command("copy"), TextAlias("move"), Description("Copies a chunk of messages (inclusive) to a different channel."), RequirePermissions(DiscordPermission.ManageMessages, DiscordPermission.ReadMessageHistory)]
         public async ValueTask CopyAsync(CommandContext context, DiscordChannel channel, DiscordMessage firstMessage, DiscordMessage? lastMessage = null)
             => await ExecuteAsync(true, context, channel, firstMessage, lastMessage);
 
@@ -63,7 +63,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
         /// <param name="channel">Which channel to send the messages to.</param>
         /// <param name="firstMessage">Where to start copying messages from. This message will be moved too.</param>
         /// <param name="lastMessage">Where to stop copying messages from. If not provided, will copy all messages after the first message.</param>
-        [Command("forward"), Description("Forwards a chunk of messages (inclusive) to a different channel."), RequirePermissions(DiscordPermissions.ManageMessages | DiscordPermissions.ReadMessageHistory)]
+        [Command("forward"), Description("Forwards a chunk of messages (inclusive) to a different channel."), RequirePermissions(DiscordPermission.ManageMessages, DiscordPermission.ReadMessageHistory)]
         public async ValueTask ForwardAsync(CommandContext context, DiscordChannel channel, DiscordMessage firstMessage, DiscordMessage? lastMessage = null)
             => await ExecuteAsync(false, context, channel, firstMessage, lastMessage);
 
@@ -144,8 +144,8 @@ namespace OoLunar.Tomoe.Commands.Moderation
 
                 // If we're moving messages into threads, prevent users from sending messages in threads
                 newOverwrite.Deny(channel.IsThread
-                    ? DiscordPermissions.SendMessagesInThreads | DiscordPermissions.ManageMessages
-                    : DiscordPermissions.SendMessages | DiscordPermissions.ManageMessages | DiscordPermissions.CreatePublicThreads | DiscordPermissions.CreatePrivateThreads);
+                    ? DiscordPermission.SendThreadMessages | DiscordPermission.ManageMessages
+                    : DiscordPermission.SendMessages | DiscordPermission.ManageMessages | DiscordPermission.CreatePublicThreads | DiscordPermission.CreatePrivateThreads);
 
                 newOverwrites.Add(newOverwrite);
             }
@@ -153,7 +153,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
             // Add an overwrite that'll allow the bot to send messages
             newOverwrites.Add(new DiscordOverwriteBuilder(channel.Guild.CurrentMember)
             {
-                Allowed = channel.IsThread ? DiscordPermissions.SendMessagesInThreads : DiscordPermissions.SendMessages
+                Allowed = channel.IsThread ? DiscordPermission.SendThreadMessages : DiscordPermission.SendMessages
             });
 
             // Remove send messages, manage messages (pins), and create

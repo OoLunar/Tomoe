@@ -20,7 +20,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
         /// </summary>
         /// <param name="user">Who to kick.</param>
         /// <param name="reason">Why they're being removed.</param>
-        [Command("kick"), RequirePermissions(DiscordPermissions.KickMembers)]
+        [Command("kick"), RequirePermissions(DiscordPermission.KickMembers)]
         public static async ValueTask ExecuteAsync(CommandContext context, DiscordUser user, [RemainingText] string? reason = null)
         {
             if (await GuildMemberModel.IsUserAbsentAsync(user.Id, context.Guild!.Id))

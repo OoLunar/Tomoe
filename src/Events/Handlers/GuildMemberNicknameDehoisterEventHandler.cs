@@ -19,7 +19,7 @@ namespace OoLunar.Tomoe.Events.Handlers
         public async Task HandleEventAsync(DiscordClient sender, GuildMemberUpdatedEventArgs eventArgs)
         {
             // Check to see if we can rename users
-            if (!eventArgs.Guild.CurrentMember.Permissions.HasPermission(DiscordPermissions.ManageNicknames)
+            if (!eventArgs.Guild.CurrentMember.Permissions.HasPermission(DiscordPermission.ManageNicknames)
                 // Check to see if the guild has auto-dehoist enabled
                 || !await GuildSettingsModel.GetAutoDehoistAsync(eventArgs.Guild.Id))
             {
@@ -33,7 +33,7 @@ namespace OoLunar.Tomoe.Events.Handlers
         public async Task HandleEventAsync(DiscordClient sender, GuildMemberAddedEventArgs eventArgs)
         {
             // Check to see if we can rename users
-            if (!eventArgs.Guild.CurrentMember.Permissions.HasPermission(DiscordPermissions.ManageNicknames)
+            if (!eventArgs.Guild.CurrentMember.Permissions.HasPermission(DiscordPermission.ManageNicknames)
                 // Check to see if the guild has auto-dehoist enabled
                 || !await GuildSettingsModel.GetAutoDehoistAsync(eventArgs.Guild.Id))
             {
@@ -47,7 +47,7 @@ namespace OoLunar.Tomoe.Events.Handlers
         public async Task HandleEventAsync(DiscordClient sender, GuildAvailableEventArgs eventArgs)
         {
             // Check to see if we can rename users
-            if (!eventArgs.Guild.CurrentMember.Permissions.HasPermission(DiscordPermissions.ManageNicknames)
+            if (!eventArgs.Guild.CurrentMember.Permissions.HasPermission(DiscordPermission.ManageNicknames)
                 // Check to see if the guild has auto-dehoist enabled
                 || !await GuildSettingsModel.GetAutoDehoistAsync(eventArgs.Guild.Id))
             {
@@ -65,7 +65,7 @@ namespace OoLunar.Tomoe.Events.Handlers
         public async Task HandleEventAsync(DiscordClient sender, GuildCreatedEventArgs eventArgs)
         {
             // Check to see if we can rename users
-            if (!eventArgs.Guild.CurrentMember.Permissions.HasPermission(DiscordPermissions.ManageNicknames)
+            if (!eventArgs.Guild.CurrentMember.Permissions.HasPermission(DiscordPermission.ManageNicknames)
                 // Check to see if the guild has auto-dehoist enabled
                 || !await GuildSettingsModel.GetAutoDehoistAsync(eventArgs.Guild.Id))
             {

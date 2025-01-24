@@ -18,7 +18,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
         /// Renames users with hoisted names to prevent them from appearing at the top of the member list.
         /// </summary>
         [Command("dehoist")]
-        [RequirePermissions(DiscordPermissions.ManageNicknames)]
+        [RequirePermissions(DiscordPermission.ManageNicknames)]
         public static async ValueTask ExecuteAsync(CommandContext context)
         {
             await context.DeferResponseAsync();

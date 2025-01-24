@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Commands;
 using DSharpPlus.Entities;
+using Humanizer;
 using OoLunar.Tomoe.Database.Models;
 
 namespace OoLunar.Tomoe.Commands.Common
@@ -38,7 +39,7 @@ namespace OoLunar.Tomoe.Commands.Common
             embedBuilder.AddField("Role Id", Formatter.InlineCode(role.Id.ToString(CultureInfo.InvariantCulture)), true);
             embedBuilder.AddField("Role Name", role.Name, true);
             embedBuilder.AddField("Role Position", role.Position.ToString("N0", await context.GetCultureAsync()), true);
-            embedBuilder.AddField("Permissions", role.Permissions == DiscordPermissions.None ? "No permissions." : role.Permissions.ToPermissionString() + ".", false);
+            embedBuilder.AddField("Permissions", role.Permissions == DiscordPermissions.None ? "No permissions." : role.Permissions.EnumeratePermissions().Select(x => x.ToStringFast()).Humanize() + ".", false);
 
             int fieldCharCount = 0;
             List<string> memberMentions = [];

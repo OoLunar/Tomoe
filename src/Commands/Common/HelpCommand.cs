@@ -82,19 +82,19 @@ namespace OoLunar.Tomoe.Commands.Common
                     StringBuilder builder = new();
                     if (commonPermissions != default)
                     {
-                        builder.AppendLine(commonPermissions.ToPermissionString());
+                        builder.AppendLine(commonPermissions.EnumeratePermissions().Select(x => x.ToStringFast()).Humanize());
                     }
 
                     if (botUniquePermissions != default)
                     {
                         builder.Append("**Bot**: ");
-                        builder.AppendLine((permissions.BotPermissions ^ commonPermissions).ToPermissionString());
+                        builder.AppendLine((permissions.BotPermissions ^ commonPermissions).EnumeratePermissions().Select(x => x.ToStringFast()).Humanize());
                     }
 
                     if (userUniquePermissions != default)
                     {
                         builder.Append("**User**: ");
-                        builder.AppendLine(permissions.UserPermissions.ToPermissionString());
+                        builder.AppendLine(permissions.UserPermissions.EnumeratePermissions().Select(x => x.ToStringFast()).Humanize());
                     }
 
                     embed.AddField("Required Permissions", builder.ToString());

@@ -16,7 +16,7 @@ namespace OoLunar.Tomoe.Commands.Common
         /// <summary>
         /// Heads or tails?
         /// </summary>
-        [Command("flip"), TextAlias("random"), RequirePermissions(DiscordPermissions.EmbedLinks, DiscordPermissions.None)]
+        [Command("flip"), TextAlias("random"), RequirePermissions([DiscordPermission.EmbedLinks], [])]
         public static async ValueTask ExecuteAsync(CommandContext context)
         {
             await context.DeferResponseAsync();

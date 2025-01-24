@@ -16,10 +16,10 @@ namespace OoLunar.Tomoe.Commands.Common
         /// Links a message from another channel.
         /// </summary>
         /// <param name="message">The message to repeat.</param>
-        [Command("quote"), TextAlias("rat", "mock", "q", "tattle-tale", "tattle"), RequirePermissions(DiscordPermissions.EmbedLinks | DiscordPermissions.ReadMessageHistory, DiscordPermissions.None)]
+        [Command("quote"), TextAlias("rat", "mock", "q", "tattle-tale", "tattle"), RequirePermissions([DiscordPermission.EmbedLinks, DiscordPermission.ReadMessageHistory], [])]
         public static ValueTask ExecuteAsync(CommandContext context, DiscordMessage message)
         {
-            if (!message.Channel!.PermissionsFor(context.Member!).HasPermission(DiscordPermissions.AccessChannels))
+            if (!message.Channel!.PermissionsFor(context.Member!).HasPermission(DiscordPermission.ViewChannel))
             {
                 return context.RespondAsync("You don't have access to that message!");
             }

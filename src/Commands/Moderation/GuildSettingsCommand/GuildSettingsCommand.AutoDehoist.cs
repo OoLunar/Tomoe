@@ -20,7 +20,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
         /// <param name="enabled">Whether the bot should automatically dehoist users.</param>
         /// <param name="format">The format to use when dehoisting users. Available variables are `display_name` and `user_name`.</param>
         [Command("auto_dehoist")]
-        [RequirePermissions(DiscordPermissions.ManageNicknames, DiscordPermissions.ManageGuild)]
+        [RequirePermissions([DiscordPermission.ManageNicknames, DiscordPermission.ManageRoles], [])]
         public static async ValueTask AutoDehoistAsync(CommandContext context, bool enabled, string? format = null)
         {
             // Check to see if the command has been setup.

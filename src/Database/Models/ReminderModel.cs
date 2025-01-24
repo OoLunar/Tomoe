@@ -277,8 +277,8 @@ namespace OoLunar.Tomoe.Database.Models
 
             // If the channel is a normal text channel and we cannot send messages
             // or if the channel is a thread and we cannot send messages in threads.
-            if ((!channel.IsThread && !channelPermissionsForBot.HasPermission(DiscordPermissions.SendMessages))
-                || (channel.IsThread && !channelPermissionsForBot.HasPermission(DiscordPermissions.SendMessagesInThreads)))
+            if ((!channel.IsThread && !channelPermissionsForBot.HasPermission(DiscordPermission.SendMessages))
+                || (channel.IsThread && !channelPermissionsForBot.HasPermission(DiscordPermission.SendThreadMessages)))
             {
                 return await DmUserAsync(client, expirable);
             }

@@ -9,7 +9,7 @@ namespace OoLunar.Tomoe.Commands.Common
     /// <summary>
     /// Shows general information about whatever the user wants.
     /// </summary>
-    [Command("info"), RequirePermissions(DiscordPermissions.EmbedLinks, DiscordPermissions.None)]
+    [Command("info"), RequirePermissions([DiscordPermission.EmbedLinks], [])]
     public sealed partial class InfoCommand
     {
         private readonly AllocationRateTracker _allocationRateTracker = new();

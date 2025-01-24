@@ -13,7 +13,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
         /// </summary>
         /// <param name="restoreRoles">Whether or not to restore roles when a member rejoins the server.</param>
         [Command("restore_roles")]
-        [RequirePermissions(DiscordPermissions.ManageRoles, DiscordPermissions.ManageGuild)]
+        [RequirePermissions([DiscordPermission.ManageRoles], [])]
         public static async ValueTask RestoreRolesAsync(CommandContext context, bool restoreRoles = false)
         {
             GuildSettingsModel? settings = await GuildSettingsModel.GetSettingsAsync(context.Guild!.Id);

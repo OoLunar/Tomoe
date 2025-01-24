@@ -26,10 +26,10 @@ namespace OoLunar.Tomoe.Commands.Common
             stringBuilder.Append("<https://discord.com/api/oauth2/authorize?client_id=");
             stringBuilder.Append(context.Client.CurrentUser.Id);
             stringBuilder.Append("&scope=bot%20applications.commands");
-            if (requiredPermissions != 0)
+            if (requiredPermissions != DiscordPermissions.None)
             {
                 stringBuilder.Append("&permissions=");
-                stringBuilder.Append((long)requiredPermissions);
+                stringBuilder.Append(requiredPermissions.ToString());
             }
 
             stringBuilder.Append('>');
@@ -38,7 +38,7 @@ namespace OoLunar.Tomoe.Commands.Common
 
         private static DiscordPermissions GetSubcommandsPermissions(IEnumerable<Command> subCommands)
         {
-            DiscordPermissions permissions = 0;
+            DiscordPermissions permissions = DiscordPermissions.None;
             foreach (Command subCommand in subCommands)
             {
                 if (subCommand.Subcommands.Count != 0)

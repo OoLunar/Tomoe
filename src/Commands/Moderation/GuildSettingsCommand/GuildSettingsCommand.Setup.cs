@@ -16,7 +16,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
         /// <param name="restoreRoles">Whether or not to restore roles when a member rejoins the server.</param>
         /// <param name="textPrefix">The prefix to use for text commands.</param>
         [Command("setup")]
-        [RequirePermissions(DiscordPermissions.None, DiscordPermissions.ManageGuild)]
+        [RequirePermissions([DiscordPermission.ManageNicknames], [])]
         public static async ValueTask SetupAsync(CommandContext context, bool autoDehoistEnabled = false, string? autoDehoistFormat = null, bool restoreRoles = false, string? textPrefix = null)
         {
             GuildSettingsModel settings = new()

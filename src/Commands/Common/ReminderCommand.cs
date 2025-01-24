@@ -39,7 +39,7 @@ namespace OoLunar.Tomoe.Commands.Common
         /// </summary>
         /// <param name="expiresAt">When you should be notified.</param>
         /// <param name="content">What you want to be reminded about.</param>
-        [Command("set"), DefaultGroupCommand, RequirePermissions(DiscordPermissions.AttachFiles, DiscordPermissions.None)]
+        [Command("set"), DefaultGroupCommand, RequirePermissions([DiscordPermission.AttachFiles], [])]
         public async ValueTask SetAsync(CommandContext context, string expiresAt, [RemainingText] string? content = null)
         {
             DateTimeOffset now = DateTimeOffset.UtcNow;

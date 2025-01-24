@@ -1,9 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using DSharpPlus.Commands;
-using DSharpPlus.Commands.ContextChecks;
 using DSharpPlus.Commands.Processors.TextCommands.Parsing;
-using DSharpPlus.Entities;
 using OoLunar.Tomoe.Database.Models;
 
 namespace OoLunar.Tomoe.Commands.Moderation
@@ -31,7 +29,6 @@ namespace OoLunar.Tomoe.Commands.Moderation
         /// </summary>
         /// <param name="prefix">The new text prefix.</param>
         [Command("text_prefix")]
-        [RequirePermissions(DiscordPermissions.None, DiscordPermissions.ManageGuild)]
         public async ValueTask TextPrefixAsync(CommandContext context, string? prefix = null)
         {
             GuildSettingsModel? settings = await GuildSettingsModel.GetSettingsAsync(context.Guild!.Id);

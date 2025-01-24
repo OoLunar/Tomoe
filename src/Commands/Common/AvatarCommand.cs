@@ -14,7 +14,7 @@ namespace OoLunar.Tomoe.Commands.Common
     /// <summary>
     /// A command module for retrieving avatars from different sources. <see cref="AvatarCommand"/> is a top-level command.
     /// </summary>
-    [Command("avatar"), TextAlias("pfp"), RequirePermissions(DiscordPermissions.EmbedLinks, DiscordPermissions.None)]
+    [Command("avatar"), TextAlias("pfp"), RequirePermissions([DiscordPermission.EmbedLinks], [])]
     public sealed class AvatarCommand
     {
         private readonly ImageUtilities imageUtilitiesService;

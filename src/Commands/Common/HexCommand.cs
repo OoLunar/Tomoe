@@ -26,7 +26,7 @@ namespace OoLunar.Tomoe.Commands.Common
         /// Returns information about the provided hex color code.
         /// </summary>
         /// <param name="hexCode">Which HTML hex code to get information about.</param>
-        [Command("hex"), RequirePermissions(DiscordPermissions.EmbedLinks | DiscordPermissions.AttachFiles, DiscordPermissions.None)]
+        [Command("hex"), RequirePermissions([DiscordPermission.EmbedLinks, DiscordPermission.AttachFiles], [])]
         public static ValueTask ExecuteAsync(CommandContext context, string hexCode)
         {
             if (!IsValidHex(hexCode))

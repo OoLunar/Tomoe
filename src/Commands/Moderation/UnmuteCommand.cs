@@ -18,14 +18,14 @@ namespace OoLunar.Tomoe.Commands.Moderation
         /// </summary>
         /// <param name="member">Who gets to talk again?</param>
         /// <param name="reason">Why are they being unmuted?</param>
-        [Command("unmute"), RequirePermissions(DiscordPermissions.ModerateMembers)]
+        [Command("unmute"), RequirePermissions(DiscordPermission.ModerateMembers)]
         public static async ValueTask UnmuteAsync(CommandContext context, DiscordMember? member = null, [RemainingText] string? reason = null) => await ExecuteAsync(context, "Unmuted {0}. Reason: {1}", member, reason);
 
         /// <summary>
         /// Sometimes people sleep in for too long. This helps them wake up.
         /// </summary>
         /// <param name="member">Who's gonna wake up?</param>
-        [Command("wake"), RequirePermissions(DiscordPermissions.ModerateMembers)]
+        [Command("wake"), RequirePermissions(DiscordPermission.ModerateMembers)]
         public static async ValueTask WakeAsync(CommandContext context, DiscordMember? member = null) => await ExecuteAsync(context, "# *WAKE UP {0}!*", member, null);
 
         private static async ValueTask ExecuteAsync(CommandContext context, string muteText, DiscordMember? member = null, [RemainingText] string? reason = null)
