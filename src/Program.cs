@@ -21,6 +21,7 @@ using OoLunar.Tomoe.Database;
 using OoLunar.Tomoe.Database.Models;
 using OoLunar.Tomoe.Events;
 using OoLunar.Tomoe.Events.Handlers;
+using OoLunar.Tomoe.Interactivity;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.SystemConsole.Themes;
@@ -103,6 +104,7 @@ namespace OoLunar.Tomoe
 
             // Explicit initialization of the allocation rate tracker to prevent incorrect values.
             serviceCollection.AddSingleton(new AllocationRateTracker());
+            serviceCollection.AddSingleton<Procrastinator>();
             serviceCollection.AddSingleton<ImageUtilities>();
             serviceCollection.AddSingleton(serviceProvider =>
             {
