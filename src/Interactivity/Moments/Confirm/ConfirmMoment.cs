@@ -26,7 +26,7 @@ namespace OoLunar.Tomoe.Interactivity.Moments.Confirm
                 {
                     if (button.CustomId == interaction.Data.CustomId)
                     {
-                        TaskCompletionSource.SetResult(button == ComponentCreator.CreateConfirmButton(Question, Id, true));
+                        TaskCompletionSource.SetResult(button.CustomId == ComponentCreator.CreateConfirmButton(Question, Id, true).CustomId);
                     }
 
                     return button.Disable();
