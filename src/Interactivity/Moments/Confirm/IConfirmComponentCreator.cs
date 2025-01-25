@@ -1,6 +1,5 @@
 using System;
 using DSharpPlus.Entities;
-using OoLunar.Tomoe.Interactivity.ComponentCreators;
 
 namespace OoLunar.Tomoe.Interactivity.Moments.Confirm
 {
