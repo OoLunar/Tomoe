@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using DSharpPlus.Commands;
@@ -10,10 +11,17 @@ namespace OoLunar.Tomoe.Interactivity.Moments.Pagination
 {
     public static class ExtensionMethods
     {
-        public static async ValueTask PaginateAsync(this CommandContext context, IReadOnlyList<Page> pages, IPaginationComponentCreator? componentCreator = null, CancellationToken cancellationToken = default)
+        public static async ValueTask PaginateAsync(this CommandContext context, IEnumerable<Page> pages, IPaginationComponentCreator? componentCreator = null, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(context, nameof(context));
             ArgumentNullException.ThrowIfNull(pages, nameof(pages));
+
+            List<Page> pagesList = pages.ToList();
+            if (pagesList.Count == 1)
+            {
+                await context.RespondAsync(pagesList[0].Message);
+                return;
+            }
 
             Procrastinator procrastinator = context.ServiceProvider.GetRequiredService<Procrastinator>();
             componentCreator ??= procrastinator.Configuration.GetComponentCreatorOrDefault<IPaginationComponentCreator, PaginationDefaultComponentCreator>();
@@ -25,7 +33,7 @@ namespace OoLunar.Tomoe.Interactivity.Moments.Pagination
                 AuthorId = context.User.Id,
                 CancellationToken = procrastinator.RegisterTimeoutCallback(id, cancellationToken),
                 ComponentCreator = componentCreator,
-                Pages = pages
+                Pages = pagesList
             };
 
             if (!procrastinator.TryAddData(id, data))
@@ -33,7 +41,7 @@ namespace OoLunar.Tomoe.Interactivity.Moments.Pagination
                 throw new InvalidOperationException("The data could not be added to the dictionary.");
             }
 
-            DiscordMessageBuilder messageBuilder = pages[0].CreateMessage(data);
+            DiscordMessageBuilder messageBuilder = pagesList[0].CreateMessage(data);
             await context.RespondAsync(messageBuilder);
             data.Message = await context.GetResponseAsync();
         }
