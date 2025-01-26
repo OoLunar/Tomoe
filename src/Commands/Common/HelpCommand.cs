@@ -8,12 +8,14 @@ using DSharpPlus;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.ArgumentModifiers;
 using DSharpPlus.Commands.ContextChecks;
+using DSharpPlus.Commands.Converters;
 using DSharpPlus.Commands.Processors.TextCommands;
 using DSharpPlus.Commands.Trees;
 using DSharpPlus.Commands.Trees.Metadata;
 using DSharpPlus.Entities;
 using Humanizer;
 using OoLunar.Tomoe.Events.Handlers;
+using OoLunar.Tomoe.Interactivity.Moments.Pagination;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
@@ -31,132 +33,127 @@ namespace OoLunar.Tomoe.Commands.Common
         {
             if (string.IsNullOrWhiteSpace(command))
             {
-                await context.RespondAsync(GetHelpMessage(context));
-                return;
+                await context.PaginateAsync(GenerateGeneralizedHelpPages(context.Extension.Commands));
             }
-            else if (GetCommand(context.Extension.Commands.Values, command) is Command foundCommand)
+            else if (!context.Extension.GetProcessor<TextCommandProcessor>().TryGetCommand(command, context.Guild?.Id ?? 0, out int _, out Command? foundCommand))
             {
-                await context.RespondAsync(GetHelpMessage(context, await context.GetCultureAsync(), foundCommand));
-                return;
+                await context.RespondAsync($"Command {command} not found.");
             }
-
-            await context.RespondAsync($"Command {command} not found.");
+            else if (foundCommand.Subcommands.Count > 0)
+            {
+                await context.PaginateAsync(GenerateGroupHelpMessage(context, await context.GetCultureAsync(), foundCommand));
+            }
+            else
+            {
+                await context.RespondAsync(GenerateSingleHelpMessage(context, foundCommand));
+            }
         }
 
-        private static DiscordMessageBuilder GetHelpMessage(CommandContext context)
+        private static IEnumerable<Page> GenerateGeneralizedHelpPages(IReadOnlyDictionary<string, Command> commands)
         {
-            StringBuilder stringBuilder = new();
-            foreach (Command command in context.Extension.Commands.Values.OrderBy(x => x.Name))
+            DiscordEmbedBuilder embed = new();
+            foreach ((Command command, int index) in commands.Values.OrderBy(x => x.Name).Select((x, i) => (x, i)))
             {
-                stringBuilder.AppendLine($"`{command.Name}`: {(HelpCommandDocumentationMapperEventHandler.CommandDocumentation.TryGetValue(command, out string? documentation) ? documentation.Replace('\n', ' ').Replace("  ", " ") : "No description provided.")}");
-            }
+                embed.AddField(command.Name.Titleize(), HelpCommandDocumentationMapperEventHandler.CommandDocumentation.TryGetValue(command, out string? documentation)
+                    ? documentation.ReplaceLineEndings("").Replace("  ", " ")
+                    : "No description provided."
+                );
 
-            return new DiscordMessageBuilder().WithContent($"A total of {context.Extension.Commands.Values.Select(CountCommands).Sum():N0} commands were found. Use `help <command>` for more information on any of them.").AddEmbed(new DiscordEmbedBuilder().WithTitle("Commands").WithDescription(stringBuilder.ToString()));
+                if (embed.Fields.Count == 6 || index == commands.Count)
+                {
+                    embed
+                        .WithTitle("Commands")
+                        .WithColor(0x6b73db)
+                        .WithFooter($"{index - 4}-{Math.Min(index + 1, commands.Count)}/{commands.Count} Top Level Commands");
+
+                    DiscordMessageBuilder messageBuilder = new DiscordMessageBuilder()
+                        .AddEmbed(embed)
+                        .WithContent($"A total of {commands.Count:N0} commands were found. Use `help <command>` for more information on any of them.");
+
+                    yield return new(messageBuilder, description: embed.Fields.Select(x => x.Name).Humanize());
+                    embed = new();
+                }
+            }
         }
 
-        private static DiscordMessageBuilder GetHelpMessage(CommandContext context, CultureInfo cultureInfo, Command command)
+        private static IEnumerable<Page> GenerateGroupHelpMessage(CommandContext context, CultureInfo cultureInfo, Command command)
         {
             DiscordEmbedBuilder embed = new();
             embed.WithTitle($"Help Command: `{command.FullName.Titleize()}`");
             embed.WithDescription(HelpCommandDocumentationMapperEventHandler.CommandDocumentation.TryGetValue(command, out string? documentation) ? documentation : "No description provided.");
-            if (command.Subcommands.Count > 0)
+
+            Command? groupCommand = command.Subcommands.FirstOrDefault(x => x.Attributes.Any(x => x is DefaultGroupCommandAttribute));
+            if (groupCommand is not null)
             {
-                Command? groupCommand = command.Subcommands.FirstOrDefault(x => x.Attributes.Any(x => x is DefaultGroupCommandAttribute));
-                if (groupCommand is not null)
-                {
-                    embed.AddField("Usage", groupCommand.GetUsage(context.Arguments.Values.First()!.ToString()!.ToLower(cultureInfo)));
-                }
-
-                foreach (Command subcommand in command.Subcommands.OrderBy(x => x.Name))
-                {
-                    embed.AddField(subcommand.Name.Titleize(), HelpCommandDocumentationMapperEventHandler.CommandDocumentation.TryGetValue(subcommand, out string? subcommandDocumentation) ? subcommandDocumentation : "No description provided.");
-                }
+                embed.AddField("Usage", groupCommand.GetUsage(context.Arguments.Values.First()!.ToString()!.ToLower(cultureInfo)));
             }
-            else
+
+            yield return new Page(new DiscordMessageBuilder().AddEmbed(embed));
+
+            DiscordEmbedBuilder subEmbed = new();
+            foreach ((Command subcommand, int index) in command.Subcommands.OrderBy(x => x.Name).Select((x, i) => (x, i)))
             {
-                if (command.Attributes.FirstOrDefault(x => x is RequirePermissionsAttribute) is RequirePermissionsAttribute permissions)
-                {
-                    DiscordPermissions commonPermissions = permissions.BotPermissions & permissions.UserPermissions;
-                    DiscordPermissions botUniquePermissions = permissions.BotPermissions ^ commonPermissions;
-                    DiscordPermissions userUniquePermissions = permissions.UserPermissions ^ commonPermissions;
-                    StringBuilder builder = new();
-                    if (commonPermissions != default)
-                    {
-                        builder.AppendLine(commonPermissions.EnumeratePermissions().Select(x => x.ToStringFast()).Humanize());
-                    }
+                subEmbed
+                    .WithTitle(subcommand.FullName.Titleize())
+                    .WithDescription(HelpCommandDocumentationMapperEventHandler.CommandDocumentation.TryGetValue(subcommand, out documentation) ? documentation : "No description provided.")
+                    .WithColor(0x6b73db)
+                    .AddField("Usage", subcommand.GetUsage())
+                    .WithFooter($"Subcommand {index + 1}/{command.Subcommands.Count}");
 
-                    if (botUniquePermissions != default)
-                    {
-                        builder.Append("**Bot**: ");
-                        builder.AppendLine((permissions.BotPermissions ^ commonPermissions).EnumeratePermissions().Select(x => x.ToStringFast()).Humanize());
-                    }
-
-                    if (userUniquePermissions != default)
-                    {
-                        builder.Append("**User**: ");
-                        builder.AppendLine(permissions.UserPermissions.EnumeratePermissions().Select(x => x.ToStringFast()).Humanize());
-                    }
-
-                    embed.AddField("Required Permissions", builder.ToString());
-                }
-
-                embed.AddField("Usage", command.GetUsage(context.Arguments.Values.First()!.ToString()!.ToLowerInvariant()));
-                foreach (CommandParameter parameter in command.Parameters)
-                {
-                    embed.AddField($"{parameter.Name.Titleize()} - {context.Extension.GetProcessor<TextCommandProcessor>().Converters[GetConverterFriendlyBaseType(parameter.Type)].ReadableName}", HelpCommandDocumentationMapperEventHandler.CommandParameterDocumentation.TryGetValue(parameter, out string? parameterDocumentation) ? parameterDocumentation : "No description provided.");
-                }
-
-                embed.WithImageUrl("https://files.forsaken-borders.net/transparent.png");
-                embed.WithFooter("<> = required, [] = optional");
+                yield return new Page(new DiscordMessageBuilder().AddEmbed(subEmbed), subcommand.Name.Titleize(), documentation);
+                subEmbed = new();
             }
+        }
+
+        private static DiscordMessageBuilder GenerateSingleHelpMessage(CommandContext context, Command command)
+        {
+            DiscordEmbedBuilder embed = new();
+            embed.WithTitle($"Help Command: `{command.FullName.Titleize()}`");
+            embed.WithDescription(HelpCommandDocumentationMapperEventHandler.CommandDocumentation.TryGetValue(command, out string? documentation) ? documentation : "No description provided.");
+            if (command.Attributes.FirstOrDefault(x => x is RequirePermissionsAttribute) is RequirePermissionsAttribute permissions)
+            {
+                DiscordPermissions commonPermissions = permissions.BotPermissions & permissions.UserPermissions;
+                DiscordPermissions botUniquePermissions = permissions.BotPermissions ^ commonPermissions;
+                DiscordPermissions userUniquePermissions = permissions.UserPermissions ^ commonPermissions;
+                StringBuilder builder = new();
+                if (commonPermissions != default)
+                {
+                    builder.AppendLine(commonPermissions.EnumeratePermissions().Select(x => x.ToStringFast()).Humanize());
+                }
+
+                if (botUniquePermissions != default)
+                {
+                    builder.Append("**Bot**: ");
+                    builder.AppendLine((permissions.BotPermissions ^ commonPermissions).EnumeratePermissions().Select(x => x.ToStringFast()).Humanize());
+                }
+
+                if (userUniquePermissions != default)
+                {
+                    builder.Append("**User**: ");
+                    builder.AppendLine(permissions.UserPermissions.EnumeratePermissions().Select(x => x.ToStringFast()).Humanize());
+                }
+
+                embed.AddField("Required Permissions", builder.ToString());
+            }
+
+            embed.AddField("Usage", command.GetUsage(context.Arguments.Values.First()!.ToString()!.ToLowerInvariant()));
+            foreach (CommandParameter parameter in command.Parameters)
+            {
+                embed.AddField($"{parameter.Name.Titleize()} - {context.Extension.GetProcessor<TextCommandProcessor>().Converters[IArgumentConverter.GetConverterFriendlyBaseType(parameter.Type)].ReadableName}", HelpCommandDocumentationMapperEventHandler.CommandParameterDocumentation.TryGetValue(parameter, out string? parameterDocumentation) ? parameterDocumentation : "No description provided.");
+            }
+
+            embed.WithImageUrl("https://files.forsaken-borders.net/transparent.png");
+            embed.WithFooter("<> = required, [] = optional");
 
             return new DiscordMessageBuilder().AddEmbed(embed);
         }
 
-        private static Command? GetCommand(IEnumerable<Command> commands, string name)
-        {
-            string commandName;
-            int spaceIndex = -1;
-            do
-            {
-                spaceIndex = name.IndexOf(' ', spaceIndex + 1);
-                commandName = spaceIndex == -1 ? name : name[..spaceIndex];
-                commandName = commandName.Underscore();
-                foreach (Command command in commands)
-                {
-                    if (command.Name.Equals(commandName, StringComparison.OrdinalIgnoreCase))
-                    {
-                        return spaceIndex == -1 ? command : GetCommand(command.Subcommands, name[(spaceIndex + 1)..]);
-                    }
-                }
-
-                // Search aliases
-                foreach (Command command in commands)
-                {
-                    foreach (Attribute attribute in command.Attributes)
-                    {
-                        if (attribute is not TextAliasAttribute aliasAttribute)
-                        {
-                            continue;
-                        }
-
-                        if (aliasAttribute.Aliases.Any(alias => alias.Equals(commandName, StringComparison.OrdinalIgnoreCase)))
-                        {
-                            return spaceIndex == -1 ? command : GetCommand(command.Subcommands, name[(spaceIndex + 1)..]);
-                        }
-                    }
-                }
-            } while (spaceIndex != -1);
-
-            return null;
-        }
-
-        private static string GetUsage(this Command command, string alias)
+        private static string GetUsage(this Command command, string? alias = null)
         {
             StringBuilder builder = new();
             builder.AppendLine("```ansi");
             builder.Append('/');
-            builder.Append(Formatter.Colorize(alias, AnsiColor.Cyan));
+            builder.Append(Formatter.Colorize(alias ?? command.FullName.ToLowerInvariant(), AnsiColor.Cyan));
             foreach (CommandParameter parameter in command.Parameters)
             {
                 if (!parameter.DefaultValue.HasValue)
@@ -183,38 +180,6 @@ namespace OoLunar.Tomoe.Commands.Common
 
             builder.Append("```");
             return builder.ToString();
-        }
-
-        private static int CountCommands(this Command command)
-        {
-            int count = 0;
-            if (command.Method is not null)
-            {
-                count++;
-            }
-
-            foreach (Command subcommand in command.Subcommands)
-            {
-                count += CountCommands(subcommand);
-            }
-
-            return count;
-        }
-
-        private static Type GetConverterFriendlyBaseType(Type type)
-        {
-            ArgumentNullException.ThrowIfNull(type, nameof(type));
-
-            if (type.IsEnum)
-            {
-                return typeof(Enum);
-            }
-            else if (type.IsArray)
-            {
-                return type.GetElementType()!;
-            }
-
-            return Nullable.GetUnderlyingType(type) ?? type;
         }
     }
 }
