@@ -12,5 +12,7 @@ namespace OoLunar.Tomoe.Interactivity.Moments.Pagination
         public DiscordButtonComponent CreateNextPageButton(Ulid id, int currentPageIndex, IReadOnlyList<Page> pages);
         public DiscordButtonComponent CreateLastPageButton(Ulid id, int currentPageIndex, IReadOnlyList<Page> pages);
         public DiscordSelectComponent CreateDropdown(Ulid id, int currentPageIndex, IReadOnlyList<Page> pages);
+        public DiscordSelectComponentOption CreatePreviousSectionOption(Ulid id, int currentPageIndex, IReadOnlyList<Page> pages);
+        public DiscordSelectComponentOption CreateNextSectionOption(Ulid id, int currentPageIndex, IReadOnlyList<Page> pages);
     }
 }
