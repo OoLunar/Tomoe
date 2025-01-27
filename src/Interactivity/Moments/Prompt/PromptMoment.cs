@@ -60,5 +60,11 @@ namespace OoLunar.Tomoe.Interactivity.Moments.Prompt
                 }
             }
         }
+
+        public override ValueTask TimedOutAsync(Procrastinator procrastinator)
+        {
+            TaskCompletionSource.SetResult(null);
+            return base.TimedOutAsync(procrastinator);
+        }
     }
 }

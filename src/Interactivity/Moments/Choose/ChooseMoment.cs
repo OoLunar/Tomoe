@@ -46,5 +46,11 @@ namespace OoLunar.Tomoe.Interactivity.Moments.Choose
 
             await interaction.CreateResponseAsync(DiscordInteractionResponseType.UpdateMessage, responseBuilder);
         }
+
+        public override ValueTask TimedOutAsync(Procrastinator procrastinator)
+        {
+            TaskCompletionSource.SetResult([]);
+            return base.TimedOutAsync(procrastinator);
+        }
     }
 }
