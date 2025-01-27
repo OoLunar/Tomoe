@@ -83,7 +83,7 @@ namespace OoLunar.Tomoe.Interactivity.Moments.Pagination
             if (startingIndex == 0)
             {
                 // Return 24 so that the "Next Section" button is added.
-                return totalPageCount > 25 ? 24 : 25;
+                return totalPageCount > 25 ? 24 : Math.Min(24, totalPageCount);
             }
 
             // Return 23 so that the "Previous Section" and "Next Section" buttons are added.
