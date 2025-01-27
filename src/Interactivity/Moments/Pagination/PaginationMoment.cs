@@ -39,7 +39,8 @@ namespace OoLunar.Tomoe.Interactivity.Moments.Pagination
                     CurrentPageIndex = Pages.Count - 1;
                     break;
                 case "dropdown":
-                    if (interaction.Data.Values.Length == 1 && int.TryParse(interaction.Data.Values[0], out int pageIndex))
+                    // We call trim here because the next/previous dropdown sections will have a trailing null byte
+                    if (interaction.Data.Values.Length == 1 && int.TryParse(interaction.Data.Values[0].TrimEnd('\0'), out int pageIndex))
                     {
                         CurrentPageIndex = pageIndex;
                         break;
