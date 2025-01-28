@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using DSharpPlus.Commands;
+using DSharpPlus.Commands.Trees.Metadata;
 using DSharpPlus.Entities;
 using OoLunar.Tomoe.Database.Models;
 
@@ -10,7 +11,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
         /// <summary>
         /// Shows the current guild settings.
         /// </summary>
-        [Command("show")]
+        [Command("show"), DefaultGroupCommand]
         public static async ValueTask ShowAsync(CommandContext context)
         {
             GuildSettingsModel? settings = await GuildSettingsModel.GetSettingsAsync(context.Guild!.Id);
