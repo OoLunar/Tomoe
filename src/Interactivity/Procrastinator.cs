@@ -64,7 +64,7 @@ namespace OoLunar.Tomoe.Interactivity
         [DiscordEvent(DiscordIntents.None)]
         public async Task HandleEventAsync(DiscordClient sender, InteractionCreatedEventArgs eventArgs)
         {
-            if (eventArgs.Interaction.Data.CustomId.Length >= 25
+            if (eventArgs.Interaction.Data.CustomId?.Length >= 25
                 && Ulid.TryParse(eventArgs.Interaction.Data.CustomId[..26], out Ulid id)
                 && _data.TryGetValue(id, out IdleMoment? data)
                 && !data.CancellationToken.IsCancellationRequested
