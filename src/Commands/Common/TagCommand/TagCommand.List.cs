@@ -1,8 +1,10 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Commands;
 using DSharpPlus.Entities;
 using OoLunar.Tomoe.Database.Models;
+using OoLunar.Tomoe.Interactivity.Moments.Pagination;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
@@ -15,28 +17,39 @@ namespace OoLunar.Tomoe.Commands.Common
         [Command("list")]
         public static async ValueTask ListTagsAsync(CommandContext context, DiscordUser? user = null)
         {
-            DiscordEmbedBuilder embedBuilder = new()
-            {
-                Title = $"List of tags {(user is not null ? $"owned by {user.Username}" : "within this server.")}",
-                Color = new DiscordColor(0x6b73db)
-            };
+            DiscordMessageBuilder messageBuilder = new();
+            messageBuilder.WithContent($"List of tags {(user is not null ? $"owned by {user.Username}" : "within this server.")}");
 
+            List<Page> pages = [];
             await foreach (TagModel tag in TagModel.GetTagsAsync(context.Guild!.Id, user?.Id ?? 0))
             {
-                if (embedBuilder.Fields.Count >= 25)
+                string[] tagContent = tag.Content.Length < 256 ? [tag.Content] : tag.Content.Split(['\n', '.']);
+                DiscordEmbedBuilder embedBuilder = new()
                 {
-                    break;
-                }
+                    Title = tag.Name,
+                    Description = tagContent.Length > 1 ? $"{tagContent[0]}…" : tag.Content,
+                    Color = new DiscordColor(0x6b73db),
+                    Footer = new DiscordEmbedBuilder.EmbedFooter
+                    {
+                        Text = $"Tag Id: {tag.Id}"
+                    }
+                };
 
-                embedBuilder.AddField(tag.Name, $"``{tag.Id}`` - Created {Formatter.Timestamp(tag.Id.Time)}\nUpdated {Formatter.Timestamp(tag.LastUpdatedAt)}\nUsed {tag.Uses:N0} time{(tag.Uses == 1 ? "" : "s")}.", true);
+                embedBuilder.AddField("Created", Formatter.Timestamp(tag.Id.Time), true);
+                embedBuilder.AddField("Updated", Formatter.Timestamp(tag.LastUpdatedAt), true);
+                embedBuilder.AddField("Uses", $"{tag.Uses:N0} time{(tag.Uses == 1 ? "" : "s")}", true);
+
+                pages.Add(new Page(new DiscordMessageBuilder(messageBuilder).AddEmbed(embedBuilder), embedBuilder.Title));
             }
 
-            if (embedBuilder.Fields.Count == 0)
+            if (pages.Count == 0)
             {
-                embedBuilder.Description = "No tags found.";
+                await context.RespondAsync("No tags found.");
+                return;
             }
 
-            await context.RespondAsync(embedBuilder);
+            pages.Sort((a, b) => a.Title!.CompareTo(b.Title));
+            await context.PaginateAsync(pages);
         }
     }
 }

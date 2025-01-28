@@ -75,14 +75,12 @@ namespace OoLunar.Tomoe.Database.Models
             _tagExists.Parameters.Add(new("@name", NpgsqlDbType.Text));
             _tagExists.Parameters.Add(new("@guild_id", NpgsqlDbType.Bigint));
 
-            _getTags = new(@"SELECT * FROM tags WHERE guild_id = @guild_id ORDER BY last_updated_at DESC LIMIT 5 OFFSET @offset;");
+            _getTags = new(@"SELECT * FROM tags WHERE guild_id = @guild_id ORDER BY last_updated_at DESC");
             _getTags.Parameters.Add(new("@guild_id", NpgsqlDbType.Bigint));
-            _getTags.Parameters.Add(new("@offset", NpgsqlDbType.Integer));
 
-            _getTagsByOwner = new(@"SELECT * FROM tags WHERE owner_id = @owner_id AND guild_id = @guild_id ORDER BY last_updated_at DESC LIMIT 5 OFFSET @offset;");
+            _getTagsByOwner = new(@"SELECT * FROM tags WHERE owner_id = @owner_id AND guild_id = @guild_id ORDER BY last_updated_at DESC");
             _getTagsByOwner.Parameters.Add(new("@owner_id", NpgsqlDbType.Bigint));
             _getTagsByOwner.Parameters.Add(new("@guild_id", NpgsqlDbType.Bigint));
-            _getTagsByOwner.Parameters.Add(new("@offset", NpgsqlDbType.Integer));
         }
 
         public static async ValueTask CreateAsync(Ulid id, string name, string content, ulong ownerId, ulong guildId)
@@ -221,51 +219,45 @@ namespace OoLunar.Tomoe.Database.Models
 
         public static async IAsyncEnumerable<TagModel> GetTagsAsync(ulong guildId, ulong ownerId)
         {
-            long index = -5;
-            while (true)
+            await _semaphore.WaitAsync();
+            try
             {
-                await _semaphore.WaitAsync();
-                try
+                NpgsqlCommand command;
+                if (ownerId == 0)
                 {
-                    NpgsqlCommand command;
-                    if (ownerId == 0)
-                    {
-                        command = _getTags;
-                        _getTags.Parameters["@guild_id"].Value = (long)guildId;
-                        _getTags.Parameters["@offset"].Value = index += 5;
-                    }
-                    else
-                    {
-                        command = _getTagsByOwner;
-                        _getTagsByOwner.Parameters["@owner_id"].Value = (long)ownerId;
-                        _getTagsByOwner.Parameters["@guild_id"].Value = (long)guildId;
-                        _getTagsByOwner.Parameters["@offset"].Value = index += 5;
-                    }
-
-                    await using NpgsqlDataReader reader = await command.ExecuteReaderAsync();
-                    if (!reader.HasRows)
-                    {
-                        break;
-                    }
-
-                    while (await reader.ReadAsync())
-                    {
-                        yield return new TagModel
-                        {
-                            Id = new Ulid(reader.GetGuid(0)),
-                            Name = reader.GetString(1),
-                            Content = reader.GetString(2),
-                            OwnerId = (ulong)reader.GetInt64(3),
-                            GuildId = (ulong)reader.GetInt64(4),
-                            LastUpdatedAt = reader.GetDateTime(5),
-                            Uses = (ulong)reader.GetInt64(6)
-                        };
-                    }
+                    command = _getTags;
+                    _getTags.Parameters["@guild_id"].Value = (long)guildId;
                 }
-                finally
+                else
                 {
-                    _semaphore.Release();
+                    command = _getTagsByOwner;
+                    _getTagsByOwner.Parameters["@owner_id"].Value = (long)ownerId;
+                    _getTagsByOwner.Parameters["@guild_id"].Value = (long)guildId;
                 }
+
+                await using NpgsqlDataReader reader = await command.ExecuteReaderAsync();
+                if (!reader.HasRows)
+                {
+                    yield break;
+                }
+
+                while (await reader.ReadAsync())
+                {
+                    yield return new TagModel
+                    {
+                        Id = new Ulid(reader.GetGuid(0)),
+                        Name = reader.GetString(1),
+                        Content = reader.GetString(2),
+                        OwnerId = (ulong)reader.GetInt64(3),
+                        GuildId = (ulong)reader.GetInt64(4),
+                        LastUpdatedAt = reader.GetDateTime(5),
+                        Uses = (ulong)reader.GetInt64(6)
+                    };
+                }
+            }
+            finally
+            {
+                _semaphore.Release();
             }
         }
 
