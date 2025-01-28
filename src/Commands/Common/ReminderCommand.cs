@@ -14,6 +14,7 @@ using DSharpPlus.Entities;
 using Microsoft.Extensions.DependencyInjection;
 using OoLunar.Tomoe.Database;
 using OoLunar.Tomoe.Database.Models;
+using OoLunar.Tomoe.Interactivity.Moments.Pagination;
 
 namespace OoLunar.Tomoe.Commands.Common
 {
@@ -110,22 +111,27 @@ namespace OoLunar.Tomoe.Commands.Common
         [Command("list")]
         public static async ValueTask ListAsync(CommandContext context)
         {
-            List<ReminderModel> reminders = [];
+            List<Page> pages = [];
             await foreach (ReminderModel reminderModel in ReminderModel.ListAsync(context.User.Id))
             {
-                reminders.Add(reminderModel);
-                if (reminders.Count == 5)
+                DiscordEmbedBuilder embedBuilder = new()
                 {
-                    StringBuilder stringBuilder = new();
-                    foreach (ReminderModel reminder in reminders)
-                    {
-                        stringBuilder.AppendLine($"- {Formatter.Timestamp(reminder.ExpiresAt - DateTimeOffset.UtcNow)}: {reminder.Content}");
-                    }
+                    Color = new DiscordColor(0x6b73db),
+                    Description = reminderModel.Content
+                };
 
-                    await context.RespondAsync(stringBuilder.ToString());
-                    return;
-                }
+                embedBuilder.AddField("Created At", Formatter.Timestamp(reminderModel.Id.Time, TimestampFormat.LongDateTime));
+                embedBuilder.AddField("Expires At", Formatter.Timestamp(reminderModel.ExpiresAt - DateTimeOffset.UtcNow));
+                pages.Add(new Page(new DiscordMessageBuilder().AddEmbed(embedBuilder)));
             }
+
+            if (pages.Count == 0)
+            {
+                await context.RespondAsync("You don't have any reminders set.");
+                return;
+            }
+
+            await context.PaginateAsync(pages);
         }
 
         private static string FormatReminder(DiscordMessage message, string? content = null)

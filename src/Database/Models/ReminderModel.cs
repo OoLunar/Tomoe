@@ -107,9 +107,8 @@ namespace OoLunar.Tomoe.Database.Models
             _getReminder = new NpgsqlCommand(@"SELECT * FROM reminders WHERE id = @id;");
             _getReminder.Parameters.Add(new NpgsqlParameter("id", NpgsqlTypes.NpgsqlDbType.Text));
 
-            _listReminders = new NpgsqlCommand(@"SELECT * FROM reminders WHERE user_id = @user_id LIMIT 1 OFFSET @offset;");
+            _listReminders = new NpgsqlCommand(@"SELECT * FROM reminders WHERE user_id = @user_id;");
             _listReminders.Parameters.Add(new NpgsqlParameter("user_id", NpgsqlTypes.NpgsqlDbType.Bigint));
-            _listReminders.Parameters.Add(new NpgsqlParameter("offset", NpgsqlTypes.NpgsqlDbType.Bigint));
         }
 
         public static async ValueTask<ReminderModel> CreateAsync(Ulid id, ulong userId, ulong guildId, ulong channelId, ulong threadId, ulong messageId, DateTimeOffset expiresAt, TimeSpan interval, string content)
@@ -177,28 +176,22 @@ namespace OoLunar.Tomoe.Database.Models
 
         public static async IAsyncEnumerable<ReminderModel> ListAsync(ulong userId)
         {
-            long index = 0;
-            while (true)
+            await _semaphore.WaitAsync();
+            try
             {
-                await _semaphore.WaitAsync();
-                try
-                {
-                    _listReminders.Parameters["user_id"].Value = (long)userId;
-                    _listReminders.Parameters["offset"].Value = index;
+                _listReminders.Parameters["user_id"].Value = (long)userId;
 
-                    await using NpgsqlDataReader reader = await _listReminders.ExecuteReaderAsync();
-                    if (!reader.HasRows || !await reader.ReadAsync() || !TryParse(reader, out ReminderModel? reminder))
-                    {
-                        break;
-                    }
-
-                    index++;
-                    yield return reminder;
-                }
-                finally
+                await using NpgsqlDataReader reader = await _listReminders.ExecuteReaderAsync();
+                if (!reader.HasRows || !await reader.ReadAsync() || !TryParse(reader, out ReminderModel? reminder))
                 {
-                    _semaphore.Release();
+                    yield break;
                 }
+
+                yield return reminder;
+            }
+            finally
+            {
+                _semaphore.Release();
             }
         }
 
