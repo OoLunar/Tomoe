@@ -24,7 +24,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
         /// <param name="type">The type of event to enable logging for.</param>
         /// <param name="channel">The channel to log the event in.</param>
         /// <param name="format">The format string to use for the event.</param>
-        [Command("enable")]
+        [Command("enable"), RequirePermissions(DiscordPermission.ViewAuditLog)]
         public static async ValueTask EnableAsync(CommandContext context, GuildLoggingType type, DiscordChannel channel, [RemainingText] string? format = null)
         {
             if (await GuildLoggingModel.GetLoggingAsync(context.Guild!.Id, type) is not GuildLoggingModel logging)
