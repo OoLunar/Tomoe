@@ -183,7 +183,7 @@ namespace OoLunar.Tomoe.Commands.Common
                                 commandNameBuilder.Append(' ');
                             }
 
-                            if (subCommandAttribute is not null && subCommandAttribute.ArgumentList is not null && subCommandAttribute.ArgumentList.Arguments.Count > 0)
+                            if (subCommandAttribute?.ArgumentList?.Arguments.Count is > 0)
                             {
                                 // Append the command name, which may or may not have a group command prepended already.
                                 commandNameBuilder.Append(subCommandAttribute.ArgumentList.Arguments[0].ToString().Trim('"'));
