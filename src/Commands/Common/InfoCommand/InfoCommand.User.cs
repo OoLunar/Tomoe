@@ -27,7 +27,7 @@ namespace OoLunar.Tomoe.Commands.Common
             GuildMemberModel? memberModel = await GuildMemberModel.FindMemberAsync(user.Id, context.Guild!.Id);
             DiscordEmbedBuilder embedBuilder = new()
             {
-                Color = new DiscordColor("#6b73db"),
+                Color = new DiscordColor(0x6b73db),
                 Title = $"Info about {user.GetDisplayName()}",
                 Thumbnail = new()
                 {

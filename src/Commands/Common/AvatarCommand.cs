@@ -99,7 +99,7 @@ namespace OoLunar.Tomoe.Commands.Common
             {
                 Title = embedTitle,
                 ImageUrl = url,
-                Color = embedColor ?? new DiscordColor("#6b73db"),
+                Color = embedColor ?? new DiscordColor(0x6b73db),
             };
 
             embedBuilder.AddField("Image Format", imageData.Format, true);

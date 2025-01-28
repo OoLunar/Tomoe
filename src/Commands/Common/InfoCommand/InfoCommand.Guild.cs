@@ -19,11 +19,11 @@ namespace OoLunar.Tomoe.Commands.Common
         /// </summary>
         /// <param name="guildId">The id of the guild to get information about. Leave empty to get information about the current server.</param>
         [Command("guild"), TextAlias("server")]
-        public async Task GuildInfoAsync(CommandContext context, [SlashAutoCompleteProvider<SharedGuildsAutoCompleteProvider>] ulong? guildId = null)
+        public static async Task GuildInfoAsync(CommandContext context, [SlashAutoCompleteProvider<SharedGuildsAutoCompleteProvider>] ulong? guildId = null)
         {
             DiscordEmbedBuilder embedBuilder = new()
             {
-                Color = new DiscordColor("#6b73db"),
+                Color = new DiscordColor(0x6b73db),
                 Author = new()
                 {
                     Name = context.User.GetDisplayName(),
@@ -88,7 +88,7 @@ namespace OoLunar.Tomoe.Commands.Common
             await context.RespondAsync(embedBuilder);
         }
 
-        private async Task ProvideGuildInfoAsync(CultureInfo cultureInfo, DiscordEmbedBuilder embedBuilder, DiscordGuild guild)
+        private static async Task ProvideGuildInfoAsync(CultureInfo cultureInfo, DiscordEmbedBuilder embedBuilder, DiscordGuild guild)
         {
             if (guild.IconUrl is not null)
             {

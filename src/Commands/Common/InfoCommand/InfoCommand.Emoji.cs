@@ -28,7 +28,7 @@ namespace OoLunar.Tomoe.Commands.Common
         {
             DiscordEmbedBuilder embedBuilder = new()
             {
-                Color = new DiscordColor("#6b73db")
+                Color = new DiscordColor(0x6b73db)
             };
 
             // We parse the emoji by hand in case if the bot doesn't have access to the emoji.

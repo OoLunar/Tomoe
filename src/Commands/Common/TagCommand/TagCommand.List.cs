@@ -18,7 +18,7 @@ namespace OoLunar.Tomoe.Commands.Common
             DiscordEmbedBuilder embedBuilder = new()
             {
                 Title = $"List of tags {(user is not null ? $"owned by {user.Username}" : "within this server.")}",
-                Color = new DiscordColor("#6b73db")
+                Color = new DiscordColor(0x6b73db)
             };
 
             await foreach (TagModel tag in TagModel.GetTagsAsync(context.Guild!.Id, user?.Id ?? 0))

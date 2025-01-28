@@ -26,7 +26,7 @@ namespace OoLunar.Tomoe.Commands
             DiscordEmbedBuilder embedBuilder = new()
             {
                 Title = "User Settings",
-                Color = new DiscordColor("#6b73db")
+                Color = new DiscordColor(0x6b73db)
             };
 
             embedBuilder.AddField("Culture", $"{userSettings.Culture.NativeName}/{userSettings.Culture.IetfLanguageTag}", true);

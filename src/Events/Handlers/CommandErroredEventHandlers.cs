@@ -26,7 +26,7 @@ namespace OoLunar.Tomoe.Events.Handlers
             {
                 Title = "Command Error",
                 Description = $"{Formatter.InlineCode(eventArgs.Context.Command.FullName)} failed to execute.",
-                Color = new DiscordColor("#6b73db")
+                Color = new DiscordColor(0x6b73db)
             };
 
             switch (eventArgs.Exception)

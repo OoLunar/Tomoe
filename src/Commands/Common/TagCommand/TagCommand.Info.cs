@@ -32,7 +32,7 @@ namespace OoLunar.Tomoe.Commands.Common
             DiscordEmbedBuilder embedBuilder = new()
             {
                 Title = $"Info for tag {tag.Name}",
-                Color = new DiscordColor("#6b73db")
+                Color = new DiscordColor(0x6b73db)
             };
 
             embedBuilder.AddField("Tag Id", $"`{tag.Id}`", true);

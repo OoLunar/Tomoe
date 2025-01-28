@@ -252,7 +252,7 @@ namespace OoLunar.Tomoe.Database.Models
             {
                 DiscordEmbedBuilder embedBuilder = new()
                 {
-                    Color = new DiscordColor(0x6B73DB),
+                    Color = new DiscordColor(0x6b73db),
                     Description = $"Total Number of Votes: {await PollVoteModel.GetTotalVoteCountAsync(expirable.Id)}\nPoll was created at: {Formatter.Timestamp(expirable.Id.Time)}\nPoll had ended at: {Formatter.Timestamp(expirable.ExpiresAt)}\nThe following options were available with their total vote count below:",
                 };
 
