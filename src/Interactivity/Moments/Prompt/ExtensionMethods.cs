@@ -11,11 +11,14 @@ namespace OoLunar.Tomoe.Interactivity.Moments.Prompt
 {
     public static class PromptExtensions
     {
-        public static async ValueTask<string?> PromptAsync(this DiscordMember member, Procrastinator procrastinator, string question, IPromptComponentCreator? componentCreator = null, CancellationToken cancellationToken = default)
+        public static async ValueTask<string?> PromptAsync(this DiscordMember member, Procrastinator procrastinator, string question, string placeholder, IPromptComponentCreator? componentCreator = null, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(member, nameof(member));
             ArgumentNullException.ThrowIfNull(question, nameof(question));
+            ArgumentNullException.ThrowIfNull(placeholder, nameof(placeholder));
             ArgumentNullException.ThrowIfNull(procrastinator, nameof(procrastinator));
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(question.Length, 45, nameof(question));
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(placeholder.Length, 100, nameof(placeholder));
             componentCreator ??= procrastinator.Configuration.GetComponentCreatorOrDefault<IPromptComponentCreator, PromptDefaultComponentCreator>();
 
             Ulid id = Ulid.NewUlid();
@@ -25,7 +28,8 @@ namespace OoLunar.Tomoe.Interactivity.Moments.Prompt
                 AuthorId = member.Id,
                 CancellationToken = procrastinator.RegisterTimeoutCallback(id, cancellationToken),
                 ComponentCreator = componentCreator,
-                Question = question
+                Question = question,
+                Placeholder = placeholder
             };
 
             DiscordButtonComponent button = componentCreator.CreateTextPromptButton(question, id);
@@ -48,10 +52,13 @@ namespace OoLunar.Tomoe.Interactivity.Moments.Prompt
             return data.TaskCompletionSource.Task.Result;
         }
 
-        public static async ValueTask<string?> PromptAsync(this CommandContext context, string question, IPromptComponentCreator? componentCreator = null, CancellationToken cancellationToken = default)
+        public static async ValueTask<string?> PromptAsync(this CommandContext context, string question, string placeholder, IPromptComponentCreator? componentCreator = null, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(context, nameof(context));
             ArgumentNullException.ThrowIfNull(question, nameof(question));
+            ArgumentNullException.ThrowIfNull(placeholder, nameof(placeholder));
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(question.Length, 45, nameof(question));
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(placeholder.Length, 100, nameof(placeholder));
 
             Procrastinator procrastinator = context.ServiceProvider.GetRequiredService<Procrastinator>();
             componentCreator ??= procrastinator.Configuration.GetComponentCreatorOrDefault<IPromptComponentCreator, PromptDefaultComponentCreator>();
@@ -63,7 +70,8 @@ namespace OoLunar.Tomoe.Interactivity.Moments.Prompt
                 AuthorId = context.User.Id,
                 CancellationToken = procrastinator.RegisterTimeoutCallback(id, cancellationToken),
                 ComponentCreator = componentCreator,
-                Question = question
+                Question = question,
+                Placeholder = placeholder
             };
 
             if (context is TextCommandContext textContext)
@@ -96,7 +104,7 @@ namespace OoLunar.Tomoe.Interactivity.Moments.Prompt
                 await slashContext.RespondWithModalAsync(new DiscordInteractionResponseBuilder()
                     .WithTitle(question)
                     .WithCustomId(id.ToString())
-                    .AddComponents(componentCreator.CreateModalPromptButton(question, id))
+                    .AddComponents(componentCreator.CreateModalPromptButton(question, placeholder, id))
                 );
             }
             else

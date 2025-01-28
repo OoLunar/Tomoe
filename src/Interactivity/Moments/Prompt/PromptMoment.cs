@@ -9,6 +9,7 @@ namespace OoLunar.Tomoe.Interactivity.Moments.Prompt
     public record PromptMoment : IdleMoment<IPromptComponentCreator>
     {
         public required string Question { get; init; }
+        public required string Placeholder { get; init; }
         public TaskCompletionSource<string?> TaskCompletionSource { get; init; } = new();
 
         public override async ValueTask HandleAsync(Procrastinator procrastinator, DiscordInteraction interaction)
@@ -44,7 +45,7 @@ namespace OoLunar.Tomoe.Interactivity.Moments.Prompt
                     await interaction.CreateResponseAsync(DiscordInteractionResponseType.Modal, new DiscordInteractionResponseBuilder()
                         .WithTitle(Question)
                         .WithCustomId(Id.ToString())
-                        .AddComponents(ComponentCreator.CreateModalPromptButton(Question, Id))
+                        .AddComponents(ComponentCreator.CreateModalPromptButton(Question, Placeholder, Id))
                     );
                 }
                 else if (interaction.Type == DiscordInteractionType.ModalSubmit)
