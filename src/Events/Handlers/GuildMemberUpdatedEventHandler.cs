@@ -85,10 +85,10 @@ namespace OoLunar.Tomoe.Events.Handlers
                 args["{mute_expires}"] = Formatter.Timestamp(eventArgs.MemberAfter.CommunicationDisabledUntil.Value);
 
                 // Figure out who muted the user
-                DateTimeOffset timestamp = DateTimeOffset.UtcNow.AddSeconds(-3);
+                DateTimeOffset timestamp = DateTimeOffset.UtcNow.AddSeconds(-5);
 
-                // Wait 1 second so the audit logs can catch up
-                await Task.Delay(1000);
+                // Wait 5 seconds so the audit logs can catch up
+                await Task.Delay(5000);
                 await foreach (DiscordAuditLogEntry entry in eventArgs.Guild.GetAuditLogsAsync(100, null, DiscordAuditLogActionType.MemberUpdate))
                 {
                     if (LoggingEventHandlers.TryFilterAuditLogEntry(entry, DiscordAuditLogActionType.MemberUpdate, timestamp, out DiscordAuditLogMemberUpdateEntry? updateEntry) && updateEntry.Target.Id == eventArgs.Member.Id)
@@ -117,7 +117,7 @@ namespace OoLunar.Tomoe.Events.Handlers
                 DiscordChannel channel = await eventArgs.Guild.GetChannelAsync(logging.ChannelId);
 
                 // Figure out who unmuted the user
-                DateTimeOffset timestamp = DateTimeOffset.UtcNow.AddSeconds(-3);
+                DateTimeOffset timestamp = DateTimeOffset.UtcNow.AddSeconds(-5);
                 await foreach (DiscordAuditLogEntry entry in eventArgs.Guild.GetAuditLogsAsync(100, null, DiscordAuditLogActionType.MemberUpdate))
                 {
                     if (LoggingEventHandlers.TryFilterAuditLogEntry(entry, DiscordAuditLogActionType.MemberUpdate, timestamp, out DiscordAuditLogMemberUpdateEntry? updateEntry) && updateEntry.Target.Id == eventArgs.Member.Id)
