@@ -18,14 +18,14 @@ namespace OoLunar.Tomoe.CodeTasks
         public static async ValueTask<CodeTask> CreateAsync(CodeTaskModel model)
         {
             // Check to see if the build is cached
-            string basePath = Path.Combine(Environment.CurrentDirectory, "CodeTasks", model.Id.ToString(), "bin", "Release", ThisAssembly.Project.TargetFramework);
+            string basePath = Path.Combine(Environment.CurrentDirectory, "CodeTasks", model.Id.ToString(), "bin", "Release", ThisAssembly.Project.TargetFramework, "publish");
             if (!Directory.Exists(basePath) && await CodeTaskCommand.CompileCodeAsync(model.Id, model.Name, model.Code) is not null)
             {
                 throw new InvalidOperationException($"Code task {model.Name} ({model.Id}) failed to compile.");
             }
 
             // Load the assembly
-            Assembly assembly = Assembly.LoadFile($"{basePath}/{model.Id}.dll");
+            Assembly assembly = Assembly.LoadFrom($"{basePath}/{model.Id}.dll");
 
             // Get the type
             Type type = assembly.DefinedTypes.First(x => x.IsSubclassOf(typeof(TaskRunner)));

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -62,11 +63,32 @@ namespace OoLunar.Tomoe.Commands.Owner
 
         public static async ValueTask<DiscordMessageBuilder?> CompileCodeAsync(Ulid id, string name, string code)
         {
+            string basePath = Path.Combine(Environment.CurrentDirectory, "CodeTasks", id.ToString());
+
+            // Replace `#nuget <package> [version]` with the actual nuget package
+            List<string> nugetPackageCommands = [];
+            foreach (string line in code.Split('\n'))
+            {
+                if (line.StartsWith("#nuget"))
+                {
+                    string[] parts = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                    if (parts.Length is 2)
+                    {
+                        nugetPackageCommands.Add($"add {basePath} package {parts[1]}");
+                    }
+                    else if (parts.Length is 3)
+                    {
+                        nugetPackageCommands.Add($"add {basePath} package {parts[1]} --version {parts[2]}");
+                    }
+
+                    code = code.Replace(line, string.Empty);
+                }
+            }
+
             // Verify the code compiles
             code = CodeTemplate.Replace("{{Code}}", code);
 
             // Create the base path
-            string basePath = Path.Combine(Environment.CurrentDirectory, "CodeTasks", id.ToString());
             Directory.CreateDirectory(basePath);
 
             // Normalize the file name
@@ -78,11 +100,26 @@ namespace OoLunar.Tomoe.Commands.Owner
             // Create the csproj
             await File.WriteAllTextAsync(Path.Combine(basePath, $"{id}.csproj"), CompilerUtilities.CopyProjectCsproj().Replace("Exe", "Library"));
 
+            // Add dependencies
+            string output;
+            int exitCode;
+            foreach (string command in nugetPackageCommands)
+            {
+                (output, exitCode) = await CompilerUtilities.ExecuteProgramAsync("dotnet", command);
+                if (exitCode is not 0)
+                {
+                    DiscordMessageBuilder messageBuilder = new();
+                    messageBuilder.WithContent($"Failed to run `dotnet {command}`. Exit code: {exitCode}");
+                    messageBuilder.AddFile($"{id} - {name}.log", new MemoryStream(Encoding.UTF8.GetBytes(output)), AddFileOptions.CloseStream);
+                    return messageBuilder;
+                }
+            }
+
             // Create the code file
             await File.WriteAllTextAsync(Path.Combine(basePath, $"{name}.cs"), code);
 
             // Compile the code
-            (string output, int exitCode) = await CompilerUtilities.ExecuteProgramAsync("dotnet", $"build {basePath} -c Release");
+            (output, exitCode) = await CompilerUtilities.ExecuteProgramAsync("dotnet", $"publish {basePath} -c Release");
             if (exitCode is not 0)
             {
                 DiscordMessageBuilder messageBuilder = new();
@@ -91,8 +128,18 @@ namespace OoLunar.Tomoe.Commands.Owner
                 return messageBuilder;
             }
 
+            // Format the code
+            (output, exitCode) = await CompilerUtilities.ExecuteProgramAsync("dotnet", $"format {basePath} -vd");
+            if (exitCode is not 0)
+            {
+                DiscordMessageBuilder messageBuilder = new();
+                messageBuilder.WithContent($"Failed to format the code. Exit code: {exitCode}");
+                messageBuilder.AddFile($"{id} - {name}.log", new MemoryStream(Encoding.UTF8.GetBytes(output)), AddFileOptions.CloseStream);
+                return messageBuilder;
+            }
+
             // Load the code
-            Assembly assembly = Assembly.LoadFile(Path.Combine(basePath, "bin", "Release", ThisAssembly.Project.TargetFramework, $"{id}.dll"));
+            Assembly assembly = Assembly.LoadFrom(Path.Combine(basePath, "bin", "Release", ThisAssembly.Project.TargetFramework, "publish", $"{id}.dll"));
 
             // Ensure there's only ONE type that inherits from TaskRunner
             int found = 0;

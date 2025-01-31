@@ -33,9 +33,9 @@ namespace OoLunar.Tomoe.Commands.Owner
 
                 DiscordMessageBuilder messageBuilder = new();
                 messageBuilder.AddEmbed(embedBuilder);
-                if (codeTaskModel.Code.Length > 2000 - 12)
+                if (codeTaskModel.Code.Length < 2000 - 12)
                 {
-                    messageBuilder.Content = $"```cs\n{codeTaskModel.Code[..1992]}\n```";
+                    messageBuilder.Content = $"```cs\n{codeTaskModel.Code}\n```";
                 }
                 else
                 {

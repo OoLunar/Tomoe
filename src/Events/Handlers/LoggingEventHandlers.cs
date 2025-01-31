@@ -42,7 +42,7 @@ namespace OoLunar.Tomoe.Events.Handlers
         public async Task HandleEventAsync(DiscordClient sender, MessageDeletedEventArgs eventArgs)
         {
             // Ensure the guild has logging enabled for the message delete event
-            if (await GuildLoggingModel.GetLoggingAsync(eventArgs.Guild.Id, GuildLoggingType.MessageDeleted) is not GuildLoggingModel logging || !logging.Enabled)
+            if (eventArgs.Message.Author is null || await GuildLoggingModel.GetLoggingAsync(eventArgs.Guild.Id, GuildLoggingType.MessageDeleted) is not GuildLoggingModel logging || !logging.Enabled)
             {
                 return;
             }
@@ -59,7 +59,7 @@ namespace OoLunar.Tomoe.Events.Handlers
             args["{message_embed_count}"] = eventArgs.Message.Embeds.Count.ToString("N0", CultureInfo.InvariantCulture);
 
             // Send the log message
-            await SendLogMessageAsync(channel, logging, args, eventArgs.Message.Author!);
+            await SendLogMessageAsync(channel, logging, args, eventArgs.Message.Author);
         }
 
         internal static async ValueTask SendLogMessageAsync(DiscordChannel channel, GuildLoggingModel logging, IReadOnlyDictionary<string, string> args, DiscordUser user, DiscordUser? moderator = null, string? reason = null)
