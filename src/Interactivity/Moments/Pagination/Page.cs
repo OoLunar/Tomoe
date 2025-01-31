@@ -26,7 +26,7 @@ namespace OoLunar.Tomoe.Interactivity.Moments.Pagination
         public DiscordEmoji? Emoji { get; init; }
 
         /// <summary>
-        /// Constructs a new <see cref="Page" /> for use in <see cref="ExtensionMethods.PaginateAsync(DSharpPlus.Commands.CommandContext, System.Collections.Generic.IReadOnlyList{Page}, IPaginationComponentCreator?, System.Threading.CancellationToken)"/>.
+        /// Constructs a new <see cref="Page" /> for use in <see cref="ExtensionMethods.PaginateAsync(DSharpPlus.Commands.CommandContext, System.Collections.Generic.IEnumerable{Page}, IPaginationComponentCreator?, System.Threading.CancellationToken)"/>.
         /// </summary>
         /// <param name="message">The message to display in the <see cref="DiscordMessage"/>.</param>
         /// <param name="title">The title to display in a select menu option.</param>

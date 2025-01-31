@@ -4,7 +4,6 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.ArgumentModifiers;
 using DSharpPlus.Commands.ContextChecks;
@@ -17,70 +16,10 @@ namespace OoLunar.Tomoe.Commands.Owner
     /// </summary>
     public static class BenchmarkCommand
     {
-        private static readonly string _csprojTemplate = null!;
-        private static readonly string _benchmarkTemplate = null!;
-        private static readonly string _benchmarkTracker = null!;
-        private static readonly string _programTemplate = null!;
-
-        static BenchmarkCommand()
-        {
-            // Grab the benchmark template from the embedded resource
-            foreach (string resourceFile in typeof(BenchmarkCommand).Assembly.GetManifestResourceNames())
-            {
-                using Stream manifestStream = typeof(BenchmarkCommand).Assembly.GetManifestResourceStream(resourceFile) ?? throw new InvalidOperationException($"Failed to get the embedded resource {resourceFile}.");
-                using StreamReader streamReader = new(manifestStream);
-                if (resourceFile == "Tomoe.Tomoe.csproj")
-                {
-                    _csprojTemplate = streamReader.ReadToEnd();
-                }
-                else if (resourceFile == "Tomoe.Benchmarks.BenchmarkTemplate.template")
-                {
-                    _benchmarkTemplate = streamReader.ReadToEnd();
-                }
-                else if (resourceFile == "Tomoe.Benchmarks.BenchmarkTracker.template")
-                {
-                    _benchmarkTracker = streamReader.ReadToEnd();
-                }
-                else if (resourceFile == "Tomoe.Benchmarks.Program.template")
-                {
-                    _programTemplate = streamReader.ReadToEnd();
-                }
-            }
-
-            StringBuilder stringBuilder = new();
-            using XmlReader xmlReader = XmlReader.Create(new StringReader(_csprojTemplate!));
-            while (xmlReader.Read())
-            {
-                if (xmlReader.NodeType == XmlNodeType.Element && xmlReader.Name == "PackageReference")
-                {
-                    string name = xmlReader.GetAttribute("Include")!;
-                    string version = xmlReader.GetAttribute("Version")!;
-                    stringBuilder.AppendLine($"        <PackageReference Include=\"{name}\" Version=\"{version}\" />");
-                }
-                else if (xmlReader.NodeType == XmlNodeType.Element && xmlReader.Name == "ProjectReference")
-                {
-                    string include = xmlReader.GetAttribute("Include")!.Replace("$(ProjectRoot)", ThisAssembly.Project.ProjectRoot);
-                    stringBuilder.AppendLine($"        <ProjectReference Include=\"{include}\" />");
-                }
-            }
-
-            _csprojTemplate = $"""
-<Project Sdk="Microsoft.NET.Sdk">
-    <PropertyGroup>
-        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <Configuration>{ThisAssembly.Project.Configuration}"</Configuration>
-        <LangVersion>preview</LangVersion>
-        <Nullable>enable</Nullable>
-        <OutputType>Exe</OutputType>
-        <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
-        <TargetFramework>{ThisAssembly.Project.TargetFramework}</TargetFramework>
-    </PropertyGroup>
-    <ItemGroup>
-        {stringBuilder.ToString().Trim()}
-    </ItemGroup>
-</Project>
-""";
-        }
+        private static readonly string _benchmarkCsproj = CompilerUtilities.CopyProjectCsproj();
+        private static readonly string _benchmarkTemplate = CompilerUtilities.GetEmbeddedResource("Tomoe.Templates.BenchmarkTemplate.template");
+        private static readonly string _benchmarkTracker = CompilerUtilities.GetEmbeddedResource("Tomoe.Templates.BenchmarkTracker.template");
+        private static readonly string _programTemplate = CompilerUtilities.GetEmbeddedResource("Tomoe.Templates.BenchmarkProgram.template");
 
         /// <summary>
         /// Benchmarks the provided code.
@@ -108,7 +47,7 @@ namespace OoLunar.Tomoe.Commands.Owner
             Directory.CreateDirectory(basePath);
 
             // Create the csproj
-            await File.WriteAllTextAsync(Path.Combine(basePath, $"{id}.csproj"), _csprojTemplate);
+            await File.WriteAllTextAsync(Path.Combine(basePath, $"{id}.csproj"), _benchmarkCsproj);
 
             // Create the code file
             await File.WriteAllTextAsync(Path.Combine(basePath, $"{id}.cs"), code);

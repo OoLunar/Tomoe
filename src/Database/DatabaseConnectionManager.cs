@@ -33,6 +33,8 @@ namespace OoLunar.Tomoe.Database
             return connection;
         }
 
+        public void RemoveConnection(NpgsqlConnection connection) => _connections.Remove(connection);
+
         public void Dispose()
         {
             foreach (NpgsqlConnection connection in _connections)

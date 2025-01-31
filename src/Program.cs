@@ -16,6 +16,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Npgsql;
+using OoLunar.Tomoe.CodeTasks;
 using OoLunar.Tomoe.Configuration;
 using OoLunar.Tomoe.Database;
 using OoLunar.Tomoe.Database.Models;
@@ -33,7 +34,7 @@ namespace OoLunar.Tomoe
     {
         public static async Task Main(string[] args)
         {
-            IServiceCollection serviceCollection = new ServiceCollection();
+            ServiceCollection serviceCollection = new();
             serviceCollection.AddSingleton(serviceProvider =>
             {
                 ConfigurationBuilder configurationBuilder = new();
@@ -106,6 +107,7 @@ namespace OoLunar.Tomoe
             serviceCollection.AddSingleton(new AllocationRateTracker());
             serviceCollection.AddSingleton<Procrastinator>();
             serviceCollection.AddSingleton<ImageUtilities>();
+            serviceCollection.AddScoped<UserSettingsCache>();
             serviceCollection.AddSingleton(serviceProvider =>
             {
                 DiscordIntentManager intentManager = new(serviceProvider.GetRequiredService<ILogger<DiscordIntentManager>>());
@@ -113,7 +115,21 @@ namespace OoLunar.Tomoe
                 return intentManager;
             });
 
-            serviceCollection.AddScoped<UserSettingsCache>();
+            IServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
+            {
+                DatabaseConnectionManager databaseConnectionManager = serviceProvider.GetRequiredService<DatabaseConnectionManager>();
+                NpgsqlConnection connection = databaseConnectionManager.CreateConnection();
+                await connection.OpenAsync();
+                await CodeTaskModel.PrepareAsync(connection);
+                await foreach (CodeTaskModel model in CodeTaskModel.GetAllAsync())
+                {
+                    CodeTask task = await CodeTaskRunner.CreateAsync(model);
+                    await task.TaskRunner.ConfigureAsync(serviceProvider, serviceCollection, task.CancellationTokenSource.Token);
+                }
+
+                databaseConnectionManager.RemoveConnection(connection);
+            }
+
             serviceCollection.AddSingleton(serviceProvider =>
             {
                 TomoeConfiguration tomoeConfiguration = serviceProvider.GetRequiredService<TomoeConfiguration>();
@@ -128,13 +144,16 @@ namespace OoLunar.Tomoe
                 clientBuilder.DisableDefaultLogging();
                 clientBuilder.ConfigureEventHandlers(eventBuilder =>
                 {
-                    Assembly currentAssembly = typeof(Program).Assembly;
                     MethodInfo addEventHandlersMethod = eventBuilder.GetType().GetMethod(nameof(EventHandlingBuilder.AddEventHandlers), 1, [typeof(ServiceLifetime)]) ?? throw new InvalidOperationException("Failed to find AddEventHandlers method.");
-                    foreach (Type type in currentAssembly.GetExportedTypes())
+                    foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
                     {
-                        if (type.IsAssignableTo(typeof(IEventHandler)))
+                        foreach (Type type in assembly.GetExportedTypes())
                         {
-                            addEventHandlersMethod.MakeGenericMethod(type).Invoke(eventBuilder, [ServiceLifetime.Singleton]);
+                            string typeName = type.Name;
+                            if (type.IsAssignableTo(typeof(IEventHandler)) && !type.IsAbstract)
+                            {
+                                addEventHandlersMethod.MakeGenericMethod(type).Invoke(eventBuilder, [ServiceLifetime.Singleton]);
+                            }
                         }
                     }
                 });
@@ -196,7 +215,7 @@ namespace OoLunar.Tomoe
             });
 
             // Almost start the program
-            IServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
+            serviceProvider = serviceCollection.BuildServiceProvider();
             DatabaseHandler databaseHandler = serviceProvider.GetRequiredService<DatabaseHandler>();
             DiscordClient discordClient = serviceProvider.GetRequiredService<DiscordClient>();
 
@@ -208,6 +227,12 @@ namespace OoLunar.Tomoe
             catch (NpgsqlException error)
             {
                 serviceProvider.GetRequiredService<ILogger<Program>>().LogError(error, "Failed to connect to the database - assume broken functionality.");
+            }
+
+            // Start up all the code tasks before connecting to Discord
+            foreach (CodeTask task in CodeTaskRunner.GetTasks())
+            {
+                CodeTaskRunner.Run(serviceProvider, task.Model.Id);
             }
 
             // Connect the bot to the Discord gateway.
