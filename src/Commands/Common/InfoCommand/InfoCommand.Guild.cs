@@ -94,7 +94,7 @@ namespace OoLunar.Tomoe.Commands.Common
             {
                 embedBuilder.Thumbnail = new()
                 {
-                    Url = guild.GetIconUrl(ImageFormat.Auto, 4096)
+                    Url = guild.GetIconUrl(MediaFormat.Auto, 4096)
                 };
             }
 

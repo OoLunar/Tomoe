@@ -11,6 +11,19 @@ using SixLabors.ImageSharp.Metadata;
 
 namespace OoLunar.Tomoe
 {
+    /// <summary>
+    /// Represents format of an image.
+    /// </summary>
+    public enum ImageFormat : int
+    {
+        Png,
+        Gif,
+        Jpeg,
+        WebP,
+        Auto,
+        Unknown
+    }
+
     public sealed class ImageUtilities
     {
         private readonly HttpClient httpClient;

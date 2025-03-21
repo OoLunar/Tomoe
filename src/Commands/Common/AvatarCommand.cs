@@ -37,7 +37,14 @@ namespace OoLunar.Tomoe.Commands.Common
         {
             user ??= context.User;
             string pluralDisplayName = user.GetDisplayName().PluralizeCorrectly();
-            string avatarUrl = user.GetAvatarUrl(imageFormat == ImageFormat.Unknown ? ImageFormat.Auto : imageFormat, imageDimensions == 0 ? (ushort)1024 : imageDimensions);
+            string avatarUrl = user.GetAvatarUrl(imageFormat switch
+            {
+                ImageFormat.Png => MediaFormat.Png,
+                ImageFormat.Gif => MediaFormat.Gif,
+                ImageFormat.Jpeg => MediaFormat.Jpeg,
+                ImageFormat.WebP => MediaFormat.WebP,
+                _ => MediaFormat.Auto
+            }, imageDimensions == 0 ? (ushort)1024 : imageDimensions);
             DiscordColor? color = user.BannerColor.HasValue && !user.BannerColor.Value.Equals(default(DiscordColor)) ? user.BannerColor.Value : null;
             return SendAvatarAsync(context, $"{pluralDisplayName} Avatar", avatarUrl, color);
         }

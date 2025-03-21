@@ -38,6 +38,7 @@ namespace OoLunar.Tomoe.Commands.Common
                 RawArguments = string.Join(' ', messages),
                 ServiceScope = context.ServiceProvider.CreateAsyncScope(),
                 Splicer = context.Extension.GetProcessor<TextCommandProcessor>().Configuration.TextArgumentSplicer,
+                PrefixLength = 0,
                 User = context.User
             };
 
