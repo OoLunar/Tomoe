@@ -1,6 +1,6 @@
 using DSharpPlus.Commands;
 
-namespace OoLunar.Tomoe.Commands
+namespace OoLunar.Tomoe.Commands.Common
 {
     /// <summary>
     /// Manages settings for the current user, such as their culture and timezone.

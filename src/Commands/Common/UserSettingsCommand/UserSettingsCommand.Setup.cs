@@ -5,7 +5,7 @@ using DSharpPlus.Commands;
 using DSharpPlus.Commands.Trees.Metadata;
 using OoLunar.Tomoe.Database.Models;
 
-namespace OoLunar.Tomoe.Commands
+namespace OoLunar.Tomoe.Commands.Common
 {
     public static partial class UserSettingsCommand
     {
