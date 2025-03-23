@@ -23,13 +23,12 @@ namespace OoLunar.Tomoe.Database
             _logger = logger ?? NullLogger<DatabaseHandler>.Instance;
         }
 
-        public async ValueTask InitializeAsync(CancellationToken cancellationToken = default)
-        {
-            foreach (Type type in typeof(Program).Assembly.GetTypes())
+        public async ValueTask InitializeAsync(CancellationToken cancellationToken = default) =>
+            await Parallel.ForEachAsync(typeof(Program).Assembly.GetTypes(), cancellationToken, async (Type type, CancellationToken cancellationToken) =>
             {
                 if (type.GetCustomAttribute<DatabaseModelAttribute>() is null)
                 {
-                    continue;
+                    return;
                 }
 
                 FieldInfo? semaphoreField = type.GetField("_semaphore", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
@@ -37,18 +36,22 @@ namespace OoLunar.Tomoe.Database
                 if (semaphoreField is null || prepareAsyncMethod is null)
                 {
                     _logger.LogError("Type {Type} does not have a Semaphore or PrepareAsync method.", type.Name);
-                    continue;
+                    return;
                 }
 
                 if (semaphoreField?.GetValue(null) is not SemaphoreSlim semaphore
                     || prepareAsyncMethod?.CreateDelegate(typeof(PrepareAsyncDelegate)) is not PrepareAsyncDelegate prepareAsyncDelegate)
                 {
                     _logger.LogError("Type {Type} does not have a Semaphore or PrepareAsync method.", type.Name);
-                    continue;
+                    return;
                 }
 
                 NpgsqlConnection connection = _connectionManager.CreateConnection();
-                _tableTypes.Add(connection, (semaphore, prepareAsyncDelegate));
+                lock (_tableTypes)
+                {
+                    _tableTypes.Add(connection, (semaphore, prepareAsyncDelegate));
+                }
+
                 connection.StateChange += StateChangedEventHandlerAsync;
 #if DEBUG
                 // Sometimes I forget I need to connect to my VPN in order to connect to the database.
@@ -57,8 +60,7 @@ namespace OoLunar.Tomoe.Database
                 _logger.LogInformation("Connecting to table {TableName}...", type.Name);
 #endif
                 await connection.OpenAsync(cancellationToken);
-            }
-        }
+            });
 
         private async void StateChangedEventHandlerAsync(object sender, StateChangeEventArgs eventArgs)
         {
