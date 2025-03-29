@@ -1,7 +1,8 @@
 using System;
+using System.Globalization;
+using System.Linq;
 using System.Threading.Tasks;
 using DSharpPlus.Commands;
-using DSharpPlus.Commands.ArgumentModifiers;
 using DSharpPlus.Commands.Trees;
 using Humanizer;
 
@@ -18,17 +19,21 @@ namespace OoLunar.Tomoe.Commands.Common
         /// <param name="caseType">The case to modify the text to.</param>
         /// <param name="content">The text that will be modified.</param>
         [Command("case")]
-        public static async ValueTask ExecuteAsync(CommandContext context, CaseType caseType, [RemainingText] string content) => await context.RespondAsync(caseType switch
+        public static async ValueTask ExecuteAsync(CommandContext context, CaseType caseType, params string[] content)
         {
-            CaseType.Upper => content.Trim().ToUpper(await context.GetCultureAsync()),
-            CaseType.Lower => content.Trim().ToLower(await context.GetCultureAsync()),
-            CaseType.Title => content.Trim().Titleize(),
-            CaseType.Snake => content.Trim().Underscore(),
-            CaseType.Pascal => content.Trim().Pascalize(),
-            CaseType.Camel => content.Trim().Camelize(),
-            CaseType.Kebab => content.Trim().Kebaberize(),
-            _ => throw new ArgumentOutOfRangeException(nameof(caseType), caseType, null)
-        });
+            CultureInfo userCulture = await context.GetCultureAsync();
+            await context.RespondAsync(string.Join('\n', caseType switch
+            {
+                CaseType.Upper => content.Select(str => str.Trim().ToUpper(userCulture)),
+                CaseType.Lower => content.Select(str => str.Trim().ToLower(userCulture)),
+                CaseType.Title => content.Select(str => str.Trim().Titleize()),
+                CaseType.Snake => content.Select(str => str.Trim().Underscore()),
+                CaseType.Pascal => content.Select(str => str.Trim().Pascalize()),
+                CaseType.Camel => content.Select(str => str.Trim().Camelize()),
+                CaseType.Kebab => content.Select(str => str.Trim().Kebaberize()),
+                _ => throw new ArgumentOutOfRangeException(nameof(caseType), caseType, null)
+            }));
+        }
     }
 
     /// <summary>
