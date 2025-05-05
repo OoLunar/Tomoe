@@ -2,10 +2,10 @@
 
 ## Prerequisites
 
-Tomoe uses dotnet 8.0. You can get it from [Microsoft](https://dotnet.microsoft.com/download/dotnet/8.0). Tomoe should work on all OS' that .NET is supported on. Mono is not supported due to DSharpPlus intentionally choosing not to support it.
+Tomoe uses dotnet 9.0. You can get it from [Microsoft](https://dotnet.microsoft.com/download/dotnet/9.0). Tomoe should work on all OS' that .NET is supported on. Mono is not supported due to DSharpPlus intentionally choosing not to support it.
 
 ## Setup
-Edit your `res/config.json` file. If you're planning on contributing to the bot, copy the `res/config.json` file to `config.debug.json` and edit that instead.
+Edit your `res/config.json` file. If you're planning on contributing to the bot, consider using a `.env` file instead.
 
 ``` bash
 git clone https://github.com/OoLunar/Tomoe.git
@@ -37,27 +37,18 @@ docker-compose up -d
 
 ## What features does Tomoe have?
 
-As mentioned previously, Tomoe aims to be the #1 bot choice for Discord Moderation. This means that any and all moderation commands that Vortex, Mee6 and Carl can do, Tomoe will try to supplement. Here's the current road map of commands:
-
 | Command                 | Implemented  |
 |------------------------ |--------------|
 | **Moderation Commands** | -            |
-| Ban                     | ❌           |
-| Config                  | ❌           |
-| Doctor                  | ❌           |
-| Kick                    | ❌           |
-| Logging                 | ❌           |
-| Modlog                  | ❌           |
-| Mute                    | ❌           |
-| Report                  | ❌           |
-| Strike                  | ❌           |
+| Ban                     | ✅           |
+| Config                  | ✅           |
+| Doctor                  | ✅           |
+| Kick                    | ✅           |
+| Logging                 | ✅           |
+| Mute                    | ✅           |
 | Tempban                 | ❌           |
-| Tempmute                | ❌           |
-| Tempvoiceban            | ❌           |
-| Unban                   | ❌           |
-| Unmute                  | ❌           |
-| Unvoiceban              | ❌           |
-| Voiceban                | ❌           |
+| Unban                   | ✅           |
+| Unmute                  | ✅           |
 | **Public commands**     | -            |
 | Bot Info                | ✅           |
 | Choose                  | ✅           |
@@ -72,7 +63,7 @@ As mentioned previously, Tomoe aims to be the #1 bot choice for Discord Moderati
 | Profile Picture         | ✅           |
 | Quote                   | ✅           |
 | Raw                     | ✅           |
-| Reminders               | ❌           |
+| Reminders               | ✅           |
 | Repository              | ✅           |
 | Role Info               | ✅           |
 | Server Info             | ✅           |

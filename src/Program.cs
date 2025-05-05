@@ -40,10 +40,6 @@ namespace OoLunar.Tomoe
                 ConfigurationBuilder configurationBuilder = new();
                 configurationBuilder.Sources.Clear();
                 configurationBuilder.AddJsonFile("config.json", true, true);
-#if DEBUG
-                // If the program is running in debug mode, add the debug config file
-                configurationBuilder.AddJsonFile("config.debug.json", true, true);
-#endif
                 configurationBuilder.AddEnvironmentVariables("TOMOE__");
                 configurationBuilder.AddCommandLine(args);
 
