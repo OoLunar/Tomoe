@@ -20,7 +20,7 @@ namespace OoLunar.Tomoe.Interactivity.Moments.Confirm
 
             DiscordInteractionResponseBuilder responseBuilder = new(new DiscordMessageBuilder(interaction.Message));
             responseBuilder.ClearComponents();
-            responseBuilder.AddComponents(interaction.Message.Components.Mutate<DiscordButtonComponent>(
+            foreach (DiscordActionRowComponent row in interaction.Message.Components.Mutate<DiscordButtonComponent>(
                 button => button.CustomId.StartsWith(Id.ToString(), StringComparison.Ordinal) && !button.Disabled,
                 button =>
                 {
@@ -31,7 +31,10 @@ namespace OoLunar.Tomoe.Interactivity.Moments.Confirm
 
                     return button.Disable();
                 }
-            ).Cast<DiscordActionRowComponent>());
+            ).Cast<DiscordActionRowComponent>())
+            {
+                responseBuilder.AddActionRowComponent(row);
+            }
 
             await interaction.CreateResponseAsync(DiscordInteractionResponseType.UpdateMessage, responseBuilder);
         }

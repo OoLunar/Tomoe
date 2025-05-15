@@ -77,22 +77,20 @@ namespace OoLunar.Tomoe.Commands.Common
             };
 
             List<DiscordButtonComponent> buttons = new(5);
-            List<DiscordActionRowComponent> buttonRows = new(5);
             for (int i = 0; i < options.Length; i++)
             {
                 string option = options[i];
                 buttons.Add(new(DiscordButtonStyle.Primary, $"poll:{pollId}:{i.ToString(CultureInfo.InvariantCulture)}", option));
                 if ((i + 1) % 5 == 0 && i != 0)
                 {
-                    buttonRows.Add(new(buttons));
+                    messageBuilder.AddActionRowComponent(buttons);
                     buttons.Clear();
                 }
             }
 
             buttons.Add(new(DiscordButtonStyle.Danger, $"poll:{pollId}", "Remove my vote!"));
-            buttonRows.Add(new(buttons));
+            messageBuilder.AddActionRowComponent(buttons);
             buttons.Clear();
-            messageBuilder.AddComponents(buttonRows);
 
             await context.RespondAsync(messageBuilder);
             DiscordMessage message = await context.GetResponseAsync() ?? throw new InvalidOperationException("How did we get here?");

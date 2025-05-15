@@ -396,7 +396,7 @@ namespace OoLunar.Tomoe.Database.Models
                 }
                 else
                 {
-                    builder.AddComponents(jumplinks);
+                    builder.AddActionRowComponent(jumplinks);
                     jumplinks = [jumplink];
                 }
             }
@@ -407,7 +407,7 @@ namespace OoLunar.Tomoe.Database.Models
 
             if (jumplinks.Count != 0)
             {
-                builder.AddComponents(jumplinks);
+                builder.AddActionRowComponent(jumplinks);
             }
 
             if (attachments.Count == 0)

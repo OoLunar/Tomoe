@@ -42,7 +42,7 @@ namespace OoLunar.Tomoe.Interactivity.Moments.Choose
             data.Message = await member.SendMessageAsync(new DiscordMessageBuilder()
                 .WithAllowedMentions(Mentions.None)
                 .WithContent(question)
-                .AddComponents(dropDown)
+                .AddActionRowComponent(dropDown)
             );
 
             await data.TaskCompletionSource.Task;
@@ -82,7 +82,7 @@ namespace OoLunar.Tomoe.Interactivity.Moments.Choose
             await context.RespondAsync(new DiscordMessageBuilder()
                 .WithAllowedMentions(Mentions.None)
                 .WithContent(question)
-                .AddComponents(dropDown)
+                .AddActionRowComponent(dropDown)
             );
 
             data.Message = await context.GetResponseAsync();

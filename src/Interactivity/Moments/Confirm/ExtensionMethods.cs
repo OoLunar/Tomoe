@@ -45,7 +45,7 @@ namespace OoLunar.Tomoe.Interactivity.Moments.Confirm
             data.Message = await member.SendMessageAsync(new DiscordMessageBuilder()
                 .WithAllowedMentions(Mentions.None)
                 .WithContent(question)
-                .AddComponents(buttons)
+                .AddActionRowComponent(buttons)
             );
 
             await data.TaskCompletionSource.Task;
@@ -88,7 +88,7 @@ namespace OoLunar.Tomoe.Interactivity.Moments.Confirm
             await context.RespondAsync(new DiscordMessageBuilder()
                 .WithAllowedMentions(Mentions.None)
                 .WithContent(question)
-                .AddComponents(buttons)
+                .AddActionRowComponent(buttons)
             );
 
             data.Message = await context.GetResponseAsync();

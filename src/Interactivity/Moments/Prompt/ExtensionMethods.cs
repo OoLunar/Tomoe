@@ -45,7 +45,7 @@ namespace OoLunar.Tomoe.Interactivity.Moments.Prompt
             data.Message = await member.SendMessageAsync(new DiscordMessageBuilder()
                 .WithAllowedMentions(Mentions.None)
                 .WithContent(question)
-                .AddComponents(button)
+                .AddActionRowComponent(button)
             );
 
             await data.TaskCompletionSource.Task;
@@ -89,7 +89,7 @@ namespace OoLunar.Tomoe.Interactivity.Moments.Prompt
                 DiscordMessageBuilder builder = new DiscordMessageBuilder()
                     .WithAllowedMentions(Mentions.None)
                     .WithContent(question)
-                    .AddComponents(button);
+                    .AddActionRowComponent(button);
 
                 await textContext.RespondAsync(builder);
                 data.Message = textContext.Response;
@@ -104,7 +104,7 @@ namespace OoLunar.Tomoe.Interactivity.Moments.Prompt
                 await slashContext.RespondWithModalAsync(new DiscordInteractionResponseBuilder()
                     .WithTitle(question)
                     .WithCustomId(id.ToString())
-                    .AddComponents(componentCreator.CreateModalPromptButton(question, placeholder, id))
+                    .AddTextInputComponent(componentCreator.CreateModalPromptButton(question, placeholder, id))
                 );
             }
             else

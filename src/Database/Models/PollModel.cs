@@ -276,7 +276,7 @@ namespace OoLunar.Tomoe.Database.Models
             List<DiscordActionRowComponent> actionRows = [];
             for (int i = 0; i < message.Components.Count; i++)
             {
-                DiscordActionRowComponent actionRow = builder.Components[i];
+                DiscordActionRowComponent actionRow = (DiscordActionRowComponent)builder.Components[i];
                 for (int j = 0; j < actionRow.Components.Count; j++)
                 {
                     DiscordComponent component = actionRow.Components[j];
@@ -304,7 +304,11 @@ namespace OoLunar.Tomoe.Database.Models
             }
 
             builder.ClearComponents();
-            builder.AddComponents(actionRows);
+            foreach (DiscordActionRowComponent actionRow in actionRows)
+            {
+                builder.AddActionRowComponent(actionRow);
+            }
+
             await message.ModifyAsync(builder);
             return await PollEndedAsync(expirable.Id);
         }

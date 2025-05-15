@@ -31,11 +31,15 @@ namespace OoLunar.Tomoe.Interactivity.Moments.Idle
                     // We do this because ARC has it's own overload
                     if (component is DiscordActionRowComponent row)
                     {
-                        messageBuilder.AddComponents(row.Components);
+                        messageBuilder.AddActionRowComponent(row);
+                    }
+                    else if (component is DiscordSelectComponent selectComponent)
+                    {
+                        messageBuilder.AddActionRowComponent(selectComponent);
                     }
                     else
                     {
-                        messageBuilder.AddComponents(component);
+                        throw new NotImplementedException($"The component type {component.GetType()} is not implemented.");
                     }
                 }
 

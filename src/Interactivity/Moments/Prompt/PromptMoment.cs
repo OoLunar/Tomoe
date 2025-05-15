@@ -45,7 +45,7 @@ namespace OoLunar.Tomoe.Interactivity.Moments.Prompt
                     await interaction.CreateResponseAsync(DiscordInteractionResponseType.Modal, new DiscordInteractionResponseBuilder()
                         .WithTitle(Question)
                         .WithCustomId(Id.ToString())
-                        .AddComponents(ComponentCreator.CreateModalPromptButton(Question, Placeholder, Id))
+                        .AddTextInputComponent(ComponentCreator.CreateModalPromptButton(Question, Placeholder, Id))
                     );
                 }
                 else if (interaction.Type == DiscordInteractionType.ModalSubmit)
@@ -53,9 +53,12 @@ namespace OoLunar.Tomoe.Interactivity.Moments.Prompt
                     // Update the text button to a disabled state
                     DiscordWebhookBuilder responseBuilder = new(new DiscordMessageBuilder(interaction.Message));
                     responseBuilder.ClearComponents();
-                    responseBuilder.AddComponents(interaction.Message.Components.Mutate<DiscordButtonComponent>(
+                    foreach (DiscordActionRowComponent row in interaction.Message.Components.Mutate<DiscordButtonComponent>(
                         button => button.CustomId == findButton.CustomId,
-                        button => button.Disable()).Cast<DiscordActionRowComponent>());
+                        button => button.Disable()).Cast<DiscordActionRowComponent>())
+                    {
+                        responseBuilder.AddActionRowComponent(row);
+                    }
 
                     await interaction.EditOriginalResponseAsync(responseBuilder);
                 }

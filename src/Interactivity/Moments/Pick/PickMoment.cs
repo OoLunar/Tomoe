@@ -24,7 +24,7 @@ namespace OoLunar.Tomoe.Interactivity.Moments.Pick
 
             DiscordInteractionResponseBuilder responseBuilder = new(new DiscordMessageBuilder(interaction.Message));
             responseBuilder.ClearComponents();
-            responseBuilder.AddComponents(interaction.Message.Components.Mutate<DiscordSelectComponent>(
+            foreach (DiscordActionRowComponent row in interaction.Message.Components.Mutate<DiscordSelectComponent>(
                 select => select.CustomId.StartsWith(Id.ToString(), StringComparison.Ordinal),
                 select =>
                 {
@@ -42,7 +42,10 @@ namespace OoLunar.Tomoe.Interactivity.Moments.Pick
 
                     return new DiscordSelectComponent(select.CustomId, select.Placeholder, options, true, select.MinimumSelectedValues ?? 1, select.MaximumSelectedValues ?? 1);
                 }
-            ).Cast<DiscordActionRowComponent>());
+            ).Cast<DiscordActionRowComponent>())
+            {
+                responseBuilder.AddActionRowComponent(row);
+            }
 
             await interaction.CreateResponseAsync(DiscordInteractionResponseType.UpdateMessage, responseBuilder);
         }
