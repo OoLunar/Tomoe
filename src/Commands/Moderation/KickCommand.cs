@@ -6,7 +6,6 @@ using DSharpPlus.Commands.ContextChecks;
 using DSharpPlus.Commands.Trees;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
-using OoLunar.Tomoe.Database.Models;
 
 namespace OoLunar.Tomoe.Commands.Moderation
 {
@@ -23,11 +22,11 @@ namespace OoLunar.Tomoe.Commands.Moderation
         [Command("kick"), RequirePermissions(DiscordPermission.KickMembers)]
         public static async ValueTask ExecuteAsync(CommandContext context, DiscordUser user, [RemainingText] string? reason = null)
         {
-            if (await GuildMemberModel.IsUserAbsentAsync(user.Id, context.Guild!.Id))
-            {
-                await context.RespondAsync("This user isn't in the guild.");
-                return;
-            }
+            //if (await GuildMemberModel.IsUserAbsentAsync(user.Id, context.Guild!.Id))
+            //{
+            //    await context.RespondAsync("This user isn't in the guild.");
+            //    return;
+            //}
 
             // Defer since we're making multiple rest requests.
             await context.DeferResponseAsync();
