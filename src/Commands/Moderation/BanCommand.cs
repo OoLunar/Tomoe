@@ -7,7 +7,6 @@ using DSharpPlus.Commands.ContextChecks;
 using DSharpPlus.Commands.Trees;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
-using OoLunar.Tomoe.Database.Models;
 
 namespace OoLunar.Tomoe.Commands.Moderation
 {
@@ -27,11 +26,11 @@ namespace OoLunar.Tomoe.Commands.Moderation
         [Command("ban"), RequirePermissions(DiscordPermission.BanMembers)]
         public static async ValueTask ExecuteAsync(CommandContext context, DiscordUser user, [RemainingText] string? reason = null)
         {
-            if (await GuildMemberModel.IsUserBannedAsync(user.Id, context.Guild!.Id))
-            {
-                await context.RespondAsync("This user is already banned.");
-                return;
-            }
+            //if (await GuildMemberModel.IsUserBannedAsync(user.Id, context.Guild!.Id))
+            //{
+            //    await context.RespondAsync("This user is already banned.");
+            //    return;
+            //}
 
             // Defer since we're making multiple rest requests.
             await context.DeferResponseAsync();
