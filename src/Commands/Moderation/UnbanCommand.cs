@@ -56,9 +56,9 @@ namespace OoLunar.Tomoe.Commands.Moderation
                         DiscordMember member = await guild.GetMemberAsync(user.Id);
 
                         DiscordEmbedBuilder embedBuilder = new();
-                        embedBuilder.WithTitle($"You've been banned from {context.Guild!.Name}.");
-                        embedBuilder.WithDescription(string.IsNullOrWhiteSpace(reason) ? "No reason was provided for the ban." : $"Reason: {reason}");
-                        embedBuilder.AddField("Banned by", $"{context.User.Mention} (`{context.User.Id}`)");
+                        embedBuilder.WithTitle($"You've been unbanned from {context.Guild!.Name}.");
+                        embedBuilder.WithDescription(string.IsNullOrWhiteSpace(reason) ? "No reason was provided for the unban." : $"Reason: {reason}");
+                        embedBuilder.AddField("Unbanned by", $"{context.User.Mention} (`{context.User.Id}`)");
 
                         await member.SendMessageAsync(embedBuilder);
                         didDm = true;
