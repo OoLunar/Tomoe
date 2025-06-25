@@ -38,7 +38,7 @@ namespace OoLunar.Tomoe.Commands.Moderation
             {
                 if (context is not TextCommandContext textCommandContext || textCommandContext.Message.ReferencedMessage is null)
                 {
-                    await context.RespondAsync("Who am I supposed to mute? Is this some cruel joke?");
+                    await context.RespondAsync("Who am I muting?");
                     return;
                 }
 
