@@ -63,7 +63,7 @@ namespace OoLunar.Tomoe.Database.Models
             try
             {
                 Ulid id = Ulid.NewUlid();
-                _createItem.Parameters["@id"].Value = id;
+                _createItem.Parameters["@id"].Value = id.ToGuid();
                 _createItem.Parameters["@list_id"].Value = listId;
                 _createItem.Parameters["@content"].Value = content;
                 _createItem.Parameters["@is_checked"].Value = isChecked;
@@ -88,7 +88,7 @@ namespace OoLunar.Tomoe.Database.Models
             await _semaphore.WaitAsync();
             try
             {
-                _deleteItem.Parameters["@id"].Value = Id;
+                _deleteItem.Parameters["@id"].Value = Id.ToGuid();
                 return await _deleteItem.ExecuteNonQueryAsync() == 1;
             }
             finally
@@ -102,14 +102,14 @@ namespace OoLunar.Tomoe.Database.Models
             await _semaphore.WaitAsync();
             try
             {
-                _getAllItems.Parameters["@list_id"].Value = listId;
+                _getAllItems.Parameters["@list_id"].Value = listId.ToGuid();
                 await using NpgsqlDataReader reader = await _getAllItems.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
                 {
                     yield return new ListItemModel
                     {
-                        Id = reader.GetFieldValue<Ulid>(0),
-                        ListId = reader.GetFieldValue<Ulid>(1),
+                        Id = new Ulid(reader.GetGuid(0)),
+                        ListId = new Ulid(reader.GetGuid(1)),
                         Content = reader.GetString(2),
                         IsChecked = reader.GetBoolean(3)
                     };
@@ -126,12 +126,12 @@ namespace OoLunar.Tomoe.Database.Models
             await _semaphore.WaitAsync();
             try
             {
-                _getItem.Parameters["@id"].Value = id;
+                _getItem.Parameters["@id"].Value = id.ToGuid();
                 await using NpgsqlDataReader reader = await _getItem.ExecuteReaderAsync();
                 return !await reader.ReadAsync() ? null : new ListItemModel
                 {
-                    Id = reader.GetFieldValue<Ulid>(0),
-                    ListId = reader.GetFieldValue<Ulid>(1),
+                    Id = new Ulid(reader.GetGuid(0)),
+                    ListId = new Ulid(reader.GetGuid(1)),
                     Content = reader.GetString(2),
                     IsChecked = reader.GetBoolean(3)
                 };
@@ -147,7 +147,7 @@ namespace OoLunar.Tomoe.Database.Models
             await _semaphore.WaitAsync();
             try
             {
-                _updateItem.Parameters["@id"].Value = Id;
+                _updateItem.Parameters["@id"].Value = Id.ToGuid();
                 _updateItem.Parameters["@content"].Value = Content;
                 _updateItem.Parameters["@is_checked"].Value = IsChecked;
 
@@ -164,7 +164,7 @@ namespace OoLunar.Tomoe.Database.Models
             await _semaphore.WaitAsync();
             try
             {
-                _countItems.Parameters["@list_id"].Value = listId;
+                _countItems.Parameters["@list_id"].Value = listId.ToGuid();
                 return (int)(await _countItems.ExecuteScalarAsync())!;
             }
             finally

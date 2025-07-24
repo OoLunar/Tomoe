@@ -54,7 +54,7 @@ namespace OoLunar.Tomoe.Database.Models
             try
             {
                 Ulid id = Ulid.NewUlid();
-                _createList.Parameters["@id"].Value = id;
+                _createList.Parameters["@id"].Value = id.ToGuid();
                 _createList.Parameters["@user_id"].Value = (long)userId;
                 _createList.Parameters["@name"].Value = name;
 
@@ -77,7 +77,7 @@ namespace OoLunar.Tomoe.Database.Models
             await _semaphore.WaitAsync();
             try
             {
-                _deleteList.Parameters["@id"].Value = Id;
+                _deleteList.Parameters["@id"].Value = Id.ToGuid();
                 return await _deleteList.ExecuteNonQueryAsync() == 1;
             }
             finally
@@ -115,7 +115,7 @@ namespace OoLunar.Tomoe.Database.Models
             await _semaphore.WaitAsync();
             try
             {
-                _getListById.Parameters["@id"].Value = id;
+                _getListById.Parameters["@id"].Value = id.ToGuid();
 
                 await using NpgsqlDataReader reader = await _getListById.ExecuteReaderAsync();
                 return !await reader.ReadAsync() ? null : new ListModel
