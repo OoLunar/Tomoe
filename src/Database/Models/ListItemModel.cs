@@ -64,7 +64,7 @@ namespace OoLunar.Tomoe.Database.Models
             {
                 Ulid id = Ulid.NewUlid();
                 _createItem.Parameters["@id"].Value = id.ToGuid();
-                _createItem.Parameters["@list_id"].Value = listId;
+                _createItem.Parameters["@list_id"].Value = listId.ToGuid();
                 _createItem.Parameters["@content"].Value = content;
                 _createItem.Parameters["@is_checked"].Value = isChecked;
 
