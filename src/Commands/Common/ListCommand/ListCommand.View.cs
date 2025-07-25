@@ -33,7 +33,7 @@ namespace OoLunar.Tomoe.Commands.Common
 
             List<Page> pages = [];
             StringBuilder stringBuilder = new();
-            int totalItemCount = await ListItemModel.CountAsync(list.Id);
+            long totalItemCount = await ListItemModel.CountAsync(list.Id);
             int currentItemStart = 1;
             int currentItem = 1;
             await foreach (ListItemModel item in ListItemModel.GetAllAsync(list.Id))

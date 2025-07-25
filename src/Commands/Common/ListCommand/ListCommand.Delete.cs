@@ -26,7 +26,7 @@ namespace OoLunar.Tomoe.Commands.Common
                 return;
             }
 
-            int itemCount = await ListItemModel.CountAsync(list.Id);
+            long itemCount = await ListItemModel.CountAsync(list.Id);
             await list.DeleteAsync();
             await context.RespondAsync($"Deleted the list `{name}` with ID `{list.Id}`. You had {itemCount} items in this list, which have also been deleted.");
         }

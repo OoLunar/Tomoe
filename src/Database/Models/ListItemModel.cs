@@ -159,13 +159,13 @@ namespace OoLunar.Tomoe.Database.Models
             }
         }
 
-        public static async ValueTask<int> CountAsync(Ulid listId)
+        public static async ValueTask<long> CountAsync(Ulid listId)
         {
             await _semaphore.WaitAsync();
             try
             {
                 _countItems.Parameters["@list_id"].Value = listId.ToGuid();
-                return (int)(await _countItems.ExecuteScalarAsync())!;
+                return (long)(await _countItems.ExecuteScalarAsync())!;
             }
             finally
             {
