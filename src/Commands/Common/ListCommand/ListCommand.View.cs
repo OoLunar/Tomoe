@@ -38,7 +38,7 @@ namespace OoLunar.Tomoe.Commands.Common
             int currentItem = 1;
             await foreach (ListItemModel item in ListItemModel.GetAllAsync(list.Id))
             {
-                string line = $"- {(item.IsChecked ? ":white_check_mark:" : ":x:")} Added {Formatter.Timestamp(item.Id.Time)}: {item.Content}";
+                string line = $"- {(item.IsChecked ? ":white_check_mark:" : ":x:")} Added {Formatter.Timestamp(item.Id.Time)}: {item.Content.Replace("\n", "\n  ")}";
                 if (line.Length + stringBuilder.Length > 2000)
                 {
                     DiscordMessageBuilder messageBuilder = new();
@@ -47,7 +47,7 @@ namespace OoLunar.Tomoe.Commands.Common
                         Description = stringBuilder.ToString(),
                         Footer = new()
                         {
-                            Text = $"Currently viewing items {currentItemStart:N0}-{currentItem:N0} / {totalItemCount:N0}"
+                            Text = $"Currently viewing items {currentItemStart:N0}-{currentItem - 1:N0} / {totalItemCount:N0}"
                         }
                     });
 
@@ -67,7 +67,7 @@ namespace OoLunar.Tomoe.Commands.Common
                     Description = stringBuilder.ToString(),
                     Footer = new()
                     {
-                        Text = $"Currently viewing items {currentItemStart:N0}-{currentItem:N0} / {totalItemCount:N0}"
+                        Text = $"Currently viewing items {currentItemStart:N0}-{currentItem - 1:N0} / {totalItemCount:N0}"
                     }
                 });
 
