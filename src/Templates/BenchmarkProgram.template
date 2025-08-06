@@ -13,9 +13,9 @@ using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Exporters;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Order;
-using BenchmarkDotNet.Portability.Cpu;
 using BenchmarkDotNet.Reports;
 using BenchmarkDotNet.Running;
+using Perfolizer.Helpers;
 
 namespace OoLunar.Tomoe.Benchmarks
 {
@@ -44,8 +44,8 @@ namespace OoLunar.Tomoe.Benchmarks
 
             StringBuilder results = new();
             results.AppendLine("### Machine Information:");
-            results.AppendLine($"BenchmarkDotNet v{firstSummary.HostEnvironmentInfo.BenchmarkDotNetVersion}, {firstSummary.HostEnvironmentInfo.OsVersion.Value}");
-            results.AppendLine($"- {CpuInfoFormatter.Format(firstSummary.HostEnvironmentInfo.CpuInfo.Value)}");
+            results.AppendLine($"BenchmarkDotNet v{firstSummary.HostEnvironmentInfo.BenchmarkDotNetVersion}, {firstSummary.HostEnvironmentInfo.Os.Value}");
+            results.AppendLine($"- {firstSummary.HostEnvironmentInfo.Cpu.Value.ToFullBrandName()}");
             results.AppendLine($"- Hardware Intrinsics: {firstSummary.Reports[0].GetHardwareIntrinsicsInfo()?.Replace(",", ", ") ?? "Not supported."}");
             results.AppendLine($"- {firstSummary.HostEnvironmentInfo.RuntimeVersion}, {firstSummary.HostEnvironmentInfo.Architecture.ToLowerInvariant()}, {firstSummary.HostEnvironmentInfo.JitInfo}");
             results.AppendLine($"- Total Execution Time: {GetHumanizedNanoSeconds(summaries.Sum(summary => summary.TotalTime.TotalNanoseconds))}");

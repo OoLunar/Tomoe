@@ -43,10 +43,9 @@ namespace OoLunar.Tomoe.Benchmarks
                 // ** Remained 3 (75.0%) benchmark(s) to run. Estimated finish 2024-10-08 11:10 (0h 0m from now) **
                 else if (line.StartsWith("// ** Remained ") && line.Contains(" benchmark(s) to run. Estimated finish "))
                 {
-                    DateTime estimatedFinish;
                     string[] parts = line.Split(' ');
                     if (!int.TryParse(parts[3], NumberStyles.Integer, CultureInfo.InvariantCulture, out int number) ||
-                        !DateTime.TryParse(parts[10] + " " + parts[11], CultureInfo.InvariantCulture, DateTimeStyles.None, out estimatedFinish))
+                        !DateTime.TryParse(parts[10] + " " + parts[11], CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime estimatedFinish))
                     {
                         Console.WriteLine($"Failed to parse benchmark details: {line}");
                         continue;
