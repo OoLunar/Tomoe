@@ -59,12 +59,13 @@ namespace OoLunar.Tomoe.Commands.Common
                     : "No description provided."
                 );
 
-                if (embed.Fields.Count == 6 || index == commands.Count)
+                if (embed.Fields.Count == 6 || index == commands.Count - 1)
                 {
+                    int firstCommand = index - embed.Fields.Count + 2;
                     embed
                         .WithTitle("Commands")
                         .WithColor(0x6b73db)
-                        .WithFooter($"{index - 4}-{Math.Min(index + 1, commands.Count)}/{commands.Count} Top Level Commands");
+                        .WithFooter($"{firstCommand}-{Math.Min(index + 1, commands.Count)}/{commands.Count} Top Level Commands");
 
                     DiscordMessageBuilder messageBuilder = new DiscordMessageBuilder()
                         .AddEmbed(embed)
