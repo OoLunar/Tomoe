@@ -3,3 +3,10 @@ services:
     build: .
     env_file: .env
     restart: unless-stopped
+  postgres:
+    image: postgres:alpine
+    env_file: .env
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
