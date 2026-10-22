@@ -106,9 +106,6 @@ namespace OoLunar.Tomoe.Commands.Common
         /// <summary>
         /// Lists all reminders you have set.
         /// </summary>
-        /// <remarks>
-        /// Currently unfinished. Will only list the first 5 reminders.
-        /// </remarks>
         [Command("list")]
         public static async ValueTask ListAsync(CommandContext context)
         {

@@ -182,12 +182,15 @@ namespace OoLunar.Tomoe.Database.Models
                 _listReminders.Parameters["user_id"].Value = (long)userId;
 
                 await using NpgsqlDataReader reader = await _listReminders.ExecuteReaderAsync();
-                if (!reader.HasRows || !await reader.ReadAsync() || !TryParse(reader, out ReminderModel? reminder))
+                while (await reader.ReadAsync())
                 {
-                    yield break;
-                }
+                    if (!TryParse(reader, out ReminderModel? reminder))
+                    {
+                        continue;
+                    }
 
-                yield return reminder;
+                    yield return reminder;
+                }
             }
             finally
             {
@@ -216,11 +219,11 @@ namespace OoLunar.Tomoe.Database.Models
             UserId = (ulong)reader.GetInt64(1),
             GuildId = (ulong)reader.GetInt64(2),
             ChannelId = (ulong)reader.GetInt64(3),
-            MessageId = (ulong)reader.GetInt64(4),
-            ExpiresAt = (DateTimeOffset)reader.GetDateTime(5),
-            Interval = reader.GetTimeSpan(6),
-            Content = reader.GetString(7),
-            ThreadId = (ulong)reader.GetInt64(8),
+            ThreadId = (ulong)reader.GetInt64(4),
+            MessageId = (ulong)reader.GetInt64(5),
+            ExpiresAt = (DateTimeOffset)reader.GetDateTime(6),
+            Interval = reader.GetTimeSpan(7),
+            Content = reader.GetString(8),
         }) is not null;
 
         public static async ValueTask<bool> ExpireAsync(ReminderModel expirable, IServiceProvider serviceProvider)
